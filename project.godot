@@ -1,0 +1,25 @@
+config_version=5
+
+[application]
+
+config/name="Nowa Gra"
+run/main_scene="res://scenes/main.tscn"
+
+[rendering]
+
+textures/canvas_textures/default_texture_filter=0
+
+[display]
+
+window/size/viewport_width=640
+window/size/viewport_height=360
+window/stretch/mode="viewport"
+window/stretch/scale_mode="integer"
+
+[autoload]
+
+McpBridgeGame="*res://mcp_bridge_game.gd"
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/mcp_bridge/plugin.cfg")
