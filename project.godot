@@ -2,7 +2,7 @@ config_version=5
 
 [application]
 
-config/name="Nowa Gra"
+config/name="funtasy"
 run/main_scene="res://scenes/main.tscn"
 
 [rendering]
