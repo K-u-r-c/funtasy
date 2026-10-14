@@ -18,7 +18,7 @@ fi
 
 run() { # name, args...
 	local name=$1; shift
-	timeout 200 "$GODOT" --headless --path . -- --nosteam --profile=test_$name "$@" > "$OUT/$name.log" 2>&1
+	timeout 320 "$GODOT" --headless --path . -- --nosteam --profile=test_$name "$@" > "$OUT/$name.log" 2>&1
 	report "$name"
 }
 
@@ -39,10 +39,10 @@ report() {
 
 pair() { # name, host-args, client-args
 	local name=$1 hargs=$2 cargs=$3
-	timeout 200 "$GODOT" --headless --path . -- --nosteam --profile=test_$name-host --auto=host --players=2 $hargs > "$OUT/$name-host.log" 2>&1 &
+	timeout 320 "$GODOT" --headless --path . -- --nosteam --profile=test_$name-host --auto=host --players=2 $hargs > "$OUT/$name-host.log" 2>&1 &
 	local hp=$!
 	sleep 2
-	timeout 200 "$GODOT" --headless --path . -- --nosteam --profile=test_$name-client --auto=join $cargs > "$OUT/$name-client.log" 2>&1 &
+	timeout 320 "$GODOT" --headless --path . -- --nosteam --profile=test_$name-client --auto=join $cargs > "$OUT/$name-client.log" 2>&1 &
 	local cp=$!
 	wait $hp; wait $cp
 	report "$name-host"
@@ -72,6 +72,7 @@ if [ "$WHAT" = all ] || [ "$WHAT" = lan ]; then
 	echo "== LAN (2 instances)"
 	pair full-wm "--class=warrior --name=HostW --scenario=full --quit=220" "--class=mage --name=ClientM --quit=220"
 	pair full-pr "--class=priest --name=HostP --scenario=full --quit=220" "--class=ranger --name=ClientR --quit=220"
+	pair boss "--class=warrior --name=HostB --scenario=boss --quit=300" "--class=priest --name=ClientB --quit=300"
 	pair wipe "--class=ranger --name=HostWipe --scenario=wipe --quit=60" "--class=priest --name=ClientWipe --quit=60"
 fi
 if [ "$WHAT" = steam ]; then

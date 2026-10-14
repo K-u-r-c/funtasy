@@ -151,6 +151,8 @@ func _run() -> void:
 				await _classes_scenario()
 			"idle":
 				await _wait(9999.0)
+			"boss":
+				await _boss_scenario()
 			_:
 				await _wait(3.0)
 		_finish("scenario done")
@@ -589,6 +591,54 @@ func _reset_player(p: Player) -> void:
 		p.revive(1.0)
 	p.health.hp = p.health.max_hp
 	p.status.clear_all()
+
+
+## Both players kill the boss with their real skills (kept alive with i-frames so the test
+## doesn't depend on balance), then walk into the portal.
+func _boss_scenario() -> void:
+	var g := _game()
+	var host_p := _local()
+	await _wait_until(func(): return g.players_root.get_child_count() >= GameState.roster.size(), 10.0)
+	await _wait(1.0)
+	var boss: Enemy = _nearest_enemy(host_p.global_position, true)
+	var spot: Vector2 = g.nearest_floor(boss.global_position + Vector2(0, 100))
+	for p in g.players_root.get_children():
+		p.host_teleport(spot + Vector2(randf_range(-30, 30), 0))
+	await _wait(0.6)
+	if NetworkManager.has_remote_peers():
+		client_cmd.rpc("fight", true)
+	_fight = true
+	var t := 0.0
+	var start_hp := boss.health.hp
+	while is_instance_valid(boss) and boss.is_alive() and t < 240.0:
+		for p in g.players_root.get_children():
+			p.iframe_left = 2.0
+			if p.life_state != Player.Life.ALIVE:
+				p.revive(1.0)
+			if p.global_position.distance_to(boss.global_position) > 260.0:
+				p.host_teleport(g.nearest_floor(boss.global_position + Vector2(0, 90)))
+		await _wait(1.0)
+		t += 1.0
+	_fight = false
+	for a in ["attack", "skill_1", "skill_2", "skill_3", "skill_4", "skill_5"]:
+		Input.action_release(a)
+	if NetworkManager.has_remote_peers():
+		client_cmd.rpc("fight", false)
+	var dead := not is_instance_valid(boss) or not boss.is_alive()
+	check(dead, "players killed the boss with their skills in %d s (boss HP %d at start)" % [t, start_hp])
+	if not dead:
+		return
+	await _wait(1.0)
+	check(g.portal != null, "portal opened")
+	for p in g.players_root.get_children():
+		p.host_teleport(g.portal.global_position + Vector2(randf_range(-10, 10), 0))
+	var down := await _wait_until(func(): return g.depth == 2, 8.0)
+	check(down, "party reached floor 2 through the portal")
+	if NetworkManager.has_remote_peers():
+		client_cmd.rpc("check_depth", 2)
+		await _wait(0.5)
+		client_cmd.rpc("done", null)
+	await _wait(1.0)
 
 
 func _wipe_scenario() -> void:
