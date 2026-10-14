@@ -73,8 +73,7 @@ func check(ok: bool, what: String) -> void:
 
 func _finish(reason: String) -> void:
 	print("[test] SUMMARY %s: %d passed, %d failed (%s)" % [mode if not mode.is_empty() else scenario, passes, fails, reason])
-	NetworkManager.shutdown()
-	get_tree().quit(1 if fails > 0 else 0)
+	SceneManager.quit_game(1 if fails > 0 else 0)
 
 
 func _wait(t: float) -> void:
@@ -291,6 +290,11 @@ func _full_scenario() -> void:
 	# --- 1. Combat: client fights a monster with attack + skills 1-5 -----------------------
 	var target := _nearest_enemy(client_p.global_position)
 	var spot: Vector2 = g.nearest_floor(target.global_position + Vector2(-50, 0))
+	for off in [Vector2(-50, 0), Vector2(50, 0), Vector2(0, 50), Vector2(0, -50), Vector2(-35, 35), Vector2(35, -35)]:
+		var cand: Vector2 = g.nearest_floor(target.global_position + off)
+		if Combat.instance.has_los(cand, target.global_position):
+			spot = cand
+			break
 	client_p.host_teleport(spot)
 	host_p.host_teleport(g.nearest_floor(spot + Vector2(-30, 0)))
 	var xp_before := client_p.xp + client_p.level * 100000
@@ -330,6 +334,33 @@ func _full_scenario() -> void:
 	m.taunted_by(host_p, 3.0)
 	check(m.threat.update(0.1, m._valid_target) == host_p, "taunt forces the target")
 	m.queue_free()
+
+	# --- 2b. Monster abilities (melee, ranged, caster heal/curse/bolt) ------------------------
+	host_p.iframe_left = 30.0
+	var pack: Array = []
+	for mid in ["ghoul", "skeleton_archer", "cultist", "cultist"]:
+		pack.append(g.spawn_monster(mid, g.nearest_floor(host_p.global_position + Vector2(randf_range(-90, 90), randf_range(-60, 60))), false))
+	await _wait(0.3)
+	for e in pack:
+		e.add_threat(host_p, 5.0)
+	pack[0].health.hp = pack[0].health.max_hp * 0.3  # something for the cultists to heal
+	await _wait(12.0)
+	var m_uses := Combat.instance.get_meta("uses", {}) as Dictionary
+	for sid in ["ghoul_claw", "skeleton_arrow", "cultist_bolt", "cultist_curse", "cultist_mend"]:
+		var seen := false
+		for k in m_uses:
+			if str(k).ends_with(":" + sid):
+				seen = true
+		check(seen, "monster AI used %s" % sid)
+	for e in pack:
+		if is_instance_valid(e):
+			e.queue_free()
+	host_p.iframe_left = 0.0
+	_reset_player(host_p)
+	await _wait(0.3)
+
+	# --- 2c. Hazards + friendly fire -----------------------------------------------------------
+	await _hazard_checks(g, host_p, client_p)
 
 	# --- 3. Doors -----------------------------------------------------------------------------
 	var door: Node = g.dungeon.doors[0]
@@ -417,6 +448,24 @@ func _full_scenario() -> void:
 	var host_xp := host_p.xp + host_p.level * 100000
 	host_p.host_teleport(g.nearest_floor(boss.global_position + Vector2(0, 120)))
 	await _wait(0.5)
+	# Let the boss fight for real (host player immune) through both phases.
+	host_p.iframe_left = 60.0
+	boss.add_threat(host_p, 10.0)
+	await _wait(1.0)
+	check(g.boss_engaged, "boss engaged (boss music + HUD bar)")
+	await _wait(14.0)
+	host_p.iframe_left = 60.0
+	boss.health.hp = boss.health.max_hp * 0.45
+	await _wait(12.0)
+	check(boss.phase == 1 and boss.status.has("enrage"), "boss entered phase 2 (enraged)")
+	var boss_uses: Array = []
+	for k in (Combat.instance.get_meta("uses", {}) as Dictionary):
+		if str(k).begins_with(boss.name + ":"):
+			boss_uses.append(str(k).get_slice(":", 1))
+	for sid in ["bone_lord_cleave", "bone_lord_nova", "bone_lord_summon", "bone_lord_slam"]:
+		check(boss_uses.has(sid), "boss used %s" % sid)
+	host_p.iframe_left = 0.0
+	_reset_player(host_p)
 	var ctx := Combat.instance.make_ctx(host_p, GameData.skill(host_p.skills[0]))
 	ctx.crit_chance = 0.0
 	var guard := 0
@@ -445,6 +494,90 @@ func _full_scenario() -> void:
 	await _wait(1.0)
 
 
+func _hazard_checks(g: Node, host_p: Player, client_p: Player) -> void:
+	# Everything here runs in the start room: it has no props, monsters or hazards of its own.
+	var c: Vector2 = g.layout.start
+	_reset_player(host_p)
+	_reset_player(client_p)
+	# Explosive barrel destroyed by a player: monsters always hurt, allies only with friendly fire.
+	for ff in [false, true]:
+		GameState.set_setting("friendly_fire", ff)
+		var spot := c + Vector2(0, 40)
+		g.dungeon._add_prop("TestBarrel%s" % ff, "barrel_explosive", spot)
+		var ghoul: Enemy = g.spawn_monster("ghoul", spot + Vector2(30, 0), false)
+		host_p.host_teleport(c + Vector2(0, -90))
+		client_p.host_teleport(spot + Vector2(-30, 0))
+		await _wait(0.8)
+		ghoul.set_physics_process(false)
+		_reset_player(client_p)
+		client_p.iframe_left = 0.0
+		var hp_c := client_p.health.hp
+		var hp_g := ghoul.health.hp
+		g.dungeon.props["TestBarrel%s" % ff].take_damage(999.0, Combat.instance.make_ctx(host_p, GameData.skill(host_p.skills[0])))
+		await _wait(0.4)
+		check(ghoul.health.hp < hp_g, "player-triggered barrel explosion hurts monsters (FF %s)" % ff)
+		if ff:
+			check(client_p.health.hp < hp_c, "friendly fire ON: explosion hurts an ally")
+		else:
+			check(client_p.health.hp == hp_c, "friendly fire OFF: explosion spares allies")
+		ghoul.queue_free()
+		await _wait(0.2)
+	# A player's projectile vs an ally.
+	host_p.host_teleport(c + Vector2(-70, -40))
+	client_p.host_teleport(c + Vector2(70, -40))
+	await _wait(0.8)
+	var proj_skill := {"id": "test_bolt", "school": "spell", "effects": [{"type": "projectile", "sprite": "magic", "speed": 600, "range": 300, "radius": 8, "damage": {"base": 10, "coef": 0.0}}]}
+	var pctx := Combat.instance.make_ctx(host_p, proj_skill)
+	pctx.crit_chance = 0.0
+	for ff2 in [true, false]:
+		GameState.set_setting("friendly_fire", ff2)
+		_reset_player(client_p)
+		client_p.iframe_left = 0.0
+		var before := client_p.health.hp
+		Combat.instance.run_effect(proj_skill.effects[0], pctx, host_p.global_position, client_p.global_position)
+		await _wait(0.6)
+		if ff2:
+			check(client_p.health.hp < before, "friendly fire ON: projectile hits an ally")
+		else:
+			check(client_p.health.hp == before, "friendly fire OFF: projectile passes allies")
+	# Lava and spikes hurt players.
+	if not g.layout.lava_pools.is_empty():
+		var pool: Rect2i = g.layout.lava_pools[0]
+		_reset_player(client_p)
+		client_p.iframe_left = 0.0
+		client_p.host_teleport(g.dungeon.cell_center(pool.get_center()))
+		await _wait(1.3)
+		check(client_p.health.hp < client_p.health.max_hp, "standing in lava hurts")
+	else:
+		log_line("no lava on this floor, lava check skipped")
+	if not g.dungeon.spikes.is_empty():
+		_reset_player(client_p)
+		client_p.iframe_left = 0.0
+		client_p.host_teleport(g.dungeon.spikes[0].position)
+		await _wait(3.2)
+		check(client_p.health.hp < client_p.health.max_hp, "raised spikes hurt")
+	client_p.host_teleport(c + Vector2(40, 60))
+	_reset_player(client_p)
+	# A destructible prop between the viewer (host) and a monster hides it; breaking it reveals it.
+	host_p.host_teleport(c + Vector2(-100, 0))
+	await _wait(0.5)
+	var watcher: Enemy = g.spawn_monster("skeleton_archer", c + Vector2(60, 0), false)
+	await _wait(0.5)
+	watcher.set_physics_process(false)
+	await _wait(0.2)
+	check(watcher.visible, "monster in plain sight is visible")
+	g.dungeon._add_prop("TestCrate", "crate", c + Vector2(-20, 6))
+	await _wait(0.4)
+	check(not watcher.visible, "destructible prop blocks line of sight")
+	g.dungeon.props["TestCrate"].take_damage(999.0, Combat.instance.make_ctx(host_p, GameData.skill(host_p.skills[0])))
+	await _wait(0.4)
+	check(watcher.visible, "destroying the prop reveals the monster")
+	watcher.queue_free()
+	_reset_player(host_p)
+	_reset_player(client_p)
+	await _wait(0.2)
+
+
 func _reset_player(p: Player) -> void:
 	if p.life_state != Player.Life.ALIVE:
 		p.revive(1.0)
@@ -466,10 +599,21 @@ func _wipe_scenario() -> void:
 	check(back, "host returned to the lobby after the wipe")
 	if NetworkManager.has_remote_peers():
 		client_cmd.rpc("check_lobby", null)
-		await _wait(0.5)
+	await _wait(1.0)
+	check(host_p == null or not is_instance_valid(host_p), "game scene freed")
+	# A second run starts cleanly with the wiped characters.
+	await _wait_until(func(): return GameState.roster.size() >= (2 if NetworkManager.has_remote_peers() else 1), 10.0)
+	NetworkManager.start_run()
+	var again := await _wait_until(func(): return _game() != null and _game().depth == 1 and _game().players_root.get_child_count() == GameState.roster.size(), 20.0)
+	check(again, "second run started after the wipe with every player spawned")
+	if again:
+		await _wait(1.0)
+		var p2 := _local()
+		check(p2 != null and p2.inv.equipment.is_empty() and p2.is_alive(), "host starts the new run alive, in underwear")
+		check(not _game()._wiped, "wipe flag reset for the new run")
+	if NetworkManager.has_remote_peers():
 		client_cmd.rpc("done", null)
 	await _wait(0.5)
-	check(host_p == null or not is_instance_valid(host_p), "game scene freed")
 
 
 ## Solo: every class uses all 5 skills (switches class by restarting the run is out of scope,

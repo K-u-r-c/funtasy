@@ -276,7 +276,7 @@ func _process(_delta: float) -> void:
 			s.unaffordable = cost > 0.0 and player.resource.value + 0.01 < cost
 			s.queue_redraw()
 		for k in _quick:
-			_quick[k].cd_frac = clampf(player.item_cd_left / 8.0, 0.0, 1.0)
+			_quick[k].cd_frac = clampf(player.item_cd_left / maxf(player.item_cd_total, 0.01), 0.0, 1.0)
 			_quick[k].cd_left = player.item_cd_left
 			_quick[k].queue_redraw()
 		_dodge_slot.cd_left = player._dodge_cd

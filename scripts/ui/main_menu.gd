@@ -177,8 +177,7 @@ func open_settings() -> void:
 
 
 func _quit() -> void:
-	NetworkManager.shutdown()
-	get_tree().quit()
+	SceneManager.quit_game()
 
 
 func _on_host_steam() -> void:

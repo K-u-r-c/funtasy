@@ -327,6 +327,3 @@ func _reset() -> void:
 	leave()
 
 
-func _notification(what: int) -> void:
-	if what == NOTIFICATION_WM_CLOSE_REQUEST:
-		shutdown()

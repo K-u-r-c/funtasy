@@ -13,6 +13,15 @@
 [node name="Game" type="Node2D" groups=["game"]]
 script = ExtResource("1_game")
 
+[node name="PlayerSpawner" type="MultiplayerSpawner" parent="."]
+spawn_path = NodePath("../Entities/Players")
+
+[node name="EnemySpawner" type="MultiplayerSpawner" parent="."]
+spawn_path = NodePath("../Entities/Enemies")
+
+[node name="ItemSpawner" type="MultiplayerSpawner" parent="."]
+spawn_path = NodePath("../Entities/Items")
+
 [node name="Ambient" type="CanvasModulate" parent="."]
 color = Color(0.06, 0.05, 0.08, 1)
 
@@ -60,12 +69,3 @@ script = ExtResource("8_fx")
 
 [node name="Loot" type="Node" parent="."]
 script = ExtResource("9_loot")
-
-[node name="PlayerSpawner" type="MultiplayerSpawner" parent="."]
-spawn_path = NodePath("../Entities/Players")
-
-[node name="EnemySpawner" type="MultiplayerSpawner" parent="."]
-spawn_path = NodePath("../Entities/Enemies")
-
-[node name="ItemSpawner" type="MultiplayerSpawner" parent="."]
-spawn_path = NodePath("../Entities/Items")

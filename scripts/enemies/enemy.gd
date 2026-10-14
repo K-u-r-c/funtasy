@@ -198,7 +198,7 @@ func _ability_usable(skill: Dictionary, dist: float, los: bool) -> bool:
 			"melee":
 				return dist <= float(eff.range) + target.radius and los
 			"projectile":
-				return dist <= float(eff.range) * 0.85 and los
+				return dist <= float(eff.range) * float(GameData.bal("ai.projectile_range_use")) and los
 			"aoe":
 				if eff.get("at", "self") == "self":
 					return dist <= float(eff.radius)
@@ -216,7 +216,7 @@ func _is_heal(skill: Dictionary) -> bool:
 
 func _hurt_ally(r: float) -> Actor:
 	var best: Actor = null
-	var best_f := 0.7
+	var best_f := float(GameData.bal("ai.heal_ally_below"))
 	for e in get_tree().get_nodes_in_group("enemies"):
 		if e.is_alive() and e.global_position.distance_to(global_position) <= r and e.health.fraction() < best_f:
 			best_f = e.health.fraction()
@@ -300,7 +300,7 @@ func host_dash(dest: Vector2, duration: float) -> void:
 
 
 func host_knockback(push: Vector2) -> void:
-	var resist := 0.25 if is_boss else 1.0
+	var resist := float(GameData.bal("ai.boss_knockback_taken")) if is_boss else 1.0
 	_knock += push * resist
 
 

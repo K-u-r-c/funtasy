@@ -12,6 +12,7 @@ Each one is an assumption that can be changed; most are a single value in `data/
 | Data format | **JSON** in `data/` (CLAUDE.md allows `.tres` or JSON). Easier to hand-edit; validated at startup by `GameData` (missing keys / unknown references are reported as errors). | `autoload/game_data.gd` |
 | Asset swapping | Every texture/sound is looked up by key in `data/assets.json`. Character/monster art is a folder per set with one sheet per animation: rows = 8 directions (E, SE, S, SW, W, NW, N, NE), columns = frames. Frame counts/fps are in the same file. | `data/assets.json`, `tools/gen_placeholders.gd` |
 | Renderer | Default Forward+ (works on Windows/Linux/macOS 4.x). 2D lights with shadows, glow via `WorldEnvironment` in canvas mode. | `scripts/dungeon/game.gd` |
+| Spawner order | In `game.tscn` the `MultiplayerSpawner`s come **before** the nodes they spawn into. With the opposite order, Godot 4.7.2 *release* builds print "Attempt to disconnect a nonexistent connection ... tree_exiting" for every spawned node when the scene is freed (engine bug, reproduced in a minimal project; debug builds are fine). | `scenes/dungeon/game.tscn` |
 | Headless audio | Nothing is played in headless runs (dummy audio driver reports playing streams as leaks, which would hide real errors in test logs). | `autoload/audio_manager.gd` |
 
 ## Networking
@@ -30,7 +31,7 @@ Each one is an assumption that can be changed; most are a single value in `data/
 
 | Topic | Decision | Where |
 | --- | --- | --- |
-| Vision | Each player sees enemies only through their **own** line of sight (default from CLAUDE.md). A host setting `shared_vision` (default off) uses every teammate's sight. Sight range 430 px, grid FOV radius 13 cells. | `data/game_settings.json`, `scripts/dungeon/visibility.gd` |
+| Vision | Each player sees enemies only through their **own** line of sight (default from CLAUDE.md). A host setting `shared_vision` (default off) uses every teammate's sight. Sight range 430 px, grid FOV radius 13 cells. | `data/game_settings.json`, `balance.vision` |
 | Fog memory | Seen cells stay "discovered" (dimmed) on the map/minimap; enemies are never drawn there. | `visibility.gd`, `minimap.gd` |
 | Doors | Players toggle doors with Interact; a door can't be closed on someone standing in the doorway. Monsters open closed doors after `world.door_enemy_open_delay` (1.2 s); they don't break them. | `door.gd`, `enemy.gd` |
 | Friendly fire | Lobby setting, default off. When on, players' projectiles, AoEs, explosions and traps also hit allies (never the caster). Melee never hurts allies. | `combat.gd` `hostile_in_radius` |

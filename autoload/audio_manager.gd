@@ -137,8 +137,10 @@ func _make_music_player() -> AudioStreamPlayer:
 	return p
 
 
-func _exit_tree() -> void:
-	# Stop everything so no playback outlives the AudioServer at shutdown.
+func stop_all() -> void:
+	if _fade and _fade.is_valid():
+		_fade.kill()
+	_current_key = ""
 	for p in [_music_a, _music_b]:
 		p.stop()
 		p.stream = null
@@ -149,3 +151,7 @@ func _exit_tree() -> void:
 		p.stop()
 		p.stream = null
 	_cache.clear()
+
+
+func _exit_tree() -> void:
+	stop_all()

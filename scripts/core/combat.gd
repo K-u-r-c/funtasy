@@ -339,7 +339,7 @@ func apply_status(ctx: Dictionary, target: Actor, id: String, duration: float, m
 	var def: Dictionary = GameData.status_effects.get(id, {})
 	if def.get("debuff", false):
 		if target.has_method("add_threat") and is_instance_valid(ctx.caster):
-			target.add_threat(ctx.caster, 5.0 * float(ctx.threat_mult))
+			target.add_threat(ctx.caster, float(GameData.bal("threat.debuff_threat")) * float(ctx.threat_mult))
 		if target.has_method("add_contribution") and int(ctx.peer) > 0:
 			target.add_contribution(int(ctx.peer))
 	elif target != ctx.caster:

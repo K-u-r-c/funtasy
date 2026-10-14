@@ -9,9 +9,16 @@ mkdir -p "$OUT"
 WHAT=${1:-all}
 status=0
 
+# Every test instance uses its own throw-away profile (user://profiles/test_*), so real
+# characters and settings are never touched.
+USERDIR=$("$GODOT" --headless --path . -s tools/print_user_dir.gd 2>/dev/null | grep '^USERDIR=' | cut -d= -f2)
+if [ -n "$USERDIR" ] && [ -d "$USERDIR/profiles" ]; then
+	rm -rf "$USERDIR"/profiles/test_*
+fi
+
 run() { # name, args...
 	local name=$1; shift
-	timeout 200 "$GODOT" --headless --path . -- --nosteam "$@" > "$OUT/$name.log" 2>&1
+	timeout 200 "$GODOT" --headless --path . -- --nosteam --profile=test_$name "$@" > "$OUT/$name.log" 2>&1
 	report "$name"
 }
 
@@ -32,10 +39,10 @@ report() {
 
 pair() { # name, host-args, client-args
 	local name=$1 hargs=$2 cargs=$3
-	timeout 200 "$GODOT" --headless --path . -- --nosteam --auto=host --players=2 $hargs > "$OUT/$name-host.log" 2>&1 &
+	timeout 200 "$GODOT" --headless --path . -- --nosteam --profile=test_$name-host --auto=host --players=2 $hargs > "$OUT/$name-host.log" 2>&1 &
 	local hp=$!
 	sleep 2
-	timeout 200 "$GODOT" --headless --path . -- --nosteam --auto=join $cargs > "$OUT/$name-client.log" 2>&1 &
+	timeout 200 "$GODOT" --headless --path . -- --nosteam --profile=test_$name-client --auto=join $cargs > "$OUT/$name-client.log" 2>&1 &
 	local cp=$!
 	wait $hp; wait $cp
 	report "$name-host"
@@ -55,8 +62,10 @@ if [ "$WHAT" = all ] || [ "$WHAT" = quick ]; then
 		run "classes-$c" --auto=solo --class=$c --name=Solo$c --scenario=classes --quit=60
 	done
 	run gamepad --auto=solo --class=warrior --name=PadTester --scenario=gamepad --quit=60
-	run rebind --scenario=rebind --quit=20
-	run rebind-check --scenario=rebind_check --quit=20
+	timeout 60 "$GODOT" --headless --path . -- --nosteam --profile=test_rebind --scenario=rebind --quit=20 > "$OUT/rebind.log" 2>&1
+	report rebind
+	timeout 60 "$GODOT" --headless --path . -- --nosteam --profile=test_rebind --scenario=rebind_check --quit=20 > "$OUT/rebind-check.log" 2>&1
+	report rebind-check
 fi
 if [ "$WHAT" = all ] || [ "$WHAT" = lan ]; then
 	echo "== LAN (2 instances)"
@@ -66,7 +75,7 @@ if [ "$WHAT" = all ] || [ "$WHAT" = lan ]; then
 fi
 if [ "$WHAT" = steam ]; then
 	echo "== Steam"
-	timeout 60 "$GODOT" --headless --path . -- --auto=steamhost --quit=40 > "$OUT/steam.log" 2>&1
+	timeout 60 "$GODOT" --headless --path . -- --profile=test_steam --auto=steamhost --quit=40 > "$OUT/steam.log" 2>&1
 	report steam
 fi
 echo "logs: $OUT"

@@ -11,6 +11,7 @@ var _queued: Array = []  ## [path, message] requested while a transition was run
 
 func _ready() -> void:
 	UITheme.install(get_tree().root)
+	get_tree().auto_accept_quit = false
 	layer = 100
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_fade = ColorRect.new()
@@ -49,3 +50,19 @@ func take_message() -> String:
 	var m := message
 	message = ""
 	return m
+
+
+## The only way the game quits: closes the session, lets the audio server release its streams
+## (otherwise they are reported as leaked at exit), then quits.
+func quit_game(code: int = 0) -> void:
+	NetworkManager.shutdown()
+	AudioManager.stop_all()
+	await get_tree().process_frame
+	await get_tree().process_frame
+	await get_tree().create_timer(0.1).timeout
+	get_tree().quit(code)
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_CLOSE_REQUEST:
+		quit_game()

@@ -314,7 +314,20 @@ func _check_wipe() -> void:
 		GameState.characters[p.peer_id] = ch
 		GameState.push_character_to_owner(p.peer_id)
 	_show_wipe.rpc(depth)
-	get_tree().create_timer(6.0).timeout.connect(NetworkManager.return_to_lobby)
+	get_tree().create_timer(6.0).timeout.connect(_end_run)
+
+
+## Host: despawn every replicated node first so clients get the despawns while they still have
+## the game scene, then send everyone back to the lobby.
+func _end_run() -> void:
+	_stop_owner_sync.rpc()
+	await get_tree().create_timer(0.3).timeout
+	combat.clear_floor()
+	for root in [items_root, enemies_root, players_root]:
+		for c in root.get_children():
+			c.queue_free()
+	await get_tree().create_timer(0.3).timeout
+	NetworkManager.return_to_lobby()
 
 
 func _on_peer_disconnected(id: int) -> void:
@@ -348,6 +361,16 @@ func _build_floor(new_depth: int, floor_seed: int, ft_id: String) -> void:
 	AudioManager.play_music(str(floor_def.music))
 	EventBus.floor_started.emit(new_depth)
 	EventBus.hud_message.emit("%s - Floor %d" % [floor_def.name, new_depth], Color(0.95, 0.75, 0.4))
+
+
+## Host -> all (reliable): owners stop streaming their position before the run is torn down,
+## so no packet arrives for an already freed player node.
+@rpc("authority", "call_local", "reliable")
+func _stop_owner_sync() -> void:
+	for p in players_root.get_children():
+		var s: MultiplayerSynchronizer = p.get_node_or_null("OwnerSync")
+		if s:
+			s.public_visibility = false
 
 
 @rpc("authority", "call_local", "reliable")

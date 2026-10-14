@@ -18,7 +18,13 @@
 		"revive_hp_fraction": 0.35,
 		"next_floor_hp_fraction": 0.5,
 		"movement_tolerance": 1.6,
-		"respawn_invuln": 2.0
+		"respawn_invuln": 2.0,
+		"gamepad_aim_distance": 150,
+		"dash_iframe_ratio": 0.8
+	},
+	"vision": {
+		"sight_range": 430,
+		"fov_radius": 13
 	},
 	"stats": {
 		"hp_per_stamina": 4,
@@ -59,7 +65,8 @@
 		"switch_ratio": 1.15,
 		"taunt_bonus": 1.2,
 		"aggro_share_radius": 160,
-		"forget_time": 12.0
+		"forget_time": 12.0,
+		"debuff_threat": 5
 	},
 	"progression": {
 		"xp_base": 100,
@@ -101,7 +108,10 @@
 		"path_interval": 0.5,
 		"leash_time": 8.0,
 		"separation_radius": 22,
-		"separation_force": 60
+		"separation_force": 60,
+		"projectile_range_use": 0.85,
+		"heal_ally_below": 0.7,
+		"boss_knockback_taken": 0.25
 	},
 	"hazards": {
 		"lava_damage": 10,

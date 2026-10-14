@@ -3,10 +3,23 @@ extends Node
 ## - user://settings.cfg: one ConfigFile shared by video/audio/input settings. Every writer
 ##   goes through write_section() so saving one section never wipes the others.
 ## - user://characters/<key>.json: one file per character (name + class).
+## Launching with the user arg --profile=<name> moves both under user://profiles/<name>/
+## (used by the automated tests so they never touch real saves and settings).
 
-const SETTINGS_PATH := "user://settings.cfg"
-const CHAR_DIR := "user://characters/"
 const SAVE_VERSION := 1
+
+var base_dir := "user://"
+var SETTINGS_PATH := "user://settings.cfg"
+var CHAR_DIR := "user://characters/"
+
+
+func _init() -> void:
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--profile="):
+			base_dir = "user://profiles/%s/" % a.get_slice("=", 1).validate_filename()
+			DirAccess.make_dir_recursive_absolute(base_dir)
+	SETTINGS_PATH = base_dir + "settings.cfg"
+	CHAR_DIR = base_dir + "characters/"
 
 
 func read_section(section: String) -> Dictionary:

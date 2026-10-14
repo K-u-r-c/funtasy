@@ -16,7 +16,7 @@ var game: Node
 var viewer: Node2D
 var vision_light: PointLight2D
 var fov_radius := 13
-var sight_range := 430.0
+var sight_range := 430.0  ## both overwritten from balance.vision in _ready
 
 var _fog_img: Image
 var _fog_tex: ImageTexture
@@ -28,6 +28,8 @@ var _opaque := PackedByteArray()
 
 
 func _ready() -> void:
+	fov_radius = int(GameData.bal("vision.fov_radius"))
+	sight_range = float(GameData.bal("vision.sight_range"))
 	vision_light = PointLight2D.new()
 	vision_light.texture = GameData.texture("fx.light")
 	vision_light.texture_scale = sight_range / 110.0

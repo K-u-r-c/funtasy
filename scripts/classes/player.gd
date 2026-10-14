@@ -32,6 +32,7 @@ var aim_pos := Vector2.ZERO
 var inv := Inventory.new()  ## host: authoritative; owner: last snapshot from the host
 var local_cd: Dictionary = {}  ## owner: slot -> [left, total]
 var item_cd_left := 0.0
+var item_cd_total := 1.0
 
 # Host-only state
 var iframe_left := 0.0
@@ -272,7 +273,7 @@ func _update_aim(move_dir: Vector2) -> void:
 			facing = stick.normalized()
 		elif move_dir != Vector2.ZERO:
 			facing = move_dir.normalized()
-		aim_pos = global_position + facing * 150.0
+		aim_pos = global_position + facing * float(GameData.bal("player.gamepad_aim_distance"))
 	else:
 		aim_pos = get_global_mouse_position()
 		var d := aim_pos - global_position
@@ -547,6 +548,7 @@ func _owner_knockback(push: Vector2) -> void:
 @rpc("authority", "call_local", "reliable")
 func _item_used(cd: float) -> void:
 	item_cd_left = cd
+	item_cd_total = cd
 
 
 # =========================================================================================
@@ -562,7 +564,7 @@ func host_teleport(pos: Vector2) -> void:
 
 
 func host_dash(dest: Vector2, duration: float) -> void:
-	iframe_left = maxf(iframe_left, duration * 0.8)
+	iframe_left = maxf(iframe_left, duration * float(GameData.bal("player.dash_iframe_ratio")))
 	_move_allowance = duration + 0.4
 	_owner_dash.rpc_id(peer_id, dest, duration)
 
