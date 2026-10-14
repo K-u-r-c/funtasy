@@ -1,25 +1,46 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
 config_version=5
 
 [application]
 
 config/name="funtasy"
-run/main_scene="res://scenes/main.tscn"
+run/main_scene="res://scenes/ui/main_menu.tscn"
+config/features=PackedStringArray("4.7")
 
-[rendering]
+[autoload]
 
-textures/canvas_textures/default_texture_filter=0
+McpBridgeGame="*res://mcp_bridge_game.gd"
+Settings="*res://scripts/autoload/settings.gd"
+SceneManager="*res://scripts/autoload/scene_manager.gd"
+Net="*res://scripts/autoload/net.gd"
+DevAuto="*res://scripts/dev/dev_auto.gd"
 
 [display]
 
 window/size/viewport_width=640
 window/size/viewport_height=360
+window/size/window_width_override=1280
+window/size/window_height_override=720
 window/stretch/mode="viewport"
 window/stretch/scale_mode="integer"
-
-[autoload]
-
-McpBridgeGame="*res://mcp_bridge_game.gd"
 
 [editor_plugins]
 
 enabled=PackedStringArray("res://addons/mcp_bridge/plugin.cfg")
+
+[layer_names]
+
+2d_physics/layer_1="world"
+2d_physics/layer_2="players"
+2d_physics/layer_3="enemies"
+
+[rendering]
+
+textures/canvas_textures/default_texture_filter=0
