@@ -17,6 +17,7 @@ var _cache: Dictionary = {}
 ## Headless test runs use the dummy audio driver; streams still playing there are reported as
 ## leaked at exit, which would drown real errors in the test logs. So nothing plays headless.
 var _headless := DisplayServer.get_name() == "headless"
+var _closed := false  ## set while quitting: nothing new may start playing
 
 
 func _ready() -> void:
@@ -41,7 +42,7 @@ func _ready() -> void:
 func play_music(key: String, fade_time: float = -1.0) -> void:
 	if key == _current_key:
 		return
-	if _headless:
+	if _headless or _closed:
 		_current_key = key
 		return
 	if fade_time < 0.0:
@@ -73,7 +74,7 @@ func stop_music(fade_time: float = 1.0) -> void:
 
 
 func play_sfx(key: String, pitch_jitter: float = 0.05) -> void:
-	if _headless:
+	if _headless or _closed:
 		return
 	var stream := _stream("sfx." + key)
 	if stream == null:
@@ -87,7 +88,7 @@ func play_sfx(key: String, pitch_jitter: float = 0.05) -> void:
 
 
 func play_sfx_at(key: String, pos: Vector2, pitch_jitter: float = 0.08) -> void:
-	if _headless:
+	if _headless or _closed:
 		return
 	var stream := _stream("sfx." + key)
 	if stream == null:
@@ -135,6 +136,12 @@ func _make_music_player() -> AudioStreamPlayer:
 	p.volume_db = -60.0
 	add_child(p)
 	return p
+
+
+## Called when the game quits.
+func close() -> void:
+	_closed = true
+	stop_all()
 
 
 func stop_all() -> void:

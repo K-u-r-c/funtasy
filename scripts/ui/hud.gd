@@ -35,6 +35,8 @@ var _overlay: Control
 var _radial: Control
 var _wipe: Control
 var _dodge_slot: Control
+var _last_message := ""
+var _last_message_at := 0
 
 
 func _ready() -> void:
@@ -347,6 +349,12 @@ func set_portal_status(inside: int, alive: int) -> void:
 
 
 func show_message(text: String, color: Color = Color.WHITE) -> void:
+	# The same message again within a moment (e.g. holding a skill without resource) is dropped.
+	var now := Time.get_ticks_msec()
+	if text == _last_message and now - _last_message_at < 1500:
+		return
+	_last_message = text
+	_last_message_at = now
 	var l := UITheme.label(text, color, 16)
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	l.add_theme_color_override("font_outline_color", Color.BLACK)

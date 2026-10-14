@@ -24,12 +24,16 @@ manual run noted here.
 - [x] Lighting (vision light with shadows, torches, lava, item and spell lights), glow, particles, screen shake
 - [x] Audio manager with crossfaded floor/boss music and pooled SFX (placeholder files)
 - [x] HUD, minimap, map, inventory, talents, pause, options; gamepad navigation (verified in-game overlays)
-- [x] Export presets (Windows/Linux/macOS); exported PCK verified to run on Linux
+- [x] Export presets (Windows/Linux/macOS): all three export with the official 4.7.2 templates; the Linux
+      release build runs headless (class test) and windowed with no errors
+- [x] Steam: lobby creation, tagged lobby listing and SteamMultiplayerPeer hosting (automated, `run_tests.sh steam`)
+- [x] Gamepad drives menus end to end (main menu -> options rebinding -> lobby -> run -> overlays), simulated events
 
 ## Not verified / open
 
-- [ ] Windows and macOS builds: no export templates installed on the dev machine, so only the Linux PCK was
-      exported and run. Install templates and run `--export-release` for each preset.
+- [ ] Windows and macOS builds export fine but could not be *run* here (Linux dev machine). Smoke-test them
+      (`--auto=solo --scenario=classes` works on any platform).
+- [ ] macOS export is unsigned (codesign/notarization off): Gatekeeper needs right-click -> Open.
 - [ ] Steam with two real accounts (automated test covers lobby creation/listing and the Steam peer only).
 - [ ] Physical gamepad: tested with simulated joypad events only.
 - [ ] Final art (Pixellab) and music (Suno): replace placeholders via `data/assets.json`.
@@ -42,3 +46,7 @@ manual run noted here.
 - Monsters path on a tile grid (AStarGrid2D) and use simple separation; large packs can bunch up in corridors.
 - Spikes animate from each peer's floor clock (resynced every 5 s); visual timing can differ by a frame or two.
 - Doors are drawn with placeholder sprites; vertical (side) doors are approximated.
+- The `mcp_bridge_game.gd` autoload (editor tooling) is part of the project and also opens a local
+  debug port in exported builds; remove it from the autoloads before shipping.
+- Every monster streams its position at 20 Hz; fine for LAN/Steam at MVP sizes, but a candidate for
+  relevance filtering if bandwidth becomes an issue.

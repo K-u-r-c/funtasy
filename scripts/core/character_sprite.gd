@@ -125,6 +125,12 @@ static func _frames_for(key: String) -> SpriteFrames:
 		if not ResourceLoader.exists(path):
 			continue
 		var tex: Texture2D = load(path)
+		# Optional normal maps (e.g. from Pixellab): same layout in entry.normal.
+		if entry.has("normal") and ResourceLoader.exists(str(entry.normal) + a + ".png"):
+			var ct := CanvasTexture.new()
+			ct.diffuse_texture = tex
+			ct.normal_texture = load(str(entry.normal) + a + ".png")
+			tex = ct
 		var frames := int(anims[a].frames)
 		for d in 8:
 			var an := "%s_%d" % [a, d]

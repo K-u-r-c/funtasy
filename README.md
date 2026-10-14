@@ -107,7 +107,8 @@ All assets are referenced by key in **`data/assets.json`**; nothing else needs t
   (`idle, walk, attack, cast, dash, hit, downed, death, ghost`). Each sheet: **8 rows** in the
   order **E, SE, S, SW, W, NW, N, NE**, one column per frame, 64x64 frames (monsters may use other
   sizes via `frame_size`). Frame counts and FPS are set in `characters.anims` (override per set
-  with an `anims` key). Equipment layers (`head_*`, `chest_*`, `weapon_*`, ...) use the same
+  with an `anims` key). Add `"normal": "res://.../normals/"` with the same sheet layout to light
+  the set with normal maps. Equipment layers (`head_*`, `chest_*`, `weapon_*`, ...) use the same
   layout and are drawn on top of `body_human`; they are tinted by the item color, so light/grey
   art works best.
 - **Tiles**: one atlas per floor type (`tiles.crypt`), cell coordinates listed in the registry.
@@ -130,14 +131,17 @@ tools/run_tests.sh lan      # only the 2-instance LAN scenarios
 tools/run_tests.sh steam    # Steam lobby smoke test (Steam client must be running)
 ```
 
+Visual tour (windowed): `godot --path . -- --scenario=shots --shot=/tmp/shots --class=mage` saves
+screenshots of every screen.
+
 The tests drive real game instances headless through `autoload/dev_auto.gd`
 (`--auto=host|join|solo --scenario=...`); see that file for the scenarios. Note that test runs
 create test characters in `user://characters/`.
 
 ## Exporting
 
-`export_presets.cfg` contains Windows, Linux and macOS presets. Install the Godot 4.7 export
-templates (Editor -> Manage Export Templates), then e.g.
+`export_presets.cfg` contains Windows, Linux and macOS presets (macOS is unsigned). Install the
+Godot 4.7.2 export templates (Editor -> Manage Export Templates), then e.g.
 
 ```sh
 godot --headless --path . --export-release "Linux" build/linux/funtasy.x86_64

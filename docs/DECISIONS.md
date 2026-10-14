@@ -13,6 +13,8 @@ Each one is an assumption that can be changed; most are a single value in `data/
 | Asset swapping | Every texture/sound is looked up by key in `data/assets.json`. Character/monster art is a folder per set with one sheet per animation: rows = 8 directions (E, SE, S, SW, W, NW, N, NE), columns = frames. Frame counts/fps are in the same file. | `data/assets.json`, `tools/gen_placeholders.gd` |
 | Renderer | Default Forward+ (works on Windows/Linux/macOS 4.x). 2D lights with shadows, glow via `WorldEnvironment` in canvas mode. | `scripts/dungeon/game.gd` |
 | Spawner order | In `game.tscn` the `MultiplayerSpawner`s come **before** the nodes they spawn into. With the opposite order, Godot 4.7.2 *release* builds print "Attempt to disconnect a nonexistent connection ... tree_exiting" for every spawned node when the scene is freed (engine bug, reproduced in a minimal project; debug builds are fine). | `scenes/dungeon/game.tscn` |
+| Lobby settings | The "GameSettings resource" is a plain Dictionary (id -> value) built from `data/game_settings.json`; the host replicates it with one RPC and the lobby UI is generated from the same list, so adding a setting = adding a JSON entry. | `autoload/game_state.gd`, `scripts/ui/lobby.gd` |
+| Test isolation | `--profile=<name>` redirects saves and settings to `user://profiles/<name>/`; the test runner uses throw-away `test_*` profiles. | `autoload/save_system.gd` |
 | Headless audio | Nothing is played in headless runs (dummy audio driver reports playing streams as leaks, which would hide real errors in test logs). | `autoload/audio_manager.gd` |
 
 ## Networking

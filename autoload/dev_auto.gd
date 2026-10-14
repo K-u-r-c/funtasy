@@ -50,7 +50,7 @@ func _ready() -> void:
 		char_name = "Test%s" % mode.capitalize()
 	if quit_after > 0.0:
 		get_tree().create_timer(quit_after).timeout.connect(_finish.bind("timeout"))
-	if not shot.is_empty():
+	if not shot.is_empty() and scenario != "shots":
 		get_tree().create_timer(shot_at).timeout.connect(func():
 			get_viewport().get_texture().get_image().save_png(shot)
 			log_line("screenshot saved to %s" % shot))
@@ -100,6 +100,9 @@ func _run() -> void:
 	match scenario:
 		"gamepad_menu":
 			await _gamepad_menu_flow()
+			return
+		"shots":
+			await _shots_flow()
 			return
 		"rebind":
 			_rebind_test()
@@ -712,6 +715,96 @@ func _gamepad_scenario() -> void:
 	_joy_button(JOY_BUTTON_B, false)
 	await _wait(0.2)
 	check(not hud.has_overlay(), "B closes the pause menu")
+
+
+func _snap(dir: String, name_: String) -> void:
+	await get_tree().process_frame
+	await get_tree().process_frame
+	get_viewport().get_texture().get_image().save_png(dir.path_join(name_ + ".png"))
+	log_line("shot " + name_)
+
+
+## Windowed screenshot tour of every screen (visual review), e.g.
+##   godot --path . -- --scenario=shots --shot=/tmp/shots --class=warrior
+func _shots_flow() -> void:
+	var dir := shot if not shot.is_empty() else OS.get_user_data_dir().path_join("shots")
+	DirAccess.make_dir_recursive_absolute(dir)
+	await _wait(1.2)
+	await _snap(dir, "01_main_menu")
+	get_tree().current_scene.open_settings()
+	await _wait(0.5)
+	get_tree().current_scene._overlay._tabs.current_tab = 2
+	await _wait(0.3)
+	await _snap(dir, "02_options_controls")
+	get_tree().current_scene._overlay._close()
+	await _wait(0.4)
+	NetworkManager.host_solo()
+	await _wait_until(func(): return get_tree().current_scene.name == "Lobby", 10.0)
+	await _wait(0.8)
+	GameState.select_character(char_name, class_id)
+	await _wait(0.3)
+	await _snap(dir, "03_lobby")
+	NetworkManager.start_run()
+	await _wait_until(func(): return _game() != null and _local() != null, 15.0)
+	await _wait(1.5)
+	var g := _game()
+	var p := _local()
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 7
+	var kit: Array = {"warrior": ["sword", "shield"], "ranger": ["bow"], "mage": ["battle_staff", "trinket"], "priest": ["holy_wand", "shield"]}[class_id]
+	for b in kit + ["plate_helm", "plate_chest", "greaves", "boots", "gloves", "ring", "necklace"]:
+		var it := ItemGenerator.generate_equipment(b, 1, rng.randi_range(1, 5), rng)
+		it.req = 1
+		p.host_give_item(it)
+		p.request_equip.rpc_id(1, p.inv.backpack.size() - 1)
+		await _wait(0.1)
+	for b in ["greatsword", "crossbow", "arcane_wand", "robe"]:
+		p.host_give_item(ItemGenerator.generate_equipment(b, 2, rng.randi_range(2, 5), rng))
+	p.host_give_item(ItemGenerator.generate_consumable("potion_health", 3, rng))
+	p.host_give_item(ItemGenerator.generate_consumable("potion_mana", 2, rng))
+	for b in ["sword", "bow", "necklace"]:
+		g.loot.drop_item(ItemGenerator.generate_equipment(b, 1, rng.randi_range(2, 5), rng), p.global_position + Vector2(rng.randf_range(-60, 60), rng.randf_range(30, 70)))
+	p.level = 4
+	p.talent_points = 3
+	await _wait(1.0)
+	await _snap(dir, "04_game_start_room")
+	var hud := get_tree().get_first_node_in_group("hud")
+	hud.open_overlay(hud.InventoryPanel.new())
+	await _wait(0.5)
+	await _snap(dir, "05_inventory")
+	hud.open_overlay(hud.TalentPanel.new())
+	await _wait(0.5)
+	await _snap(dir, "06_talents")
+	hud.close_overlay()
+	hud.open_radial("q")
+	await _wait(0.3)
+	await _snap(dir, "07_radial")
+	hud.close_radial()
+	# Walk into the nearest monster room and fight a bit.
+	var target := _nearest_enemy(p.global_position)
+	if target:
+		p.host_teleport(g.nearest_floor(target.global_position + Vector2(-90, 20)))
+		p.iframe_left = 30.0
+		await _wait(1.0)
+		_fight = true
+		await _wait(2.5)
+		await _snap(dir, "08_combat")
+		_fight = false
+		for a in ["attack", "skill_1", "skill_2", "skill_3", "skill_4", "skill_5"]:
+			Input.action_release(a)
+	hud.open_overlay(hud.MapPanel.new())
+	await _wait(0.4)
+	await _snap(dir, "09_map")
+	hud.close_overlay()
+	var boss := _nearest_enemy(p.global_position, true)
+	if boss:
+		p.host_teleport(g.nearest_floor(boss.global_position + Vector2(0, 110)))
+		p.iframe_left = 30.0
+		boss.add_threat(p, 10.0)
+		await _wait(3.0)
+		p.iframe_left = 30.0
+		await _snap(dir, "10_boss")
+	_finish("shots taken")
 
 
 ## Main menu -> Solo -> lobby -> confirm -> start, using only gamepad events.
