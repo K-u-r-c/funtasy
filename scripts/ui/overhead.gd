@@ -1,0 +1,69 @@
+extends Node2D
+## World-space overlay drawn above the darkness: enemy health bars, teammate names/health,
+## downed timers and revive progress, cast bars and names of nearby ground items.
+
+var _font: Font
+
+
+func _ready() -> void:
+	_font = ThemeDB.fallback_font
+
+
+func _process(_delta: float) -> void:
+	queue_redraw()
+
+
+func _draw() -> void:
+	var game := get_tree().get_first_node_in_group("game")
+	if game == null:
+		return
+	var now := Time.get_ticks_msec() / 1000.0
+	for e in game.enemies_root.get_children():
+		if not e.visible or not is_instance_valid(e) or e.is_boss:
+			continue
+		var top: Vector2 = e.global_position + Vector2(0, -54)
+		if e.aggro or e.health.hp < e.health.max_hp:
+			_bar(top, 28.0, e.health.fraction(), Color(0.85, 0.2, 0.18))
+		_cast(e, top + Vector2(0, -6), now)
+	for p in game.players_root.get_children():
+		var head: Vector2 = p.global_position + Vector2(0, -58)
+		if p.life_state == Player.Life.GHOST:
+			continue
+		if not p.is_local():
+			var cdef: Dictionary = p.class_def
+			_text(head + Vector2(0, -8), p.display_name, Color.from_string(str(cdef.get("color", "#ffffff")), Color.WHITE), 11)
+			_bar(head, 30.0, p.health.fraction(), Color(0.3, 0.85, 0.35))
+		if p.life_state == Player.Life.DOWNED:
+			_text(p.global_position + Vector2(0, -36), "DOWNED %d" % ceili(p.downed_left), Color(1, 0.4, 0.35), 12)
+			if p.revive_progress > 0.0:
+				draw_arc(p.global_position + Vector2(0, -20), 16.0, -PI / 2.0, -PI / 2.0 + TAU * p.revive_progress, 24, Color(0.5, 1.0, 0.6), 3.0)
+		_cast(p, head + Vector2(0, -16), now)
+	if is_instance_valid(game.local_player):
+		var lp: Player = game.local_player
+		for g in game.items_root.get_children():
+			if g.global_position.distance_to(lp.global_position) < 110.0:
+				var rar := GameData.rarity(int(g.item.get("rarity", 1)))
+				_text(g.global_position + Vector2(0, -30), str(g.item.get("name", "")), Color.from_string(rar.color, Color.WHITE), 10)
+
+
+func _bar(center: Vector2, width: float, frac: float, color: Color) -> void:
+	var r := Rect2(center - Vector2(width / 2.0, 0), Vector2(width, 4))
+	draw_rect(r.grow(1), Color(0, 0, 0, 0.8))
+	draw_rect(Rect2(r.position, Vector2(width * clampf(frac, 0.0, 1.0), 4)), color)
+
+
+func _cast(a: Node, pos: Vector2, now: float) -> void:
+	if not a.has_meta("cast_end"):
+		return
+	var end_t: float = a.get_meta("cast_end")
+	var total: float = a.get_meta("cast_total")
+	if now >= end_t or total <= 0.0:
+		return
+	_bar(pos, 26.0, 1.0 - (end_t - now) / total, Color(0.95, 0.8, 0.3))
+
+
+func _text(center: Vector2, text: String, color: Color, size: int) -> void:
+	var w := _font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
+	var pos := center - Vector2(w / 2.0, 0)
+	draw_string_outline(_font, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, size, 3, Color(0, 0, 0, 0.85))
+	draw_string(_font, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, size, color)

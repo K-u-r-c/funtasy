@@ -1,0 +1,14 @@
+{
+	"id": "ranger",
+	"name": "Ranger",
+	"description": "Deadly at range with bows, crossbows and slings. Lays traps and poisons foes.",
+	"color": "#4fae4a",
+	"resource": "mana",
+	"base_hp": 70,
+	"base_resource": 60,
+	"threat_mult": 0.9,
+	"base_stats": {"strength": 5, "stamina": 9, "agility": 13, "intellect": 6},
+	"per_level": {"strength": 0.4, "stamina": 1.4, "agility": 2.2, "intellect": 0.6},
+	"primary_attack": "ranger_shot",
+	"skills": ["ranger_power_shot", "ranger_multishot", "ranger_snare_trap", "ranger_poison_arrow", "ranger_explosive_trap"]
+}

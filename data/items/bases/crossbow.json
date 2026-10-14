@@ -1,0 +1,1 @@
+{"id": "crossbow", "name": "Crossbow", "kind": "weapon", "slot": "weapon", "hands": 2, "classes": ["ranger"], "icon": "items.crossbow", "appearance": "weapon_crossbow", "tint": "#8a6040", "dps": [8, 11], "dps_per_level": 1.2}

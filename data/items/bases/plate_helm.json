@@ -1,0 +1,1 @@
+{"id": "plate_helm", "name": "Helm", "kind": "armor", "slot": "head", "icon": "items.helm", "appearance": "head_helm", "tint": "#a8adb8", "armor": [4, 6], "armor_per_level": 0.8}

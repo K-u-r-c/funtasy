@@ -1,0 +1,1 @@
+{"id": "backpack", "name": "Backpack", "kind": "backpack", "slot": "none", "icon": "items.backpack", "capacities": [16, 20, 24, 28, 32], "drop_weight": 1}

@@ -1,0 +1,1 @@
+{"id": "shield", "name": "Shield", "kind": "offhand", "slot": "offhand", "hands": 1, "classes": ["warrior", "priest"], "icon": "items.shield", "appearance": "offhand_shield", "tint": "#9a6a3c", "armor": [8, 12], "armor_per_level": 1.6}

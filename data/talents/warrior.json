@@ -1,0 +1,21 @@
+{
+	"tier_points": 2,
+	"nodes": [
+		{"id": "w_might", "name": "Might", "row": 0, "col": 0, "max_rank": 3, "description": "+4% Strength per rank.",
+			"mods": [{"stat": "strength_pct", "value": 0.04}]},
+		{"id": "w_toughness", "name": "Toughness", "row": 0, "col": 2, "max_rank": 3, "description": "+5% maximum health per rank.",
+			"mods": [{"stat": "max_hp_pct", "value": 0.05}]},
+		{"id": "w_brutal_cleave", "name": "Brutal Cleave", "row": 1, "col": 0, "max_rank": 3, "requires": ["w_might"], "description": "Cleave deals +12% damage per rank.",
+			"mods": [{"skill": "warrior_cleave", "field": "damage_mult", "value": 0.12}]},
+		{"id": "w_bulwark", "name": "Bulwark", "row": 1, "col": 2, "max_rank": 3, "requires": ["w_toughness"], "description": "+6% armor and +10% threat per rank.",
+			"mods": [{"stat": "armor_pct", "value": 0.06}, {"stat": "threat_mult", "value": 0.1}]},
+		{"id": "w_relentless", "name": "Relentless", "row": 2, "col": 0, "max_rank": 2, "requires": ["w_brutal_cleave"], "description": "Charge cooldown -15% per rank.",
+			"mods": [{"skill": "warrior_charge", "field": "cooldown_mult", "value": -0.15}]},
+		{"id": "w_concussion", "name": "Concussion", "row": 2, "col": 2, "max_rank": 2, "requires": ["w_bulwark"], "description": "Shield Bash stun lasts 25% longer per rank.",
+			"mods": [{"skill": "warrior_shield_bash", "field": "duration_mult", "value": 0.25}]},
+		{"id": "w_bloodlust", "name": "Bloodlust", "row": 3, "col": 0, "max_rank": 1, "requires": ["w_relentless"], "description": "+4% Leech.",
+			"mods": [{"stat": "leech", "value": 0.04}]},
+		{"id": "w_war_leader", "name": "War Leader", "row": 3, "col": 2, "max_rank": 1, "requires": ["w_concussion"], "description": "Battle Cry and Taunting Shout cooldowns -25%.",
+			"mods": [{"skill": "warrior_battle_cry", "field": "cooldown_mult", "value": -0.25}, {"skill": "warrior_taunt", "field": "cooldown_mult", "value": -0.25}]}
+	]
+}

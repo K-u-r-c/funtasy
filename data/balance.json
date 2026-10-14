@@ -1,0 +1,130 @@
+{
+	"_comment": "All tunable numbers. Code reads them through GameData.bal(\"section.key\").",
+	"world": {
+		"tile_size": 32,
+		"interact_range": 48,
+		"revive_range": 44,
+		"pickup_range": 44,
+		"door_enemy_open_delay": 1.2
+	},
+	"player": {
+		"move_speed": 120,
+		"dodge_distance": 110,
+		"dodge_duration": 0.22,
+		"dodge_cooldown": 1.2,
+		"dodge_iframes": 0.3,
+		"downed_time": 10.0,
+		"revive_channel": 2.0,
+		"revive_hp_fraction": 0.35,
+		"next_floor_hp_fraction": 0.5,
+		"movement_tolerance": 1.6,
+		"respawn_invuln": 2.0
+	},
+	"stats": {
+		"hp_per_stamina": 4,
+		"mana_per_intellect": 5,
+		"base_crit_chance": 0.05,
+		"base_crit_damage": 0.5,
+		"crit_per_agility": 0.002,
+		"melee_power_per_strength": 0.6,
+		"ranged_power_per_agility": 0.6,
+		"spell_power_per_intellect": 0.6,
+		"damage_reduction_per_strength": 0.002,
+		"armor_constant": 60,
+		"armor_per_level": 12,
+		"max_damage_reduction": 0.75,
+		"max_dodge": 0.4,
+		"max_haste": 1.0,
+		"unarmed_dps": 3,
+		"mana_regen_base": 0.4,
+		"mana_regen_per_intellect": 0.03,
+		"hp_regen_out_of_combat": 0.02,
+		"out_of_combat_delay": 5.0
+	},
+	"fury": {
+		"max": 100,
+		"per_damage_dealt_hit": 6,
+		"per_damage_taken_fraction": 60,
+		"decay_delay": 4.0,
+		"decay_per_second": 8
+	},
+	"off_class": {
+		"damage_mult": 0.2,
+		"cooldown_mult": 1.5
+	},
+	"threat": {
+		"heal_threat_mult": 0.5,
+		"buff_threat": 15,
+		"proximity_threat": 1,
+		"switch_ratio": 1.15,
+		"taunt_bonus": 1.2,
+		"aggro_share_radius": 160,
+		"forget_time": 12.0
+	},
+	"progression": {
+		"xp_base": 100,
+		"xp_exponent": 1.5,
+		"max_level": 30,
+		"talent_points_per_level": 1,
+		"contribution_window": 30.0,
+		"monster_xp_per_level": 0.25
+	},
+	"scaling": {
+		"level_per_depth": 1.0,
+		"level_party_weight": 0.5,
+		"hp_per_level": 0.22,
+		"damage_per_level": 0.14,
+		"hp_per_extra_player": 0.6,
+		"damage_per_extra_player": 0.12,
+		"count_per_extra_player": 0.3,
+		"rarity_bonus_per_depth": 0.04,
+		"boss_hp_per_extra_player": 0.7
+	},
+	"loot": {
+		"monster_drop_chance": 0.28,
+		"chest_drops": [2, 3],
+		"boss_drops": [4, 5],
+		"boss_min_rarity": 3,
+		"chest_min_rarity": 2,
+		"party_class_weight": 3.0,
+		"consumable_chance": 0.35,
+		"backpack_chance": 0.04,
+		"rarity_weights": [60, 26, 10, 3.5, 0.5],
+		"drop_scatter": 22
+	},
+	"inventory": {
+		"start_capacity": 12,
+		"max_capacity": 32
+	},
+	"ai": {
+		"think_interval": 0.2,
+		"path_interval": 0.5,
+		"leash_time": 8.0,
+		"separation_radius": 22,
+		"separation_force": 60
+	},
+	"hazards": {
+		"lava_damage": 10,
+		"lava_tick": 0.5,
+		"spikes_damage": 14,
+		"spikes_up_time": 0.9,
+		"spikes_down_time": 1.8,
+		"explosion_damage": 45,
+		"explosion_radius": 80
+	},
+	"wipe": {
+		"_comment": "What a party wipe costs every character (see docs/DECISIONS.md).",
+		"lose_equipment": true,
+		"lose_backpack": true,
+		"lose_level_progress": false
+	},
+	"audio": {
+		"music_crossfade": 1.5
+	},
+	"camera": {
+		"zoom": 1.0,
+		"smoothing": 8.0,
+		"shake_decay": 6.0,
+		"aim_lookahead": 40
+	}
+}

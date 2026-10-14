@@ -1,0 +1,58 @@
+[
+	{
+		"id": "mage_bolt", "name": "Arcane Bolt", "icon": "attack", "school": "spell",
+		"description": "A bolt of raw magic. Restores a little mana on hit.",
+		"cooldown": 0.7, "cost": 0, "anim": "cast", "sfx": "cast", "attack_speed": true,
+		"resource_on_hit": 3,
+		"effects": [
+			{"type": "projectile", "sprite": "magic", "speed": 460, "range": 440, "radius": 7, "light": "#8899ff", "damage": {"base": 1, "coef": 1.0}}
+		]
+	},
+	{
+		"id": "mage_fireball", "name": "Fireball", "icon": "fire", "school": "spell",
+		"description": "Hurl a fireball that explodes on impact and burns enemies.",
+		"cooldown": 4.0, "cost": 24, "cast_time": 0.4, "anim": "cast", "sfx": "fire",
+		"effects": [
+			{"type": "projectile", "sprite": "fire", "speed": 420, "range": 480, "radius": 9, "light": "#ff7722",
+				"damage": {"base": 3, "coef": 1.0},
+				"explode": {"radius": 60, "damage": {"base": 5, "coef": 1.4}, "color": "#ff7722", "fx": "explosion", "shake": 2,
+					"on_hit": [{"type": "status", "status": "burn", "duration": 3.0, "magnitude": {"base": 1, "coef": 0.2}}]}}
+		]
+	},
+	{
+		"id": "mage_frost_nova", "name": "Frost Nova", "icon": "frost", "school": "spell",
+		"description": "Blast of cold around you that freezes nearby enemies in place.",
+		"cooldown": 12.0, "cost": 24, "anim": "cast", "sfx": "frost",
+		"effects": [
+			{"type": "aoe", "at": "self", "radius": 120, "damage": {"base": 3, "coef": 0.8}, "color": "#aaddff",
+				"on_hit": [{"type": "status", "status": "freeze", "duration": 2.5}, {"type": "status", "status": "chill", "duration": 5.0}]}
+		]
+	},
+	{
+		"id": "mage_lightning", "name": "Lightning Bolt", "icon": "lightning", "school": "spell",
+		"description": "A very fast bolt that pierces through up to 5 enemies.",
+		"cooldown": 5.0, "cost": 20, "anim": "cast", "sfx": "lightning",
+		"effects": [
+			{"type": "projectile", "sprite": "lightning", "speed": 1100, "range": 520, "radius": 8, "pierce": 5, "light": "#ccddff",
+				"damage": {"base": 4, "coef": 1.5}}
+		]
+	},
+	{
+		"id": "mage_blink", "name": "Blink", "icon": "blink", "school": "spell",
+		"description": "Teleport a short distance toward the cursor.",
+		"cooldown": 10.0, "cost": 10, "anim": "cast", "sfx": "portal",
+		"effects": [
+			{"type": "blink", "distance": 190}
+		]
+	},
+	{
+		"id": "mage_meteor", "name": "Meteor", "icon": "meteor", "school": "spell",
+		"description": "Call down a meteor at the cursor after a short delay. Huge damage.",
+		"cooldown": 18.0, "cost": 42, "anim": "cast", "sfx": "fire",
+		"effects": [
+			{"type": "aoe", "at": "aim", "max_range": 360, "radius": 92, "delay": 1.1, "damage": {"base": 10, "coef": 3.6},
+				"color": "#ff5511", "fx": "explosion", "shake": 6, "telegraph": true,
+				"on_hit": [{"type": "status", "status": "burn", "duration": 4.0, "magnitude": {"base": 2, "coef": 0.25}}]}
+		]
+	}
+]

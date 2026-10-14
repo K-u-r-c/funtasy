@@ -1,0 +1,11 @@
+{
+	"potion_health": {"name": "Health Potion", "icon": "items.potion_health", "max_stack": 10, "cooldown": 8.0, "weight": 5,
+		"description": "Restores 40% of maximum health.", "effects": [{"type": "restore", "what": "hp", "fraction": 0.4}], "sfx": "potion"},
+	"potion_mana": {"name": "Mana Potion", "icon": "items.potion_mana", "max_stack": 10, "cooldown": 8.0, "weight": 4,
+		"description": "Restores 45% of maximum mana (or fills Fury).", "effects": [{"type": "restore", "what": "resource", "fraction": 0.45}], "sfx": "potion"},
+	"potion_haste": {"name": "Haste Potion", "icon": "items.potion_haste", "max_stack": 5, "cooldown": 20.0, "weight": 2,
+		"description": "+30% haste and +15% movement speed for 12 seconds.", "effects": [{"type": "status", "status": "haste_potion", "duration": 12.0}], "sfx": "potion"},
+	"food": {"name": "Hearty Ration", "icon": "items.food", "max_stack": 5, "cooldown": 15.0, "weight": 3,
+		"description": "Regenerate 25% health over 10 s and deal 5% more damage for 60 s.",
+		"effects": [{"type": "status", "status": "regeneration", "duration": 10.0, "magnitude_fraction": 0.025}, {"type": "status", "status": "well_fed", "duration": 60.0}], "sfx": "potion"}
+}

@@ -1,0 +1,43 @@
+{
+	"deadzone": 0.25,
+	"aim_deadzone": 0.3,
+	"hold_threshold": 0.25,
+	"kbm_slots": 2,
+	"pad_slots": 2,
+	"actions": [
+		{"id": "move_up", "label": "Move up", "group": "Movement", "kbm": ["key:W"], "pad": ["axis:left_y-"]},
+		{"id": "move_down", "label": "Move down", "group": "Movement", "kbm": ["key:S"], "pad": ["axis:left_y+"]},
+		{"id": "move_left", "label": "Move left", "group": "Movement", "kbm": ["key:A"], "pad": ["axis:left_x-"]},
+		{"id": "move_right", "label": "Move right", "group": "Movement", "kbm": ["key:D"], "pad": ["axis:left_x+"]},
+		{"id": "aim_up", "label": "Aim up (stick)", "group": "Movement", "kbm": [], "pad": ["axis:right_y-"]},
+		{"id": "aim_down", "label": "Aim down (stick)", "group": "Movement", "kbm": [], "pad": ["axis:right_y+"]},
+		{"id": "aim_left", "label": "Aim left (stick)", "group": "Movement", "kbm": [], "pad": ["axis:right_x-"]},
+		{"id": "aim_right", "label": "Aim right (stick)", "group": "Movement", "kbm": [], "pad": ["axis:right_x+"]},
+		{"id": "dodge", "label": "Dodge", "group": "Movement", "kbm": ["key:Space", "key:Shift"], "pad": ["axis:lt"]},
+		{"id": "attack", "label": "Primary attack", "group": "Combat", "kbm": ["mouse:left"], "pad": ["axis:rt"]},
+		{"id": "skill_1", "label": "Skill 1", "group": "Combat", "kbm": ["key:1"], "pad": ["button:a"]},
+		{"id": "skill_2", "label": "Skill 2", "group": "Combat", "kbm": ["key:2"], "pad": ["button:b"]},
+		{"id": "skill_3", "label": "Skill 3", "group": "Combat", "kbm": ["key:3"], "pad": ["button:x"]},
+		{"id": "skill_4", "label": "Skill 4", "group": "Combat", "kbm": ["key:4"], "pad": ["button:y"]},
+		{"id": "skill_5", "label": "Skill 5", "group": "Combat", "kbm": ["key:5"], "pad": ["button:rb"]},
+		{"id": "quick_q", "label": "Quick item Q (hold: choose)", "group": "Items", "kbm": ["key:Q"], "pad": ["button:lb"]},
+		{"id": "quick_e", "label": "Quick item E (hold: choose)", "group": "Items", "kbm": ["key:E"], "pad": ["button:dpad_right"]},
+		{"id": "interact", "label": "Interact / revive", "group": "Items", "kbm": ["key:F"], "pad": ["button:dpad_down"]},
+		{"id": "inventory", "label": "Inventory", "group": "Menus", "kbm": ["key:I"], "pad": ["button:back"]},
+		{"id": "talents", "label": "Talents", "group": "Menus", "kbm": ["key:T"], "pad": ["button:dpad_left"]},
+		{"id": "map", "label": "Map", "group": "Menus", "kbm": ["key:M"], "pad": ["button:dpad_up"]},
+		{"id": "pause", "label": "Pause menu", "group": "Menus", "kbm": ["key:Escape"], "pad": ["button:start"]}
+	],
+	"ui_extra": {
+		"ui_accept": ["button:a"],
+		"ui_cancel": ["button:b"],
+		"ui_up": ["button:dpad_up", "axis:left_y-"],
+		"ui_down": ["button:dpad_down", "axis:left_y+"],
+		"ui_left": ["button:dpad_left", "axis:left_x-"],
+		"ui_right": ["button:dpad_right", "axis:left_x+"],
+		"ui_tab_prev": ["key:Q", "button:lb"],
+		"ui_tab_next": ["key:E", "button:rb"],
+		"ui_secondary": ["key:X", "mouse:right", "button:x"],
+		"ui_tertiary": ["key:R", "button:y"]
+	}
+}

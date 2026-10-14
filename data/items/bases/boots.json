@@ -1,0 +1,1 @@
+{"id": "boots", "name": "Boots", "kind": "armor", "slot": "boots", "icon": "items.boots", "appearance": "boots_armor", "tint": "#6a4a30", "armor": [3, 5], "armor_per_level": 0.6}

@@ -1,0 +1,1 @@
+{"id": "greaves", "name": "Greaves", "kind": "armor", "slot": "legs", "icon": "items.legs", "appearance": "legs_armor", "tint": "#8f8478", "armor": [5, 8], "armor_per_level": 1.0}

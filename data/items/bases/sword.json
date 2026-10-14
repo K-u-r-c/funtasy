@@ -1,0 +1,1 @@
+{"id": "sword", "name": "Sword", "kind": "weapon", "slot": "weapon", "hands": 1, "classes": ["warrior"], "icon": "items.sword", "appearance": "weapon_sword", "tint": "#d2d6e0", "dps": [4, 6], "dps_per_level": 0.7}

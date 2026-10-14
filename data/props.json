@@ -1,0 +1,10 @@
+{
+	"table": {"name": "Table", "sprite": "props.table", "hp": 24, "size": [36, 14], "blocks_sight": true, "debris": true, "sfx": "break"},
+	"chair": {"name": "Chair", "sprite": "props.chair", "hp": 10, "size": [14, 10], "blocks_sight": true, "debris": true, "sfx": "break"},
+	"crate": {"name": "Crate", "sprite": "props.crate", "hp": 18, "size": [24, 14], "blocks_sight": true, "debris": true, "sfx": "break", "drop_chance": 0.15},
+	"barrel": {"name": "Barrel", "sprite": "props.barrel", "hp": 16, "size": [18, 10], "blocks_sight": true, "debris": true, "sfx": "break", "drop_chance": 0.1},
+	"barrel_explosive": {"name": "Explosive Barrel", "sprite": "props.barrel_explosive", "hp": 8, "size": [18, 10], "blocks_sight": true, "debris": true, "sfx": "explosion",
+		"explode": {"radius": 80, "damage": 45, "color": "#ff7722", "fx": "explosion", "shake": 6}},
+	"pillar": {"name": "Pillar", "sprite": "props.pillar", "hp": 0, "size": [22, 12], "blocks_sight": true, "debris": false},
+	"chest": {"name": "Chest", "sprite": "props.chest", "sprite_open": "props.chest_open", "hp": 0, "size": [26, 12], "blocks_sight": false, "interactable": true}
+}

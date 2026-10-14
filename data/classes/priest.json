@@ -1,0 +1,14 @@
+{
+	"id": "priest",
+	"name": "Priest",
+	"description": "Holy tank and healer. Shields allies, mends wounds and draws enemies in.",
+	"color": "#e8cf6a",
+	"resource": "mana",
+	"base_hp": 80,
+	"base_resource": 80,
+	"threat_mult": 1.3,
+	"base_stats": {"strength": 7, "stamina": 11, "agility": 4, "intellect": 12},
+	"per_level": {"strength": 1.0, "stamina": 1.7, "agility": 0.3, "intellect": 1.8},
+	"primary_attack": "priest_smite",
+	"skills": ["priest_heal", "priest_holy_shield", "priest_consecration", "priest_rebuke", "priest_renewal"]
+}

@@ -1,0 +1,1 @@
+{"id": "plate_chest", "name": "Breastplate", "kind": "armor", "slot": "chest", "icon": "items.chest", "appearance": "chest_armor", "tint": "#a8adb8", "armor": [8, 12], "armor_per_level": 1.6}

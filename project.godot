@@ -11,25 +11,30 @@ config_version=5
 [application]
 
 config/name="funtasy"
-run/main_scene="res://scenes/ui/main_menu.tscn"
+run/main_scene="res://scenes/menus/main_menu.tscn"
 config/features=PackedStringArray("4.7")
 
 [autoload]
 
 McpBridgeGame="*res://mcp_bridge_game.gd"
-Settings="*res://scripts/autoload/settings.gd"
-SceneManager="*res://scripts/autoload/scene_manager.gd"
-Net="*res://scripts/autoload/net.gd"
-DevAuto="*res://scripts/dev/dev_auto.gd"
+EventBus="*res://autoload/event_bus.gd"
+GameData="*res://autoload/game_data.gd"
+SaveSystem="*res://autoload/save_system.gd"
+Settings="*res://autoload/settings.gd"
+InputSettings="*res://autoload/input_settings.gd"
+AudioManager="*res://autoload/audio_manager.gd"
+NetworkManager="*res://autoload/network_manager.gd"
+GameState="*res://autoload/game_state.gd"
+SceneManager="*res://autoload/scene_manager.gd"
+DevAuto="*res://autoload/dev_auto.gd"
 
 [display]
 
-window/size/viewport_width=640
-window/size/viewport_height=360
-window/size/window_width_override=1280
-window/size/window_height_override=720
-window/stretch/mode="viewport"
-window/stretch/scale_mode="integer"
+window/size/viewport_width=960
+window/size/viewport_height=540
+window/size/window_width_override=1920
+window/size/window_height_override=1080
+window/stretch/mode="canvas_items"
 
 [editor_plugins]
 
@@ -40,7 +45,16 @@ enabled=PackedStringArray("res://addons/mcp_bridge/plugin.cfg")
 2d_physics/layer_1="world"
 2d_physics/layer_2="players"
 2d_physics/layer_3="enemies"
+2d_physics/layer_4="props"
+2d_physics/layer_5="doors"
+
+[physics]
+
+2d/default_gravity=0.0
 
 [rendering]
 
+environment/defaults/default_clear_color=Color(0, 0, 0, 1)
 textures/canvas_textures/default_texture_filter=0
+2d/snap/snap_2d_transforms_to_pixel=true
+2d/snap/snap_2d_vertices_to_pixel=true

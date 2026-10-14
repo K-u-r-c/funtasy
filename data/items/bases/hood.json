@@ -1,0 +1,1 @@
+{"id": "hood", "name": "Hood", "kind": "armor", "slot": "head", "icon": "items.helm", "appearance": "head_hood", "tint": "#5a4870", "armor": [2, 3], "armor_per_level": 0.4}

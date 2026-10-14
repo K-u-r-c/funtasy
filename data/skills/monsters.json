@@ -1,0 +1,76 @@
+[
+	{
+		"id": "ghoul_claw", "name": "Claw", "icon": "slash", "school": "melee",
+		"cooldown": 1.3, "cost": 0, "cast_time": 0.25, "anim": "attack", "sfx": "swing",
+		"effects": [
+			{"type": "melee", "range": 44, "arc": 90, "max_targets": 1, "damage": {"base": 0, "coef": 1.0}, "fx": "slash"}
+		]
+	},
+	{
+		"id": "skeleton_arrow", "name": "Bone Arrow", "icon": "arrow", "school": "ranged",
+		"cooldown": 1.9, "cost": 0, "cast_time": 0.45, "anim": "attack", "sfx": "shoot",
+		"effects": [
+			{"type": "projectile", "sprite": "bone", "speed": 330, "range": 400, "radius": 6, "damage": {"base": 0, "coef": 1.0}}
+		]
+	},
+	{
+		"id": "cultist_bolt", "name": "Shadow Bolt", "icon": "blink", "school": "spell",
+		"cooldown": 2.2, "cost": 0, "cast_time": 0.5, "anim": "cast", "sfx": "cast",
+		"effects": [
+			{"type": "projectile", "sprite": "shadow", "speed": 280, "range": 380, "radius": 8, "light": "#aa44cc", "damage": {"base": 0, "coef": 1.0}}
+		]
+	},
+	{
+		"id": "cultist_curse", "name": "Dark Ritual", "icon": "blink", "school": "spell",
+		"cooldown": 7.0, "cost": 0, "cast_time": 0.4, "anim": "cast", "sfx": "cast",
+		"effects": [
+			{"type": "aoe", "at": "aim", "max_range": 360, "radius": 62, "delay": 1.3, "telegraph": true, "damage": {"base": 0, "coef": 1.8},
+				"color": "#aa44cc", "on_hit": [{"type": "status", "status": "slow", "duration": 3.0}]}
+		]
+	},
+	{
+		"id": "cultist_mend", "name": "Unholy Mend", "icon": "heal", "school": "spell",
+		"cooldown": 9.0, "cost": 0, "cast_time": 0.6, "anim": "cast", "sfx": "heal",
+		"effects": [
+			{"type": "heal", "target": "lowest_ally", "max_range": 260, "amount": {"base": 0, "coef": 2.5}}
+		]
+	},
+	{
+		"id": "bone_lord_cleave", "name": "Bone Cleave", "icon": "slash", "school": "melee",
+		"cooldown": 2.4, "cost": 0, "cast_time": 0.45, "anim": "attack", "sfx": "swing",
+		"effects": [
+			{"type": "melee", "range": 92, "arc": 150, "max_targets": 4, "damage": {"base": 0, "coef": 1.3}, "fx": "slash",
+				"on_hit": [{"type": "knockback", "force": 180}]}
+		]
+	},
+	{
+		"id": "bone_lord_nova", "name": "Bone Nova", "icon": "multishot", "school": "spell",
+		"cooldown": 6.0, "cost": 0, "cast_time": 0.7, "anim": "cast", "sfx": "roar",
+		"effects": [
+			{"type": "projectile", "sprite": "bone", "speed": 250, "range": 520, "radius": 7, "count": 14, "spread": 360,
+				"damage": {"base": 0, "coef": 0.8}}
+		]
+	},
+	{
+		"id": "bone_lord_slam", "name": "Grave Slam", "icon": "meteor", "school": "melee",
+		"cooldown": 7.0, "cost": 0, "cast_time": 0.3, "anim": "attack", "sfx": "explosion",
+		"effects": [
+			{"type": "aoe", "at": "aim", "max_range": 420, "radius": 96, "delay": 1.1, "telegraph": true, "damage": {"base": 0, "coef": 2.0},
+				"color": "#ff3322", "fx": "explosion", "shake": 5, "on_hit": [{"type": "status", "status": "stun", "duration": 0.6}]}
+		]
+	},
+	{
+		"id": "bone_lord_summon", "name": "Raise Dead", "icon": "shout", "school": "spell",
+		"cooldown": 18.0, "cost": 0, "cast_time": 1.0, "anim": "cast", "sfx": "roar",
+		"effects": [
+			{"type": "summon", "monster": "ghoul", "count": 2, "radius": 90}
+		]
+	},
+	{
+		"id": "bone_lord_enrage", "name": "Enrage", "icon": "shout", "school": "melee",
+		"cooldown": 999.0, "cost": 0, "anim": "cast", "sfx": "roar",
+		"effects": [
+			{"type": "status", "target": "self", "status": "enrage", "duration": 999.0}
+		]
+	}
+]

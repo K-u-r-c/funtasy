@@ -1,0 +1,1 @@
+{"id": "sling", "name": "Sling", "kind": "weapon", "slot": "weapon", "hands": 1, "classes": ["ranger"], "icon": "items.sling", "appearance": "weapon_sling", "tint": "#b49870", "dps": [4, 6], "dps_per_level": 0.7}

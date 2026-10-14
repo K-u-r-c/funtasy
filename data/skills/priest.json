@@ -1,0 +1,55 @@
+[
+	{
+		"id": "priest_smite", "name": "Smite", "icon": "attack", "school": "spell",
+		"description": "Holy bolt that draws extra attention. Restores a little mana on hit.",
+		"cooldown": 0.75, "cost": 0, "anim": "cast", "sfx": "cast", "attack_speed": true,
+		"resource_on_hit": 3, "threat_mult": 1.5,
+		"effects": [
+			{"type": "projectile", "sprite": "holy", "speed": 440, "range": 420, "radius": 7, "light": "#ffe680", "damage": {"base": 1, "coef": 0.9}}
+		]
+	},
+	{
+		"id": "priest_heal", "name": "Heal", "icon": "heal", "school": "spell",
+		"description": "Heal the ally closest to the cursor (or yourself).",
+		"cooldown": 2.5, "cost": 18, "cast_time": 0.5, "anim": "cast", "sfx": "heal",
+		"effects": [
+			{"type": "heal", "target": "aim_ally", "max_range": 320, "amount": {"base": 18, "coef": 1.6}}
+		]
+	},
+	{
+		"id": "priest_holy_shield", "name": "Holy Shield", "icon": "bubble", "school": "spell",
+		"description": "Shield yourself and nearby allies, absorbing damage. Generates threat.",
+		"cooldown": 12.0, "cost": 22, "anim": "cast", "sfx": "buff", "threat_mult": 2.0,
+		"effects": [
+			{"type": "absorb", "target": "party", "radius": 130, "duration": 8.0, "amount": {"base": 20, "coef": 1.2}},
+			{"type": "status", "target": "self", "status": "fortify", "duration": 6.0}
+		]
+	},
+	{
+		"id": "priest_consecration", "name": "Consecration", "icon": "consecrate", "school": "spell",
+		"description": "Bless the ground around you, burning enemies that stand in it. High threat.",
+		"cooldown": 10.0, "cost": 24, "anim": "cast", "sfx": "cast", "threat_mult": 2.5,
+		"effects": [
+			{"type": "zone", "at": "self", "radius": 100, "duration": 6.0, "tick": 1.0, "targets": "enemies", "color": "#ffd24d",
+				"damage": {"base": 2, "coef": 0.5}}
+		]
+	},
+	{
+		"id": "priest_rebuke", "name": "Rebuke", "icon": "holy", "school": "spell",
+		"description": "Holy burst that taunts and briefly stuns nearby enemies.",
+		"cooldown": 10.0, "cost": 12, "anim": "cast", "sfx": "lightning", "threat_mult": 2.0,
+		"effects": [
+			{"type": "aoe", "at": "self", "radius": 110, "damage": {"base": 3, "coef": 0.7}, "color": "#fff1a8",
+				"on_hit": [{"type": "status", "status": "stun", "duration": 0.8}]},
+			{"type": "taunt", "radius": 110, "duration": 3.0, "color": "#fff1a8"}
+		]
+	},
+	{
+		"id": "priest_renewal", "name": "Prayer of Renewal", "icon": "renew", "school": "spell",
+		"description": "Heal all nearby allies over 8 seconds.",
+		"cooldown": 20.0, "cost": 36, "anim": "cast", "sfx": "heal",
+		"effects": [
+			{"type": "status", "target": "party", "radius": 260, "status": "renew", "duration": 8.0, "magnitude": {"base": 3, "coef": 0.35}}
+		]
+	}
+]

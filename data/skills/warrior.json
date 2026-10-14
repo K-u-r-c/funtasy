@@ -1,0 +1,59 @@
+[
+	{
+		"id": "warrior_strike", "name": "Strike", "icon": "attack", "school": "melee",
+		"description": "Swing your weapon in an arc. Generates Fury.",
+		"cooldown": 0.55, "cost": 0, "anim": "attack", "sfx": "swing", "attack_speed": true,
+		"resource_on_hit": 8,
+		"effects": [
+			{"type": "melee", "range": 50, "arc": 100, "max_targets": 3, "damage": {"base": 1, "coef": 1.0}, "fx": "slash"}
+		]
+	},
+	{
+		"id": "warrior_cleave", "name": "Cleave", "icon": "whirl", "school": "melee",
+		"description": "A wide, heavy swing that hits every enemy in front of you.",
+		"cooldown": 3.0, "cost": 25, "anim": "attack", "sfx": "swing",
+		"effects": [
+			{"type": "melee", "range": 62, "arc": 170, "max_targets": 8, "damage": {"base": 4, "coef": 1.7}, "fx": "slash",
+				"on_hit": [{"type": "status", "status": "bleed", "duration": 4, "magnitude": {"base": 1, "coef": 0.15}}]}
+		]
+	},
+	{
+		"id": "warrior_shield_bash", "name": "Shield Bash", "icon": "bash", "school": "melee",
+		"description": "Bash one enemy, stunning it and generating a lot of threat.",
+		"cooldown": 8.0, "cost": 15, "anim": "attack", "sfx": "hit", "threat_mult": 3.0,
+		"effects": [
+			{"type": "melee", "range": 50, "arc": 70, "max_targets": 1, "damage": {"base": 3, "coef": 0.9}, "fx": "slash",
+				"on_hit": [{"type": "status", "status": "stun", "duration": 1.6}, {"type": "knockback", "force": 140}]}
+		]
+	},
+	{
+		"id": "warrior_taunt", "name": "Taunting Shout", "icon": "shout", "school": "melee",
+		"description": "Force nearby enemies to attack you and brace yourself (30% less damage taken).",
+		"cooldown": 12.0, "cost": 0, "anim": "cast", "sfx": "roar",
+		"effects": [
+			{"type": "taunt", "radius": 170, "duration": 4.0, "color": "#ff5533"},
+			{"type": "status", "target": "self", "status": "fortify", "duration": 5.0},
+			{"type": "resource", "amount": 15}
+		]
+	},
+	{
+		"id": "warrior_charge", "name": "Charge", "icon": "charge", "school": "melee",
+		"description": "Rush toward the cursor and slam into enemies where you land.",
+		"cooldown": 9.0, "cost": 0, "anim": "dash", "sfx": "dash",
+		"effects": [
+			{"type": "dash", "distance": 210, "speed": 760, "on_arrive": [
+				{"type": "aoe", "at": "self", "radius": 52, "damage": {"base": 4, "coef": 1.1}, "color": "#ffaa66",
+					"on_hit": [{"type": "status", "status": "stun", "duration": 0.7}]},
+				{"type": "resource", "amount": 20}
+			]}
+		]
+	},
+	{
+		"id": "warrior_battle_cry", "name": "Battle Cry", "icon": "guard", "school": "melee",
+		"description": "Rally nearby allies: +15% damage for 10 seconds.",
+		"cooldown": 25.0, "cost": 20, "anim": "cast", "sfx": "roar",
+		"effects": [
+			{"type": "status", "target": "party", "radius": 240, "status": "battle_cry", "duration": 10.0}
+		]
+	}
+]

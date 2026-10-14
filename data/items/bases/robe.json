@@ -1,0 +1,1 @@
+{"id": "robe", "name": "Robe", "kind": "armor", "slot": "chest", "icon": "items.chest", "appearance": "chest_robe", "tint": "#4a3a78", "armor": [3, 5], "armor_per_level": 0.6}

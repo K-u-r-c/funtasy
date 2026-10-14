@@ -1,0 +1,1 @@
+{"id": "gloves", "name": "Gloves", "kind": "armor", "slot": "gloves", "icon": "items.gloves", "appearance": "gloves_armor", "tint": "#7a5a3a", "armor": [2, 4], "armor_per_level": 0.5}

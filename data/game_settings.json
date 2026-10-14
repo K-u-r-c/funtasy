@@ -1,0 +1,9 @@
+[
+	{"id": "friendly_fire", "label": "Friendly fire", "type": "bool", "default": false,
+		"description": "Projectiles, AoE, explosions and traps also hurt allies."},
+	{"id": "difficulty", "label": "Difficulty", "type": "enum", "default": 1,
+		"options": ["Easy", "Normal", "Hard"], "values": [0.75, 1.0, 1.4],
+		"description": "Multiplies monster health and damage."},
+	{"id": "shared_vision", "label": "Shared vision", "type": "bool", "default": false,
+		"description": "Enemies seen by any teammate are visible to everyone."}
+]

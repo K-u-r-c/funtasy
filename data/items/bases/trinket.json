@@ -1,0 +1,1 @@
+{"id": "trinket", "name": "Trinket", "kind": "offhand", "slot": "offhand", "hands": 1, "classes": ["mage", "priest"], "icon": "items.trinket", "appearance": "offhand_trinket", "tint": "#c070ff", "armor": [1, 2], "armor_per_level": 0.2, "base_stats": {"intellect": [1, 3]}}

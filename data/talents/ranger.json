@@ -1,0 +1,21 @@
+{
+	"tier_points": 2,
+	"nodes": [
+		{"id": "r_precision", "name": "Precision", "row": 0, "col": 0, "max_rank": 3, "description": "+4% Agility per rank.",
+			"mods": [{"stat": "agility_pct", "value": 0.04}]},
+		{"id": "r_trapper", "name": "Trapper", "row": 0, "col": 2, "max_rank": 3, "description": "Trap cooldowns -8% per rank.",
+			"mods": [{"skill": "ranger_snare_trap", "field": "cooldown_mult", "value": -0.08}, {"skill": "ranger_explosive_trap", "field": "cooldown_mult", "value": -0.08}]},
+		{"id": "r_deadeye", "name": "Deadeye", "row": 1, "col": 0, "max_rank": 3, "requires": ["r_precision"], "description": "+3% critical strike chance per rank.",
+			"mods": [{"stat": "crit_chance", "value": 0.03}]},
+		{"id": "r_toxicology", "name": "Toxicology", "row": 1, "col": 2, "max_rank": 3, "requires": ["r_trapper"], "description": "Poison Arrow deals +15% damage per rank.",
+			"mods": [{"skill": "ranger_poison_arrow", "field": "damage_mult", "value": 0.15}]},
+		{"id": "r_volley", "name": "Volley", "row": 2, "col": 0, "max_rank": 2, "requires": ["r_deadeye"], "description": "Multishot fires 1 more arrow per rank.",
+			"mods": [{"skill": "ranger_multishot", "field": "count_add", "value": 1}]},
+		{"id": "r_big_boom", "name": "Big Boom", "row": 2, "col": 2, "max_rank": 2, "requires": ["r_toxicology"], "description": "Explosive Trap radius +15% per rank.",
+			"mods": [{"skill": "ranger_explosive_trap", "field": "radius_mult", "value": 0.15}]},
+		{"id": "r_swift", "name": "Swift Hunter", "row": 3, "col": 0, "max_rank": 1, "requires": ["r_volley"], "description": "+10% haste and +8% movement speed.",
+			"mods": [{"stat": "haste", "value": 0.1}, {"stat": "move_speed_pct", "value": 0.08}]},
+		{"id": "r_piercing", "name": "Piercing Shots", "row": 3, "col": 2, "max_rank": 1, "requires": ["r_big_boom"], "description": "Power Shot pierces 2 more enemies and deals +20% damage.",
+			"mods": [{"skill": "ranger_power_shot", "field": "pierce_add", "value": 2}, {"skill": "ranger_power_shot", "field": "damage_mult", "value": 0.2}]}
+	]
+}

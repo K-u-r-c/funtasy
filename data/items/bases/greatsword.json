@@ -1,0 +1,1 @@
+{"id": "greatsword", "name": "Greatsword", "kind": "weapon", "slot": "weapon", "hands": 2, "classes": ["warrior"], "icon": "items.greatsword", "appearance": "weapon_greatsword", "tint": "#d8dce6", "dps": [8, 11], "dps_per_level": 1.2}

@@ -1,0 +1,63 @@
+[
+	{
+		"id": "ranger_shot", "name": "Shot", "icon": "attack", "school": "ranged",
+		"description": "Fire a projectile at the cursor. Restores a little mana on hit.",
+		"cooldown": 0.6, "cost": 0, "anim": "attack", "sfx": "shoot", "attack_speed": true,
+		"resource_on_hit": 2,
+		"effects": [
+			{"type": "projectile", "sprite": "arrow", "speed": 560, "range": 460, "radius": 6, "damage": {"base": 1, "coef": 1.0}}
+		]
+	},
+	{
+		"id": "ranger_power_shot", "name": "Power Shot", "icon": "arrow", "school": "ranged",
+		"description": "A slow-drawn shot that pierces through up to 3 enemies.",
+		"cooldown": 5.0, "cost": 18, "cast_time": 0.35, "anim": "attack", "sfx": "shoot",
+		"effects": [
+			{"type": "projectile", "sprite": "arrow", "speed": 800, "range": 560, "radius": 8, "pierce": 3,
+				"damage": {"base": 6, "coef": 2.3}, "light": "#ffeecc"}
+		]
+	},
+	{
+		"id": "ranger_multishot", "name": "Multishot", "icon": "multishot", "school": "ranged",
+		"description": "Fire a fan of 5 arrows.",
+		"cooldown": 7.0, "cost": 22, "anim": "attack", "sfx": "shoot",
+		"effects": [
+			{"type": "projectile", "sprite": "arrow", "speed": 540, "range": 400, "radius": 6, "count": 5, "spread": 44,
+				"damage": {"base": 2, "coef": 0.85}}
+		]
+	},
+	{
+		"id": "ranger_snare_trap", "name": "Snare Trap", "icon": "trap", "school": "ranged",
+		"description": "Place a trap that roots and wounds enemies who step on it.",
+		"cooldown": 10.0, "cost": 18, "anim": "cast", "sfx": "equip",
+		"effects": [
+			{"type": "trap", "max_range": 220, "trigger_radius": 30, "duration": 25.0, "arm_time": 0.6, "sprite": "spikes_up", "color": "#99cc66",
+				"effects": [
+					{"type": "aoe", "at": "self", "radius": 56, "damage": {"base": 4, "coef": 1.0}, "color": "#99cc66",
+						"on_hit": [{"type": "status", "status": "root", "duration": 3.0}]}
+				]}
+		]
+	},
+	{
+		"id": "ranger_poison_arrow", "name": "Poison Arrow", "icon": "poison", "school": "ranged",
+		"description": "Arrow that poisons the target, dealing damage over time (stacks 3x).",
+		"cooldown": 4.0, "cost": 14, "anim": "attack", "sfx": "shoot",
+		"effects": [
+			{"type": "projectile", "sprite": "poison", "speed": 600, "range": 460, "radius": 7, "light": "#66ff44",
+				"damage": {"base": 2, "coef": 0.6},
+				"on_hit": [{"type": "status", "status": "poison", "duration": 6.0, "magnitude": {"base": 1, "coef": 0.35}}]}
+		]
+	},
+	{
+		"id": "ranger_explosive_trap", "name": "Explosive Trap", "icon": "fire", "school": "ranged",
+		"description": "Place a trap that explodes and sets enemies on fire.",
+		"cooldown": 14.0, "cost": 30, "anim": "cast", "sfx": "equip",
+		"effects": [
+			{"type": "trap", "max_range": 220, "trigger_radius": 30, "duration": 25.0, "arm_time": 0.8, "sprite": "barrel_explosive", "color": "#ff7722",
+				"effects": [
+					{"type": "aoe", "at": "self", "radius": 84, "damage": {"base": 8, "coef": 2.4}, "color": "#ff7722", "fx": "explosion", "shake": 4,
+						"on_hit": [{"type": "status", "status": "burn", "duration": 3.0, "magnitude": {"base": 1, "coef": 0.2}}]}
+				]}
+		]
+	}
+]
