@@ -55,6 +55,13 @@ func take_message() -> String:
 ## The only way the game quits: closes the session, lets the audio server release its streams
 ## (otherwise they are reported as leaked at exit), then quits.
 func quit_game(code: int = 0) -> void:
+	# Free the game scene before the peer is reset (see SessionRpc).
+	get_tree().multiplayer_poll = false
+	var game := get_tree().get_first_node_in_group("game")
+	if game:
+		game.process_mode = Node.PROCESS_MODE_DISABLED
+		game.queue_free()
+		await get_tree().process_frame
 	NetworkManager.shutdown()
 	AudioManager.close()
 	await get_tree().process_frame

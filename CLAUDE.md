@@ -192,12 +192,12 @@ res://
   autoload/        # EventBus, GameState, NetworkManager (ENet/Steam), SaveSystem, InputSettings, AudioManager
   scenes/          # player, enemies, bosses, items, props, ui, dungeon, menus
   scripts/
-    core/          # Stats, Health, ResourcePool (mana/fury), DamageSystem, ThreatTable
-    classes/       # warrior, ranger, mage, priest + their skills
-    items/         # ItemData, ItemGenerator, Inventory, Equipment, LootTable, Consumables
-    dungeon/       # generator, rooms, doors, fog/visibility, hazards, floor manager
-    net/           # lobby, spawn, sync, RPC helpers, transport
-    ui/            # HUD, inventory, radial menu, talents, rebinding menu, lobby
+	core/          # Stats, Health, ResourcePool (mana/fury), DamageSystem, ThreatTable
+	classes/       # warrior, ranger, mage, priest + their skills
+	items/         # ItemData, ItemGenerator, Inventory, Equipment, LootTable, Consumables
+	dungeon/       # generator, rooms, doors, fog/visibility, hazards, floor manager
+	net/           # lobby, spawn, sync, RPC helpers, transport
+	ui/            # HUD, inventory, radial menu, talents, rebinding menu, lobby
   data/            # .tres/JSON: classes, skills, talents, items, monsters, bosses, floor types, settings
   assets/          # sprites/, audio/, shaders/, lights/ (placeholders → Pixellab/Suno)
 ```

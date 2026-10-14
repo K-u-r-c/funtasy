@@ -27,12 +27,14 @@ manual run noted here.
 - [x] Export presets (Windows/Linux/macOS): all three export with the official 4.7.2 templates; the Linux
       release build runs headless (class test) and windowed with no errors
 - [x] Steam: lobby creation, tagged lobby listing and SteamMultiplayerPeer hosting (automated, `run_tests.sh steam`)
+- [x] Exported Linux release binary passes the LAN pair scenarios (full, real boss fight, wipe + second run,
+      host ends session, client leaves) with no engine/script errors; ~60 FPS in the boss room (35 monsters)
 - [x] Gamepad drives menus end to end (main menu -> options rebinding -> lobby -> run -> overlays), simulated events
 
 ## Not verified / open
 
-- [ ] Windows and macOS builds export fine but could not be *run* here (Linux dev machine). Smoke-test them
-      (`--auto=solo --scenario=classes` works on any platform).
+- [ ] Windows and macOS builds export fine but could not be *run* here (Linux dev machine, no Wine). Smoke-test
+      them (`funtasy.exe --headless -- --auto=solo --scenario=classes --quit=60` works on any platform).
 - [ ] macOS export is unsigned (codesign/notarization off): Gatekeeper needs right-click -> Open.
 - [ ] Steam with two real accounts (automated test covers lobby creation/listing and the Steam peer only).
 - [ ] Physical gamepad: tested with simulated joypad events only.

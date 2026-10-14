@@ -48,7 +48,7 @@ func submit_local_character() -> void:
 	if multiplayer.is_server():
 		_store_submitted(1, local_character)
 	else:
-		_submit_character.rpc_id(1, local_character)
+		NetworkManager.to_host("GameState", "_submit_character", [local_character])
 
 
 func save_local_character() -> void:
@@ -63,19 +63,17 @@ func push_character_to_owner(peer_id: int) -> void:
 	if peer_id == multiplayer.get_unique_id():
 		_receive_character(characters[peer_id])
 	else:
-		_receive_character.rpc_id(peer_id, characters[peer_id])
+		NetworkManager.to_peer(peer_id, "GameState", "_receive_character", [characters[peer_id]])
 
 
-## Client -> host (reliable). A client announces the character it will play.
-@rpc("any_peer", "reliable")
+## Client -> host (via SessionRpc). A client announces the character it will play.
 func _submit_character(data: Dictionary) -> void:
 	if not multiplayer.is_server():
 		return
 	_store_submitted(multiplayer.get_remote_sender_id(), data)
 
 
-## Host -> owner (reliable). Authoritative character snapshot for local saving.
-@rpc("authority", "reliable")
+## Host -> owner (via SessionRpc). Authoritative character snapshot for local saving.
 func _receive_character(data: Dictionary) -> void:
 	local_character = data.duplicate(true)
 	save_local_character()
@@ -99,14 +97,10 @@ func _store_submitted(peer_id: int, data: Dictionary) -> void:
 func _broadcast_roster() -> void:
 	if not multiplayer.is_server():
 		return
-	if NetworkManager.has_remote_peers():
-		_sync_roster.rpc(roster)
-	else:
-		_sync_roster(roster)
+	NetworkManager.to_all("GameState", "_sync_roster", [roster])
 
 
-## Host -> all (reliable, call_local).
-@rpc("authority", "call_local", "reliable")
+## Host -> all (via SessionRpc).
 func _sync_roster(data: Dictionary) -> void:
 	roster = data
 	roster_changed.emit()
@@ -137,14 +131,10 @@ func set_setting(id: String, value: Variant) -> void:
 	if not multiplayer.is_server():
 		return
 	settings[id] = value
-	if NetworkManager.has_remote_peers():
-		_sync_settings.rpc(settings)
-	else:
-		_sync_settings(settings)
+	NetworkManager.to_all("GameState", "_sync_settings", [settings])
 
 
-## Host -> all (reliable, call_local).
-@rpc("authority", "call_local", "reliable")
+## Host -> all (via SessionRpc).
 func _sync_settings(data: Dictionary) -> void:
 	settings = data
 	settings_changed.emit()
@@ -156,8 +146,8 @@ func _sync_settings(data: Dictionary) -> void:
 
 func _on_peer_joined(id: int) -> void:
 	if multiplayer.is_server():
-		_sync_settings.rpc_id(id, settings)
-		_sync_roster.rpc_id(id, roster)
+		NetworkManager.to_peer(id, "GameState", "_sync_settings", [settings])
+		NetworkManager.to_peer(id, "GameState", "_sync_roster", [roster])
 
 
 func _on_peer_left(id: int) -> void:

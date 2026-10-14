@@ -19,6 +19,7 @@ var fails := 0
 var passes := 0
 
 var _fight := false
+var _finishing := false
 var _skill_cycle := 0.0
 var _seen_visible := 0
 
@@ -72,6 +73,9 @@ func check(ok: bool, what: String) -> void:
 
 
 func _finish(reason: String) -> void:
+	if _finishing:
+		return
+	_finishing = true
 	print("[test] SUMMARY %s: %d passed, %d failed (%s)" % [mode if not mode.is_empty() else scenario, passes, fails, reason])
 	SceneManager.quit_game(1 if fails > 0 else 0)
 
@@ -134,6 +138,8 @@ func _run() -> void:
 			GameState.set_setting("friendly_fire", true)
 			GameState.set_setting("friendly_fire", false)
 		NetworkManager.start_run()
+	if not multiplayer.is_server():
+		NetworkManager.session_closed.connect(_on_client_session_closed, CONNECT_ONE_SHOT)
 	var in_game := await _wait_until(func(): return _game() != null and _game().depth >= 1 and _local() != null, 25.0)
 	check(in_game, "%s entered floor 1 with a spawned player" % mode)
 	if not in_game:
@@ -153,9 +159,35 @@ func _run() -> void:
 				await _wait(9999.0)
 			"boss":
 				await _boss_scenario()
+			"host_leave":
+				await _wait(8.0)
+				log_line("host ends the session from the pause menu")
+				var hud: Node = get_tree().get_first_node_in_group("hud")
+				hud.open_overlay(hud.PauseMenu.new())
+				await _wait(0.3)
+				hud._overlay._leave()
+				var at_menu := await _wait_until(func(): return get_tree().current_scene and get_tree().current_scene.name == "MainMenu", 5.0)
+				check(at_menu, "host is back in the main menu")
+				await _wait(3.0)
+			"client_leave":
+				await _wait(8.0)
+				NetworkManager.to_clients("DevAuto", "client_cmd", ["leave", null])
+				await _wait(4.0)
+				check(_game().players_root.get_child_count() == 1, "host removed the leaving player")
+				check(_game().enemies_root.get_child_count() > 0, "run continues for the host")
+				await _wait(2.0)
 			_:
 				await _wait(3.0)
 		_finish("scenario done")
+
+
+func _on_client_session_closed() -> void:
+	if _finishing:
+		return
+	var ok := await _wait_until(func(): return get_tree().current_scene and get_tree().current_scene.name == "MainMenu", 5.0)
+	check(ok, "client returned to the main menu when the session closed")
+	await _wait(2.0)
+	_finish("session closed")
 
 
 func _process(delta: float) -> void:
@@ -222,8 +254,7 @@ func _nearest_enemy(pos: Vector2, boss: bool = false) -> Enemy:
 # =========================================================================================
 
 
-## Host -> client (reliable): run a test step on the client and report.
-@rpc("authority", "call_remote", "reliable")
+## Host -> client (via SessionRpc): run a test step on the client and report.
 func client_cmd(cmd: String, arg: Variant) -> void:
 	var p := _local()
 	match cmd:
@@ -274,6 +305,13 @@ func client_cmd(cmd: String, arg: Variant) -> void:
 			check(get_tree().current_scene.name == "Lobby", "client returned to the lobby after the wipe")
 		"done":
 			_finish.call_deferred("host finished")
+		"leave":
+			log_line("client leaves to the main menu mid-run")
+			NetworkManager.leave_to_menu()
+			var ok := await _wait_until(func(): return get_tree().current_scene and get_tree().current_scene.name == "MainMenu", 5.0)
+			check(ok, "client is back in the main menu after leaving")
+			await _wait(2.0)
+			_finish.call_deferred("left")
 
 
 # =========================================================================================
@@ -306,9 +344,9 @@ func _full_scenario() -> void:
 	client_p.host_teleport(spot)
 	host_p.host_teleport(g.nearest_floor(spot + Vector2(-30, 0)))
 	var xp_before := client_p.xp + client_p.level * 100000
-	client_cmd.rpc("fight", true)
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["fight", true])
 	await _wait(9.0)
-	client_cmd.rpc("fight", false)
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["fight", false])
 	var used := Combat.instance.get_meta("uses", {}) as Dictionary
 	var client_uses := 0
 	for k in used:
@@ -378,7 +416,7 @@ func _full_scenario() -> void:
 	g.host_interact(host_p, door)
 	await _wait(0.4)
 	check(door.is_open != was_open, "host toggled a door")
-	client_cmd.rpc("check_door", [door.name, door.is_open])
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["check_door", [door.name, door.is_open]])
 	await _wait(0.5)
 
 	# --- 4. Items: drop -> pick up -> equip (trade), appearance, off-class penalty ------------
@@ -392,15 +430,15 @@ func _full_scenario() -> void:
 	check(g.items_root.get_child_count() > 0, "item dropped on the ground")
 	client_p.host_teleport(drop_at + host_p.facing * 18.0)
 	await _wait(0.8)
-	client_cmd.rpc("pickup", null)
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["pickup", null])
 	await _wait(1.0)
 	var has := false
 	for it in client_p.inv.backpack:
 		if it.get("uid") == item.uid:
 			has = true
 	check(has, "client picked up the item dropped by the host (trade)")
-	client_cmd.rpc("check_inventory_has", item.uid)
-	client_cmd.rpc("equip_uid", item.uid)
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["check_inventory_has", item.uid])
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["equip_uid", item.uid])
 	await _wait(0.8)
 	check(client_p.inv.equipment.get("main_hand", {}).get("uid") == item.uid, "client equipped the traded weapon")
 	check(client_p.appearance.has("weapon"), "weapon appearance layer replicated (%s)" % str(client_p.appearance.get("weapon", ["none"])[0]))
@@ -409,13 +447,13 @@ func _full_scenario() -> void:
 	var off_item := ItemGenerator.generate_equipment(off_base, 1, 1, rng)
 	client_p.host_give_item(off_item)
 	await _wait(0.3)
-	client_cmd.rpc("equip_uid", off_item.uid)
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["equip_uid", off_item.uid])
 	await _wait(0.8)
 	var dm := float(client_p.stats.final.get("damage_mult", 1.0))
 	check(bool(client_p.stats.final.get("offclass", false)) and absf(dm - 0.2) < 0.05, "off-class weapon: damage x%.2f and cooldown x%.1f" % [dm, client_p.stats.final.get("cooldown_mult", 1.0)])
 	var cd_off: float = client_p.stats.cooldown_for(GameData.skill(client_p.skills[1]))
 	check(cd_off > float(GameData.skill(client_p.skills[1]).cooldown) * 1.2, "off-class weapon lengthens cooldowns (%.1fs)" % cd_off)
-	client_cmd.rpc("equip_uid", item.uid)
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["equip_uid", item.uid])
 	await _wait(0.5)
 
 	# --- 5. Consumables on Q ------------------------------------------------------------------
@@ -426,7 +464,7 @@ func _full_scenario() -> void:
 	check(client_p.inv.quick.get("q", "") == "potion_health" or client_p.inv.quick.get("e", "") == "potion_health", "potion auto-assigned to a quick slot")
 	client_p.inv.quick["q"] = "potion_health"
 	client_p.health.hp = client_p.health.max_hp * 0.3
-	client_cmd.rpc("use_q", null)
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["use_q", null])
 	await _wait(0.6)
 	check(client_p.inv.count_of("potion_health") == potions_before + 1 and client_p.health.fraction() > 0.5, "Q potion consumed and healed (left %d, hp %.0f%%)" % [client_p.inv.count_of("potion_health"), client_p.health.fraction() * 100.0])
 
@@ -437,7 +475,7 @@ func _full_scenario() -> void:
 	Combat.instance.deal_damage(Combat.instance.env_ctx(0.0), client_p, 99999.0)
 	await _wait(0.3)
 	check(client_p.life_state == Player.Life.DOWNED, "lethal damage downs the player")
-	client_cmd.rpc("check_life", Player.Life.DOWNED)
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["check_life", Player.Life.DOWNED])
 	host_p.request_revive.rpc_id(1, client_p.peer_id, true)
 	await _wait(float(GameData.bal("player.revive_channel")) + 0.6)
 	check(client_p.life_state == Player.Life.ALIVE, "teammate revived the downed player")
@@ -447,7 +485,7 @@ func _full_scenario() -> void:
 	Combat.instance.deal_damage(Combat.instance.env_ctx(0.0), client_p, 99999.0)
 	await _wait(float(GameData.bal("player.downed_time")) + 0.8)
 	check(client_p.life_state == Player.Life.GHOST, "unrevived player becomes a ghost")
-	client_cmd.rpc("check_life", Player.Life.GHOST)
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["check_life", Player.Life.GHOST])
 	check(not g._wiped, "one ghost with a living teammate is not a wipe")
 
 	# --- 8. Boss -> portal -> floor 2 ---------------------------------------------------------
@@ -487,18 +525,18 @@ func _full_scenario() -> void:
 	check(g.portal != null, "exit portal opened on the host")
 	check(g.items_root.get_child_count() >= 3, "boss dropped bonus loot (%d items on the ground)" % g.items_root.get_child_count())
 	check(host_p.xp + host_p.level * 100000 > host_xp, "host earned boss XP")
-	client_cmd.rpc("check_portal", null)
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["check_portal", null])
 	host_p.host_teleport(g.portal.global_position)
 	await _wait(3.0)
 	check(g.depth == 2, "party descended to floor 2")
 	await _wait(1.0)
 	check(client_p.life_state == Player.Life.ALIVE, "ghost revived on the next floor")
-	client_cmd.rpc("check_depth", 2)
-	client_cmd.rpc("check_life", Player.Life.ALIVE)
-	client_cmd.rpc("check_saved", client_p.level)
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["check_depth", 2])
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["check_life", Player.Life.ALIVE])
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["check_saved", client_p.level])
 	check(g.enemies_root.get_child_count() > 3, "floor 2 populated with monsters")
 	await _wait(1.0)
-	client_cmd.rpc("done", null)
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["done", null])
 	await _wait(1.0)
 
 
@@ -517,6 +555,7 @@ func _hazard_checks(g: Node, host_p: Player, client_p: Player) -> void:
 		client_p.host_teleport(spot + Vector2(-30, 0))
 		await _wait(0.8)
 		ghoul.set_physics_process(false)
+		ghoul.stats.final.dodge = 0.0
 		_reset_player(client_p)
 		client_p.iframe_left = 0.0
 		var hp_c := client_p.health.hp
@@ -606,7 +645,7 @@ func _boss_scenario() -> void:
 		p.host_teleport(spot + Vector2(randf_range(-30, 30), 0))
 	await _wait(0.6)
 	if NetworkManager.has_remote_peers():
-		client_cmd.rpc("fight", true)
+		NetworkManager.to_clients("DevAuto", "client_cmd", ["fight", true])
 	_fight = true
 	var t := 0.0
 	var start_hp := boss.health.hp
@@ -623,7 +662,7 @@ func _boss_scenario() -> void:
 	for a in ["attack", "skill_1", "skill_2", "skill_3", "skill_4", "skill_5"]:
 		Input.action_release(a)
 	if NetworkManager.has_remote_peers():
-		client_cmd.rpc("fight", false)
+		NetworkManager.to_clients("DevAuto", "client_cmd", ["fight", false])
 	var dead := not is_instance_valid(boss) or not boss.is_alive()
 	check(dead, "players killed the boss with their skills in %d s (boss HP %d at start)" % [t, start_hp])
 	if not dead:
@@ -635,9 +674,9 @@ func _boss_scenario() -> void:
 	var down := await _wait_until(func(): return g.depth == 2, 8.0)
 	check(down, "party reached floor 2 through the portal")
 	if NetworkManager.has_remote_peers():
-		client_cmd.rpc("check_depth", 2)
+		NetworkManager.to_clients("DevAuto", "client_cmd", ["check_depth", 2])
 		await _wait(0.5)
-		client_cmd.rpc("done", null)
+		NetworkManager.to_clients("DevAuto", "client_cmd", ["done", null])
 	await _wait(1.0)
 
 
@@ -654,7 +693,7 @@ func _wipe_scenario() -> void:
 	var back := await _wait_until(func(): return get_tree().current_scene.name == "Lobby", 12.0)
 	check(back, "host returned to the lobby after the wipe")
 	if NetworkManager.has_remote_peers():
-		client_cmd.rpc("check_lobby", null)
+		NetworkManager.to_clients("DevAuto", "client_cmd", ["check_lobby", null])
 	await _wait(1.0)
 	check(host_p == null or not is_instance_valid(host_p), "game scene freed")
 	# A second run starts cleanly with the wiped characters.
@@ -668,7 +707,7 @@ func _wipe_scenario() -> void:
 		check(p2 != null and p2.inv.equipment.is_empty() and p2.is_alive(), "host starts the new run alive, in underwear")
 		check(not _game()._wiped, "wipe flag reset for the new run")
 	if NetworkManager.has_remote_peers():
-		client_cmd.rpc("done", null)
+		NetworkManager.to_clients("DevAuto", "client_cmd", ["done", null])
 	await _wait(0.5)
 
 
@@ -854,6 +893,11 @@ func _shots_flow() -> void:
 		await _wait(3.0)
 		p.iframe_left = 30.0
 		await _snap(dir, "10_boss")
+		var fps_samples: Array = []
+		for i in 5:
+			await _wait(1.0)
+			fps_samples.append(Engine.get_frames_per_second())
+		log_line("boss room fps %s (enemies %d)" % [fps_samples, g.enemies_root.get_child_count()])
 	_finish("shots taken")
 
 

@@ -40,6 +40,7 @@ var loaded_peers: Dictionary = {}
 var last_port := DEFAULT_PORT
 
 var _joining_lobby := false
+var _leaving := false
 
 
 func _ready() -> void:
@@ -92,6 +93,7 @@ func has_remote_peers() -> bool:
 
 func host_solo() -> void:
 	_reset()
+	_make_session()
 	backend = Backend.SOLO
 	multiplayer.multiplayer_peer = OfflineMultiplayerPeer.new()
 	session_ready.emit()
@@ -99,6 +101,7 @@ func host_solo() -> void:
 
 func host_enet(port: int = DEFAULT_PORT) -> void:
 	_reset()
+	_make_session()
 	var peer := ENetMultiplayerPeer.new()
 	var err := peer.create_server(port, MAX_PLAYERS - 1)
 	if err != OK:
@@ -112,6 +115,7 @@ func host_enet(port: int = DEFAULT_PORT) -> void:
 
 func join_enet(address: String, port: int = DEFAULT_PORT) -> void:
 	_reset()
+	_make_session()
 	var peer := ENetMultiplayerPeer.new()
 	var err := peer.create_client(address, port)
 	if err != OK:
@@ -127,6 +131,7 @@ func host_steam() -> void:
 		session_failed.emit("Steam unavailable: %s" % steam_status)
 		return
 	_reset()
+	_make_session()
 	backend = Backend.STEAM
 	steam.createLobby(STEAM_LOBBY_TYPE_PUBLIC, MAX_PLAYERS)
 
@@ -145,14 +150,65 @@ func join_steam(target_lobby: int) -> void:
 		session_failed.emit("Steam unavailable: %s" % steam_status)
 		return
 	_reset()
+	_make_session()
 	backend = Backend.STEAM
 	_joining_lobby = true
 	steam.joinLobby(target_lobby)
 
 
-## Closes the current session and returns to a clean offline state.
+# --- RPC relay (see scripts/net/session_rpc.gd) ---------------------------------------------
+
+
+var session: SessionRpc
+
+
+func _make_session() -> void:
+	_free_session()
+	session = SessionRpc.new()
+	session.name = "Session"
+	add_child(session)
+
+
+func _free_session() -> void:
+	if session and is_instance_valid(session):
+		session.free()
+	session = null
+
+
+## Host -> every peer including itself.
+func to_all(target: String, method: String, args: Array = []) -> void:
+	if session == null:
+		return
+	session.host_call.rpc(target, method, args)
+
+
+## Host -> one peer (may be the host itself).
+func to_peer(peer: int, target: String, method: String, args: Array = []) -> void:
+	if session == null:
+		return
+	session.host_call.rpc_id(peer, target, method, args)
+
+
+## Host -> every client (not the host).
+func to_clients(target: String, method: String, args: Array = []) -> void:
+	if session == null:
+		return
+	for peer in multiplayer.get_peers():
+		session.host_call.rpc_id(peer, target, method, args)
+
+
+## Client (or host) -> host.
+func to_host(target: String, method: String, args: Array = []) -> void:
+	if session == null:
+		return
+	session.client_call.rpc_id(1, target, method, args)
+
+
+## Closes the current session and returns to a clean offline state. Call it after the game
+## scene is gone: nodes that took part in RPCs must leave the tree before the peer is reset.
 func leave() -> void:
 	var was_active := backend != Backend.NONE
+	_free_session()
 	if lobby_id != 0 and steam_ready:
 		steam.leaveLobby(lobby_id)
 	lobby_id = 0
@@ -168,9 +224,30 @@ func leave() -> void:
 		session_closed.emit()
 
 
+## Leaves to the main menu. Order matters (see SessionRpc): freeze the run, tell clients
+## (when hosting), switch scenes so every networked node is freed, then reset the peer.
 func leave_to_menu(message: String = "") -> void:
+	if _leaving:
+		return
+	_leaving = true
+	var game := get_tree().get_first_node_in_group("game")
+	if game:
+		game.process_mode = Node.PROCESS_MODE_DISABLED
+	if multiplayer.is_server() and has_remote_peers():
+		to_clients("NetworkManager", "_end_session", [])
+		await get_tree().create_timer(0.3).timeout  # deliver it and let clients leave first
+	# Stop processing network traffic: nothing may arrive for nodes that are being freed.
+	get_tree().multiplayer_poll = false
+	await SceneManager.change_scene(MENU_SCENE, message)
 	leave()
-	SceneManager.change_scene(MENU_SCENE, message)
+	get_tree().multiplayer_poll = true
+	_leaving = false
+
+
+## Host -> clients: the host is ending the session.
+func _end_session() -> void:
+	if not multiplayer.is_server():
+		leave_to_menu("The host ended the session")
 
 
 func shutdown() -> void:
@@ -185,22 +262,17 @@ func start_run() -> void:
 		return
 	if backend == Backend.STEAM and lobby_id != 0:
 		steam.setLobbyJoinable(lobby_id, false)
-	if has_remote_peers():
-		_begin_run.rpc()
-	else:
-		_begin_run()
+	to_all("NetworkManager", "_begin_run")
 
 
-## Host -> all (reliable, call_local): everyone loads the game scene.
-@rpc("authority", "call_local", "reliable")
+## Host -> all: everyone loads the game scene.
 func _begin_run() -> void:
 	in_run = true
 	loaded_peers.clear()
 	SceneManager.change_scene(GAME_SCENE)
 
 
-## Host -> all (reliable, call_local): back to the lobby after a wipe / run end.
-@rpc("authority", "call_local", "reliable")
+## Host -> all: back to the lobby after a wipe / run end.
 func _return_to_lobby() -> void:
 	in_run = false
 	loaded_peers.clear()
@@ -212,10 +284,7 @@ func _return_to_lobby() -> void:
 func return_to_lobby() -> void:
 	if not multiplayer.is_server():
 		return
-	if has_remote_peers():
-		_return_to_lobby.rpc()
-	else:
-		_return_to_lobby()
+	to_all("NetworkManager", "_return_to_lobby")
 
 
 ## The game scene calls this once loaded so the host knows when to spawn players.
@@ -223,11 +292,10 @@ func notify_loaded() -> void:
 	if multiplayer.is_server():
 		_mark_loaded(1)
 	else:
-		_report_loaded.rpc_id(1)
+		to_host("NetworkManager", "_report_loaded")
 
 
-## Client -> host (reliable).
-@rpc("any_peer", "reliable")
+## Client -> host.
 func _report_loaded() -> void:
 	_mark_loaded(multiplayer.get_remote_sender_id())
 
