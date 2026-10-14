@@ -61,6 +61,7 @@ if [ "$WHAT" = all ] || [ "$WHAT" = quick ]; then
 	for c in warrior ranger mage priest; do
 		run "classes-$c" --auto=solo --class=$c --name=Solo$c --scenario=classes --quit=60
 	done
+	run gamepad-menu --scenario=gamepad_menu --quit=60
 	run gamepad --auto=solo --class=warrior --name=PadTester --scenario=gamepad --quit=60
 	timeout 60 "$GODOT" --headless --path . -- --nosteam --profile=test_rebind --scenario=rebind --quit=20 > "$OUT/rebind.log" 2>&1
 	report rebind

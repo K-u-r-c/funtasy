@@ -155,6 +155,10 @@ func _show_page(page_name: String, instant := false) -> void:
 	if page_name == "browser":
 		_clear_lobbies()
 		NetworkManager.request_steam_lobbies()
+		# Fresh lobbies can take a moment to show up in Steam's list; ask once more.
+		get_tree().create_timer(2.5).timeout.connect(func():
+			if _current == _pages["browser"]:
+				NetworkManager.request_steam_lobbies())
 	_switching = false
 
 

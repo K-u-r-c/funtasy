@@ -98,6 +98,9 @@ func _wait_until(cond: Callable, timeout: float) -> bool:
 func _run() -> void:
 	await _wait(0.5)
 	match scenario:
+		"gamepad_menu":
+			await _gamepad_menu_flow()
+			return
 		"rebind":
 			_rebind_test()
 			return
@@ -711,6 +714,79 @@ func _gamepad_scenario() -> void:
 	check(not hud.has_overlay(), "B closes the pause menu")
 
 
+## Main menu -> Solo -> lobby -> confirm -> start, using only gamepad events.
+func _gamepad_menu_flow() -> void:
+	await _wait(1.0)
+	var focus := get_viewport().gui_get_focus_owner()
+	check(focus is Button and focus.text == "Play", "main menu focuses Play for the gamepad")
+	# Options -> Controls tab (RB) -> rebind a gamepad slot by pressing a pad button.
+	await _press(JOY_BUTTON_DPAD_DOWN)
+	await _press(JOY_BUTTON_A)
+	await _wait(0.4)
+	var menu: Node = get_tree().current_scene._overlay
+	check(menu != null, "Options opened with the gamepad")
+	await _press(JOY_BUTTON_RIGHT_SHOULDER)
+	await _press(JOY_BUTTON_RIGHT_SHOULDER)
+	check(menu._tabs.current_tab == 2, "RB switches to the Controls tab")
+	var slot_btn: Button = menu._bind_buttons["skill_1|pad|1"]
+	slot_btn.grab_focus()
+	await _press(JOY_BUTTON_A)
+	await _wait(0.2)
+	await _press(JOY_BUTTON_Y)
+	check(Array(InputSettings.bindings["skill_1"]["pad"]).has("button:y") and not Array(InputSettings.bindings["skill_4"]["pad"]).has("button:y"), "pad rebinding through the menu (conflict moved Y from skill 4)")
+	InputSettings.reset_to_defaults()
+	await _press(JOY_BUTTON_B)
+	await _wait(0.3)
+	check(get_tree().current_scene._overlay == null, "B closes Options")
+	await _wait(0.2)
+	get_tree().current_scene._pages["main"].get_child(0).grab_focus()
+	await _press(JOY_BUTTON_A)
+	await _wait(0.5)
+	focus = get_viewport().gui_get_focus_owner()
+	check(focus is Button and focus.text == "Solo", "Play page focuses Solo")
+	await _press(JOY_BUTTON_DPAD_DOWN)
+	check(get_viewport().gui_get_focus_owner().text == "Host LAN game", "D-pad moves menu focus")
+	await _press(JOY_BUTTON_DPAD_UP)
+	await _press(JOY_BUTTON_A)
+	var in_lobby := await _wait_until(func(): return get_tree().current_scene.name == "Lobby", 10.0)
+	check(in_lobby, "gamepad reached the lobby")
+	await _wait(0.8)
+	focus = get_viewport().gui_get_focus_owner()
+	check(focus is Button and str(focus.text).begins_with("Play as"), "lobby focuses the confirm button")
+	await _press(JOY_BUTTON_A)
+	await _wait(0.5)
+	check(GameState.roster.has(1), "character confirmed with A")
+	var found := false
+	for i in 14:
+		focus = get_viewport().gui_get_focus_owner()
+		if focus is Button and str(focus.text).begins_with("Start run"):
+			found = true
+			break
+		await _press(JOY_BUTTON_DPAD_DOWN)
+	check(found, "D-pad reaches the Start button")
+	await _press(JOY_BUTTON_A)
+	var in_game := await _wait_until(func(): return _game() != null and _local() != null, 15.0)
+	check(in_game, "run started from the lobby with the gamepad")
+	if in_game:
+		await _wait(0.5)
+		var hud := get_tree().get_first_node_in_group("hud")
+		await _press(JOY_BUTTON_DPAD_LEFT)
+		check(hud._overlay != null and hud._overlay.get_script() == hud.TalentPanel, "D-pad Left opens talents")
+		for i in 3:
+			await _press(JOY_BUTTON_DPAD_LEFT)
+		check(hud._overlay != null, "D-pad navigation inside talents doesn't close the panel")
+		await _press(JOY_BUTTON_B)
+		check(hud._overlay == null, "B closes talents")
+	_finish("gamepad menu flow")
+
+
+func _press(button: int) -> void:
+	_joy_button(button, true)
+	await _wait(0.08)
+	_joy_button(button, false)
+	await _wait(0.25)
+
+
 func _joy_axis(axis: int, value: float) -> void:
 	var ev := InputEventJoypadMotion.new()
 	ev.device = 0
@@ -770,14 +846,19 @@ func _steam_host_test() -> void:
 	NetworkManager.host_steam()
 	var ok := await _wait_until(func(): return NetworkManager.lobby_id != 0, 15.0)
 	check(ok, "Steam lobby created (id %d)" % NetworkManager.lobby_id)
-	var lobbies: Array = []
-	NetworkManager.lobby_list_received.connect(func(l): lobbies = l)
-	NetworkManager.request_steam_lobbies()
-	await _wait_until(func(): return not lobbies.is_empty(), 10.0)
+	# Lambdas capture by value, so results go through a dictionary.
+	var box := {"lobbies": []}
+	NetworkManager.lobby_list_received.connect(func(l): box.lobbies = l)
 	var found := false
-	for l in lobbies:
-		if l.id == NetworkManager.lobby_id:
-			found = true
-	check(found, "own lobby is listed with the game tag (%d lobbies)" % lobbies.size())
+	for attempt in 6:
+		NetworkManager.request_steam_lobbies()
+		await _wait(2.5)
+		for l in box.lobbies:
+			if l.id == NetworkManager.lobby_id:
+				found = true
+		log_line("lobby list attempt %d: %d lobbies" % [attempt, box.lobbies.size()])
+		if found:
+			break
+	check(found, "own lobby is listed with the game tag (%d lobbies)" % box.lobbies.size())
 	check(multiplayer.multiplayer_peer.get_class() == "SteamMultiplayerPeer", "SteamMultiplayerPeer active as host")
 	_finish("steam done")

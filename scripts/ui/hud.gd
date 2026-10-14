@@ -398,10 +398,12 @@ func _unhandled_input(ev: InputEvent) -> void:
 	if player == null or _wipe != null:
 		return
 	if _overlay != null:
+		# D-pad buttons double as menu navigation, so they never toggle an overlay closed.
+		var nav := ev.is_action("ui_left") or ev.is_action("ui_right") or ev.is_action("ui_up") or ev.is_action("ui_down")
 		if ev.is_action_pressed("ui_cancel") or ev.is_action_pressed("pause") \
 				or (ev.is_action_pressed("inventory") and _overlay is InventoryPanel) \
-				or (ev.is_action_pressed("talents") and _overlay is TalentPanel) \
-				or (ev.is_action_pressed("map") and _overlay is MapPanel):
+				or (not nav and ev.is_action_pressed("talents") and _overlay is TalentPanel) \
+				or (not nav and ev.is_action_pressed("map") and _overlay is MapPanel):
 			get_viewport().set_input_as_handled()
 			close_overlay()
 		return
