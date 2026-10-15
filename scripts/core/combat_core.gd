@@ -254,6 +254,7 @@ func deal_damage(ctx: Dictionary, target: Actor, amount: float, opts: Dictionary
 	if school in ["melee", "ranged", "spell"]:
 		amount *= target.stats.mult(school + "_damage_taken")
 	amount *= float(opts.get("mult", 1.0))
+	amount = target.modify_damage_taken(amount, data)
 	# Mitigation: armor for physical, resistances for the rest, nothing for true damage.
 	if dtype != "true":
 		var reduction := target.stats.get_stat("strength_reduction")

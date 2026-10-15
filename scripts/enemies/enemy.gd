@@ -25,6 +25,11 @@ var _preferred: Array = [0, 40]
 var _aggro_radius := 220.0
 var lifetime := -1.0  ## host: summoned minions and decoys expire
 var copy_peer := 0  ## replicated at spawn: draw this player's look instead of the monster art (D31)
+var behaviors: Array = []  ## host: MonsterBehavior modules from data (scripts/enemies/behaviors/)
+var behavior_state := "":  ## replicated: what the behaviours look like right now (bone pile, mound...)
+	set(v):
+		behavior_state = v
+		_apply_behavior_visual()
 var _wander := Vector2.ZERO
 var _wander_left := 0.0
 
@@ -47,7 +52,7 @@ func setup(data: Dictionary) -> void:
 	collision_layer = 4
 	collision_mask = 1 | 2 | 8 | 16 | 32 | 64 | 128
 	NetSync.make(self, "StateSync", [
-		"Health:hp", "Health:max_hp", "Health:absorb", "Status:shown", ".:level", ".:aggro",
+		"Health:hp", "Health:max_hp", "Health:absorb", "Status:shown", ".:level", ".:aggro", ".:behavior_state",
 	], [".:net_pos", ".:facing"], 0.05)
 
 
@@ -63,6 +68,11 @@ func _ready() -> void:
 		threat = ThreatTable.new()
 		threat.name = "Threat"
 		add_child(threat)
+		for bd in def.get("behaviors", []):
+			var scr: Script = load(GameData.BEHAVIOR_DIR + str(bd.id) + ".gd")
+			var b: MonsterBehavior = scr.new()
+			b.setup(self, bd)
+			behaviors.append(b)
 		_configure_ai()
 		recompute_stats()
 		health.hp = health.max_hp
@@ -87,6 +97,34 @@ func _copy_look() -> void:
 		var a: Array = p.appearance[layer]
 		sprite.set_layer(layer, CharacterSprite.gear_key(str(a[0]), p.gender), Color.from_string(a[1], Color.WHITE))
 	sprite.self_modulate = Color.from_string(str(def.get("copy_tint", "#b9a8ff")), Color.WHITE)
+
+
+## Every peer: the look a behaviour state asks for (data "behavior_visuals": {state: {sprite,
+## alpha, scale, hide_bar}}), e.g. a bone pile instead of the skeleton.
+func _apply_behavior_visual() -> void:
+	if sprite == null:
+		return
+	var v: Dictionary = def.get("behavior_visuals", {}).get(behavior_state, {})
+	sprite.set_layer("body", str(v.get("sprite", def.sprite)), Color.from_string(str(v.get("tint", def.get("tint", "#ffffff"))), Color.WHITE))
+	sprite.self_modulate.a = float(v.get("alpha", 1.0))
+	set_meta("hide_bar", bool(v.get("hide_bar", false)))
+
+
+func is_targetable() -> bool:
+	if not super.is_targetable():
+		return false
+	for b in behaviors:
+		if not b.is_targetable():
+			return false
+	if not multiplayer.is_server():
+		return not def.get("behavior_visuals", {}).get(behavior_state, {}).get("untargetable", false)
+	return true
+
+
+func modify_damage_taken(amount: float, data: Dictionary) -> float:
+	for b in behaviors:
+		amount = b.modify_damage_taken(amount, data)
+	return amount
 
 
 func creature_type() -> String:
@@ -171,7 +209,9 @@ func add_contribution(peer: int) -> void:
 	contributors[peer] = Time.get_ticks_msec() / 1000.0
 
 
-func on_damaged(attacker: Actor, _amount: float) -> void:
+func on_damaged(attacker: Actor, amount: float) -> void:
+	for b in behaviors:
+		b.on_damaged(attacker, amount)
 	if attacker and not aggro:
 		_become_aggro()
 		_alert_nearby(attacker)
@@ -214,13 +254,19 @@ func _opponents(game: Node) -> Array:
 func _host_ai(delta: float) -> void:
 	if not is_alive():
 		return
+	for b in behaviors:
+		b.on_physics(delta)
 	var game := get_tree().get_first_node_in_group("game")
 	if game == null:
 		return
 	_think_left -= delta
 	if _think_left <= 0.0:
 		_think_left = float(GameData.bal("ai.think_interval")) * randf_range(0.8, 1.2)
-		_think(game)
+		var skip := false
+		for b in behaviors:
+			skip = b.on_think(game) or skip
+		if not skip:
+			_think(game)
 	_move(game, delta)
 
 
@@ -238,6 +284,10 @@ func _think(game: Node) -> void:
 				_become_aggro()
 				_alert_nearby(p)
 	target = threat.update(float(GameData.bal("ai.think_interval")), _valid_target)
+	for b in behaviors:
+		var o: Actor = b.target_override()
+		if o and _valid_target(o):
+			target = o
 	if target == null:
 		aggro = aggro and threat.has_any()
 		return
@@ -312,7 +362,14 @@ func _hurt_ally(r: float) -> Actor:
 func _move(game: Node, delta: float) -> void:
 	var desired := Vector2.ZERO
 	var speed := move_speed()
-	if status.has_flag("feared"):
+	var forced := Vector2.INF
+	for b in behaviors:
+		var v: Vector2 = b.move_override(delta)
+		if v != Vector2.INF:
+			forced = v
+	if forced != Vector2.INF:
+		desired = forced
+	elif status.has_flag("feared"):
 		desired = _fear_dir()
 	elif status.has_flag("disoriented"):
 		_wander_left -= delta
@@ -409,6 +466,9 @@ func host_knockback(push: Vector2) -> void:
 
 
 func on_death() -> void:
+	for b in behaviors:
+		if b.on_death():
+			return  # the behaviour keeps it alive (reassemble, split...)
 	died_signal.emit(self)
 	var game := get_tree().get_first_node_in_group("game")
 	if game:

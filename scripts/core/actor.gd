@@ -98,6 +98,11 @@ func creature_type() -> String:
 	return "humanoid"
 
 
+## Behaviour hook (frontal shields, shells...): scales damage before mitigation.
+func modify_damage_taken(amount: float, _data: Dictionary) -> float:
+	return amount
+
+
 ## Full immunity to a damage type (monster data `immune`, statuses `immune_<type>`).
 func immune_to(dtype: String) -> bool:
 	return status.has_flag("immune_" + dtype)

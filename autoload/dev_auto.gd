@@ -16,6 +16,8 @@ var wanted_players := 2
 var quit_after := 0.0
 var shot := ""
 var shot_at := 0.0
+var biome := ""  ## --biome=<floor type id> (monster suite, tours)
+var tour := ""  ## --tour=<name>[:arg] (screenshot tours)
 var window_size := Vector2i.ZERO  ## --window=WxH: resize the window (layout checks per aspect)
 var fails := 0
 var passes := 0
@@ -48,6 +50,10 @@ func _ready() -> void:
 			shot = v
 		elif a.begins_with("--shot-at="):
 			shot_at = float(v)
+		elif a.begins_with("--biome="):
+			biome = v
+		elif a.begins_with("--tour="):
+			tour = v
 		elif a.begins_with("--window="):
 			window_size = Vector2i(int(v.get_slice("x", 0)), int(v.get_slice("x", 1)))
 	if window_size != Vector2i.ZERO:
@@ -59,7 +65,7 @@ func _ready() -> void:
 		char_name = "Test%s" % mode.capitalize()
 	if quit_after > 0.0:
 		get_tree().create_timer(quit_after).timeout.connect(_finish.bind("timeout"))
-	if not shot.is_empty() and not scenario in ["shots", "lobby_shot", "hero_shots", "monster_shots"]:
+	if not shot.is_empty() and not scenario in ["shots", "lobby_shot", "hero_shots", "monster_shots", "tour"]:
 		get_tree().create_timer(shot_at).timeout.connect(func():
 			get_viewport().get_texture().get_image().save_png(shot)
 			log_line("screenshot saved to %s" % shot))
@@ -71,6 +77,15 @@ func _apply_window_size() -> void:
 	var w := get_window()
 	w.mode = Window.MODE_WINDOWED
 	w.size = window_size
+	# Tiling Wayland compositors (Hyprland) ignore the requested size: float this process's own
+	# window and size it there (test runs only, nothing persistent).
+	if OS.has_environment("HYPRLAND_INSTANCE_SIGNATURE"):
+		var pid := "pid:%d" % OS.get_process_id()
+		OS.execute("hyprctl", ["dispatch", "setfloating", pid])
+		OS.execute("hyprctl", ["dispatch", "resizewindowpixel", "exact %d %d,%s" % [window_size.x, window_size.y, pid]])
+		OS.execute("hyprctl", ["dispatch", "movewindowpixel", "exact 0 0,%s" % pid])
+		for i in 10:
+			await get_tree().process_frame
 	await get_tree().process_frame
 	log_line("window %s -> viewport %s" % [w.size, get_viewport().get_visible_rect().size])
 
@@ -198,6 +213,10 @@ func _run() -> void:
 				await SkillSuite.new(self).run_class(class_id)
 			"primitives":
 				await SkillSuite.new(self).run_primitives()
+			"monsters":
+				await MonsterSuite.new(self).run(biome)
+			"tour":
+				await ShotTour.new(self, shot if not shot.is_empty() else OS.get_user_data_dir().path_join("tour")).run(tour)
 			"idle":
 				await _wait(9999.0)
 			"boss":

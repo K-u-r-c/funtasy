@@ -230,6 +230,10 @@ func on_enemy_killed(e: Enemy) -> void:
 		corpses[cid] = {"id": cid, "def_id": e.def_id, "pos": e.global_position, "t": floor_time,
 			"creature": e.creature_type(), "bones": e.def.get("corpse", "flesh") == "bones"}
 	_enemy_death_fx.rpc(str(e.def.sprite), e.global_position, e.facing, cid if corpses.has(cid) else -1)
+	for other in enemies_root.get_children():
+		if other != e and other.is_alive() and not other.behaviors.is_empty() and other.global_position.distance_to(e.global_position) < 320.0:
+			for b in other.behaviors:
+				b.on_ally_death(e, corpses.get(cid, {}))
 	# Kill procs (Victory Rush, legendaries) for whoever landed the last hit.
 	if is_instance_valid(e.last_attacker):
 		combat.fire(e.last_attacker, "on_kill", {"target": e, "ctx": e.last_attack_ctx, "skill": str(e.last_attack_ctx.get("skill", "")),
