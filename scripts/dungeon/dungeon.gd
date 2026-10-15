@@ -321,12 +321,7 @@ func add_obstacle(id: int, kind: String, cell_list: Array, lifetime: float, bloc
 			s.position = cell_center(c) + Vector2(0, -6)
 			body.add_child(s)
 		else:
-			var poly := Polygon2D.new()
-			var h := tile * 0.45
-			poly.polygon = PackedVector2Array([Vector2(-h, -h * 1.6), Vector2(h, -h * 1.6), Vector2(h, h), Vector2(-h, h)])
-			poly.color = Color(color.r, color.g, color.b, 0.9)
-			poly.position = cell_center(c)
-			body.add_child(poly)
+			body.add_child(_obstacle_placeholder(str(def.get("style", "spikes")), color, cell_center(c)))
 		if blocks != "none" and astar.is_in_boundsv(c):
 			astar.set_point_solid(c, true)
 	if def.has("light"):
@@ -346,6 +341,67 @@ func add_obstacle(id: int, kind: String, cell_list: Array, lifetime: float, bloc
 	obstacles[id] = {"node": body, "cells": cell_list, "blocks": blocks}
 	if lifetime > 0.0:
 		get_tree().create_timer(lifetime).timeout.connect(remove_obstacle.bind(id))
+
+
+## Drawn stand-in for obstacle art: "flames" (rising particles over a glowing base), "spikes"
+## (jagged dark shards) or "block" (a solid lump).
+func _obstacle_placeholder(style: String, color: Color, at: Vector2) -> Node2D:
+	var n := Node2D.new()
+	n.position = at
+	var h := tile * 0.45
+	var base := Polygon2D.new()
+	match style:
+		"flames":
+			base.polygon = _ellipse(h, h * 0.45, 10)
+			base.color = Color(color.r * 1.4, color.g * 1.2, color.b, 0.55)
+			n.add_child(base)
+			var p := CPUParticles2D.new()
+			p.texture = GameData.texture("fx.spark")
+			p.amount = 14
+			p.lifetime = 0.7
+			p.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
+			p.emission_rect_extents = Vector2(h, 3)
+			p.direction = Vector2.UP
+			p.spread = 12.0
+			p.gravity = Vector2(0, -60)
+			p.initial_velocity_min = 20.0
+			p.initial_velocity_max = 45.0
+			p.scale_amount_min = 0.8
+			p.scale_amount_max = 1.6
+			p.color = Color(color.r * 1.8, color.g * 1.5, color.b * 1.2)
+			var mat := CanvasItemMaterial.new()
+			mat.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+			p.material = mat
+			n.add_child(p)
+		"block":
+			base.polygon = PackedVector2Array([Vector2(-h, -h * 1.2), Vector2(h, -h * 1.2), Vector2(h, h * 0.6), Vector2(-h, h * 0.6)])
+			base.color = Color(color, 0.95)
+			n.add_child(base)
+		_:
+			var pts := PackedVector2Array()
+			var spikes := 5
+			for i in spikes * 2 + 1:
+				var x := lerpf(-h, h, float(i) / (spikes * 2))
+				pts.append(Vector2(x, -h * (1.7 if i % 2 == 1 else 0.3) + (i * 37 % 7) - 3.0))
+			pts.append(Vector2(h, h * 0.5))
+			pts.append(Vector2(-h, h * 0.5))
+			base.polygon = pts
+			base.color = Color(color, 0.95)
+			n.add_child(base)
+			var edge := Line2D.new()
+			edge.points = pts
+			edge.closed = true
+			edge.width = 1.0
+			edge.default_color = color.lightened(0.35)
+			n.add_child(edge)
+	return n
+
+
+static func _ellipse(rx: float, ry: float, n: int) -> PackedVector2Array:
+	var out := PackedVector2Array()
+	for i in n:
+		out.append(Vector2(cos(TAU * i / n) * rx, sin(TAU * i / n) * ry))
+	return out
 
 
 func remove_obstacle(id: int) -> void:

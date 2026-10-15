@@ -336,8 +336,15 @@ func beam(a: Vector2, b: Vector2, color_html: String, duration: float, kind: Str
 		return
 	var c := Color.from_string(color_html, Color.WHITE)
 	var line := Line2D.new()
-	line.width = 5.0 if kind == "beam" else (3.0 if kind in ["chain", "bolt"] else 4.0)
-	line.default_color = Color(c.r * 1.8, c.g * 1.8, c.b * 1.8, 0.95)
+	line.width = 5.0 if kind == "beam" else (2.5 if kind in ["chain", "bolt"] else 4.0)
+	line.default_color = Color(c.r * 2.4, c.g * 2.4, c.b * 2.4, 1.0)
+	if kind == "chain":
+		# A white-hot core inside the coloured arc.
+		var core := Line2D.new()
+		core.width = 1.0
+		core.default_color = Color(3, 3, 3)
+		line.add_child(core)
+		line.set_meta("core", core)
 	line.z_index = 5
 	var mat := CanvasItemMaterial.new()
 	mat.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
@@ -349,6 +356,7 @@ func beam(a: Vector2, b: Vector2, color_html: String, duration: float, kind: Str
 			if i > 0 and i < n:
 				p += (b - a).orthogonal().normalized() * randf_range(-6.0, 6.0)
 			line.add_point(p + HEIGHT)
+		line.get_meta("core").points = line.points
 	else:
 		line.add_point(a + HEIGHT)
 		line.add_point(b + HEIGHT)
