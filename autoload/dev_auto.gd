@@ -215,6 +215,8 @@ func _run() -> void:
 				await SkillSuite.new(self).run_primitives()
 			"monsters":
 				await MonsterSuite.new(self).run(biome)
+			"economy":
+				await EconomySuite.new(self).run()
 			"tour":
 				await ShotTour.new(self, shot if not shot.is_empty() else OS.get_user_data_dir().path_join("tour")).run(tour)
 			"idle":

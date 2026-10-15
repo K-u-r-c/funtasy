@@ -8,7 +8,7 @@
 	"base_resource": 80,
 	"threat_mult": 0.9,
 	"base_stats": {"strength": 3, "stamina": 8, "agility": 5, "intellect": 15},
-	"per_level": {"strength": 0.2, "stamina": 1.2, "agility": 0.4, "intellect": 2.5},
+	"per_level": {"strength": 0.1, "stamina": 0.6, "agility": 0.2, "intellect": 1.25},
 	"primary_attack": "mage_bolt",
 	"skills": ["mage_fireball", "mage_frost_nova", "mage_lightning", "mage_blink", "mage_meteor"],
 	"preview_gear": ["hood", "robe", "boots", "gloves", "battle_staff", "trinket"]

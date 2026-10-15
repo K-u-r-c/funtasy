@@ -39,6 +39,7 @@ static func new_character(char_name: String, class_id: String, gender: String = 
 		"talents": {}, "equipment": {}, "backpack": [],
 		"backpack_capacity": int(GameData.bal("inventory.start_capacity", 12)),
 		"quick": {"q": "", "e": ""},
+		"allocated": {}, "run_mods": [], "gold": 0, "bonus_stat_points": 0, "bonus_talent_points": 0, "loadout": [],
 	}
 
 

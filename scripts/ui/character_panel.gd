@@ -34,6 +34,11 @@ var _tooltip: SkillTooltip
 var _tips_armed := false
 var _last_stats: Dictionary = {}
 var _last_level := -1
+var _last_points := -1
+var _points_label: Label
+var _plus: Dictionary = {}  ## stat -> Button
+var _mods_label: Label
+var _gold_label: Label
 
 
 func _init() -> void:
@@ -84,11 +89,35 @@ func _build() -> void:
 	stats_col.add_theme_constant_override("separation", 4)
 	body.add_child(stats_col)
 	stats_col.add_child(UITheme.label("Attributes", UITheme.GOLD, UITheme.FONT_BODY))
+	# Free stat points (5 per level): one "+" button per primary stat, focusable with a pad.
+	var prow := HBoxContainer.new()
+	prow.add_theme_constant_override("separation", 4)
+	stats_col.add_child(prow)
+	_points_label = UITheme.label("", UITheme.TEXT_DIM, UITheme.FONT_SMALL)
+	_points_label.custom_minimum_size = Vector2(92, 0)
+	prow.add_child(_points_label)
+	for st in Stats.PRIMARY:
+		var b := Button.new()
+		b.text = "+" + str(st).substr(0, 3).capitalize()
+		b.add_theme_font_size_override("font_size", UITheme.FONT_SMALL)
+		b.custom_minimum_size = Vector2(46, 20)
+		b.tooltip_text = "Spend a stat point on %s. %s" % [str(st).capitalize(), STAT_HELP.get(str(st).capitalize(), "")]
+		b.pressed.connect(func(): player.request_spend_stat.rpc_id(1, st, 1))
+		prow.add_child(b)
+		_plus[st] = b
 	_stats_grid = GridContainer.new()
 	_stats_grid.columns = 4
 	_stats_grid.add_theme_constant_override("h_separation", 12)
 	_stats_grid.add_theme_constant_override("v_separation", 1)
 	stats_col.add_child(_stats_grid)
+	_gold_label = UITheme.label("", UITheme.GOLD, UITheme.FONT_SMALL)
+	stats_col.add_child(_gold_label)
+	stats_col.add_child(UITheme.label("Run blessings and curses", UITheme.GOLD, UITheme.FONT_SMALL))
+	_mods_label = UITheme.label("", UITheme.TEXT_DIM, UITheme.FONT_SMALL)
+	_mods_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_mods_label.custom_minimum_size = Vector2(260, 0)
+	_mods_label.mouse_filter = Control.MOUSE_FILTER_PASS
+	stats_col.add_child(_mods_label)
 
 	# Skills
 	var skills_col := VBoxContainer.new()
@@ -143,7 +172,7 @@ func _hide_tip(row: SkillRow) -> void:
 func _process(_delta: float) -> void:
 	if not is_instance_valid(player):
 		return
-	if player.stats.final != _last_stats or player.level != _last_level:
+	if player.stats.final != _last_stats or player.level != _last_level or player.stat_points != _last_points:
 		_refresh()
 	_xp_bar.set_values(float(player.xp) / maxf(1.0, Player.xp_to_next(player.level)))
 
@@ -151,6 +180,17 @@ func _process(_delta: float) -> void:
 func _refresh() -> void:
 	_last_stats = player.stats.final.duplicate()
 	_last_level = player.level
+	_last_points = player.stat_points
+	_points_label.text = "%d stat point%s" % [player.stat_points, "" if player.stat_points == 1 else "s"]
+	_points_label.add_theme_color_override("font_color", UITheme.GOOD if player.stat_points > 0 else UITheme.TEXT_DIM)
+	for st in _plus:
+		_plus[st].disabled = player.stat_points <= 0
+	_gold_label.text = "Gold: %d" % player.gold
+	_mods_label.text = run_mods_text(player.run_mods)
+	var tip := ""
+	for m in player.run_mods:
+		tip += "%s %s%s (%s)\n" % [_stat_name(str(m.stat)), "+" if float(m.value) >= 0 else "", _fmt(str(m.stat), float(m.value)), m.get("source", "")]
+	_mods_label.tooltip_text = tip.strip_edges()
 	var s: Dictionary = player.stats.final
 	_level_label.text = "Level %d %s" % [player.level, player.class_def.name]
 	_xp_label.text = "XP %d / %d" % [player.xp, Player.xp_to_next(player.level)]
@@ -234,3 +274,32 @@ class SkillRow:
 		_icon.texture = GameData.texture("icons." + str(sk.get("icon", "attack")))
 		_name.text = str(sk.get("name", "?")) if slot > 0 else "%s  (primary)" % sk.get("name", "?")
 		_glyph.action = Player.SLOT_ACTIONS[slot]
+
+
+## Run modifiers summed per stat, e.g. "Strength +2, Max health -10" ("none" when empty).
+static func run_mods_text(mods: Array) -> String:
+	if mods.is_empty():
+		return "None yet: tomes, the demonic tithe, contracts and pacts change you for the whole run."
+	var sums := {}
+	var order: Array = []
+	for m in mods:
+		var k := str(m.stat)
+		if not sums.has(k):
+			order.append(k)
+		sums[k] = float(sums.get(k, 0.0)) + float(m.value)
+	var parts: Array = []
+	for k in order:
+		var v := float(sums[k])
+		parts.append("%s %s%s" % [_stat_name(k), "+" if v >= 0 else "", _fmt(k, v)])
+	return ", ".join(parts)
+
+
+static func _stat_name(k: String) -> String:
+	return {"max_hp": "Max health", "max_resource": "Max mana", "crit_chance": "Crit chance", "move_speed": "Move speed",
+		"max_hp_pct": "Max health"}.get(k, k.replace("_", " ").capitalize())
+
+
+static func _fmt(k: String, v: float) -> String:
+	if k in ["crit_chance", "leech", "dodge", "haste", "max_hp_pct"] or k.ends_with("_pct"):
+		return "%d%%" % roundi(v * 100.0)
+	return "%d" % roundi(v)

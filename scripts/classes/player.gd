@@ -23,6 +23,12 @@ var downed_left := 0.0
 var revive_progress := 0.0
 var xp := 0
 var talent_points := 0
+var stat_points := 0  ## unspent free stat points (5 per level, D5)
+var allocated: Dictionary = {}  ## stat -> points spent on it
+var run_mods: Array = []  ## run-permanent modifiers [{stat, value, source}] (D17)
+var gold := 0
+var bonus_stat_points := 0  ## from the legendary tome
+var bonus_talent_points := 0
 var talents: Dictionary = {}:
 	set(v):
 		talents = v
@@ -92,6 +98,7 @@ func setup(data: Dictionary) -> void:
 		"Health:hp", "Health:max_hp", "Health:absorb", "Resource:value", "Resource:max_value", "Resource:kind",
 		"Status:shown", "Stats:final", ".:life_state", ".:downed_left", ".:revive_progress", ".:level",
 		".:xp", ".:talent_points", ".:talents", ".:appearance", ".:torch_sync",
+		".:stat_points", ".:allocated", ".:run_mods", ".:gold",
 	], [], 0.1)
 	var owner_sync := NetSync.make(self, "OwnerSync", [], [".:net_pos", ".:facing", ".:aim_pos"], 0.05)
 	owner_sync.set_multiplayer_authority(peer_id)
@@ -143,6 +150,12 @@ func _host_init() -> void:
 	talents = ch.get("talents", {}).duplicate()
 	inv.load_dict({"equipment": ch.get("equipment", {}), "backpack": ch.get("backpack", []),
 		"capacity": ch.get("backpack_capacity", 12), "quick": ch.get("quick", {"q": "", "e": ""})})
+	allocated = ch.get("allocated", {}).duplicate()
+	run_mods = ch.get("run_mods", []).duplicate(true)
+	gold = int(ch.get("gold", 0))
+	bonus_stat_points = int(ch.get("bonus_stat_points", 0))
+	bonus_talent_points = int(ch.get("bonus_talent_points", 0))
+	stat_points = maxi(_stat_points_total() - _stat_points_spent(), 0)
 	talent_points = _talent_points_total() - _talent_points_spent()
 	resource.setup(class_def.resource, 0.0, true)
 	recompute_stats()
@@ -163,7 +176,32 @@ func recompute_stats() -> void:
 
 ## Extra stat sources for Stats.compute_player (allocated points, run modifiers, passives).
 func stat_extra() -> Dictionary:
-	return {}
+	return {"allocated": allocated, "run_mods": run_mods}
+
+
+func _stat_points_total() -> int:
+	return (level - 1) * int(GameData.bal("progression.stat_points_per_level", 5)) + bonus_stat_points
+
+
+func _stat_points_spent() -> int:
+	var n := 0
+	for k in allocated:
+		n += int(allocated[k])
+	return n
+
+
+## Host: a run-permanent modifier (tithe, contract, pact cost, tome) for the rest of the run.
+func host_add_run_mod(stat: String, value: float, source: String) -> void:
+	var m := run_mods.duplicate(true)
+	m.append({"stat": stat, "value": value, "source": source})
+	run_mods = m
+	on_stats_dirty()
+	persist()
+
+
+func host_add_gold(amount: int) -> void:
+	gold = maxi(gold + amount, 0)
+	GameState.characters[peer_id] = to_character()
 
 
 ## Procs from talents (keystones), unlocked passive skills and equipped items. Each gets a
@@ -190,7 +228,9 @@ func creature_type() -> String:
 func to_character() -> Dictionary:
 	var d := inv.to_dict()
 	return {"name": display_name, "class_id": class_id, "gender": gender, "level": level, "xp": xp, "talents": talents.duplicate(),
-		"equipment": d.equipment, "backpack": d.backpack, "backpack_capacity": d.capacity, "quick": d.quick}
+		"equipment": d.equipment, "backpack": d.backpack, "backpack_capacity": d.capacity, "quick": d.quick,
+		"allocated": allocated.duplicate(), "run_mods": run_mods.duplicate(true), "gold": gold,
+		"bonus_stat_points": bonus_stat_points, "bonus_talent_points": bonus_talent_points}
 
 
 ## Host: store the authoritative character in the saved game.
@@ -202,7 +242,7 @@ func persist() -> void:
 
 
 func _talent_points_total() -> int:
-	return (level - 1) * int(GameData.bal("progression.talent_points_per_level"))
+	return (level - 1) * int(GameData.bal("progression.talent_points_per_level")) + bonus_talent_points
 
 
 func _talent_points_spent() -> int:
@@ -587,6 +627,23 @@ func request_learn_talent(node_id: String) -> void:
 		return
 
 
+## Owner -> host (reliable): spend `count` free stat points on a primary stat (D5, no respec).
+@rpc("any_peer", "call_local", "reliable")
+func request_spend_stat(stat: String, count: int) -> void:
+	if not _from_owner() or not stat in Stats.PRIMARY or count <= 0:
+		return
+	count = mini(count, stat_points)
+	if count <= 0:
+		_notify.rpc_id(peer_id, "No stat points left")
+		return
+	var a := allocated.duplicate()
+	a[stat] = int(a.get(stat, 0)) + count
+	allocated = a
+	stat_points -= count
+	on_stats_dirty()
+	persist()
+
+
 @rpc("any_peer", "call_local", "reliable")
 func request_reset_talents() -> void:
 	if not _from_owner():
@@ -755,6 +812,7 @@ func add_xp(amount: int) -> void:
 		xp -= xp_to_next(level)
 		level += 1
 		talent_points += int(GameData.bal("progression.talent_points_per_level"))
+		stat_points += int(GameData.bal("progression.stat_points_per_level", 5))
 		leveled = true
 	if leveled:
 		recompute_stats()
@@ -772,7 +830,7 @@ func _level_up_fx(new_level: int) -> void:
 	AudioManager.play_sfx_at("level_up", global_position)
 	if is_local():
 		EventBus.local_level_up.emit(new_level)
-		EventBus.hud_message.emit("Level %d! +1 talent point" % new_level, Color(1, 0.85, 0.3))
+		EventBus.hud_message.emit("Level %d! +1 talent point, +%d stat points" % [new_level, int(GameData.bal("progression.stat_points_per_level", 5))], Color(1, 0.85, 0.3))
 
 
 # --- Life state (downed / revive / ghost) ----------------------------------------------------
