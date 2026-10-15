@@ -7,9 +7,9 @@ screenshot review at 1920x1080 and 3440x1440.
 
 ## Full GDD roadmap
 
-- [ ] **0. Scope and decisions**: CLAUDE.md scope, DECISIONS D1-D38, this roadmap, data schemas
+- [x] **0. Scope and decisions**: CLAUDE.md scope, DECISIONS D1-D38, this roadmap, data schemas
       (damage types, statuses, behaviours, bosses v2, floor types v2, talents v2, legendaries, lore,
-      merchants, gold), `GameData` validation
+      merchants, gold), `GameData` validation (verified: full suite green, no visual change)
 - [ ] **1. Combat foundations**: damage types / resists, status expansion (CC flags, stacking debuffs,
       marks, reactive buffs, procs, transforms, diminishing returns), new effect primitives, ally
       targeting, channel / charge input, dynamic obstacles, corpses, creature types; generic test
