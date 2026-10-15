@@ -8,6 +8,7 @@ const GAP := 8.0
 
 var player: Player
 var slot := -1
+var skill_id := ""
 var _anchor: Control
 var _icon: TextureRect
 var _name: Label
@@ -66,8 +67,14 @@ func _init() -> void:
 
 
 func show_for(p: Player, p_slot: int, anchor: Control) -> void:
+	show_skill(p, str(p.skills[p_slot]), anchor, p_slot)
+
+
+## Any skill (Skill Book, talents); `p_slot` >= 0 when it sits on the bar.
+func show_skill(p: Player, sid: String, anchor: Control, p_slot: int = -1) -> void:
 	player = p
 	slot = p_slot
+	skill_id = sid
 	_anchor = anchor
 	_sig = ""
 	refresh()
@@ -93,15 +100,23 @@ func _process(_delta: float) -> void:
 
 ## Rebuilds the rows when anything they depend on changed (stats, level, talents, bindings).
 func refresh() -> void:
-	var sig := "%s|%d|%s|%d" % [player.stats.final, player.level, player.talents, slot]
+	var sig := "%s|%d|%s|%d|%s" % [player.stats.final, player.level, player.talents, slot, skill_id]
 	if sig == _sig:
 		return
 	_sig = sig
-	var sk := GameData.skill(player.skills[slot])
+	var sk := GameData.skill(skill_id)
 	_icon.texture = GameData.texture("icons." + str(sk.get("icon", "attack")))
 	_name.text = str(sk.get("name", "?"))
-	_tag.text = ("Primary attack" if slot == 0 else "Skill %d" % slot) + "  -  " + str(sk.get("school", "")).capitalize()
-	_glyph.action = Player.SLOT_ACTIONS[slot]
+	var place := "Not on the bar"
+	if slot == 0:
+		place = "Primary attack"
+	elif slot > 0:
+		place = "Skill %d" % slot
+	if sk.get("passive", false):
+		place = "Passive"
+	_tag.text = place + "  -  " + str(sk.get("element", sk.get("school", ""))).capitalize()
+	_glyph.action = Player.SLOT_ACTIONS[slot] if slot >= 0 else ""
+	_glyph.visible = slot >= 0
 	_desc.text = str(sk.get("description", ""))
 	for c in _grid.get_children():
 		_grid.remove_child(c)

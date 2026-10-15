@@ -82,3 +82,19 @@ func _combat() -> void:
 		p.status.apply(st2, 8.0, 0.0, ctx)
 	await da._wait(0.6)
 	await snap("combat_statuses")
+
+
+## Every game menu tab (and later dialogs) with some progress to show.
+func _menus(_arg: String) -> void:
+	p.add_xp(Player.xp_to_next(p.level))
+	p.add_xp(Player.xp_to_next(p.level))
+	p.host_add_run_mod("strength", 2.0, "Ossuary Masonry")
+	p.host_add_run_mod("max_hp", -10.0, "Demonic tithe")
+	p.host_add_gold(125)
+	await da._wait(0.5)
+	var hud: Node = da.get_tree().get_first_node_in_group("hud")
+	for t in UIModal.MENU_TABS:
+		hud.open_overlay(hud.menu_panel(t[0]))
+		await da._wait(0.6)
+		await snap("menu_%s" % t[0])
+	hud.close_overlay()

@@ -1,6 +1,6 @@
 [
 	{
-		"id": "ranger_shot", "name": "Shot", "icon": "attack", "school": "ranged",
+		"id": "ranger_shot", "primary_ok": true, "name": "Aimed Shot", "icon": "attack", "school": "ranged",
 		"description": "Fire a projectile at the cursor. Restores a little mana on hit.",
 		"cooldown": 0.6, "cost": 0, "anim": "attack", "sfx": "shoot", "attack_speed": true,
 		"resource_on_hit": 2,
@@ -39,7 +39,7 @@
 		]
 	},
 	{
-		"id": "ranger_poison_arrow", "name": "Poison Arrow", "icon": "poison", "school": "ranged",
+		"id": "ranger_poison_arrow", "name": "Viper Arrow", "icon": "poison", "school": "ranged",
 		"description": "Arrow that poisons the target, dealing damage over time (stacks 3x).",
 		"cooldown": 4.0, "cost": 14, "anim": "attack", "sfx": "shoot",
 		"effects": [

@@ -41,6 +41,10 @@ func mark_combat() -> void:
 	_since_combat = 0.0
 
 
+func since_combat() -> float:
+	return _since_combat
+
+
 func fraction() -> float:
 	return clampf(value / max_value, 0.0, 1.0) if max_value > 0.0 else 0.0
 

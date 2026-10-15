@@ -1,6 +1,6 @@
 [
 	{
-		"id": "mage_bolt", "damage_type": "frost", "element": "frost", "name": "Arcane Bolt", "icon": "attack", "school": "spell",
+		"id": "mage_bolt", "primary_ok": true, "damage_type": "frost", "element": "frost", "name": "Frostbolt", "icon": "attack", "school": "spell",
 		"description": "A bolt of raw magic. Restores a little mana on hit.",
 		"cooldown": 0.7, "cost": 0, "anim": "cast", "sfx": "cast", "attack_speed": true,
 		"resource_on_hit": 3,
@@ -29,7 +29,7 @@
 		]
 	},
 	{
-		"id": "mage_lightning", "damage_type": "lightning", "element": "lightning", "name": "Lightning Bolt", "icon": "lightning", "school": "spell",
+		"id": "mage_lightning", "damage_type": "lightning", "element": "lightning", "name": "Chain Lightning", "icon": "lightning", "school": "spell",
 		"description": "A very fast bolt that pierces through up to 5 enemies.",
 		"cooldown": 5.0, "cost": 20, "anim": "cast", "sfx": "lightning",
 		"effects": [
@@ -46,7 +46,7 @@
 		]
 	},
 	{
-		"id": "mage_meteor", "damage_type": "fire", "element": "fire", "name": "Meteor", "icon": "meteor", "school": "spell",
+		"id": "mage_meteor", "damage_type": "fire", "element": "fire", "name": "Meteor Strike", "icon": "meteor", "school": "spell",
 		"description": "Call down a meteor at the cursor after a short delay. Huge damage.",
 		"cooldown": 18.0, "cost": 42, "anim": "cast", "sfx": "fire",
 		"effects": [

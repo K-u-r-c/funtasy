@@ -16,6 +16,7 @@ signal local_inventory_changed
 signal local_stats_changed
 signal local_cooldown_started(slot: int, duration: float)
 signal local_level_up(level: int)
+signal local_loadout_changed
 signal interact_prompt(text: String)
 
 # Feedback

@@ -1,18 +1,20 @@
 extends UIModal
-## Talent tree overlay for the local player's class (data/talents/<class>.json).
-## Accept on a node spends a point (host validates); rows unlock after spending
-## `tier_points` points per row; some nodes require a previous one (drawn as links).
+## Talent tree overlay v2 (D1, GDD 8): three branch columns x tiers 0-5 for the local player's
+## class (data/talents/<class>.json). Skill nodes unlock skills for the Skill Book, passive
+## nodes have ranks, keystones (T2 / T5) one rank. Tier N of a branch opens after N x
+## `tier_points` points spent in that branch. Accept spends a point (host validates).
 
-const NODE_PX := 48
-const COL_W := 112
+const NODE_PX := 40
+const CELL_W := 46
+const TIERS := 6
 
 var _tree: Dictionary = {}
-var _grid: GridContainer
-var _links: Control
 var _points: Label
 var _card: VBoxContainer
 var _buttons: Dictionary = {}  ## id -> [TalentNode, node dict]
-var _tier_labels: Array = []
+var _grid_pos: Dictionary = {}  ## Vector2i(column, tier) -> node id
+var _branch_labels: Dictionary = {}  ## branch id -> Label
+var _cols_per_branch := 3
 var _reset: Button
 var _focused := ""
 var _last_talents: Dictionary = {}
@@ -28,67 +30,80 @@ func _init() -> void:
 func _build() -> void:
 	_tree = GameData.talents.get(player.class_id, {})
 	_points = subtitle
-
 	var body := HBoxContainer.new()
-	body.add_theme_constant_override("separation", 14)
+	body.add_theme_constant_override("separation", 12)
 	body.alignment = BoxContainer.ALIGNMENT_CENTER
 	body.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	content.add_child(body)
 
+	# Tier labels column
 	var tiers := VBoxContainer.new()
+	tiers.add_theme_constant_override("separation", 4)
 	body.add_child(tiers)
-	_links = MarginContainer.new()
-	_links.draw.connect(_draw_links)
-	body.add_child(_links)
-	_grid = GridContainer.new()
-	_grid.columns = 3
-	_grid.add_theme_constant_override("h_separation", 0)
-	_grid.add_theme_constant_override("v_separation", 6)
-	_links.add_child(_grid)
-
-	var by_pos := {}
-	var max_row := 0
-	for node in _tree.get("nodes", []):
-		by_pos[Vector2i(int(node.col), int(node.row))] = node
-		max_row = maxi(max_row, int(node.row))
-	for row in max_row + 1:
-		var tl := UITheme.label("", UITheme.TEXT_DIM, UITheme.FONT_SMALL)
-		tl.custom_minimum_size = Vector2(64, NODE_PX + 16)
+	var head_gap := Control.new()
+	head_gap.custom_minimum_size = Vector2(0, 34)
+	tiers.add_child(head_gap)
+	for t in TIERS:
+		var tl := UITheme.label("T%d" % t, UITheme.TEXT_DIM, UITheme.FONT_SMALL)
+		tl.custom_minimum_size = Vector2(26, NODE_PX + 4)
 		tl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		if t == 2 or t == 5:
+			tl.text += "\nkey"
+			tl.add_theme_color_override("font_color", UITheme.GOLD_DIM)
 		tiers.add_child(tl)
-		_tier_labels.append(tl)
-		if row < max_row:
-			var gap := Control.new()
-			gap.custom_minimum_size = Vector2(0, 6)
-			tiers.add_child(gap)
-		for col in 3:
-			var cell := VBoxContainer.new()
-			cell.custom_minimum_size = Vector2(COL_W, NODE_PX + 16)
-			cell.alignment = BoxContainer.ALIGNMENT_CENTER
-			cell.add_theme_constant_override("separation", 2)
-			_grid.add_child(cell)
-			var node: Dictionary = by_pos.get(Vector2i(col, row), {})
-			if node.is_empty():
-				continue
-			var b := TalentNode.new()
-			b.node = node
-			b.icon_tex = _icon_for(node)
-			b.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-			b.pressed.connect(func(): player.request_learn_talent.rpc_id(1, node.id))
-			b.focus_entered.connect(func(): _focused = node.id; _show(node))
-			b.mouse_entered.connect(func(): _show(node))
-			cell.add_child(b)
-			var name_l := UITheme.label(str(node.name), UITheme.TEXT, UITheme.FONT_SMALL)
-			name_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-			cell.add_child(name_l)
-			_buttons[node.id] = [b, node]
+
+	var per_tier := {}  ## "branch:tier" -> [nodes]
+	for nd in _tree.get("nodes", []):
+		var k := "%s:%d" % [nd.get("branch", ""), int(nd.get("tier", 0))]
+		if not per_tier.has(k):
+			per_tier[k] = []
+		per_tier[k].append(nd)
+		_cols_per_branch = maxi(_cols_per_branch, per_tier[k].size())
+	var branches: Array = _tree.get("branches", [])
+	for bi in branches.size():
+		var br: Dictionary = branches[bi]
+		var col := VBoxContainer.new()
+		col.add_theme_constant_override("separation", 4)
+		body.add_child(col)
+		var head := PanelContainer.new()
+		head.theme_type_variation = &"GlassInset"
+		head.custom_minimum_size = Vector2(_cols_per_branch * CELL_W, 30)
+		head.tooltip_text = str(br.get("description", ""))
+		head.mouse_filter = Control.MOUSE_FILTER_PASS
+		col.add_child(head)
+		var bl := UITheme.label(str(br.name), UITheme.GOLD, UITheme.FONT_SMALL)
+		bl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		bl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		bl.custom_minimum_size = Vector2(_cols_per_branch * CELL_W - 8, 0)
+		head.add_child(bl)
+		_branch_labels[br.id] = bl
+		for t in TIERS:
+			var row := HBoxContainer.new()
+			row.add_theme_constant_override("separation", CELL_W - NODE_PX)
+			row.custom_minimum_size = Vector2(_cols_per_branch * CELL_W, NODE_PX + 4)
+			row.alignment = BoxContainer.ALIGNMENT_CENTER
+			col.add_child(row)
+			var list: Array = per_tier.get("%s:%d" % [br.id, t], [])
+			for i in list.size():
+				var nd: Dictionary = list[i]
+				var b := TalentNode.new()
+				b.node = nd.merged({"name": _node_name(nd), "col": bi * 10 + i, "row": t}, true)
+				b.icon_tex = _icon_for(nd)
+				b.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+				var nid := str(nd.id)
+				b.pressed.connect(func(): player.request_learn_talent.rpc_id(1, nid))
+				b.focus_entered.connect(func(): _focused = nid; _show(nd))
+				b.mouse_entered.connect(func(): _show(nd))
+				row.add_child(b)
+				_buttons[nid] = [b, nd]
+				_grid_pos[Vector2i(bi * _cols_per_branch + i, t)] = nid
 
 	var right := VBoxContainer.new()
 	right.add_theme_constant_override("separation", 8)
 	body.add_child(right)
 	var card_panel := PanelContainer.new()
 	card_panel.theme_type_variation = &"GlassInset"
-	card_panel.custom_minimum_size = Vector2(240, 0)
+	card_panel.custom_minimum_size = Vector2(230, 0)
 	card_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	right.add_child(card_panel)
 	_card = VBoxContainer.new()
@@ -96,55 +111,67 @@ func _build() -> void:
 	card_panel.add_child(_card)
 	_reset = AnimButton.new()
 	_reset.text = "Reset talents (free)"
-	_reset.custom_minimum_size = Vector2(240, 28)
+	_reset.custom_minimum_size = Vector2(230, 28)
 	_reset.pressed.connect(func(): player.request_reset_talents.rpc_id(1))
 	right.add_child(_reset)
 
-	_wire_focus(by_pos, max_row)
+	_wire_focus()
 	_refresh()
-	for id in _buttons:
-		_buttons[id][0].grab_focus.call_deferred()
-		break
+	var first: String = _grid_pos.get(Vector2i(0, 0), "")
+	if first == "" and not _buttons.is_empty():
+		first = _buttons.keys()[0]
+	if first != "":
+		_buttons[first][0].grab_focus.call_deferred()
+
+
+func _node_name(nd: Dictionary) -> String:
+	if nd.get("type", "") == "skill":
+		return str(GameData.skills.get(str(nd.skill), {}).get("name", nd.skill))
+	return str(nd.get("name", nd.id))
 
 
 func _icon_for(node: Dictionary) -> Texture2D:
+	if node.has("icon") and GameData.asset_exists("icons." + str(node.icon)):
+		return GameData.texture("icons." + str(node.icon))
+	if node.get("type", "") == "skill" and GameData.skills.has(str(node.skill)):
+		return GameData.texture("icons." + str(GameData.skill(str(node.skill)).get("icon", "attack")))
 	for m in node.get("mods", []):
 		if m.has("skill") and GameData.skills.has(m.skill):
 			return GameData.texture("icons." + str(GameData.skill(m.skill).get("icon", "attack")))
 	return null
 
 
-## Explicit d-pad chains: left/right stay in the row, up/down follow the column (or the nearest
-## node of the next row); the bottom row leads to the reset button.
-func _wire_focus(by_pos: Dictionary, max_row: int) -> void:
-	for id in _buttons:
-		var b: TalentNode = _buttons[id][0]
-		var p := Vector2i(int(b.node.col), int(b.node.row))
-		var left := _find(by_pos, p, Vector2i(-1, 0), max_row)
-		var right := _find(by_pos, p, Vector2i(1, 0), max_row)
-		var up := _find(by_pos, p, Vector2i(0, -1), max_row)
-		var down := _find(by_pos, p, Vector2i(0, 1), max_row)
+## D-pad / arrows: left/right walk the grid row across branches, up/down the nearest node of
+## the next tier; the bottom of every column leads to the reset button.
+func _wire_focus() -> void:
+	var max_col := 0
+	for k in _grid_pos:
+		max_col = maxi(max_col, k.x)
+	for k in _grid_pos:
+		var b: TalentNode = _buttons[_grid_pos[k]][0]
+		var left := _scan(k, Vector2i(-1, 0), max_col)
+		var right := _scan(k, Vector2i(1, 0), max_col)
+		var up := _scan(k, Vector2i(0, -1), max_col)
+		var down := _scan(k, Vector2i(0, 1), max_col)
 		b.focus_neighbor_left = b.get_path_to(left) if left else b.get_path()
 		b.focus_neighbor_right = b.get_path_to(right if right else _reset)
 		b.focus_neighbor_top = b.get_path_to(up) if up else b.get_path()
 		b.focus_neighbor_bottom = b.get_path_to(down if down else _reset)
 
 
-func _find(by_pos: Dictionary, from: Vector2i, step: Vector2i, max_row: int) -> Control:
+func _scan(from: Vector2i, step: Vector2i, max_col: int) -> Control:
 	if step.y == 0:
 		var c := from.x + step.x
-		while c >= 0 and c < 3:
-			if by_pos.has(Vector2i(c, from.y)):
-				return _buttons[by_pos[Vector2i(c, from.y)].id][0]
+		while c >= 0 and c <= max_col:
+			if _grid_pos.has(Vector2i(c, from.y)):
+				return _buttons[_grid_pos[Vector2i(c, from.y)]][0]
 			c += step.x
 		return null
 	var r := from.y + step.y
-	while r >= 0 and r <= max_row:
-		if by_pos.has(Vector2i(from.x, r)):
-			return _buttons[by_pos[Vector2i(from.x, r)].id][0]
-		for dc in [1, -1, 2, -2]:
-			if by_pos.has(Vector2i(from.x + dc, r)):
-				return _buttons[by_pos[Vector2i(from.x + dc, r)].id][0]
+	while r >= 0 and r < TIERS:
+		for dc in [0, 1, -1, 2, -2, 3, -3]:
+			if _grid_pos.has(Vector2i(from.x + dc, r)):
+				return _buttons[_grid_pos[Vector2i(from.x + dc, r)]][0]
 		r += step.y
 	return null
 
@@ -154,41 +181,31 @@ func _process(_delta: float) -> void:
 		_refresh()
 
 
-func _spent() -> int:
-	var spent := 0
-	for k in player.talents:
-		spent += int(player.talents[k])
-	return spent
-
-
 func _refresh() -> void:
 	_last_talents = player.talents.duplicate()
 	_last_points = player.talent_points
 	_points.text = "%s  -  %d point%s to spend" % [player.class_def.name, player.talent_points, "" if player.talent_points == 1 else "s"]
 	_points.add_theme_color_override("font_color", UITheme.GOOD if player.talent_points > 0 else UITheme.TEXT_DIM)
-	var spent := _spent()
-	var tier_pts := int(_tree.get("tier_points", 2))
-	for i in _tier_labels.size():
-		var need := i * tier_pts
-		_tier_labels[i].text = "Tier %d\n%s" % [i + 1, "open" if spent >= need else "%d pts" % need]
-		_tier_labels[i].add_theme_color_override("font_color", UITheme.GOLD if spent >= need else UITheme.TEXT_DIM)
+	for br in _tree.get("branches", []):
+		_branch_labels[br.id].text = "%s (%d)" % [br.name, player.branch_points(br.id)]
 	for id in _buttons:
 		var b: TalentNode = _buttons[id][0]
 		var node: Dictionary = _buttons[id][1]
-		b.rank = int(player.talents.get(id, 0))
-		b.unlocked = _unlocked(node, spent)
-		b.can_learn = b.unlocked and b.rank < int(node.max_rank) and player.talent_points > 0
+		b.rank = player.node_rank(node)
+		b.unlocked = _unlocked(node)
+		b.can_learn = b.unlocked and not node.get("starter", false) and b.rank < int(node.get("max_rank", 1)) and player.talent_points > 0
 		b.queue_redraw()
-	_links.queue_redraw()
 	if _buttons.has(_focused):
 		_show(_buttons[_focused][1])
 
 
-func _unlocked(node: Dictionary, spent: int) -> bool:
-	if spent < int(node.row) * int(_tree.get("tier_points", 2)):
+func _unlocked(node: Dictionary) -> bool:
+	if node.get("starter", false):
+		return true
+	if player.branch_points(str(node.get("branch", ""))) < int(node.get("tier", 0)) * int(_tree.get("tier_points", 2)):
 		return false
 	for req in node.get("requires", []):
-		if int(player.talents.get(req, 0)) <= 0:
+		if player.node_rank(player.talent_node(str(req))) <= 0:
 			return false
 	return true
 
@@ -196,45 +213,31 @@ func _unlocked(node: Dictionary, spent: int) -> bool:
 func _show(node: Dictionary) -> void:
 	for c in _card.get_children():
 		c.queue_free()
-	var rank := int(player.talents.get(node.id, 0))
-	_card.add_child(UITheme.label(str(node.name), UITheme.GOLD, UITheme.FONT_BODY))
-	_card.add_child(UITheme.label("Rank %d / %d" % [rank, int(node.max_rank)], UITheme.CYAN, UITheme.FONT_SMALL))
+	var rank := player.node_rank(node)
+	var kind := str(node.get("type", "passive"))
+	_card.add_child(UITheme.label(_node_name(node), UITheme.GOLD, UITheme.FONT_BODY))
+	var tag: String = {"skill": "Skill", "passive": "Passive talent", "keystone": "Keystone"}.get(kind, kind.capitalize())
+	if node.get("starter", false):
+		tag += " - known from the start"
+	else:
+		tag += " - rank %d / %d" % [rank, int(node.get("max_rank", 1))]
+	_card.add_child(UITheme.label(tag, UITheme.CYAN, UITheme.FONT_SMALL))
 	_card.add_child(HSeparator.new())
-	var d := UITheme.label(str(node.description), UITheme.TEXT, UITheme.FONT_SMALL)
+	var desc := str(node.get("description", ""))
+	if kind == "skill":
+		var sk: Dictionary = GameData.skills.get(str(node.skill), {})
+		desc = str(sk.get("description", "")) + ("\nPassive: always active once learned." if sk.get("passive", false) else "\nLearn it, then slot it in the Skill Book.")
+	var d := UITheme.label(desc, UITheme.TEXT, UITheme.FONT_SMALL)
 	d.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	d.custom_minimum_size = Vector2(220, 0)
+	d.custom_minimum_size = Vector2(210, 0)
 	_card.add_child(d)
-	var reqs: Array = []
-	if int(node.row) > 0:
-		reqs.append("%d points in the tree" % (int(node.row) * int(_tree.get("tier_points", 2))))
-	for r in node.get("requires", []):
-		reqs.append(str(_buttons.get(r, [null, {"name": r}])[1].name))
-	if not reqs.is_empty():
-		var ok := _unlocked(node, _spent())
-		var rl := UITheme.label("Requires: %s" % ", ".join(reqs), UITheme.GOOD if ok else UITheme.DANGER, UITheme.FONT_SMALL)
+	var need := int(node.get("tier", 0)) * int(_tree.get("tier_points", 2))
+	if need > 0 and not node.get("starter", false):
+		var ok := _unlocked(node)
+		var rl := UITheme.label("Requires %d points in this branch" % need, UITheme.GOOD if ok else UITheme.DANGER, UITheme.FONT_SMALL)
 		rl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		rl.custom_minimum_size = Vector2(220, 0)
+		rl.custom_minimum_size = Vector2(210, 0)
 		_card.add_child(rl)
-
-
-func _draw_links() -> void:
-	var origin := _links.global_position
-	for id in _buttons:
-		var b: TalentNode = _buttons[id][0]
-		for req in b.node.get("requires", []):
-			if not _buttons.has(req):
-				continue
-			var a: TalentNode = _buttons[req][0]
-			var from := (a.global_position - origin + Vector2(a.size.x / 2.0, a.size.y)).round()
-			var to := (b.global_position - origin + Vector2(b.size.x / 2.0, 0)).round()
-			var lit := int(player.talents.get(req, 0)) > 0
-			var col := UITheme.GOLD if lit else UITheme.EDGE
-			var mid_y := roundf((from.y + to.y) / 2.0)
-			_links.draw_rect(Rect2(from.x - 1, from.y, 2, mid_y - from.y), col)
-			_links.draw_rect(Rect2(minf(from.x, to.x) - 1, mid_y - 1, absf(to.x - from.x) + 2, 2), col)
-			_links.draw_rect(Rect2(to.x - 1, mid_y, 2, to.y - mid_y), col)
-			if lit:
-				_links.draw_rect(Rect2(to.x - 2, to.y - 3, 4, 3), col)
 
 
 ## One talent: framed icon (or initials), rank pips, state colors.
@@ -265,6 +268,8 @@ class TalentNode:
 		var r := Rect2(Vector2.ZERO, size.round())
 		var maxed := rank >= int(node.get("max_rank", 1))
 		var edge := UITheme.EDGE
+		if str(node.get("type", "")) == "keystone":
+			edge = UITheme.GOLD_DIM.darkened(0.3)
 		if maxed:
 			edge = UITheme.GOLD
 		elif rank > 0:

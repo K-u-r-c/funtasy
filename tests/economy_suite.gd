@@ -20,6 +20,7 @@ func run() -> void:
 	p.iframe_left = 9999.0
 	await stat_points()
 	await run_mods()
+	await talents_and_loadout()
 
 
 func stat_points() -> void:
@@ -55,3 +56,47 @@ func run_mods() -> void:
 	da.check(found, "run modifiers reach the saved game file")
 	p.host_add_gold(37)
 	da.check(p.gold >= 37 and int(p.to_character().gold) == p.gold, "gold is kept on the hero")
+
+
+func talents_and_loadout() -> void:
+	# Talent tree v2: starters are free, tiers open per branch.
+	var tree := p.talent_tree()
+	da.check(tree.get("branches", []).size() == 3, "talent tree has 3 branches")
+	da.check(p.unlocked_skills().size() >= 6, "starter skills are unlocked (%d)" % p.unlocked_skills().size())
+	p.add_xp(Player.xp_to_next(p.level))
+	p.add_xp(Player.xp_to_next(p.level))
+	await da._wait(0.3)
+	var deep := {}
+	var low := {}
+	for nd in tree.nodes:
+		if nd.get("type", "") == "passive" and int(nd.get("tier", 0)) >= 1 and deep.is_empty():
+			deep = nd
+		if nd.get("type", "") == "passive" and int(nd.get("tier", 0)) == 0 and low.is_empty():
+			low = nd
+	var pts := p.talent_points
+	p.request_learn_talent.rpc_id(1, str(deep.id))
+	await da._wait(0.2)
+	da.check(int(p.talents.get(deep.id, 0)) == 0, "a tier %d talent is locked without points in its branch" % int(deep.tier))
+	p.request_learn_talent.rpc_id(1, str(low.id))
+	await da._wait(0.2)
+	da.check(int(p.talents.get(low.id, 0)) == 1 and p.talent_points == pts - 1, "a tier 0 passive can be learned")
+	# Loadout: swapping is fine out of combat, a non-primary skill can't be the primary attack.
+	var lo: Array = p.skills.duplicate()
+	var swapped := lo.duplicate()
+	swapped[1] = lo[2]
+	swapped[2] = lo[1]
+	p.resource._since_combat = 99.0
+	p.request_loadout.rpc_id(1, swapped)
+	await da._wait(0.2)
+	da.check(p.skills == swapped, "loadout swap applied")
+	var bad := swapped.duplicate()
+	bad[0] = swapped[1]
+	bad[1] = swapped[0]
+	p.request_loadout.rpc_id(1, bad)
+	await da._wait(0.2)
+	da.check(p.skills == swapped, "a non-primary skill can't take the primary slot")
+	p.resource.mark_combat()
+	p.request_loadout.rpc_id(1, lo)
+	await da._wait(0.2)
+	da.check(p.skills == swapped, "the loadout can't change in combat")
+	da.check(p.to_character().loadout == swapped, "the loadout is saved with the hero")

@@ -27,6 +27,8 @@
 		{"id": "inventory", "label": "Inventory", "group": "Menus", "kbm": ["key:I"], "pad": ["button:back"]},
 		{"id": "talents", "label": "Talents", "group": "Menus", "kbm": ["key:T"], "pad": ["button:dpad_left"]},
 		{"id": "map", "label": "Map", "group": "Menus", "kbm": ["key:M"], "pad": ["button:dpad_up"]},
+		{"id": "skillbook", "label": "Skill Book", "group": "Menus", "kbm": ["key:K"], "pad": []},
+		{"id": "codex", "label": "Codex", "group": "Menus", "kbm": ["key:L"], "pad": []},
 		{"id": "pause", "label": "Pause menu", "group": "Menus", "kbm": ["key:Escape"], "pad": ["button:start"]}
 	],
 	"ui_extra": {

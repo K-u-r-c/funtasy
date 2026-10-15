@@ -50,7 +50,7 @@ static func talent_rows(p: Player, skill_id: String) -> Array:
 		if rank <= 0:
 			continue
 		var parts: Array = []
-		for m in node.mods:
+		for m in node.get("mods", []):
 			if not m.has("skill") or (m.skill != skill_id and m.skill != "*"):
 				continue
 			var v := float(m.value) * rank

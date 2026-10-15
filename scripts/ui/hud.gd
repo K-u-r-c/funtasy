@@ -14,6 +14,7 @@ const CharacterPanel := preload("res://scripts/ui/character_panel.gd")
 const InventoryPanel := preload("res://scripts/ui/inventory_panel.gd")
 const TalentPanel := preload("res://scripts/ui/talent_panel.gd")
 const MapPanel := preload("res://scripts/ui/map_panel.gd")
+const SkillBookPanel := preload("res://scripts/ui/skill_book_panel.gd")
 const PauseMenu := preload("res://scripts/ui/pause_menu.gd")
 const RadialMenu := preload("res://scripts/ui/radial_menu.gd")
 const Minimap := preload("res://scripts/ui/minimap.gd")
@@ -84,6 +85,7 @@ func _ready() -> void:
 	EventBus.floor_started.connect(_on_floor_started)
 	EventBus.bindings_changed.connect(_rebuild_skill_icons)
 	EventBus.input_device_changed.connect(func(_g): _rebuild_skill_icons())
+	EventBus.local_loadout_changed.connect(_rebuild_skill_icons)
 	EventBus.local_inventory_changed.connect(_refresh_quick)
 
 
@@ -538,6 +540,8 @@ func menu_panel(id: String) -> Control:
 			return TalentPanel.new()
 		"map":
 			return MapPanel.new()
+		"skillbook":
+			return SkillBookPanel.new()
 	return null
 
 

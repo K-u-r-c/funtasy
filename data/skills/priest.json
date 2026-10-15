@@ -1,6 +1,6 @@
 [
 	{
-		"id": "priest_smite", "damage_type": "holy", "name": "Smite", "icon": "attack", "school": "spell",
+		"id": "priest_smite", "primary_ok": true, "damage_type": "holy", "name": "Smite", "icon": "attack", "school": "spell",
 		"description": "Holy bolt that draws extra attention. Restores a little mana on hit.",
 		"cooldown": 0.75, "cost": 0, "anim": "cast", "sfx": "cast", "attack_speed": true,
 		"resource_on_hit": 3, "threat_mult": 1.5,
@@ -9,7 +9,7 @@
 		]
 	},
 	{
-		"id": "priest_heal", "name": "Heal", "icon": "heal", "school": "spell",
+		"id": "priest_heal", "name": "Flash Heal", "icon": "heal", "school": "spell",
 		"description": "Heal the ally closest to the cursor (or yourself).",
 		"cooldown": 2.5, "cost": 18, "cast_time": 0.5, "anim": "cast", "sfx": "heal",
 		"effects": [
@@ -17,7 +17,7 @@
 		]
 	},
 	{
-		"id": "priest_holy_shield", "name": "Holy Shield", "icon": "bubble", "school": "spell",
+		"id": "priest_holy_shield", "name": "Power Word: Shield", "icon": "bubble", "school": "spell",
 		"description": "Shield yourself and nearby allies, absorbing damage. Generates threat.",
 		"cooldown": 12.0, "cost": 22, "anim": "cast", "sfx": "buff", "threat_mult": 2.0,
 		"effects": [
@@ -45,7 +45,7 @@
 		]
 	},
 	{
-		"id": "priest_renewal", "name": "Prayer of Renewal", "icon": "renew", "school": "spell",
+		"id": "priest_renewal", "name": "Prayer of Healing", "icon": "renew", "school": "spell",
 		"description": "Heal all nearby allies over 8 seconds.",
 		"cooldown": 20.0, "cost": 36, "anim": "cast", "sfx": "heal",
 		"effects": [

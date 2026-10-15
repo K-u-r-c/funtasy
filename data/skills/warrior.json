@@ -1,6 +1,6 @@
 [
 	{
-		"id": "warrior_strike", "name": "Strike", "icon": "attack", "school": "melee",
+		"id": "warrior_strike", "primary_ok": true, "name": "Fury Strike", "icon": "attack", "school": "melee",
 		"description": "Swing your weapon in an arc. Generates Fury.",
 		"cooldown": 0.55, "cost": 0, "anim": "attack", "sfx": "swing", "attack_speed": true,
 		"resource_on_hit": 8,
@@ -18,7 +18,7 @@
 		]
 	},
 	{
-		"id": "warrior_shield_bash", "name": "Shield Bash", "icon": "bash", "school": "melee",
+		"id": "warrior_shield_bash", "name": "Shield Slam", "icon": "bash", "school": "melee",
 		"description": "Bash one enemy, stunning it and generating a lot of threat.",
 		"cooldown": 8.0, "cost": 15, "anim": "attack", "sfx": "hit", "threat_mult": 3.0,
 		"effects": [
@@ -37,7 +37,7 @@
 		]
 	},
 	{
-		"id": "warrior_charge", "name": "Charge", "icon": "charge", "school": "melee",
+		"id": "warrior_charge", "name": "Deadly Charge", "icon": "charge", "school": "melee",
 		"description": "Rush toward the cursor and slam into enemies where you land.",
 		"cooldown": 9.0, "cost": 0, "anim": "dash", "sfx": "dash",
 		"effects": [

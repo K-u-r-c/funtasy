@@ -14,7 +14,11 @@ var peer_id := 1
 var class_id := "warrior"
 var class_def: Dictionary = {}
 var gender := "male"  ## body art (data/assets.json characters.genders); set at spawn
-var skills: Array = []  ## slot 0 = primary attack, 1..5 = class skills
+var skills: Array = []:  ## the loadout: slot 0 = primary attack, 1..5 = skills (replicated)
+	set(v):
+		skills = v
+		if is_inside_tree() and is_local():
+			EventBus.local_loadout_changed.emit()
 
 # Replicated by the host (StateSync).
 var life_state: int = Life.ALIVE
@@ -90,15 +94,14 @@ func setup(data: Dictionary) -> void:
 	level = int(data.get("level", 1))
 	team = Team.PLAYERS
 	radius = 8.0
-	skills = [class_def.primary_attack]
-	skills.append_array(class_def.skills)
+	skills = default_loadout()
 	collision_layer = 2
 	collision_mask = 1 | 4 | 8 | 16 | 32 | 64 | 128
 	NetSync.make(self, "StateSync", [
 		"Health:hp", "Health:max_hp", "Health:absorb", "Resource:value", "Resource:max_value", "Resource:kind",
 		"Status:shown", "Stats:final", ".:life_state", ".:downed_left", ".:revive_progress", ".:level",
 		".:xp", ".:talent_points", ".:talents", ".:appearance", ".:torch_sync",
-		".:stat_points", ".:allocated", ".:run_mods", ".:gold",
+		".:stat_points", ".:allocated", ".:run_mods", ".:gold", ".:skills",
 	], [], 0.1)
 	var owner_sync := NetSync.make(self, "OwnerSync", [], [".:net_pos", ".:facing", ".:aim_pos"], 0.05)
 	owner_sync.set_multiplayer_authority(peer_id)
@@ -150,6 +153,13 @@ func _host_init() -> void:
 	talents = ch.get("talents", {}).duplicate()
 	inv.load_dict({"equipment": ch.get("equipment", {}), "backpack": ch.get("backpack", []),
 		"capacity": ch.get("backpack_capacity", 12), "quick": ch.get("quick", {"q": "", "e": ""})})
+	# Talent trees v2: ranks of nodes that no longer exist are refunded.
+	var t2 := {}
+	for k in talents:
+		var nd := talent_node(str(k))
+		if not nd.is_empty() and not nd.get("starter", false):
+			t2[k] = mini(int(talents[k]), int(nd.get("max_rank", 1)))
+	talents = t2
 	allocated = ch.get("allocated", {}).duplicate()
 	run_mods = ch.get("run_mods", []).duplicate(true)
 	gold = int(ch.get("gold", 0))
@@ -157,6 +167,11 @@ func _host_init() -> void:
 	bonus_talent_points = int(ch.get("bonus_talent_points", 0))
 	stat_points = maxi(_stat_points_total() - _stat_points_spent(), 0)
 	talent_points = _talent_points_total() - _talent_points_spent()
+	if talent_points < 0:
+		talents = {}
+		talent_points = _talent_points_total()
+	var lo: Array = ch.get("loadout", [])
+	skills = lo if loadout_error(lo).is_empty() else default_loadout()
 	resource.setup(class_def.resource, 0.0, true)
 	recompute_stats()
 	health.hp = health.max_hp
@@ -176,7 +191,81 @@ func recompute_stats() -> void:
 
 ## Extra stat sources for Stats.compute_player (allocated points, run modifiers, passives).
 func stat_extra() -> Dictionary:
-	return {"allocated": allocated, "run_mods": run_mods}
+	var mods: Array = []
+	var smods: Array = []
+	for sid in unlocked_skills():
+		var sk: Dictionary = GameData.skills.get(sid, {})
+		if sk.get("passive", false):
+			for m in sk.get("mods", []):
+				(smods if m.has("skill") else mods).append(m)
+	return {"allocated": allocated, "run_mods": run_mods, "mods": mods, "skill_mods": smods}
+
+
+# --- Talents v2 (D1): 3 branches x tiers 0-5; skill nodes unlock skills -------------------
+
+
+func talent_tree() -> Dictionary:
+	return GameData.talents.get(class_id, {})
+
+
+func talent_node(id: String) -> Dictionary:
+	for n in talent_tree().get("nodes", []):
+		if n.id == id:
+			return n
+	return {}
+
+
+## Points spent in a branch (starter nodes are free and don't count).
+func branch_points(branch: String) -> int:
+	var n := 0
+	for nd in talent_tree().get("nodes", []):
+		if nd.get("branch", "") == branch and not nd.get("starter", false):
+			n += int(talents.get(nd.id, 0))
+	return n
+
+
+func node_rank(nd: Dictionary) -> int:
+	return 1 if nd.get("starter", false) else int(talents.get(nd.id, 0))
+
+
+## Skills this hero may slot / that work as passives: starters + learned skill nodes.
+func unlocked_skills() -> Array:
+	var out: Array = []
+	for nd in talent_tree().get("nodes", []):
+		if nd.get("type", "") == "skill" and node_rank(nd) > 0:
+			out.append(str(nd.skill))
+	return out
+
+
+func default_loadout() -> Array:
+	var out: Array = [class_def.primary_attack]
+	out.append_array(class_def.skills)
+	return out
+
+
+## "" when `lo` is a valid loadout: 6 distinct unlocked active skills, a primary_ok skill first.
+func loadout_error(lo: Array) -> String:
+	if lo.size() != SLOT_ACTIONS.size():
+		return "A loadout has %d slots" % SLOT_ACTIONS.size()
+	var unlocked := unlocked_skills()
+	var seen := {}
+	for i in lo.size():
+		var sid := str(lo[i])
+		var sk: Dictionary = GameData.skills.get(sid, {})
+		if sk.is_empty() or not unlocked.has(sid):
+			return "%s is not unlocked" % sk.get("name", sid)
+		if sk.get("passive", false):
+			return "%s is passive" % sk.name
+		if seen.has(sid):
+			return "%s is slotted twice" % sk.name
+		seen[sid] = true
+		if i == 0 and not sk.get("primary_ok", false):
+			return "%s can't be the primary attack" % sk.name
+	return ""
+
+
+func in_combat() -> bool:
+	return resource.since_combat() < float(GameData.bal("stats.out_of_combat_delay", 5.0))
 
 
 func _stat_points_total() -> int:
@@ -214,6 +303,11 @@ func _compile_procs() -> Array:
 			continue
 		for i in node.get("procs", []).size():
 			out.append(node.procs[i].merged({"_key": "t:%s:%d" % [node.id, i], "source": node.id}, true))
+	for sid in unlocked_skills():
+		var sk: Dictionary = GameData.skills.get(sid, {})
+		if sk.get("passive", false):
+			for i in sk.get("procs", []).size():
+				out.append(sk.procs[i].merged({"_key": "s:%s:%d" % [sid, i], "source": sid}, true))
 	for slot in inv.equipment:
 		var item: Dictionary = inv.equipment[slot]
 		for i in item.get("procs", []).size():
@@ -227,7 +321,7 @@ func creature_type() -> String:
 
 func to_character() -> Dictionary:
 	var d := inv.to_dict()
-	return {"name": display_name, "class_id": class_id, "gender": gender, "level": level, "xp": xp, "talents": talents.duplicate(),
+	return {"name": display_name, "class_id": class_id, "gender": gender, "level": level, "xp": xp, "talents": talents.duplicate(), "loadout": skills.duplicate(),
 		"equipment": d.equipment, "backpack": d.backpack, "backpack_capacity": d.capacity, "quick": d.quick,
 		"allocated": allocated.duplicate(), "run_mods": run_mods.duplicate(true), "gold": gold,
 		"bonus_stat_points": bonus_stat_points, "bonus_talent_points": bonus_talent_points}
@@ -601,30 +695,61 @@ func request_drop(from_backpack: bool, key: String) -> void:
 func request_learn_talent(node_id: String) -> void:
 	if not _from_owner():
 		return
-	var tree: Dictionary = GameData.talents.get(class_id, {})
-	for node in tree.get("nodes", []):
-		if node.id != node_id:
-			continue
-		var rank := int(talents.get(node_id, 0))
-		if talent_points <= 0:
-			_notify.rpc_id(peer_id, "No talent points left")
-			return
-		if rank >= int(node.max_rank):
-			return
-		if _talent_points_spent() < int(node.row) * int(tree.get("tier_points", 2)):
-			_notify.rpc_id(peer_id, "Spend more points in earlier rows first")
-			return
-		for req in node.get("requires", []):
-			if int(talents.get(req, 0)) <= 0:
-				_notify.rpc_id(peer_id, "Requires another talent first")
-				return
-		var t := talents.duplicate()
-		t[node_id] = rank + 1
-		talents = t
-		talent_points -= 1
-		on_stats_dirty()
-		persist()
+	var nd := talent_node(node_id)
+	if nd.is_empty() or nd.get("starter", false):
 		return
+	var rank := int(talents.get(node_id, 0))
+	if rank >= int(nd.get("max_rank", 1)):
+		return
+	if talent_points <= 0:
+		_notify.rpc_id(peer_id, "No talent points left")
+		return
+	var need := int(nd.get("tier", 0)) * int(talent_tree().get("tier_points", 2))
+	if branch_points(str(nd.branch)) < need:
+		_notify.rpc_id(peer_id, "Spend %d points in this branch first" % need)
+		return
+	for req in nd.get("requires", []):
+		if node_rank(talent_node(str(req))) <= 0:
+			_notify.rpc_id(peer_id, "Requires another talent first")
+			return
+	var t := talents.duplicate()
+	t[node_id] = rank + 1
+	talents = t
+	talent_points -= 1
+	if nd.get("type", "") == "skill":
+		_notify.rpc_id(peer_id, "Learned %s - slot it in the Skill Book" % GameData.skills.get(str(nd.skill), {}).get("name", nd.skill))
+	on_stats_dirty()
+	persist()
+
+
+@rpc("any_peer", "call_local", "reliable")
+func request_reset_talents() -> void:
+	if not _from_owner():
+		return
+	talents = {}
+	talent_points = _talent_points_total()
+	# Skills that are no longer unlocked leave the bar for the default kit.
+	if not loadout_error(skills).is_empty():
+		skills = default_loadout()
+	on_stats_dirty()
+	persist()
+
+
+## Owner -> host (reliable): new Skill Book loadout. Out of combat only (D1).
+@rpc("any_peer", "call_local", "reliable")
+func request_loadout(slots: Array) -> void:
+	if not _from_owner():
+		return
+	if in_combat():
+		_notify.rpc_id(peer_id, "Can't change skills in combat")
+		return
+	var err := loadout_error(slots)
+	if not err.is_empty():
+		_notify.rpc_id(peer_id, err)
+		return
+	skills = slots.duplicate()
+	cooldowns.clear()
+	persist()
 
 
 ## Owner -> host (reliable): spend `count` free stat points on a primary stat (D5, no respec).
@@ -640,16 +765,6 @@ func request_spend_stat(stat: String, count: int) -> void:
 	a[stat] = int(a.get(stat, 0)) + count
 	allocated = a
 	stat_points -= count
-	on_stats_dirty()
-	persist()
-
-
-@rpc("any_peer", "call_local", "reliable")
-func request_reset_talents() -> void:
-	if not _from_owner():
-		return
-	talents = {}
-	talent_points = _talent_points_total()
 	on_stats_dirty()
 	persist()
 

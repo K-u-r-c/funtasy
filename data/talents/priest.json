@@ -1,21 +1,25 @@
 {
+	"version": 2,
 	"tier_points": 2,
+	"branches": [
+		{"id": "divine_shepherd", "name": "Divine Shepherd", "description": "Healing, wards and renewal."},
+		{"id": "paladin_bastion", "name": "Paladin Bastion", "description": "Holy tank, shields and retribution."},
+		{"id": "dark_inquisitor", "name": "Dark Inquisitor", "description": "Smite, shadow and penance."}
+	],
 	"nodes": [
-		{"id": "p_devotion", "name": "Devotion", "row": 0, "col": 0, "max_rank": 3, "description": "+8% healing done per rank.",
-			"mods": [{"stat": "healing_mult", "value": 0.08}]},
-		{"id": "p_faith", "name": "Faith", "row": 0, "col": 2, "max_rank": 3, "description": "+4% Stamina and +4% armor per rank.",
-			"mods": [{"stat": "stamina_pct", "value": 0.04}, {"stat": "armor_pct", "value": 0.04}]},
-		{"id": "p_swift_mend", "name": "Swift Mend", "row": 1, "col": 0, "max_rank": 3, "requires": ["p_devotion"], "description": "Heal cooldown -10% per rank.",
-			"mods": [{"skill": "priest_heal", "field": "cooldown_mult", "value": -0.1}]},
-		{"id": "p_aegis", "name": "Aegis", "row": 1, "col": 2, "max_rank": 3, "requires": ["p_faith"], "description": "Holy Shield absorbs +15% per rank.",
-			"mods": [{"skill": "priest_holy_shield", "field": "heal_mult", "value": 0.15}]},
-		{"id": "p_wellspring", "name": "Wellspring", "row": 2, "col": 0, "max_rank": 2, "requires": ["p_swift_mend"], "description": "Prayer of Renewal heals +20% per rank.",
-			"mods": [{"skill": "priest_renewal", "field": "damage_mult", "value": 0.2}]},
-		{"id": "p_zeal", "name": "Zeal", "row": 2, "col": 2, "max_rank": 2, "requires": ["p_aegis"], "description": "Consecration radius +12% and damage +12% per rank.",
-			"mods": [{"skill": "priest_consecration", "field": "radius_mult", "value": 0.12}, {"skill": "priest_consecration", "field": "damage_mult", "value": 0.12}]},
-		{"id": "p_benediction", "name": "Benediction", "row": 3, "col": 0, "max_rank": 1, "requires": ["p_wellspring"], "description": "All spells cost 15% less mana.",
-			"mods": [{"skill": "*", "field": "cost_mult", "value": -0.15}]},
-		{"id": "p_bastion", "name": "Bastion", "row": 3, "col": 2, "max_rank": 1, "requires": ["p_zeal"], "description": "+30% threat and 10% less damage taken.",
-			"mods": [{"stat": "threat_mult", "value": 0.3}, {"stat": "damage_taken_pct", "value": -0.1}]}
+		{"id": "p_s_heal", "branch": "divine_shepherd", "tier": 0, "type": "skill", "skill": "priest_heal", "max_rank": 1, "starter": true},
+		{"id": "p_s_shield", "branch": "divine_shepherd", "tier": 0, "type": "skill", "skill": "priest_holy_shield", "max_rank": 1, "starter": true},
+		{"id": "p_s_prayer", "branch": "divine_shepherd", "tier": 0, "type": "skill", "skill": "priest_renewal", "max_rank": 1, "starter": true},
+		{"id": "p_s_consecration", "branch": "paladin_bastion", "tier": 0, "type": "skill", "skill": "priest_consecration", "max_rank": 1, "starter": true},
+		{"id": "p_s_rebuke", "branch": "paladin_bastion", "tier": 0, "type": "skill", "skill": "priest_rebuke", "max_rank": 1, "starter": true},
+		{"id": "p_s_smite", "branch": "dark_inquisitor", "tier": 0, "type": "skill", "skill": "priest_smite", "max_rank": 1, "starter": true},
+		{"id": "p_devotion", "name": "Devotion", "branch": "divine_shepherd", "tier": 0, "type": "passive", "max_rank": 3, "description": "+8% healing done per rank.", "mods": [{"stat": "healing_mult", "value": 0.08}]},
+		{"id": "p_swift_mend", "name": "Swift Mend", "branch": "divine_shepherd", "tier": 1, "type": "passive", "max_rank": 3, "description": "Heal cooldown -10% per rank.", "mods": [{"skill": "priest_heal", "field": "cooldown_mult", "value": -0.1}]},
+		{"id": "p_wellspring", "name": "Wellspring", "branch": "divine_shepherd", "tier": 2, "type": "passive", "max_rank": 2, "description": "Prayer of Renewal heals +20% per rank.", "mods": [{"skill": "priest_renewal", "field": "damage_mult", "value": 0.2}]},
+		{"id": "p_benediction", "name": "Benediction", "branch": "divine_shepherd", "tier": 3, "type": "passive", "max_rank": 1, "description": "All spells cost 15% less mana.", "mods": [{"skill": "*", "field": "cost_mult", "value": -0.15}]},
+		{"id": "p_faith", "name": "Faith", "branch": "paladin_bastion", "tier": 0, "type": "passive", "max_rank": 3, "description": "+4% Stamina and +4% armor per rank.", "mods": [{"stat": "stamina_pct", "value": 0.04}, {"stat": "armor_pct", "value": 0.04}]},
+		{"id": "p_aegis", "name": "Aegis", "branch": "paladin_bastion", "tier": 1, "type": "passive", "max_rank": 3, "description": "Holy Shield absorbs +15% per rank.", "mods": [{"skill": "priest_holy_shield", "field": "heal_mult", "value": 0.15}]},
+		{"id": "p_zeal", "name": "Zeal", "branch": "paladin_bastion", "tier": 2, "type": "passive", "max_rank": 2, "description": "Consecration radius +12% and damage +12% per rank.", "mods": [{"skill": "priest_consecration", "field": "radius_mult", "value": 0.12}, {"skill": "priest_consecration", "field": "damage_mult", "value": 0.12}]},
+		{"id": "p_bastion", "name": "Bastion", "branch": "paladin_bastion", "tier": 3, "type": "passive", "max_rank": 1, "description": "+30% threat and 10% less damage taken.", "mods": [{"stat": "threat_mult", "value": 0.3}, {"stat": "damage_taken_pct", "value": -0.1}]}
 	]
 }

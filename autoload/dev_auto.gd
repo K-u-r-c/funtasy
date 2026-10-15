@@ -1404,7 +1404,8 @@ func _ui_layout_scenario() -> void:
 		sizes.append(hud._overlay.window.size)
 		_action("ui_tab_next")
 		await _wait(0.35)
-	check(order == ["Character", "Inventory", "Talents", "Map"] and hud._overlay.get_script() == hud.CharacterPanel,
+	var expected_order: Array = UIModal.MENU_TABS.map(func(t): return t[1])
+	check(order == expected_order and hud._overlay.get_script() == hud.CharacterPanel,
 			"tab next cycles %s and wraps around" % [order])
 	check(sizes.all(func(z): return z == sizes[0]), "all game menu panels share one window size %s" % [sizes])
 	_action("ui_tab_prev")
@@ -1564,7 +1565,7 @@ func _skill_tooltip_checks(hud: Node, win: Window) -> void:
 	# A learned talent that changes this skill shows up in the tooltip.
 	var talent := ""
 	for node in GameData.talents.get(p0.class_id, {}).get("nodes", []):
-		for m in node.mods:
+		for m in node.get("mods", []):
 			if m.get("skill", "") == sk.id:
 				talent = node.id
 	if talent != "":

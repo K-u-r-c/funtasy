@@ -1,21 +1,25 @@
 {
+	"version": 2,
 	"tier_points": 2,
+	"branches": [
+		{"id": "pyro_storm", "name": "Pyromancer & Stormcaller", "description": "Fire and lightning burst."},
+		{"id": "glacial_tectonic", "name": "Glacial & Tectonic Warden", "description": "Frost and earth control."},
+		{"id": "void_solar", "name": "Void & Solar Weaver", "description": "Dark and light, reversal."}
+	],
 	"nodes": [
-		{"id": "m_arcane_mind", "name": "Arcane Mind", "row": 0, "col": 0, "max_rank": 3, "description": "+4% Intellect per rank.",
-			"mods": [{"stat": "intellect_pct", "value": 0.04}]},
-		{"id": "m_clarity", "name": "Clarity", "row": 0, "col": 2, "max_rank": 3, "description": "+20% mana regeneration per rank.",
-			"mods": [{"stat": "resource_regen_pct", "value": 0.2}]},
-		{"id": "m_ignite", "name": "Ignite", "row": 1, "col": 0, "max_rank": 3, "requires": ["m_arcane_mind"], "description": "Fireball deals +12% damage per rank.",
-			"mods": [{"skill": "mage_fireball", "field": "damage_mult", "value": 0.12}]},
-		{"id": "m_permafrost", "name": "Permafrost", "row": 1, "col": 2, "max_rank": 3, "requires": ["m_clarity"], "description": "Frost Nova radius +10% and freeze +15% per rank.",
-			"mods": [{"skill": "mage_frost_nova", "field": "radius_mult", "value": 0.1}, {"skill": "mage_frost_nova", "field": "duration_mult", "value": 0.15}]},
-		{"id": "m_conduit", "name": "Conduit", "row": 2, "col": 0, "max_rank": 2, "requires": ["m_ignite"], "description": "Lightning Bolt cooldown -15% per rank.",
-			"mods": [{"skill": "mage_lightning", "field": "cooldown_mult", "value": -0.15}]},
-		{"id": "m_efficiency", "name": "Efficiency", "row": 2, "col": 2, "max_rank": 2, "requires": ["m_permafrost"], "description": "All spells cost 8% less mana per rank.",
-			"mods": [{"skill": "*", "field": "cost_mult", "value": -0.08}]},
-		{"id": "m_cataclysm", "name": "Cataclysm", "row": 3, "col": 0, "max_rank": 1, "requires": ["m_conduit"], "description": "Meteor deals +30% damage.",
-			"mods": [{"skill": "mage_meteor", "field": "damage_mult", "value": 0.3}]},
-		{"id": "m_spellsurge", "name": "Spellsurge", "row": 3, "col": 2, "max_rank": 1, "requires": ["m_efficiency"], "description": "+20% critical damage and +8% haste.",
-			"mods": [{"stat": "crit_damage", "value": 0.2}, {"stat": "haste", "value": 0.08}]}
+		{"id": "m_s_fireball", "branch": "pyro_storm", "tier": 0, "type": "skill", "skill": "mage_fireball", "max_rank": 1, "starter": true},
+		{"id": "m_s_chain", "branch": "pyro_storm", "tier": 0, "type": "skill", "skill": "mage_lightning", "max_rank": 1, "starter": true},
+		{"id": "m_s_meteor", "branch": "pyro_storm", "tier": 0, "type": "skill", "skill": "mage_meteor", "max_rank": 1, "starter": true},
+		{"id": "m_s_frostbolt", "branch": "glacial_tectonic", "tier": 0, "type": "skill", "skill": "mage_bolt", "max_rank": 1, "starter": true},
+		{"id": "m_s_nova", "branch": "glacial_tectonic", "tier": 0, "type": "skill", "skill": "mage_frost_nova", "max_rank": 1, "starter": true},
+		{"id": "m_s_blink", "branch": "void_solar", "tier": 0, "type": "skill", "skill": "mage_blink", "max_rank": 1, "starter": true},
+		{"id": "m_ignite", "name": "Ignite", "branch": "pyro_storm", "tier": 0, "type": "passive", "max_rank": 3, "description": "Fireball deals +12% damage per rank.", "mods": [{"skill": "mage_fireball", "field": "damage_mult", "value": 0.12}]},
+		{"id": "m_conduit", "name": "Conduit", "branch": "pyro_storm", "tier": 1, "type": "passive", "max_rank": 2, "description": "Lightning Bolt cooldown -15% per rank.", "mods": [{"skill": "mage_lightning", "field": "cooldown_mult", "value": -0.15}]},
+		{"id": "m_cataclysm", "name": "Cataclysm", "branch": "pyro_storm", "tier": 2, "type": "passive", "max_rank": 1, "description": "Meteor deals +30% damage.", "mods": [{"skill": "mage_meteor", "field": "damage_mult", "value": 0.3}]},
+		{"id": "m_clarity", "name": "Clarity", "branch": "glacial_tectonic", "tier": 0, "type": "passive", "max_rank": 3, "description": "+20% mana regeneration per rank.", "mods": [{"stat": "resource_regen_pct", "value": 0.2}]},
+		{"id": "m_permafrost", "name": "Permafrost", "branch": "glacial_tectonic", "tier": 1, "type": "passive", "max_rank": 3, "description": "Frost Nova radius +10% and freeze +15% per rank.", "mods": [{"skill": "mage_frost_nova", "field": "radius_mult", "value": 0.1}, {"skill": "mage_frost_nova", "field": "duration_mult", "value": 0.15}]},
+		{"id": "m_arcane_mind", "name": "Arcane Mind", "branch": "void_solar", "tier": 0, "type": "passive", "max_rank": 3, "description": "+4% Intellect per rank.", "mods": [{"stat": "intellect_pct", "value": 0.04}]},
+		{"id": "m_efficiency", "name": "Efficiency", "branch": "void_solar", "tier": 1, "type": "passive", "max_rank": 2, "description": "All spells cost 8% less mana per rank.", "mods": [{"skill": "*", "field": "cost_mult", "value": -0.08}]},
+		{"id": "m_spellsurge", "name": "Spellsurge", "branch": "void_solar", "tier": 2, "type": "passive", "max_rank": 1, "description": "+20% critical damage and +8% haste.", "mods": [{"stat": "crit_damage", "value": 0.2}, {"stat": "haste", "value": 0.08}]}
 	]
 }

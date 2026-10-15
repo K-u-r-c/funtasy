@@ -1,21 +1,25 @@
 {
+	"version": 2,
 	"tier_points": 2,
+	"branches": [
+		{"id": "sniper", "name": "Sniper", "description": "Heavy hits, crits and range."},
+		{"id": "toxicologist", "name": "Toxicologist", "description": "Poisons, bleeds and traps."},
+		{"id": "shadow_strider", "name": "Shadow Strider", "description": "Mobility, dodge and stealth."}
+	],
 	"nodes": [
-		{"id": "r_precision", "name": "Precision", "row": 0, "col": 0, "max_rank": 3, "description": "+4% Agility per rank.",
-			"mods": [{"stat": "agility_pct", "value": 0.04}]},
-		{"id": "r_trapper", "name": "Trapper", "row": 0, "col": 2, "max_rank": 3, "description": "Trap cooldowns -8% per rank.",
-			"mods": [{"skill": "ranger_snare_trap", "field": "cooldown_mult", "value": -0.08}, {"skill": "ranger_explosive_trap", "field": "cooldown_mult", "value": -0.08}]},
-		{"id": "r_deadeye", "name": "Deadeye", "row": 1, "col": 0, "max_rank": 3, "requires": ["r_precision"], "description": "+3% critical strike chance per rank.",
-			"mods": [{"stat": "crit_chance", "value": 0.03}]},
-		{"id": "r_toxicology", "name": "Toxicology", "row": 1, "col": 2, "max_rank": 3, "requires": ["r_trapper"], "description": "Poison Arrow deals +15% damage per rank.",
-			"mods": [{"skill": "ranger_poison_arrow", "field": "damage_mult", "value": 0.15}]},
-		{"id": "r_volley", "name": "Volley", "row": 2, "col": 0, "max_rank": 2, "requires": ["r_deadeye"], "description": "Multishot fires 1 more arrow per rank.",
-			"mods": [{"skill": "ranger_multishot", "field": "count_add", "value": 1}]},
-		{"id": "r_big_boom", "name": "Big Boom", "row": 2, "col": 2, "max_rank": 2, "requires": ["r_toxicology"], "description": "Explosive Trap radius +15% per rank.",
-			"mods": [{"skill": "ranger_explosive_trap", "field": "radius_mult", "value": 0.15}]},
-		{"id": "r_swift", "name": "Swift Hunter", "row": 3, "col": 0, "max_rank": 1, "requires": ["r_volley"], "description": "+10% haste and +8% movement speed.",
-			"mods": [{"stat": "haste", "value": 0.1}, {"stat": "move_speed_pct", "value": 0.08}]},
-		{"id": "r_piercing", "name": "Piercing Shots", "row": 3, "col": 2, "max_rank": 1, "requires": ["r_big_boom"], "description": "Power Shot pierces 2 more enemies and deals +20% damage.",
-			"mods": [{"skill": "ranger_power_shot", "field": "pierce_add", "value": 2}, {"skill": "ranger_power_shot", "field": "damage_mult", "value": 0.2}]}
+		{"id": "r_s_shot", "branch": "sniper", "tier": 0, "type": "skill", "skill": "ranger_shot", "max_rank": 1, "starter": true},
+		{"id": "r_s_power_shot", "branch": "sniper", "tier": 0, "type": "skill", "skill": "ranger_power_shot", "max_rank": 1, "starter": true},
+		{"id": "r_s_multishot", "branch": "sniper", "tier": 0, "type": "skill", "skill": "ranger_multishot", "max_rank": 1, "starter": true},
+		{"id": "r_s_viper", "branch": "toxicologist", "tier": 0, "type": "skill", "skill": "ranger_poison_arrow", "max_rank": 1, "starter": true},
+		{"id": "r_s_snare", "branch": "toxicologist", "tier": 0, "type": "skill", "skill": "ranger_snare_trap", "max_rank": 1, "starter": true},
+		{"id": "r_s_explosive", "branch": "toxicologist", "tier": 0, "type": "skill", "skill": "ranger_explosive_trap", "max_rank": 1, "starter": true},
+		{"id": "r_precision", "name": "Precision", "branch": "sniper", "tier": 0, "type": "passive", "max_rank": 3, "description": "+4% Agility per rank.", "mods": [{"stat": "agility_pct", "value": 0.04}]},
+		{"id": "r_deadeye", "name": "Deadeye", "branch": "sniper", "tier": 1, "type": "passive", "max_rank": 3, "description": "+3% critical strike chance per rank.", "mods": [{"stat": "crit_chance", "value": 0.03}]},
+		{"id": "r_volley", "name": "Volley", "branch": "sniper", "tier": 2, "type": "passive", "max_rank": 2, "description": "Multishot fires 1 more arrow per rank.", "mods": [{"skill": "ranger_multishot", "field": "count_add", "value": 1}]},
+		{"id": "r_piercing", "name": "Piercing Shots", "branch": "sniper", "tier": 3, "type": "passive", "max_rank": 1, "description": "Power Shot pierces 2 more enemies and deals +20% damage.", "mods": [{"skill": "ranger_power_shot", "field": "pierce_add", "value": 2}, {"skill": "ranger_power_shot", "field": "damage_mult", "value": 0.2}]},
+		{"id": "r_trapper", "name": "Trapper", "branch": "toxicologist", "tier": 0, "type": "passive", "max_rank": 3, "description": "Trap cooldowns -8% per rank.", "mods": [{"skill": "ranger_snare_trap", "field": "cooldown_mult", "value": -0.08}, {"skill": "ranger_explosive_trap", "field": "cooldown_mult", "value": -0.08}]},
+		{"id": "r_toxicology", "name": "Toxicology", "branch": "toxicologist", "tier": 1, "type": "passive", "max_rank": 3, "description": "Poison Arrow deals +15% damage per rank.", "mods": [{"skill": "ranger_poison_arrow", "field": "damage_mult", "value": 0.15}]},
+		{"id": "r_big_boom", "name": "Big Boom", "branch": "toxicologist", "tier": 2, "type": "passive", "max_rank": 2, "description": "Explosive Trap radius +15% per rank.", "mods": [{"skill": "ranger_explosive_trap", "field": "radius_mult", "value": 0.15}]},
+		{"id": "r_swift", "name": "Swift Hunter", "branch": "shadow_strider", "tier": 0, "type": "passive", "max_rank": 1, "description": "+10% haste and +8% movement speed.", "mods": [{"stat": "haste", "value": 0.1}, {"stat": "move_speed_pct", "value": 0.08}]}
 	]
 }
