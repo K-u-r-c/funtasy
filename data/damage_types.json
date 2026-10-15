@@ -1,0 +1,17 @@
+{
+	"_comment": "Damage types (D28) and creature types. See docs/DATA.md.",
+	"types": {
+		"physical": {"name": "Physical", "color": "#e8e0d0", "armor": true},
+		"fire": {"name": "Fire", "color": "#ff7a2a"},
+		"frost": {"name": "Frost", "color": "#8fd8ff"},
+		"earth": {"name": "Earth", "color": "#c49a5a"},
+		"lightning": {"name": "Lightning", "color": "#fff26a"},
+		"holy": {"name": "Holy", "color": "#ffe680"},
+		"shadow": {"name": "Shadow", "color": "#b070f0"},
+		"nature": {"name": "Nature", "color": "#7adf4a"},
+		"arcane": {"name": "Arcane", "color": "#e090ff"},
+		"true": {"name": "True", "color": "#ffffff", "true": true}
+	},
+	"school_default": {"melee": "physical", "ranged": "physical", "physical": "physical", "spell": "arcane"},
+	"creature_types": ["undead", "demon", "beast", "construct", "humanoid", "aberration", "elemental"]
+}

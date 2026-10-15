@@ -14,6 +14,14 @@ static var instance: Combat
 const ENV_TEAM := -1
 const LOS_MASK := 1 | 8 | 16
 const PROJECTILE_MASK := 1 | 8 | 16 | 32
+## Effect primitives `run_effect` understands (validated by GameData).
+const EFFECT_TYPES := ["melee", "projectile", "aoe", "zone", "trap", "dash", "blink", "status", "heal",
+	"absorb", "taunt", "resource", "summon"]
+## Extra effect types valid inside `on_hit` lists.
+const ON_HIT_TYPES := ["knockback", "threat"]
+## Events a proc ({"event", "do"}) can listen to.
+const PROC_EVENTS := ["on_hit", "on_crit", "on_kill", "on_damaged", "on_block", "on_dodge", "on_skill_cast",
+	"on_heal", "on_low_hp", "on_fatal", "on_status_applied", "on_floor_start", "aura_tick", "on_move"]
 
 var game: Node
 var fx: CombatFx
