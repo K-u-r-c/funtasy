@@ -163,5 +163,131 @@
 	"sfx.page": {
 		"like": "sfx.pickup",
 		"prompt": "single parchment page turning, dry and crisp"
+	},
+	"icons.w_whirlwind": {
+		"color": "#a8322a",
+		"text": "Wh"
+	},
+	"icons.w_execute": {
+		"color": "#a8322a",
+		"text": "Ex"
+	},
+	"icons.w_riposte": {
+		"color": "#6a7a8c",
+		"text": "Ri"
+	},
+	"icons.w_shield_wall": {
+		"color": "#6a7a8c",
+		"text": "SW"
+	},
+	"icons.w_earthshaker": {
+		"color": "#c09030",
+		"text": "Ea"
+	},
+	"icons.w_bloodthirst": {
+		"color": "#a8322a",
+		"text": "Bl"
+	},
+	"icons.w_berserker_rage": {
+		"color": "#a8322a",
+		"text": "BR"
+	},
+	"icons.w_hamstring": {
+		"color": "#c09030",
+		"text": "Ha"
+	},
+	"icons.w_stoneform": {
+		"color": "#6a7a8c",
+		"text": "St"
+	},
+	"icons.w_armor_sunder": {
+		"color": "#c09030",
+		"text": "AS"
+	},
+	"icons.w_intimidating_roar": {
+		"color": "#c09030",
+		"text": "IR"
+	},
+	"icons.w_heroic_throw": {
+		"color": "#c09030",
+		"text": "HT"
+	},
+	"icons.w_last_stand": {
+		"color": "#6a7a8c",
+		"text": "LS"
+	},
+	"icons.w_feral_ferocity": {
+		"color": "#a8322a",
+		"text": "FF"
+	},
+	"icons.w_heroic_leap": {
+		"color": "#c09030",
+		"text": "HL"
+	},
+	"icons.w_thorns_of_steel": {
+		"color": "#6a7a8c",
+		"text": "TO"
+	},
+	"icons.w_overpower": {
+		"color": "#a8322a",
+		"text": "Ov"
+	},
+	"icons.w_iron_will": {
+		"color": "#6a7a8c",
+		"text": "IW"
+	},
+	"icons.w_mortal_strike": {
+		"color": "#a8322a",
+		"text": "MS"
+	},
+	"icons.w_rallying_cry": {
+		"color": "#c09030",
+		"text": "RC"
+	},
+	"icons.w_victory_rush": {
+		"color": "#a8322a",
+		"text": "VR"
+	},
+	"icons.w_skull_crack": {
+		"color": "#c09030",
+		"text": "SC"
+	},
+	"icons.w_devastate": {
+		"color": "#6a7a8c",
+		"text": "De"
+	},
+	"icons.w_avatar": {
+		"color": "#a8322a",
+		"text": "Av"
+	},
+	"icons.wk_ravenous": {
+		"color": "#e8c040",
+		"text": "RH",
+		"shape": "diamond"
+	},
+	"icons.wk_butcher": {
+		"color": "#e8c040",
+		"text": "BO",
+		"shape": "diamond"
+	},
+	"icons.wk_fortress": {
+		"color": "#e8c040",
+		"text": "LF",
+		"shape": "diamond"
+	},
+	"icons.wk_titan": {
+		"color": "#e8c040",
+		"text": "IT",
+		"shape": "diamond"
+	},
+	"icons.wk_concussive": {
+		"color": "#e8c040",
+		"text": "CR",
+		"shape": "diamond"
+	},
+	"icons.wk_mandate": {
+		"color": "#e8c040",
+		"text": "MO",
+		"shape": "diamond"
 	}
 }
