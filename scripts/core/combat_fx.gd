@@ -13,6 +13,7 @@ var local_focus: Callable  ## returns the local camera focus position
 
 var _projectiles: Dictionary = {}
 var _zones: Dictionary = {}
+var _tethers: Dictionary = {}  ## id -> {line, a, b}
 var _tex_cache: Dictionary = {}
 
 
@@ -188,7 +189,8 @@ func zone_end(id: int) -> void:
 		n.queue_free()
 
 
-## Host -> all (unreliable): floating combat text. kind: damage, crit, hurt, heal, dot, info, xp.
+## Host -> all (unreliable): floating combat text. kind: damage, crit, hurt, heal, dot, info, xp,
+## optionally ":#rrggbb" for the damage type colour (fire, frost, ...).
 @rpc("authority", "call_local", "unreliable")
 func number(pos: Vector2, text: String, kind: String) -> void:
 	if world_ui == null:
@@ -197,6 +199,10 @@ func number(pos: Vector2, text: String, kind: String) -> void:
 	l.text = text
 	var size := 14
 	var color := Color(1, 1, 1)
+	var type_color := ""
+	if kind.contains(":"):
+		type_color = kind.get_slice(":", 1)
+		kind = kind.get_slice(":", 0)
 	match kind:
 		"crit":
 			size = 20
@@ -216,6 +222,8 @@ func number(pos: Vector2, text: String, kind: String) -> void:
 		"xp":
 			size = 13
 			color = Color(0.7, 0.5, 1.0)
+	if not type_color.is_empty() and kind != "heal":
+		color = color.lerp(Color.from_string(type_color, color), 0.75)
 	l.add_theme_font_size_override("font_size", size)
 	l.add_theme_color_override("font_color", color)
 	l.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
@@ -260,6 +268,7 @@ func cast_bar(actor_path: NodePath, duration: float) -> void:
 
 
 func _process(delta: float) -> void:
+	_update_tethers()
 	for id in _projectiles.keys():
 		var p: Dictionary = _projectiles[id]
 		p.life -= delta
@@ -318,3 +327,94 @@ func _anim_sprite(key: String) -> AnimatedSprite2D:
 	mat.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
 	a.material = mat
 	return a
+
+
+## Host -> all (unreliable): a line effect (thrust, beam, chain lightning, bolt) from a to b.
+@rpc("authority", "call_local", "unreliable")
+func beam(a: Vector2, b: Vector2, color_html: String, duration: float, kind: String) -> void:
+	if world == null:
+		return
+	var c := Color.from_string(color_html, Color.WHITE)
+	var line := Line2D.new()
+	line.width = 5.0 if kind == "beam" else (3.0 if kind in ["chain", "bolt"] else 4.0)
+	line.default_color = Color(c.r * 1.8, c.g * 1.8, c.b * 1.8, 0.95)
+	line.z_index = 5
+	var mat := CanvasItemMaterial.new()
+	mat.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+	line.material = mat
+	if kind == "chain":
+		var n := maxi(3, int(a.distance_to(b) / 14.0))
+		for i in n + 1:
+			var p := a.lerp(b, float(i) / n)
+			if i > 0 and i < n:
+				p += (b - a).orthogonal().normalized() * randf_range(-6.0, 6.0)
+			line.add_point(p + HEIGHT)
+	else:
+		line.add_point(a + HEIGHT)
+		line.add_point(b + HEIGHT)
+	world.add_child(line)
+	var l := _light(c, 1.2, 0.6)
+	LightLayers.register(l, maxf(40.0, a.distance_to(b) * 0.5))
+	l.position = (a + b) / 2.0
+	world.add_child(l)
+	var t := line.create_tween().set_parallel(true)
+	t.tween_property(line, "modulate:a", 0.0, maxf(duration, 0.08)).set_delay(0.05)
+	t.tween_property(l, "energy", 0.0, maxf(duration, 0.08) + 0.05)
+	t.chain().tween_callback(func():
+		line.queue_free()
+		l.queue_free())
+	_puff(b, c, 5)
+
+
+## Host -> all (unreliable): an actor leaps (the sprite arcs up and lands).
+@rpc("authority", "call_local", "unreliable")
+func leap(actor_path: NodePath, duration: float) -> void:
+	var a := get_node_or_null(actor_path) as Actor
+	if a == null or a.sprite == null:
+		return
+	var t := a.sprite.create_tween()
+	t.tween_property(a.sprite, "position:y", -22.0, duration * 0.5).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
+	t.tween_property(a.sprite, "position:y", 0.0, duration * 0.5).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
+
+
+## Host -> all (reliable): a tether line between two actors appears.
+@rpc("authority", "call_local", "reliable")
+func tether(id: int, a_path: NodePath, b_path: NodePath, color_html: String) -> void:
+	if world == null:
+		return
+	var line := Line2D.new()
+	line.width = 2.0
+	var c := Color.from_string(color_html, Color.RED)
+	line.default_color = Color(c.r * 1.6, c.g * 1.6, c.b * 1.6, 0.85)
+	line.z_index = 5
+	world.add_child(line)
+	_tethers[id] = {"line": line, "a": a_path, "b": b_path}
+
+
+## Host -> all (reliable).
+@rpc("authority", "call_local", "reliable")
+func tether_end(id: int) -> void:
+	var t: Dictionary = _tethers.get(id, {})
+	_tethers.erase(id)
+	if not t.is_empty() and is_instance_valid(t.line):
+		t.line.queue_free()
+
+
+## Host -> all (unreliable): a zone that follows its caster or drifts moved.
+@rpc("authority", "call_local", "unreliable")
+func zone_move(id: int, pos: Vector2) -> void:
+	var n: Node = _zones.get(id)
+	if n and is_instance_valid(n):
+		n.position = pos
+
+
+func _update_tethers() -> void:
+	for id in _tethers.keys():
+		var t: Dictionary = _tethers[id]
+		var a := get_node_or_null(t.a) as Node2D
+		var b := get_node_or_null(t.b) as Node2D
+		if a == null or b == null or not is_instance_valid(t.line):
+			continue
+		t.line.clear_points()
+		t.line.add_point(a.global_position + HEIGHT)
+		t.line.add_point(b.global_position + HEIGHT)

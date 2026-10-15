@@ -24,6 +24,9 @@ var portal_ready: Dictionary = {}  ## peer id -> true: players who chose to desc
 var _descend_timer := -1.0
 var _wiped := false
 var _clock_sync_left := 0.0
+var corpses: Dictionary = {}  ## host: corpse id -> {id, def_id, pos, t, creature} (D29)
+var _corpse_counter := 0
+var _aura_left := 0.0
 
 @onready var dungeon: Dungeon = $Dungeon
 @onready var entities: Node2D = $Entities
@@ -102,6 +105,7 @@ func start_floor(new_depth: int) -> void:
 	var floor_seed := hash(run_seed + new_depth * 7919)
 	combat.clear_floor()
 	loot.clear_floor()
+	corpses.clear()
 	for e in enemies_root.get_children():
 		e.queue_free()
 	if portal:
@@ -146,7 +150,9 @@ func _place_players() -> void:
 		i += 1
 
 
-func spawn_monster(def_id: String, pos: Vector2, boss: bool) -> Node:
+## extra (optional spawn data): team ("players" for player summons), lifetime, copy_peer,
+## taunt (radius taunted on spawn), elite.
+func spawn_monster(def_id: String, pos: Vector2, boss: bool, extra: Dictionary = {}) -> Node:
 	var def: Dictionary = (GameData.bosses if boss else GameData.monsters).get(def_id, {})
 	if def.is_empty():
 		push_error("Game: unknown monster '%s'" % def_id)
@@ -159,20 +165,37 @@ func spawn_monster(def_id: String, pos: Vector2, boss: bool) -> Node:
 	var dmg_mult := (1.0 + float(GameData.bal("scaling.damage_per_level")) * (lvl - 1)) * diff
 	dmg_mult *= 1.0 + float(GameData.bal("scaling.damage_per_extra_player")) * (n - 1)
 	_enemy_counter += 1
-	return enemy_spawner.spawn({"name": "E%d" % _enemy_counter, "def_id": def_id, "boss": boss, "pos": pos,
-		"level": lvl, "hp_mult": hp_mult, "dmg_mult": dmg_mult})
+	var data := {"name": "E%d" % _enemy_counter, "def_id": def_id, "boss": boss, "pos": pos,
+		"level": lvl, "hp_mult": hp_mult, "dmg_mult": dmg_mult}
+	data.merge(extra)
+	return enemy_spawner.spawn(data)
 
 
-func summon_monsters(def_id: String, count: int, origin: Vector2, r: float, _caster: Node) -> void:
+## Summons: monster reinforcements, or (opts.team = "caster") the caster's own minions and
+## decoys (Blink's mirror image), optionally copying the caster's look (D31).
+func summon_monsters(def_id: String, count: int, origin: Vector2, r: float, caster: Node, opts: Dictionary = {}) -> void:
+	var extra := {}
+	if str(opts.get("team", "")) == "caster" and caster is Actor:
+		extra.team = caster.team
+	if opts.has("lifetime"):
+		extra.lifetime = float(opts.lifetime)
+	if opts.get("copy_caster", false) and caster and caster.get("peer_id") != null:
+		extra.copy_peer = int(caster.peer_id)
 	for i in count:
 		var pos := origin + Vector2.from_angle(TAU * i / count + randf()) * r
 		if dungeon.cell_at(dungeon.cell_of(pos)) != DungeonGenerator.CELL_FLOOR:
 			pos = origin
-		var e: Node = spawn_monster(def_id, pos, false)
-		if e:
+		var e: Node = spawn_monster(def_id, pos, false, extra)
+		if e == null:
+			continue
+		if int(extra.get("team", Actor.Team.MONSTERS)) == Actor.Team.MONSTERS:
 			for p in players_root.get_children():
 				if p.is_targetable() and p.global_position.distance_to(origin) < 500.0:
 					e.add_threat(p, 1.0)
+		elif opts.has("taunt"):
+			for m in combat.enemies_of(e.team, pos, float(opts.taunt)):
+				if m.has_method("taunted_by"):
+					m.taunted_by(e, float(opts.get("lifetime", 2.0)))
 
 
 func monster_level() -> int:
@@ -198,7 +221,24 @@ func player_by_peer(peer: int) -> Player:
 
 
 func on_enemy_killed(e: Enemy) -> void:
-	_enemy_death_fx.rpc(str(e.def.sprite), e.global_position, e.facing)
+	if e.team != Actor.Team.MONSTERS:
+		_enemy_death_fx.rpc(str(e.def.sprite), e.global_position, e.facing, -1)
+		return
+	_corpse_counter += 1
+	var cid := _corpse_counter
+	if not e.is_boss and not e.def.get("no_corpse", false):
+		corpses[cid] = {"id": cid, "def_id": e.def_id, "pos": e.global_position, "t": floor_time,
+			"creature": e.creature_type(), "bones": e.def.get("corpse", "flesh") == "bones"}
+	_enemy_death_fx.rpc(str(e.def.sprite), e.global_position, e.facing, cid if corpses.has(cid) else -1)
+	# Kill procs (Victory Rush, legendaries) for whoever landed the last hit.
+	if is_instance_valid(e.last_attacker):
+		combat.fire(e.last_attacker, "on_kill", {"target": e, "ctx": e.last_attack_ctx, "skill": str(e.last_attack_ctx.get("skill", "")),
+			"school": str(e.last_attack_ctx.get("school", "")), "xp": int(e.def.get("xp", 0)) > 0, "damage_type": str(e.last_attack_ctx.get("damage_type", ""))})
+		var ks: Dictionary = GameData.skills.get(str(e.last_attack_ctx.get("skill", "")), {})
+		if ks.get("cooldown_on_kill_reset", false) or e.last_attacker.stats.skill_mod(str(ks.get("id", "")), "reset_on_kill") > 0.0:
+			e.last_attacker.cooldowns.erase(str(ks.id))
+			if e.last_attacker.has_method("sync_cooldown"):
+				e.last_attacker.sync_cooldown(str(ks.id))
 	# Shared XP: everyone who directly or indirectly contributed inside the time window.
 	var now := Time.get_ticks_msec() / 1000.0
 	var window := float(GameData.bal("progression.contribution_window"))
@@ -267,6 +307,16 @@ func _physics_process(delta: float) -> void:
 	var actors := combat.all_actors()
 	for s in dungeon.spikes:
 		s.host_damage(actors)
+	var life := float(GameData.bal("corpses.lifetime", 20.0))
+	for cid in corpses.keys():
+		if floor_time - float(corpses[cid].t) > life:
+			corpses.erase(cid)
+	_aura_left -= delta
+	if _aura_left <= 0.0:
+		_aura_left = 1.0
+		for a in actors:
+			if a is Actor and a.is_alive():
+				combat.fire(a, "aura_tick", {"target": null})
 	_hazard_left -= delta
 	if _hazard_left <= 0.0:
 		_hazard_left = float(GameData.bal("hazards.lava_tick"))
@@ -441,19 +491,54 @@ func _show_wipe(final_depth: int) -> void:
 		hud.show_wipe(final_depth)
 
 
+## Host -> all (reliable): death animation; a corpse with an id stays on the floor (D29) until it
+## rots (balance.corpses.lifetime) or an ability consumes it.
 @rpc("authority", "call_local", "reliable")
-func _enemy_death_fx(sprite_key: String, pos: Vector2, dir: Vector2) -> void:
+func _enemy_death_fx(sprite_key: String, pos: Vector2, dir: Vector2, corpse_id: int) -> void:
 	var corpse := CharacterSprite.new()
 	corpse.position = pos
+	if corpse_id >= 0:
+		corpse.name = "Corpse_%d" % corpse_id
 	corpses_root.add_child(corpse)
 	corpse.set_layer("body", sprite_key)
 	corpse.play("death", dir, true)
 	corpse.visible = visibility.is_cell_visible(dungeon.cell_of(pos))
 	var t := corpse.create_tween()
-	t.tween_interval(3.0)
+	t.tween_interval(float(GameData.bal("corpses.lifetime", 20.0)) if corpse_id >= 0 else 3.0)
 	t.tween_property(corpse, "modulate:a", 0.0, 1.2)
 	t.tween_callback(corpse.queue_free)
 	AudioManager.play_sfx_at("death", pos)
+
+
+## Host -> all (reliable): a corpse was consumed (devoured, raised, absorbed).
+@rpc("authority", "call_local", "reliable")
+func _corpse_gone(corpse_id: int) -> void:
+	var c := corpses_root.get_node_or_null("Corpse_%d" % corpse_id)
+	if c:
+		c.queue_free()
+
+
+## Host: corpses within r of pos (optionally only bone piles / one creature type).
+func corpses_near(pos: Vector2, r: float, filter: Dictionary = {}) -> Array:
+	var out: Array = []
+	for c in corpses.values():
+		if c.pos.distance_to(pos) > r:
+			continue
+		if filter.has("bones") and bool(c.bones) != bool(filter.bones):
+			continue
+		if filter.has("creature") and c.creature != filter.creature:
+			continue
+		out.append(c)
+	out.sort_custom(func(a, b): return a.pos.distance_to(pos) < b.pos.distance_to(pos))
+	return out
+
+
+func consume_corpse(corpse_id: int) -> Dictionary:
+	var c: Dictionary = corpses.get(corpse_id, {})
+	corpses.erase(corpse_id)
+	if not c.is_empty():
+		_corpse_gone.rpc(corpse_id)
+	return c
 
 
 # =========================================================================================

@@ -1,0 +1,13 @@
+{
+	"id": "mirror_image",
+	"creature_type": "aberration",
+	"name": "Mirror Image",
+	"_comment": "Blink's decoy: wears the caster's look (copy_peer), holds aggro for its short life.",
+	"sprite": "monsters.cultist",
+	"ai": {"type": "none", "aggro_radius": 0, "preferred_range": [0, 0], "abilities": []},
+	"base_stats": {"hp": 30, "damage": 0, "armor": 0, "move_speed": 0, "crit_chance": 0.0, "dodge": 0.0},
+	"collision_radius": 8,
+	"xp": 0,
+	"copy_tint": "#b9a8ff",
+	"no_corpse": true
+}

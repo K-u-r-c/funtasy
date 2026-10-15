@@ -66,6 +66,10 @@ var _quick_hold: Dictionary = {}
 var _reviving_peer := 0
 var input_blocked := false
 var auto_aim := Vector2.INF  ## test harness override for the aim point
+var _cc_wander := Vector2.ZERO
+var _cc_wander_left := 0.0
+var _moved_acc := 0.0  ## host: distance moved since the last on_move proc
+var _last_host_pos := Vector2.ZERO
 
 
 func setup(data: Dictionary) -> void:
@@ -83,7 +87,7 @@ func setup(data: Dictionary) -> void:
 	skills = [class_def.primary_attack]
 	skills.append_array(class_def.skills)
 	collision_layer = 2
-	collision_mask = 1 | 4 | 8 | 16 | 32
+	collision_mask = 1 | 4 | 8 | 16 | 32 | 64 | 128
 	NetSync.make(self, "StateSync", [
 		"Health:hp", "Health:max_hp", "Health:absorb", "Resource:value", "Resource:max_value", "Resource:kind",
 		"Status:shown", "Stats:final", ".:life_state", ".:downed_left", ".:revive_progress", ".:level",
@@ -109,7 +113,7 @@ func is_local() -> bool:
 
 
 func is_targetable() -> bool:
-	return life_state == Life.ALIVE and is_alive()
+	return life_state == Life.ALIVE and super.is_targetable()
 
 
 func is_invulnerable() -> bool:
@@ -150,10 +154,37 @@ func _host_init() -> void:
 
 
 func recompute_stats() -> void:
-	stats.compute_player(class_def, level, inv.equipment, talents, status.stat_mods())
+	stats.compute_player(class_def, level, inv.equipment, talents, status.stat_mods(), stat_extra())
+	static_procs = _compile_procs()
 	health.set_max(stats.get_stat("max_hp"))
 	resource.set_max(stats.get_stat("max_resource"))
 	resource.regen_per_second = stats.get_stat("resource_regen")
+
+
+## Extra stat sources for Stats.compute_player (allocated points, run modifiers, passives).
+func stat_extra() -> Dictionary:
+	return {}
+
+
+## Procs from talents (keystones), unlocked passive skills and equipped items. Each gets a
+## stable key for its internal cooldown.
+func _compile_procs() -> Array:
+	var out: Array = []
+	var tree: Dictionary = GameData.talents.get(class_id, {})
+	for node in tree.get("nodes", []):
+		if int(talents.get(node.id, 0)) <= 0:
+			continue
+		for i in node.get("procs", []).size():
+			out.append(node.procs[i].merged({"_key": "t:%s:%d" % [node.id, i], "source": node.id}, true))
+	for slot in inv.equipment:
+		var item: Dictionary = inv.equipment[slot]
+		for i in item.get("procs", []).size():
+			out.append(item.procs[i].merged({"_key": "i:%s:%d" % [slot, i], "source": str(item.get("base", ""))}, true))
+	return out
+
+
+func creature_type() -> String:
+	return "humanoid"
 
 
 func to_character() -> Dictionary:
@@ -198,6 +229,11 @@ func _physics_process(delta: float) -> void:
 		host_tick(delta)
 		iframe_left = maxf(iframe_left - delta, 0.0)
 		_dodge_cd_host = maxf(_dodge_cd_host - delta, 0.0)
+		_moved_acc += position.distance_to(_last_host_pos)
+		_last_host_pos = position
+		if _moved_acc >= float(GameData.bal("combat.on_move_step", 24.0)) and life_state == Life.ALIVE:
+			_moved_acc = 0.0
+			Combat.instance.fire(self, "on_move", {"target": null})
 		for k in _item_cd_host.keys():
 			_item_cd_host[k] -= delta
 		_host_torch_tick(delta)
@@ -249,6 +285,7 @@ func _owner_tick(delta: float) -> void:
 			net_pos = position
 		return
 	var speed := move_speed()
+	dir = _cc_move(dir, delta)
 	if _forced_left > 0.0:
 		_forced_left -= delta
 		velocity = _forced_vel
@@ -270,13 +307,46 @@ func _owner_tick(delta: float) -> void:
 		_dodge_left = float(GameData.bal("player.dodge_duration"))
 		_dodge_cd = float(GameData.bal("player.dodge_cooldown"))
 		request_dodge.rpc_id(1, _dodge_dir)
-	# Attack + skills (holding repeats as soon as the cooldown allows)
+	# Attack + skills (holding repeats as soon as the cooldown allows). Channelled and
+	# charge-up skills also report the release.
 	for slot in SLOT_ACTIONS.size():
 		if Input.is_action_pressed(SLOT_ACTIONS[slot]) and not local_cd.has(slot) and not _pending.has(slot):
 			_pending[slot] = 0.3
 			request_skill.rpc_id(1, slot, aim_pos)
+		if Input.is_action_just_released(SLOT_ACTIONS[slot]) and slot < skills.size() and _is_hold_skill(str(skills[slot])):
+			request_skill_release.rpc_id(1, slot, aim_pos)
 	_handle_quick_slots(delta)
 	_handle_interact()
+
+
+func _is_hold_skill(sid: String) -> bool:
+	var sk: Dictionary = GameData.skills.get(sid, {})
+	return sk.has("channel") or sk.has("charge_time")
+
+
+## Owner: crowd control that takes the controls away (D25, D33). Fear runs from the nearest
+## monster, disorient wanders, inverted controls flip the stick / keys.
+func _cc_move(dir: Vector2, delta: float) -> Vector2:
+	if status.has_flag("feared"):
+		var game := get_tree().get_first_node_in_group("game")
+		var away := Vector2.ZERO
+		if game:
+			var best := INF
+			for e in game.enemies_root.get_children():
+				var d: float = e.global_position.distance_to(global_position)
+				if e.team != team and d < best:
+					best = d
+					away = global_position - e.global_position
+		return away.normalized() if away != Vector2.ZERO else facing
+	if status.has_flag("disoriented"):
+		_cc_wander_left -= delta
+		if _cc_wander_left <= 0.0:
+			_cc_wander_left = randf_range(0.4, 0.9)
+			_cc_wander = Vector2.from_angle(randf() * TAU)
+		return _cc_wander * 0.6
+	if status.has_flag("invert_move"):
+		return -dir
+	return dir
 
 
 func _update_aim(move_dir: Vector2) -> void:
@@ -371,10 +441,30 @@ func request_skill(slot: int, aim: Vector2) -> void:
 		return
 	aim_pos = aim
 	var sid: String = skills[slot]
-	var err := Combat.instance.try_use_skill(self, sid, aim)
+	var err := Combat.instance.try_use_skill(self, sid, aim, {"primary": slot == 0})
 	# Cooldown races and casting are normal while holding a key; don't nag about them.
 	var quiet := err in ["Not ready", "Busy"] or slot == 0
 	_skill_result.rpc_id(peer_id, slot, cooldown_left(sid), err.is_empty(), "" if quiet else err)
+
+
+## Owner -> host (reliable): the button of a channelled / charge-up skill was released.
+@rpc("any_peer", "call_local", "reliable")
+func request_skill_release(slot: int, aim: Vector2) -> void:
+	if not _from_owner() or slot < 0 or slot >= skills.size():
+		return
+	aim_pos = aim
+	var sid := str(skills[slot])
+	if str(charging.get("skill", "")) == sid:
+		Combat.instance.release_charge(self, aim)
+	elif str(channel.get("skill", "")) == sid:
+		Combat.instance.stop_channel(self)
+
+
+## Host: a cooldown changed outside a cast (resets, procs); tell the owner's HUD.
+func sync_cooldown(sid: String) -> void:
+	var slot := skills.find(sid)
+	if slot >= 0:
+		_skill_result.rpc_id(peer_id, slot, cooldown_left(sid), cooldown_left(sid) > 0.0, "")
 
 
 @rpc("any_peer", "call_local", "reliable")
@@ -385,6 +475,7 @@ func request_dodge(dir: Vector2) -> void:
 	iframe_left = maxf(iframe_left, float(GameData.bal("player.dodge_iframes")))
 	_move_allowance = float(GameData.bal("player.dodge_duration")) + 0.25
 	Combat.instance.fx.sound.rpc("dash", global_position)
+	Combat.instance.fire(self, "on_dodge_roll", {"target": null, "dir": dir})
 
 
 @rpc("any_peer", "call_local", "reliable")
@@ -730,7 +821,7 @@ func revive(hp_fraction: float) -> void:
 	downed_left = 0.0
 	revive_progress = 0.0
 	_reviver = null
-	collision_mask = 1 | 4 | 8 | 16 | 32
+	collision_mask = 1 | 4 | 8 | 16 | 32 | 64 | 128
 	health.hp = maxf(1.0, health.max_hp * hp_fraction)
 	iframe_left = float(GameData.bal("player.respawn_invuln"))
 

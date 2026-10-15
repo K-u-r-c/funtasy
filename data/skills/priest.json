@@ -1,6 +1,6 @@
 [
 	{
-		"id": "priest_smite", "name": "Smite", "icon": "attack", "school": "spell",
+		"id": "priest_smite", "damage_type": "holy", "name": "Smite", "icon": "attack", "school": "spell",
 		"description": "Holy bolt that draws extra attention. Restores a little mana on hit.",
 		"cooldown": 0.75, "cost": 0, "anim": "cast", "sfx": "cast", "attack_speed": true,
 		"resource_on_hit": 3, "threat_mult": 1.5,
@@ -26,7 +26,7 @@
 		]
 	},
 	{
-		"id": "priest_consecration", "name": "Consecration", "icon": "consecrate", "school": "spell",
+		"id": "priest_consecration", "damage_type": "holy", "name": "Consecration", "icon": "consecrate", "school": "spell",
 		"description": "Bless the ground around you, burning enemies that stand in it. High threat.",
 		"cooldown": 10.0, "cost": 24, "anim": "cast", "sfx": "cast", "threat_mult": 2.5,
 		"effects": [
@@ -35,7 +35,7 @@
 		]
 	},
 	{
-		"id": "priest_rebuke", "name": "Rebuke", "icon": "holy", "school": "spell",
+		"id": "priest_rebuke", "damage_type": "holy", "name": "Rebuke", "icon": "holy", "school": "spell",
 		"description": "Holy burst that taunts and briefly stuns nearby enemies.",
 		"cooldown": 10.0, "cost": 12, "anim": "cast", "sfx": "lightning", "threat_mult": 2.0,
 		"effects": [

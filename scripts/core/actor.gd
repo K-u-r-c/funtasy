@@ -25,6 +25,14 @@ var facing := Vector2.DOWN
 
 var cooldowns: Dictionary = {}  ## host: skill id -> seconds left
 var casting: Dictionary = {}  ## host: {skill, aim, left} while a cast time runs
+var channel: Dictionary = {}  ## host: {skill, left, tick_left, aim, start} while channelling
+var charging: Dictionary = {}  ## host: {skill, t, max, aim} while a charge-up skill is held
+var skill_charges: Dictionary = {}  ## host: skill id -> stored charges (skills with "charges")
+var lockout_element := ""  ## host: school locked by Counterspell
+var last_attacker: Actor = null  ## host: who hit this actor last (kill credit for procs)
+var last_attack_ctx: Dictionary = {}
+var proc_cd: Dictionary = {}  ## host: proc key -> time it is ready again
+var static_procs: Array = []  ## host: procs from talents, passives, items, elite modifiers
 var _stats_dirty := true
 var _action_anim := ""
 var _action_left := 0.0
@@ -74,7 +82,38 @@ func is_alive() -> bool:
 
 ## Can enemies/allies' skills affect and target this actor right now?
 func is_targetable() -> bool:
+	return is_alive() and not status.has_flag("untargetable")
+
+
+## Can allies' heals and buffs reach this actor?
+func is_targetable_by_allies() -> bool:
 	return is_alive()
+
+
+func is_invulnerable() -> bool:
+	return false
+
+
+func creature_type() -> String:
+	return "humanoid"
+
+
+## Full immunity to a damage type (monster data `immune`, statuses `immune_<type>`).
+func immune_to(dtype: String) -> bool:
+	return status.has_flag("immune_" + dtype)
+
+
+## Resistance to a non-physical damage type: magic resist + per-type resistance.
+func resist_to(dtype: String) -> float:
+	return stats.get_stat("magic_resist") + stats.get_stat(dtype + "_resist")
+
+
+## Every proc this actor has right now: static ones (recomputed with the stats) + statuses'.
+func all_procs() -> Array:
+	var st := status.procs()
+	if st.is_empty():
+		return static_procs
+	return static_procs + st
 
 
 func on_stats_dirty() -> void:
@@ -86,13 +125,13 @@ func feet() -> Vector2:
 
 
 func move_speed() -> float:
-	if status.has_flag("rooted"):
+	if status.has_any_flag(["rooted", "stunned", "asleep", "shackled"]):
 		return 0.0
 	return stats.get_stat("move_speed", 100.0)
 
 
 func can_act() -> bool:
-	return is_alive() and not status.has_flag("stunned")
+	return is_alive() and not status.has_any_flag(CombatCore.NO_ACT_FLAGS)
 
 
 # --- Host-side helpers -----------------------------------------------------------------------
@@ -107,6 +146,7 @@ func host_tick(delta: float) -> void:
 		cooldowns[k] -= delta
 		if cooldowns[k] <= 0.0:
 			cooldowns.erase(k)
+			_recharge(k)
 	if _stats_dirty:
 		_stats_dirty = false
 		recompute_stats()
@@ -123,6 +163,17 @@ func host_tick(delta: float) -> void:
 
 func cooldown_left(skill_id: String) -> float:
 	return float(cooldowns.get(skill_id, 0.0))
+
+
+## Skills with stored charges get one back when their cooldown ends, and recharge the next.
+func _recharge(skill_id: String) -> void:
+	if not skill_charges.has(skill_id):
+		return
+	var skill: Dictionary = GameData.skills.get(skill_id, {})
+	var max_c := int(skill.get("charges", 1)) + int(stats.skill_mod(skill_id, "charges_add"))
+	skill_charges[skill_id] = mini(int(skill_charges[skill_id]) + 1, max_c)
+	if int(skill_charges[skill_id]) < max_c:
+		cooldowns[skill_id] = stats.cooldown_for(skill) * maxf(0.1, 1.0 + stats.skill_mod(skill_id, "recharge_mult"))
 
 
 func _on_health_died() -> void:
@@ -175,9 +226,19 @@ func update_visuals(delta: float) -> void:
 		var def: Dictionary = GameData.status_effects.get(s[0], {})
 		if def.get("debuff", false) and def.has("color"):
 			tint = tint.lerp(Color.from_string(def.color, Color.WHITE), 0.35)
+	var vis := status.visual()
+	tint *= vis.tint
+	tint.a = vis.alpha
 	if _flash > 0.0:
 		tint = Color(2.5, 2.5, 2.5)
 	sprite.modulate = tint
+	var sc := float(vis.scale) * visual_scale()
+	sprite.scale = sprite.scale.lerp(Vector2(sc, sc), minf(1.0, delta * 8.0))
+
+
+## Base sprite scale (elites and buffed monsters are drawn bigger).
+func visual_scale() -> float:
+	return 1.0
 
 
 ## Smoothly follows the replicated position on peers that don't simulate this actor.

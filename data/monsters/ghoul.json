@@ -1,5 +1,6 @@
 {
 	"id": "ghoul",
+	"creature_type": "undead",
 	"name": "Ghoul",
 	"role": "melee",
 	"sprite": "monsters.ghoul",

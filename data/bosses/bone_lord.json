@@ -1,5 +1,6 @@
 {
 	"id": "bone_lord",
+	"creature_type": "undead",
 	"name": "The Bone Lord",
 	"sprite": "monsters.bone_lord",
 	"base_stats": {"hp": 900, "damage": 12, "armor": 30, "move_speed": 70, "crit_chance": 0.05, "dodge": 0.0},

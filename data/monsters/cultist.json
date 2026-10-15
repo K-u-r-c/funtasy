@@ -1,5 +1,6 @@
 {
 	"id": "cultist",
+	"creature_type": "humanoid",
 	"name": "Cultist",
 	"role": "caster",
 	"sprite": "monsters.cultist",

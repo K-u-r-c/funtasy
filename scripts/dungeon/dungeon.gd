@@ -22,6 +22,7 @@ var torches: Dictionary = {}  ## torch id -> wall torch
 var debris: Array = []  ## destroyed props (still in the tree as rubble until the floor ends)
 var spikes: Array = []
 var lights: Array = []  ## torch / lava lights, culled by distance in Visibility
+var obstacles: Dictionary = {}  ## dynamic terrain id -> {node, cells}
 var discovered := PackedByteArray()  ## local fog-of-war memory (per peer)
 
 var floor_layer: TileMapLayer
@@ -113,6 +114,9 @@ func clear() -> void:
 			var torch: Node = l.get_parent()
 			_discard(torch if torch != self else l)
 	lights.clear()
+	for id in obstacles.keys():
+		_discard(obstacles[id].node)
+	obstacles.clear()
 	_discard(floor_layer)
 	floor_layer = null
 	_discard(wall_layer)
@@ -291,6 +295,69 @@ func props_in_radius(pos: Vector2, r: float) -> Array:
 		if is_instance_valid(t) and t.destructible() and t.global_position.distance_to(pos) <= r + 10.0:
 			out.append(t)
 	return out
+
+
+## Host -> all (reliable): dynamic terrain appears on these cells for `lifetime` seconds (D30).
+## blocks: "all" (movement and projectiles, layer 64), "movement" (layer 128) or "none".
+## Every peer removes it on its own when the lifetime ends.
+@rpc("authority", "call_local", "reliable")
+func add_obstacle(id: int, kind: String, cell_list: Array, lifetime: float, blocks: String) -> void:
+	var def: Dictionary = GameData.obstacles.get(kind, {})
+	var body := StaticBody2D.new()
+	body.name = "Obstacle_%d" % id
+	body.collision_layer = 64 if blocks == "all" else (128 if blocks == "movement" else 0)
+	body.collision_mask = 0
+	var color := Color.from_string(str(def.get("color", "#555555")), Color.GRAY)
+	for c in cell_list:
+		var cs := CollisionShape2D.new()
+		var rect := RectangleShape2D.new()
+		rect.size = Vector2(tile, tile) * 0.9
+		cs.shape = rect
+		cs.position = cell_center(c)
+		body.add_child(cs)
+		if def.has("sprite") and GameData.asset_exists(str(def.sprite)):
+			var s := Sprite2D.new()
+			s.texture = GameData.texture(str(def.sprite))
+			s.position = cell_center(c) + Vector2(0, -6)
+			body.add_child(s)
+		else:
+			var poly := Polygon2D.new()
+			var h := tile * 0.45
+			poly.polygon = PackedVector2Array([Vector2(-h, -h * 1.6), Vector2(h, -h * 1.6), Vector2(h, h), Vector2(-h, h)])
+			poly.color = Color(color.r, color.g, color.b, 0.9)
+			poly.position = cell_center(c)
+			body.add_child(poly)
+		if blocks != "none" and astar.is_in_boundsv(c):
+			astar.set_point_solid(c, true)
+	if def.has("light"):
+		var l := PointLight2D.new()
+		LightLayers.setup_light(l)
+		l.texture = GameData.texture("fx.light")
+		l.color = Color.from_string(str(def.light), Color.ORANGE)
+		l.energy = 0.9
+		LightLayers.register(l, tile * 2.0)
+		var center := Vector2.ZERO
+		for c2 in cell_list:
+			center += cell_center(c2)
+		l.position = center / maxf(cell_list.size(), 1)
+		body.add_child(l)
+	if entities:
+		entities.add_child(body)
+	obstacles[id] = {"node": body, "cells": cell_list, "blocks": blocks}
+	if lifetime > 0.0:
+		get_tree().create_timer(lifetime).timeout.connect(remove_obstacle.bind(id))
+
+
+func remove_obstacle(id: int) -> void:
+	var o: Dictionary = obstacles.get(id, {})
+	obstacles.erase(id)
+	if o.is_empty():
+		return
+	if o.blocks != "none":
+		for c in o.cells:
+			if astar.is_in_boundsv(c) and cell_at(c) != DungeonGenerator.CELL_WALL:
+				astar.set_point_solid(c, false)
+	_discard(o.node)
 
 
 ## Host -> all (reliable, call_local): a wall torch was taken or broken.

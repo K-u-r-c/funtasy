@@ -1,0 +1,12 @@
+{
+	"_comment": "Dynamic terrain kinds (D30). `sprite` (optional) is an asset key drawn per cell; otherwise the cell is drawn as a tinted block.",
+	"fire_wall": {"name": "Wall of Fire", "color": "#ff6a1a", "light": "#ff7a2a"},
+	"thorns": {"name": "Living Thorns", "color": "#3b5a2a"},
+	"stakes": {"name": "Wooden Stakes", "color": "#6b4a2a"},
+	"ice_trail": {"name": "Icy Trail", "color": "#9fe0ff", "light": "#9fe0ff"},
+	"ingot": {"name": "Iron Ingot", "color": "#c86a3a", "light": "#ff7a2a"},
+	"bone_spears": {"name": "Bone Spears", "color": "#d8d0b8"},
+	"fissure": {"name": "Magma Fissure", "color": "#ff4411", "light": "#ff5511"},
+	"briar": {"name": "Creeping Briar", "color": "#2a3a1a"},
+	"prism": {"name": "Arcane Prism", "color": "#b080ff", "light": "#8855ff"}
+}

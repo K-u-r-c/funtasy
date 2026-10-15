@@ -1,5 +1,6 @@
 {
 	"id": "skeleton_archer",
+	"creature_type": "undead",
 	"name": "Skeleton Archer",
 	"role": "ranged",
 	"sprite": "monsters.skeleton_archer",
