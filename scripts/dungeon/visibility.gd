@@ -101,6 +101,9 @@ func _update_fov() -> void:
 	var origin := dungeon.cell_of(viewer.global_position)
 	var now := {}
 	var r := fov_radius
+	# D23: a blinded viewer only sees what is right next to them.
+	if viewer is Actor and viewer.status.has_flag("blinded"):
+		r = int(GameData.bal("vision.blind_fov_cells", 2))
 	var lights := _lights_near(viewer.global_position, r * dungeon.tile)
 	var half := dungeon.tile * 0.5
 	for dy in range(-r, r + 1):
@@ -189,7 +192,13 @@ func _update_enemies() -> void:
 		for v in viewers:
 			var from: Vector2 = v.global_position
 			var d := from.distance_to(e.global_position)
-			if d > max_sight or (not lit and d > personal_radius):
+			var sight := max_sight
+			if v is Actor and v.status.has_flag("blinded"):
+				sight = float(GameData.bal("vision.blind_sight", 40.0))
+			if d > sight or (not lit and d > personal_radius):
+				continue
+			# Stealthed monsters stay hidden until revealed.
+			if e.status.has_flag("stealthed") and not e.status.has_flag("revealed"):
 				continue
 			var q := PhysicsRayQueryParameters2D.create(from + Vector2(0, -6), e.global_position + Vector2(0, -6), Combat.LOS_MASK)
 			if space.intersect_ray(q).is_empty():

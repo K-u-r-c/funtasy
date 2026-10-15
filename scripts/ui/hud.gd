@@ -762,7 +762,8 @@ class StatusChip:
 		_left = left
 		_stacks = stacks
 		var def: Dictionary = GameData.status_effects.get(id, {})
-		tooltip_text = "%s%s - %ds" % [def.get("name", id), " x%d" % stacks if stacks > 1 else "", ceili(left)]
+		var time_txt := "active" if left < 0.0 else "%ds" % ceili(left)
+		tooltip_text = "%s%s - %s" % [def.get("name", id), " x%d" % stacks if stacks > 1 else "", time_txt]
 		queue_redraw()
 
 	func _draw() -> void:
@@ -773,15 +774,19 @@ class StatusChip:
 		draw_style_box(UITheme.cached_glass(Color("070a10f0"), UITheme.DANGER if debuff else col.darkened(0.2), 1, 0), r)
 		draw_rect(Rect2(2, 2, r.size.x - 4, r.size.y - 6), Color(col, 0.22))
 		var f := UITheme.font()
-		var name_: String = str(def.get("name", _id))
-		var t := name_.substr(0, 2)
-		var tw := f.get_string_size(t, HORIZONTAL_ALIGNMENT_LEFT, -1, UITheme.FONT_SMALL).x
-		draw_string_outline(f, Vector2(roundf((r.size.x - tw) / 2.0), 14), t, HORIZONTAL_ALIGNMENT_LEFT, -1, UITheme.FONT_SMALL, 3, Color.BLACK)
-		draw_string(f, Vector2(roundf((r.size.x - tw) / 2.0), 14), t, HORIZONTAL_ALIGNMENT_LEFT, -1, UITheme.FONT_SMALL, col)
+		var icon_key := "status_icons." + _id
+		if GameData.asset_exists(icon_key):
+			draw_texture_rect(GameData.texture(icon_key), Rect2(2, 2, r.size.x - 4, r.size.y - 5), false)
+		else:
+			var name_: String = str(def.get("name", _id))
+			var t := name_.substr(0, 2)
+			var tw := f.get_string_size(t, HORIZONTAL_ALIGNMENT_LEFT, -1, UITheme.FONT_SMALL).x
+			draw_string_outline(f, Vector2(roundf((r.size.x - tw) / 2.0), 14), t, HORIZONTAL_ALIGNMENT_LEFT, -1, UITheme.FONT_SMALL, 3, Color.BLACK)
+			draw_string(f, Vector2(roundf((r.size.x - tw) / 2.0), 14), t, HORIZONTAL_ALIGNMENT_LEFT, -1, UITheme.FONT_SMALL, col)
 		if _stacks > 1:
 			draw_string_outline(f, Vector2(r.size.x - 7, 9), str(_stacks), HORIZONTAL_ALIGNMENT_LEFT, -1, UITheme.FONT_SMALL, 3, Color.BLACK)
 			draw_string(f, Vector2(r.size.x - 7, 9), str(_stacks), HORIZONTAL_ALIGNMENT_LEFT, -1, UITheme.FONT_SMALL, Color.WHITE)
-		var frac := clampf(_left / maxf(_max, 0.01), 0.0, 1.0)
+		var frac := 1.0 if _left < 0.0 else clampf(_left / maxf(_max, 0.01), 0.0, 1.0)
 		draw_rect(Rect2(2, r.size.y - 3, roundf((r.size.x - 4) * frac), 1), col)
 
 
