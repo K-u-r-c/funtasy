@@ -609,8 +609,12 @@ func _full_scenario() -> void:
 	check(pt.get("kind", "") == "portal", "the portal is an interaction (%s)" % pt.get("text", "none"))
 	host_p.auto_aim = Vector2.INF
 	_descend_all(g)
+	# Extra presses during the countdown (an impatient player) must not carry over to floor 2.
+	g.host_interact(host_p, g.portal)
+	g.host_interact(host_p, g.portal)
 	await _wait(3.0)
 	check(g.depth == 2, "party descended to floor 2")
+	check(g.portal_ready.is_empty(), "portal readiness reset on the new floor")
 	await _wait(1.0)
 	check(client_p.life_state == Player.Life.ALIVE, "ghost revived on the next floor")
 	NetworkManager.to_clients("DevAuto", "client_cmd", ["check_depth", 2])
@@ -623,6 +627,10 @@ func _full_scenario() -> void:
 	await _wait(1.0)
 	await _floor2_props_check(g, host_p)
 	await _wait(1.0)
+	# The next floor's portal asks again: nobody descends until they interact with it.
+	g._boss_defeated.rpc(g.nearest_floor(host_p.global_position + Vector2(0, 40)))
+	await _wait(2.5)
+	check(g.depth == 2 and g.portal != null and g.portal_ready.is_empty(), "a new portal waits for the players to opt in again")
 	NetworkManager.to_clients("DevAuto", "client_cmd", ["done", null])
 	await _wait(1.0)
 

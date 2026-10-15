@@ -244,6 +244,9 @@ func host_interact(p: Player, node: Node) -> void:
 		loot.roll_and_drop("chest", node.global_position + Vector2(0, 18))
 	elif node == portal:
 		# The portal never pulls anyone in: every living player opts in with Interact.
+		# Once the countdown runs the choice is locked, so extra presses can't toggle it.
+		if _descend_timer >= 0.0:
+			return
 		if portal_ready.has(p.peer_id):
 			portal_ready.erase(p.peer_id)
 		else:
@@ -373,6 +376,8 @@ func _build_floor(new_depth: int, floor_seed: int, ft_id: String) -> void:
 	if portal and not multiplayer.is_server():
 		portal.queue_free()
 		portal = null
+	# Readiness belongs to one portal; carried over, it would descend the next floor's party at once.
+	portal_ready.clear()
 	boss_engaged = false
 	_wiped = false
 	AudioManager.play_music(str(floor_def.music))
