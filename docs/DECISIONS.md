@@ -144,6 +144,17 @@ proposal left a choice open, the chosen option is stated, and any change to a pr
 | D37 | Hazards vs friendly fire | Biome hazards are environment damage and hit players and monsters, except where the GDD says otherwise (blood pools heal monsters). | `combat.gd` |
 | D38 | Sludge-resistant footwear | Boots flag `terrain_immune` (Boots of Unstoppable March have it; a rare random boots affix too). | `data/items/affixes.json` |
 
+### Implementation notes for the GDD rows
+
+| Topic | Decision | Where |
+| --- | --- | --- |
+| D19 read action | **Accept / click** on a book reads it (right click and the pad's X already mean Drop in the inventory). | `inventory_panel.gd` |
+| D11 key per floor | An unused Gold Key is lost when the party descends (the shop of that floor stays locked). | `game.gd` |
+| Merchant chamber safety | Monsters never path into the chamber (its cells are solid in the monsters' A*), never pick a hero standing inside as a target, and never open its doors. The chamber may have open archways (the room generator can't always make doors). | `dungeon.gd`, `enemy.gd` |
+| Placeholder registry | `tools/gen_placeholder_icons.py` draws placeholder icons and copies placeholder sounds into `data/assets_placeholders.json`; `GameData` merges `data/assets.json` over it, so registering real art in `assets.json` always wins and no generated key is ever written into the hand-kept registry. | `game_data.gd` |
+| Contracts and pacts | Each player can sign each of the floor's two contracts once; pact potions cost their stats at purchase (not when drunk) and stack in the backpack one per slot. Archibald buys everything except gold, keys and pact potions; books sell by category. | `merchants.gd`, `balance.merchant` |
+| Elite altar loot | An altar gives a book (60%) or one Uncommon+ item, plus gold; once per altar. Secret sarcophagi give 1-2 Uncommon+ items, a book 40% of the time and gold. | `loot_table.gd`, `balance.lore` |
+
 ### Skill groups per talent branch (D1)
 
 Tier in brackets. **Bold** = starter (free) skill.
