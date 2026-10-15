@@ -79,6 +79,8 @@ var auto_aim := Vector2.INF  ## test harness override for the aim point
 var _cc_wander := Vector2.ZERO
 var _cc_wander_left := 0.0
 var _moved_acc := 0.0  ## host: distance moved since the last on_move proc
+var history: Array = []  ## host: [{pos, hp, t}] every 0.25 s for the last 5 s (Temporal Singularity)
+var _history_left := 0.0
 var _last_host_pos := Vector2.ZERO
 
 
@@ -305,7 +307,7 @@ func _compile_procs() -> Array:
 			out.append(node.procs[i].merged({"_key": "t:%s:%d" % [node.id, i], "source": node.id}, true))
 	for sid in unlocked_skills():
 		var sk: Dictionary = GameData.skills.get(sid, {})
-		if sk.get("passive", false):
+		if sk.has("procs"):  # passives, and the trigger windows of actives (Overpower, Victory Rush)
 			for i in sk.get("procs", []).size():
 				out.append(sk.procs[i].merged({"_key": "s:%s:%d" % [sid, i], "source": sid}, true))
 	for slot in inv.equipment:
@@ -363,6 +365,12 @@ func _physics_process(delta: float) -> void:
 		host_tick(delta)
 		iframe_left = maxf(iframe_left - delta, 0.0)
 		_dodge_cd_host = maxf(_dodge_cd_host - delta, 0.0)
+		_history_left -= delta
+		if _history_left <= 0.0:
+			_history_left = 0.25
+			history.append({"pos": position, "hp": health.hp, "t": Time.get_ticks_msec() / 1000.0})
+			if history.size() > 21:
+				history.pop_front()
 		_moved_acc += position.distance_to(_last_host_pos)
 		_last_host_pos = position
 		if _moved_acc >= float(GameData.bal("combat.on_move_step", 24.0)) and life_state == Life.ALIVE:

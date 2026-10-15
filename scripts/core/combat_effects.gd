@@ -9,6 +9,7 @@ var projectiles: Dictionary = {}
 var zones: Dictionary = {}
 var delayed: Array = []
 var tethers: Dictionary = {}
+var last_dealt := 0.0  ## damage of the last hit_target (on_hit effects can scale with it)
 var _next_id := 1
 
 
@@ -90,8 +91,20 @@ func run_effect(eff: Dictionary, ctx: Dictionary, origin: Vector2, aim: Vector2)
 		"teleport":
 			_teleport(eff, ctx, origin, aim)
 		"status":
-			for t in select_targets(eff, ctx, origin, aim):
-				apply_status(ctx, t, str(eff.status), float(eff.duration) * float(ctx.duration_mult), _magnitude(eff, ctx, t))
+			var st_eff := eff
+			# Mandate of Victory: shouts reach the whole floor.
+			if eff.get("shout", false) and caster and caster.stats.has_flag("floor_wide_shouts"):
+				st_eff = eff.merged({"radius": 99999.0}, true)
+			for t in select_targets(st_eff, ctx, origin, aim):
+				var times := int(eff.get("stacks", 1))
+				if eff.has("stacks_from"):
+					var sf: Dictionary = eff.stacks_from
+					times = mini(enemies_of(t.team, t.global_position, float(sf.get("enemies_within", 100))).size(), int(sf.get("max", 30)))
+					t.status.remove(str(eff.status))
+					if times <= 0:
+						continue
+				for i in times:
+					apply_status(ctx, t, str(eff.status), float(eff.duration) * float(ctx.duration_mult), _magnitude(eff, ctx, t))
 		"remove_status":
 			for t in select_targets(eff, ctx, origin, aim):
 				t.status.remove(str(eff.status))
@@ -222,6 +235,18 @@ func run_effect(eff: Dictionary, ctx: Dictionary, origin: Vector2, aim: Vector2)
 			for t in select_targets(eff, ctx, origin, aim, "aim_ally"):
 				if t.has_method("revive") and t.get("life_state") == 1:
 					t.revive(float(eff.get("hp", 0.5)))
+		"fetch":
+			# Leap of Faith: pull the chosen ally to the caster's feet.
+			for t in select_targets(eff, ctx, origin, aim, "aim_ally"):
+				if t != caster and caster:
+					var spot := walkable_point(caster.global_position, (t.global_position - caster.global_position).normalized(), 22.0)
+					fx.blink.rpc(t.global_position, spot)
+					t.host_teleport(spot)
+		"prevent_death":
+			# Inside an on_fatal proc: the blow leaves the actor at 1 HP.
+			var ev: Variant = ctx.get("event")
+			if ev is Dictionary:
+				ev.prevented = true
 		"toggle_status":
 			for t in select_targets(eff, ctx, origin, aim, "self"):
 				if t.status.has(str(eff.status)):
@@ -232,9 +257,14 @@ func run_effect(eff: Dictionary, ctx: Dictionary, origin: Vector2, aim: Vector2)
 			push_error("Combat: unknown effect type '%s'" % eff.type)
 
 
-func _with_target(ctx: Dictionary, t: Actor) -> Dictionary:
+func _with_target(ctx: Dictionary, t: Actor, amount: float = 0.0) -> Dictionary:
 	var c := ctx.duplicate()
 	c.event_target = t
+	var ev: Dictionary = (ctx.get("event", {}) as Dictionary).duplicate() if ctx.get("event") is Dictionary else {}
+	ev.target = t
+	if amount > 0.0:
+		ev.amount = amount
+	c.event = ev
 	return c
 
 
@@ -255,6 +285,15 @@ func _heal_amount(eff: Dictionary, ctx: Dictionary, t: Actor, key: String = "amo
 	var v := value_of_spec(spec, ctx) * float(ctx.heal_mult)
 	if spec is Dictionary:
 		v += t.health.max_hp * float(spec.get("pct_target_max_hp", 0.0))
+		# Healing from the triggering event (Vampiric Embrace, Overflowing Grace, ...).
+		var ev: Variant = ctx.get("event")
+		if ev is Dictionary and spec.has("event_pct"):
+			var ev_amount := float(ev.get(str(spec.get("event_field", "amount")), 0.0)) * float(spec.event_pct)
+			if spec.get("split", false) and game:
+				ev_amount /= maxf(1.0, game.players_root.get_children().filter(func(x): return x.is_alive()).size())
+			v += ev_amount
+		if spec.has("max_pct_target_max_hp"):
+			v = minf(v, t.health.max_hp * float(spec.max_pct_target_max_hp))
 		if ctx.caster is Actor and is_instance_valid(ctx.caster):
 			v += ctx.caster.health.max_hp * float(spec.get("pct_caster_max_hp", 0.0))
 	if t.health.fraction() < float(ctx.get("low_hp_heal_below", 0.0)):
@@ -279,6 +318,11 @@ func damage_value(spec: Variant, ctx: Dictionary, target: Actor) -> float:
 		v += caster.stats.get_stat("block_value") * float(spec.get("block_coef", 0.0)) * float(ctx.damage_mult)
 		v += caster.health.max_hp * float(spec.get("pct_caster_max_hp", 0.0))
 	v *= 1.0 + float(ctx.get("extra_resource", 0.0)) * float(spec.get("per_extra_resource", 0.0))
+	if target and spec.has("per_stack"):
+		v *= 1.0 + target.status.stacks_of(str(spec.per_stack.status)) * float(spec.per_stack.get("add", 0.0))
+	var ev: Variant = ctx.get("event")
+	if ev is Dictionary and spec.has("event_pct"):
+		v += float(ev.get(str(spec.get("event_field", "amount")), 0.0)) * float(spec.event_pct)
 	if target and spec.has("below_hp") and target.health.fraction() < float(spec.below_hp):
 		v *= float(spec.get("below_mult", 1.0))
 	if target and spec.has("vs_creature") and Array(spec.vs_creature).has(target.creature_type()):
@@ -290,6 +334,7 @@ func hit_target(target: Actor, eff: Dictionary, ctx: Dictionary, area: bool) -> 
 	if not is_instance_valid(target) or not target.is_targetable():
 		return false
 	var landed := true
+	last_dealt = 0.0
 	if eff.has("damage"):
 		var opts := {"area": area, "damage_type": GameData.damage_type_of(GameData.skills.get(str(ctx.skill), {"school": ctx.school}), eff)}
 		if eff.has("dot"):
@@ -300,6 +345,7 @@ func hit_target(target: Actor, eff: Dictionary, ctx: Dictionary, area: bool) -> 
 			c.guaranteed_crit = true
 		var dealt := deal_damage(c, target, damage_value(eff.damage, c, target), opts)
 		landed = dealt >= 0.0
+		last_dealt = maxf(dealt, 0.0)
 		# Drain Soul / Vampiric strikes: heal the caster for a share of the damage.
 		if dealt > 0.0 and eff.has("drain") and is_instance_valid(ctx.caster):
 			heal(ctx, ctx.caster, dealt * float(eff.drain))
@@ -309,7 +355,8 @@ func hit_target(target: Actor, eff: Dictionary, ctx: Dictionary, area: bool) -> 
 		match str(oh.type):
 			"status":
 				if not oh.has("if") or proc_conditions(ctx.caster if is_instance_valid(ctx.caster) else null, oh["if"], {"target": target}):
-					apply_status(ctx, target, str(oh.status), float(oh.duration) * float(ctx.duration_mult), _magnitude(oh, ctx, target))
+					for i in int(oh.get("stacks", 1)):
+						apply_status(ctx, target, str(oh.status), float(oh.duration) * float(ctx.duration_mult), _magnitude(oh, ctx, target))
 			"knockback":
 				var from: Vector2 = ctx.caster.global_position if is_instance_valid(ctx.caster) else ctx.origin
 				knock(target, (target.global_position - from).normalized() * float(oh.force))
@@ -320,7 +367,7 @@ func hit_target(target: Actor, eff: Dictionary, ctx: Dictionary, area: bool) -> 
 				var sub: Dictionary = oh.duplicate()
 				if not sub.has("target"):
 					sub.target = "event_target"
-				run_effect(sub, _with_target(ctx, target), target.global_position, target.global_position)
+				run_effect(sub, _with_target(ctx, target, last_dealt), target.global_position, target.global_position)
 	return true
 
 
@@ -855,7 +902,7 @@ func _zone_tick(z: Dictionary) -> void:
 			pool.append_array(allies_of(z.ctx.team, z.pos, z.radius))
 		for a in pool:
 			a.status.apply(str(eff.status_inside), float(eff.get("tick", 1.0)) + 0.3, _magnitude(eff, z.ctx, a), z.ctx)
-	if eff.has("repel_enemies"):
+	if eff.has("repel_enemies") and (not eff.has("repel_for") or float(eff.get("duration", 0.0)) * float(z.ctx.duration_mult) - z.left <= float(eff.repel_for)):
 		for a2 in enemies_of(z.ctx.team, z.pos, z.radius):
 			knock(a2, (a2.global_position - z.pos).normalized() * float(eff.repel_enemies))
 	for sub in eff.get("tick_effects", []):

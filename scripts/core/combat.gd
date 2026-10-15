@@ -19,7 +19,7 @@ const EFFECT_TYPES := ["melee", "cone", "projectile", "aoe", "zone", "trap", "de
 	"blink", "teleport", "status", "remove_status", "heal", "absorb", "taunt", "resource", "summon", "hit",
 	"line", "chain", "beam", "knockback", "pull", "delayed", "consume_dots", "cleanse", "dispel",
 	"destroy_projectiles", "terrain", "threat_drop", "reveal", "interrupt", "cooldown", "self_damage",
-	"resource_drain", "tether", "stored_damage", "spread", "revive", "toggle_status"]
+	"resource_drain", "tether", "stored_damage", "spread", "revive", "toggle_status", "fetch", "prevent_death"]
 ## Extra effect types valid inside `on_hit` lists.
 const ON_HIT_TYPES := ["knockback", "threat"]
 ## Events a proc ({"event", "do"}) can listen to.
@@ -54,7 +54,7 @@ func try_use_skill(caster: Actor, skill_id: String, aim: Vector2, opts: Dictiona
 		return "Unknown skill"
 	if skill.get("passive", false):
 		return "Passive"
-	if not caster.can_act():
+	if not caster.can_act() and not (skill.get("usable_while_cc", false) and caster.is_alive()):
 		return "Can't act now"
 	if not caster.casting.is_empty() or not caster.channel.is_empty() or not caster.charging.is_empty():
 		return "Busy"
@@ -136,6 +136,10 @@ func try_use_skill(caster: Actor, skill_id: String, aim: Vector2, opts: Dictiona
 		caster.channel = {"skill": skill_id, "left": float(ch.get("duration", 2.0)) * (1.0 + caster.stats.skill_mod(skill_id, "duration_mult")),
 			"tick_left": float(ch.get("first_tick", 0.0)), "aim": aim, "start": caster.global_position}
 		fx.cast_bar.rpc(caster.get_path(), float(caster.channel.left))
+		if skill.has("on_cast"):
+			var cctx := make_ctx(caster, skill)
+			for eff in skill.on_cast:
+				run_effect(eff, cctx, caster.global_position, aim)
 		return ""
 	if skill.has("charge_time"):
 		var ct := float(skill.charge_time) * (1.0 + caster.stats.skill_mod(skill_id, "charge_time_mult"))
@@ -183,6 +187,15 @@ func finish_cast(caster: Actor, skill_id: String, aim: Vector2, extra: Dictionar
 	ctx.merge(extra, true)
 	for eff in skill.effects:
 		run_effect(eff, ctx, caster.global_position, aim)
+	# Double Tap: the skill fires once more for free while the status is up.
+	var rep: Dictionary = skill.get("repeat_if_status", {})
+	if not rep.is_empty() and caster.status.has(str(rep.status)) and not extra.get("repeat", false):
+		caster.status.remove(str(rep.status))
+		var again := extra.duplicate()
+		again.repeat = true
+		get_tree().create_timer(float(rep.get("delay", 0.15))).timeout.connect(func():
+			if is_instance_valid(caster) and caster.is_alive():
+				finish_cast(caster, skill_id, caster.get("aim_pos") if caster.get("aim_pos") != null else aim, again))
 
 
 ## The numbers a skill uses, from its caster's stats. Host combat and the UI's skill tooltips
@@ -201,7 +214,8 @@ static func skill_numbers(st: Stats, level: int, skill: Dictionary) -> Dictionar
 		"damage_mult": dmg_mult,
 		"heal_mult": st.get_stat("healing_mult", 1.0) * (1.0 + st.skill_mod(sid, "heal_mult")),
 		"crit_chance": st.get_stat("crit_chance") + st.skill_mod(sid, "crit_add"),
-		"crit_damage": st.get_stat("crit_damage", 0.5) + st.skill_mod(sid, "crit_damage_add"),
+		"crit_damage": st.get_stat("crit_damage", 0.5) + st.skill_mod(sid, "crit_damage_add") + float(skill.get("crit_damage_add", 0.0)),
+		"cc_bonus": st.get_stat("cc_bonus"),
 		"leech": st.get_stat("leech"), "level": level,
 		"threat_mult": float(skill.get("threat_mult", 1.0)) * st.get_stat("threat_mult", 1.0) * (1.0 + st.skill_mod(sid, "threat_mult")),
 		"resource_on_hit": float(skill.get("resource_on_hit", -1.0)),

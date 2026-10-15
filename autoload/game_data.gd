@@ -286,13 +286,18 @@ func _validate_refs() -> void:
 			errors.append("skill '%s' has unknown damage_type '%s'" % [sid, sk.damage_type])
 		if sk.has("icon") and not asset_exists("icons." + str(sk.icon)):
 			errors.append("skill '%s' has unknown icon '%s'" % [sid, sk.icon])
-		_validate_effects("skill '%s'" % sid, sk.get("effects", []), types)
+		_validate_effects("skill '%s'" % sid, sk.get("effects", []) + sk.get("on_cast", []) + sk.get("channel", {}).get("tick_effects", []), types)
 		_validate_procs("skill '%s'" % sid, sk.get("procs", []), types)
 	for stid in status_effects:
 		var st: Dictionary = status_effects[stid]
 		if st.has("damage_type") and not types.has(st.damage_type):
 			errors.append("status '%s' has unknown damage_type '%s'" % [stid, st.damage_type])
 		_validate_procs("status '%s'" % stid, st.get("procs", []), types)
+		for key in ["on_expire", "on_end", "on_apply", "tick_effects"]:
+			_validate_effects("status '%s'" % stid, st.get(key, []), types)
+		_validate_effects("status '%s'" % stid, st.get("threshold", {}).get("effects", []), types)
+		if st.has("threshold") and st.threshold.has("apply") and not status_effects.has(str(st.threshold.apply)):
+			errors.append("status '%s' threshold applies unknown status '%s'" % [stid, st.threshold.apply])
 	for table in [monsters, bosses]:
 		for mid in table:
 			var m: Dictionary = table[mid]
@@ -371,7 +376,8 @@ func _validate_effects(what: String, effects: Array, types: Dictionary) -> void:
 			errors.append("%s applies unknown status '%s'" % [what, eff.status])
 		if eff.has("damage_type") and not types.has(str(eff.damage_type)):
 			errors.append("%s has unknown damage_type '%s'" % [what, eff.damage_type])
-		for key in ["on_hit", "on_arrive", "effects", "on_end", "tick_effects"]:
+		for key in ["on_hit", "on_arrive", "effects", "on_end", "tick_effects", "on_start", "path_on_hit", "ally_effects",
+				"on_taunted", "on_interrupt", "snap_effects"]:
 			if eff.has(key):
 				_validate_effects(what, eff[key], types)
 		if eff.has("explode"):

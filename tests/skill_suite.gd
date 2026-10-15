@@ -14,7 +14,9 @@ var g: Node
 var p: Player
 var dummies: Array = []
 var warded: Enemy
+var ally: Enemy  ## a dummy on the players' team: target of ally skills in solo
 var _start := Vector2.ZERO
+var _class_run := false
 
 
 func _init(dev_auto: Node) -> void:
@@ -28,9 +30,94 @@ func run_class(class_id: String) -> void:
 			ids.append(sid)
 	ids.sort()
 	await _prepare()
-	da.check(ids.size() >= 6, "%s has %d skills in data" % [class_id, ids.size()])
+	_class_run = true
+	da.check(ids.size() == 30, "%s has %d skills in data" % [class_id, ids.size()])
+	_unlock_all_skills()
 	for sid in ids:
 		await cast_and_check(str(sid))
+	await run_keystones()
+
+
+## Every skill node learned (their procs compile), no passive talents or keystones.
+func _unlock_all_skills() -> void:
+	var t := {}
+	for nd in p.talent_tree().get("nodes", []):
+		if nd.get("type", "") == "skill" and not nd.get("starter", false):
+			t[nd.id] = 1
+	p.talents = t
+	p.recompute_stats()
+
+
+## Each keystone alone: its stat, flag or triggered effect.
+func run_keystones() -> void:
+	for nd in p.talent_tree().get("nodes", []):
+		if nd.get("type", "") != "keystone":
+			continue
+		var t: Dictionary = nd.get("test", {})
+		da.check(not t.is_empty(), "keystone %s has a test" % nd.id)
+		if t.is_empty():
+			continue
+		_reset()
+		var talents := {}
+		for n2 in p.talent_tree().get("nodes", []):
+			if n2.get("type", "") == "skill" and not n2.get("starter", false):
+				talents[n2.id] = 1
+		talents[nd.id] = 1
+		p.talents = talents
+		p.recompute_stats()
+		await da._wait(0.2)
+		if t.has("stat_above"):
+			da.check(p.stats.get_stat(str(t.stat_above[0]), 1.0) > float(t.stat_above[1]), "keystone %s raises %s (%.2f)" % [nd.id, t.stat_above[0], p.stats.get_stat(str(t.stat_above[0]), 1.0)])
+		if t.has("stat_flag"):
+			da.check(p.stats.has_flag(str(t.stat_flag)), "keystone %s sets %s" % [nd.id, t.stat_flag])
+		if t.has("trigger") or t.has("cast"):
+			var before := _snapshot()
+			if t.has("cast"):
+				var err := Combat.instance.try_use_skill(p, str(t.cast), dummies[0].global_position)
+				da.check(err.is_empty(), "keystone %s: %s cast" % [nd.id, t.cast])
+			else:
+				await _trigger(str(t.trigger))
+			await da._wait(float(t.get("wait", 0.8)))
+			var after := _snapshot()
+			for ex in t.get("expect", []):
+				da.check(_expect(str(ex), before, after, dummies[0], -1), "keystone %s: %s" % [nd.id, ex])
+	_unlock_all_skills()
+
+
+## Fires a proc trigger by hand: melee_hits, crit:<skill>, fatal, kill, dodge, block, heal.
+func _trigger(what: String) -> void:
+	var kind := what.get_slice(":", 0)
+	var arg := what.get_slice(":", 1) if what.contains(":") else ""
+	var d0: Enemy = dummies[0]
+	match kind:
+		"melee_hits", "hits", "crit":
+			var sid := arg if not arg.is_empty() else str(p.skills[0])
+			var ctx := Combat.instance.make_ctx(p, GameData.skill(sid))
+			ctx.melee_hit = kind == "melee_hits" or str(GameData.skill(sid).get("school", "")) == "melee"
+			if kind == "crit":
+				ctx.guaranteed_crit = true
+			for i in (1 if kind == "crit" else 3):
+				Combat.instance.deal_damage(ctx, d0, 5.0)
+				await da._wait(0.05)
+		"fatal":
+			Combat.instance.deal_damage(Combat.instance.make_ctx(d0, {"id": "test", "school": "spell"}), p, p.health.max_hp * 3.0, {"damage_type": "true"})
+		"kill":
+			var victim: Enemy = g.spawn_monster("ghoul", g.nearest_floor(_start + Vector2(40, 30)), false)
+			await da._wait(0.2)
+			Combat.instance.deal_damage(Combat.instance.make_ctx(p, GameData.skill(str(p.skills[0]))), victim, victim.health.hp * 5.0, {"damage_type": "true"})
+		"dodge":
+			Combat.instance.fire(p, "on_dodge", {"target": d0, "attacker": d0})
+		"block":
+			Combat.instance.fire(p, "on_block", {"target": p, "attacker": d0, "amount": 10.0, "blocked_amount": 10.0})
+		"heal":
+			p.health.hp = p.health.max_hp * 0.5
+			ally.health.hp = ally.health.max_hp * 0.5
+			Combat.instance.heal(Combat.instance.make_ctx(p, {"id": "test", "school": "spell"}), ally, ally.health.max_hp * 0.8)
+		"cast_skill":
+			Combat.instance.try_use_skill(p, arg, d0.global_position)
+		"dot":
+			Combat.instance.apply_status(Combat.instance.make_ctx(p, {"id": "test", "school": "spell"}), d0, arg, 4.0, 3.0)
+			await da._wait(1.2)
 
 
 func run_primitives() -> void:
@@ -50,6 +137,9 @@ func run_primitives() -> void:
 		if str(stid).begins_with("test_"):
 			for sub2 in GameData.status_effects[stid].get("on_expire", []):
 				covered[str(sub2.type)] = true
+			for pr in GameData.status_effects[stid].get("procs", []):
+				for sub3 in pr.get("do", []):
+					covered[str(sub3.type)] = true
 	for t in Combat.EFFECT_TYPES:
 		if t in ["summon", "resource", "absorb", "heal", "status", "remove_status", "melee", "projectile", "aoe", "trap", "dash",
 				"taunt", "revive", "resource_drain", "toggle_status", "zone"]:
@@ -74,6 +164,7 @@ func _prepare() -> void:
 		d.set_meta("test_seen_status", [])
 		dummies.append(d)
 	warded = g.spawn_monster("training_dummy_warded", g.nearest_floor(_start + Vector2(0, 70)), false)
+	ally = g.spawn_monster("training_dummy", g.nearest_floor(_start + Vector2(-50, 0)), false, {"team": Actor.Team.PLAYERS})
 	await da._wait(0.6)
 
 
@@ -105,12 +196,18 @@ func _reset() -> void:
 			d.threat.clear()
 	warded.status.clear_all()
 	warded.health.hp = warded.health.max_hp
+	ally.status.clear_all()
+	ally.health.hp = ally.health.max_hp * 0.5
+	ally.health.absorb = 0.0
+	ally.host_teleport(g.nearest_floor(_start + Vector2(-50, 0)))
+	ally.set_meta("test_seen_status", [])
+	p.set_meta("test_seen_status", [])
 	warded.host_teleport(g.nearest_floor(_start + Vector2(0, 70)))
 	Combat.instance.clear_floor()
 	for id in g.dungeon.obstacles.keys():
 		g.dungeon.remove_obstacle(id)
 	for m in g.enemies_root.get_children():
-		if m.team == Actor.Team.PLAYERS:
+		if m.team == Actor.Team.PLAYERS and m != ally:
 			m.queue_free()
 
 
@@ -119,7 +216,7 @@ func _snapshot() -> Dictionary:
 		"p_status": _ids(p), "zones": Combat.instance.zones.size(), "next_id": Combat.instance._next_id,
 		"obstacles": g.dungeon.obstacles.size(), "tethers": Combat.instance.tethers.size(),
 		"projectiles": Combat.instance.projectiles.size(), "minions": g.get_tree().get_nodes_in_group("minions").size(),
-		"warded_hp": warded.health.hp}
+		"warded_hp": warded.health.hp, "ally_hp": ally.health.hp, "ally_pos": ally.global_position, "ally_absorb": ally.health.absorb}
 	for i in dummies.size():
 		var d: Enemy = dummies[i]
 		s["d%d_hp" % i] = d.health.hp
@@ -142,6 +239,17 @@ func cast_and_check(sid: String) -> void:
 	if sk.get("passive", false):
 		var err0 := Combat.instance.try_use_skill(p, sid, p.global_position)
 		da.check(err0 == "Passive", "%s is passive" % sid)
+		if t.has("trigger"):
+			_reset()
+			await da._wait(0.1)
+			var b0 := _snapshot()
+			await _trigger(str(t.trigger))
+			await da._wait(float(t.get("wait", 0.5)))
+			var a0 := _snapshot()
+			for ex0 in t.get("expect", []):
+				da.check(_expect(str(ex0), b0, a0, dummies[0], -1), "%s (passive): %s" % [sid, ex0])
+		elif _class_run:
+			da.check(false, "passive %s has a trigger test" % sid)
 		return
 	_reset()
 	await da._wait(0.15)
@@ -170,14 +278,22 @@ func cast_and_check(sid: String) -> void:
 	if setup.get("hostile_projectile", false):
 		var mctx := Combat.instance.make_ctx(target, GameData.skill("skeleton_arrow"))
 		proj_id = Combat.instance.spawn_projectile({"speed": 1.0, "range": 400, "damage": {"base": 1, "coef": 0}}, mctx, target.global_position - Vector2(30, 0), Vector2.LEFT)
-	if setup.get("target_attacks", false):
+	if setup.has("target_attacks"):
 		var tctx := Combat.instance.make_ctx(target, {"id": "test_attack", "school": "melee"})
-		var tgt := target
-		da.get_tree().create_timer(0.4).timeout.connect(func():
+		var at_delay := 0.4 if setup.target_attacks is bool else float(setup.target_attacks)
+		da.get_tree().create_timer(at_delay).timeout.connect(func():
 			tctx.melee_hit = true
+			tctx.cannot_miss = true
 			Combat.instance.deal_damage(tctx, p, 10.0))
 	var before := _snapshot()
-	var aim: Vector2 = target.global_position if str(t.get("aim", "target")) == "target" else p.global_position
+	var aim: Vector2 = target.global_position
+	match str(t.get("aim", "target")):
+		"self":
+			aim = p.global_position
+		"ally":
+			aim = ally.global_position
+		"far":
+			aim = dummies[2].global_position
 	p.aim_pos = aim
 	p.auto_aim = aim
 	var err := Combat.instance.try_use_skill(p, sid, aim)
@@ -194,10 +310,15 @@ func cast_and_check(sid: String) -> void:
 		await da._wait(0.3)
 		var err2 := Combat.instance.try_use_skill(p, sid, aim)
 		da.check(err2.is_empty(), "%s second charge cast%s" % [sid, "" if err2.is_empty() else ": " + err2])
+	if t.has("then"):
+		await da._wait(0.2)
+		await _trigger(str(t.then))
 	await da._wait(wait)
 	var after := _snapshot()
 	var expects: Array = t.get("expect", [])
 	if expects.is_empty():
+		if _class_run:
+			da.check(false, "%s has a test block with expectations" % sid)
 		da.check(_changed(before, after), "%s had an effect" % sid)
 	for ex in expects:
 		da.check(_expect(str(ex), before, after, target, proj_id), "%s: %s" % [sid, ex])
@@ -231,7 +352,21 @@ func _expect(ex: String, b: Dictionary, a: Dictionary, target: Enemy, proj_id: i
 		"target_lost":
 			return not target.status.has(arg)
 		"self_status":
-			return p.status.has(arg)
+			return p.status.has(arg) or _had_status(p, arg)
+		"self_healed":
+			return a.p_hp > b.p_hp + 1.0
+		"self_alive":
+			return p.is_alive() and p.life_state == Player.Life.ALIVE
+		"ally_healed":
+			return a.ally_hp > b.ally_hp + 1.0
+		"ally_status":
+			return ally.status.has(arg) or _had_status(ally, arg)
+		"ally_moved":
+			return a.ally_pos.distance_to(b.ally_pos) > 12.0
+		"ally_absorb":
+			return a.ally_absorb > b.ally_absorb
+		"target_dead":
+			return not is_instance_valid(target) or not target.is_alive()
 		"self_lost":
 			return not p.status.has(arg)
 		"caster_moved":

@@ -45,6 +45,9 @@ func apply(id: String, duration: float, magnitude: float, source: Variant) -> bo
 		push_error("StatusEffects: unknown status '%s'" % id)
 		return false
 	var actor := _actor()
+	# Whirlwind and friends: immune to slows and roots while it lasts.
+	if def.get("debuff", false) and str(def.get("cleanse", "")) == "movement" and has_flag("movement_immune"):
+		return false
 	if is_cc(def) and def.get("debuff", false):
 		if has_flag("cc_immune") or (actor.stats and actor.stats.has_flag("cc_immune")):
 			return false
@@ -122,14 +125,17 @@ func _dr_factor(category: String) -> float:
 
 
 func remove(id: String) -> void:
-	var changed := false
+	var gone: Array = []
 	for i in range(effects.size() - 1, -1, -1):
 		if effects[i].id == id:
+			gone.append(effects[i])
 			effects.remove_at(i)
-			changed = true
-	if changed:
+	if not gone.is_empty():
 		_publish()
 		_actor().on_stats_dirty()
+		for e in gone:
+			if e.def.has("on_end") and Combat.instance:
+				Combat.instance.status_callback(_actor(), e, "on_end")
 
 
 func remove_flag(flag: String) -> void:
@@ -361,8 +367,11 @@ func _process(delta: float) -> void:
 	if not expired.is_empty() and is_instance_valid(actor):
 		actor.on_stats_dirty()
 		for e in expired:
-			if e.def.has("on_expire") and Combat.instance:
-				Combat.instance.status_callback(actor, e, "on_expire")
+			if Combat.instance:
+				if e.def.has("on_expire"):
+					Combat.instance.status_callback(actor, e, "on_expire")
+				if e.def.has("on_end"):
+					Combat.instance.status_callback(actor, e, "on_end")
 
 
 func _publish() -> void:

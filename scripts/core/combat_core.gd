@@ -238,14 +238,23 @@ func deal_damage(ctx: Dictionary, target: Actor, amount: float, opts: Dictionary
 	var crit := false
 	if not dot or ctx.get("dot_can_crit", false):
 		var cc := float(ctx.crit_chance) + target.stats.get_stat("crit_taken")
-		if ctx.get("guaranteed_crit", false) or (caster and caster.status.has_flag("stealthed") and not dot) or rng.randf() < cc:
+		var forced: bool = ctx.get("guaranteed_crit", false) or (caster and not dot and caster.status.has_flag("stealthed"))
+		if caster and not dot and caster.status.consume_flag("next_hit_crit"):
+			forced = true
+		if forced or rng.randf() < cc:
 			crit = true
-			amount *= 1.0 + float(ctx.crit_damage) + target.stats.get_stat("crit_damage_taken")
+			amount *= 1.0 + float(ctx.crit_damage) + target.stats.get_stat("crit_damage_taken") + (caster.stats.get_stat("crit_damage_bonus_next") if caster else 0.0)
 	if caster and caster.status.has_flag("stealthed") and not dot:
 		caster.status.remove_flag("stealthed")
 	# Type, school and boss multipliers of the attacker; damage-taken multipliers of the target.
 	if caster:
 		amount *= caster.stats.mult(dtype + "_damage")
+		# Eagle Eye (far targets) and Ballistic Precision (per 50 px) for ranged attacks.
+		var dist := caster.global_position.distance_to(pos)
+		if dist >= caster.stats.get_stat("far_distance", 180.0):
+			amount *= 1.0 + caster.stats.get_stat("far_damage_bonus")
+		if school == "ranged" and caster.stats.get_stat("distance_bonus_per_50") > 0.0:
+			amount *= 1.0 + minf(caster.stats.get_stat("distance_bonus_per_50") * dist / 50.0, caster.stats.get_stat("distance_bonus_max", 0.6))
 		if school in ["melee", "ranged", "spell"]:
 			amount *= caster.stats.mult(school + "_damage")
 		if target.get("is_boss"):
@@ -566,6 +575,27 @@ func proc_conditions(actor: Actor, cond: Dictionary, data: Dictionary) -> bool:
 					return false
 			"xp":
 				if bool(data.get("xp", false)) != bool(v):
+					return false
+			"target_boss":
+				if not (target is Actor and is_instance_valid(target) and bool(target.get("is_boss")) == bool(v)):
+					return false
+			"target_alive":
+				if not (target is Actor and is_instance_valid(target) and target.is_alive() == bool(v)):
+					return false
+			"in_combat":
+				if (actor.resource.since_combat() < float(GameData.bal("stats.out_of_combat_delay", 5.0))) != bool(v):
+					return false
+			"self_stat_flag":
+				if not actor.stats.has_flag(str(v)):
+					return false
+			"self_stacks_at_least":
+				if actor.status.stacks_of(str(v[0])) < int(v[1]):
+					return false
+			"hot":
+				if bool(data.get("hot", false)) != bool(v):
+					return false
+			"status":
+				if not (Array(v) if v is Array else [v]).has(str(data.get("status", ""))):
 					return false
 	return true
 

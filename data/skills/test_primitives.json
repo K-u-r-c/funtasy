@@ -119,5 +119,11 @@
 	{"id": "test_proc", "name": "Test Proc", "school": "melee", "cooldown": 1, "cost": 0,
 		"test": {"expect": ["target_status:test_static", "target_damaged"], "wait": 0.8},
 		"effects": [{"type": "hit", "range": 260, "on_hit": [{"type": "status", "status": "test_static", "duration": 3}]},
-			{"type": "delayed", "delay": 0.3, "effects": [{"type": "hit", "range": 260, "damage": {"base": 5, "coef": 0}}]}]}
+			{"type": "delayed", "delay": 0.3, "effects": [{"type": "hit", "range": 260, "damage": {"base": 5, "coef": 0}}]}]},
+	{"id": "test_fetch", "name": "Test Leap of Faith", "school": "spell", "cooldown": 1, "cost": 0,
+		"test": {"aim": "ally", "expect": ["ally_moved"]},
+		"effects": [{"type": "fetch", "target": "aim_ally", "range": 280}]},
+	{"id": "test_prevent_death", "name": "Test Cheat Death", "school": "spell", "cooldown": 1, "cost": 0,
+		"test": {"then": "fatal", "expect": ["self_status:test_undying", "self_alive"]},
+		"effects": [{"type": "status", "target": "self", "status": "test_undying", "duration": 3}]}
 ]

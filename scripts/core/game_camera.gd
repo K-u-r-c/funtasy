@@ -13,6 +13,8 @@ var _bounds := Rect2()
 var _look := Vector2.ZERO  ## current lean toward the aim (world px)
 
 
+var _base_zoom := 1.0
+
 func _ready() -> void:
 	get_viewport().size_changed.connect(_fit_zoom)
 	_fit_zoom()
@@ -37,6 +39,10 @@ func _process(delta: float) -> void:
 		# mouse never jerks the view.
 		_look = _look.lerp(want, 1.0 - exp(-float(GameData.bal("camera.look_smoothing")) * delta))
 		global_position = target.global_position + Vector2(0, -16) + _look
+		# Eagle Eye: the hero's own view widens by 30%.
+		var eagle: bool = target is Player and target.is_local() and target.status.has_flag("eagle_eye")
+		var want_z := _base_zoom / (float(GameData.bal("camera.eagle_eye_view", 1.3)) if eagle else 1.0)
+		zoom = zoom.lerp(Vector2.ONE * want_z, minf(1.0, delta * 4.0))
 	if _shake_time > 0.0:
 		_shake_time -= delta
 		offset = Vector2(randf_range(-1, 1), randf_range(-1, 1)) * _shake
@@ -85,6 +91,7 @@ func _fit_zoom() -> void:
 	if _bounds.size.x > 0.0 and _bounds.size.y > 0.0:
 		z = maxf(z, maxf(vp.x / _bounds.size.x, vp.y / _bounds.size.y))
 	zoom = Vector2.ONE * z
+	_base_zoom = z
 
 
 ## World-space size currently on screen (for tests and fog/vision tuning).
