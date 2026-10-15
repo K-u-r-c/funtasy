@@ -10,6 +10,7 @@ var target: Node2D
 var _shake := 0.0
 var _shake_time := 0.0
 var _bounds := Rect2()
+var _look := Vector2.ZERO  ## current lean toward the aim (world px)
 
 
 func _ready() -> void:
@@ -29,16 +30,38 @@ func _on_shake(strength: float, duration: float) -> void:
 
 func _process(delta: float) -> void:
 	if is_instance_valid(target) and target.is_inside_tree():
-		var look := Vector2.ZERO
+		var want := Vector2.ZERO
 		if target is Player and target.is_local():
-			look = (target.aim_pos - target.global_position).limit_length(float(GameData.bal("camera.aim_lookahead")))
-		global_position = target.global_position + Vector2(0, -16) + look
+			want = _look_target(target)
+		# The lean eases toward its target on its own (frame-rate independent), so moving the
+		# mouse never jerks the view.
+		_look = _look.lerp(want, 1.0 - exp(-float(GameData.bal("camera.look_smoothing")) * delta))
+		global_position = target.global_position + Vector2(0, -16) + _look
 	if _shake_time > 0.0:
 		_shake_time -= delta
 		offset = Vector2(randf_range(-1, 1), randf_range(-1, 1)) * _shake
 		_shake = move_toward(_shake, 0.0, float(GameData.bal("camera.shake_decay")) * delta)
 	else:
 		offset = Vector2.ZERO
+
+
+## Lean toward the aim. With the mouse it comes from the cursor's place on the screen (not its
+## world position, which moves with the camera and would feed back into the lean), with a dead
+## zone around the centre and an eased curve; with a pad it follows the aim stick.
+func _look_target(p: Player) -> Vector2:
+	var reach := float(GameData.bal("camera.aim_lookahead"))
+	var dead := float(GameData.bal("camera.look_deadzone"))
+	var v := Vector2.ZERO
+	if InputSettings.last_kind == "pad" or p.auto_aim != Vector2.INF:
+		v = (p.aim_pos - p.global_position) / 160.0
+	else:
+		var vp := get_viewport().get_visible_rect().size
+		v = (get_viewport().get_mouse_position() - vp / 2.0) / (vp / 2.0)
+	var l := minf(v.length(), 1.0)
+	if l <= dead:
+		return Vector2.ZERO
+	var t := (l - dead) / (1.0 - dead)
+	return v.normalized() * reach * t * t * (3.0 - 2.0 * t)
 
 
 func set_bounds(rect: Rect2) -> void:
