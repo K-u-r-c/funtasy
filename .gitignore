@@ -2,3 +2,9 @@
 export/
 build/
 *.translation
+
+# Local design workspace (GDD, lore books, plans)
+.design/
+
+# Local agent workspace
+.agents/
