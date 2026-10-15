@@ -1,6 +1,6 @@
 # Design decisions and assumptions
 
-Decisions taken while building the MVP where `CLAUDE.md` left room for interpretation.
+Decisions taken where `CLAUDE.md` or the GDD left room for interpretation (MVP first, then the full GDD: D1-D38 below).
 Each one is an assumption that can be changed; most are a single value in `data/`.
 
 ## Technical
@@ -96,3 +96,76 @@ Each one is an assumption that can be changed; most are a single value in `data/
 | Rebinding | Every gameplay action has 2 keyboard/mouse slots and 2 gamepad slots. Binding an input already used by another action removes it from that action (reported on screen). Saved in the `[input]` section of `user://settings.cfg`. Escape cancels a capture. |
 | Quick slots | Tap Q/E (< 0.25 s) uses the item; holding opens the radial menu, aim with mouse/right stick, release to assign. |
 | Gamepad aim | When the right stick is idle, the character aims where it is walking; ground-targeted skills land 150 px ahead. |
+
+## Full GDD (D1-D38)
+
+The Game Design Document (`.design/GAME_DESIGN_DOCUMENT.md`) replaces the MVP scope. These rows
+resolve its gaps and contradictions. The proposals come from `.design/IMPLEMENTATION_PLAN.md`; where a
+proposal left a choice open, the chosen option is stated, and any change to a proposal gives its reason.
+
+| # | Topic | Decision | Where |
+| --- | --- | --- | --- |
+| D1 | 30 skills vs 5 slots | Skills are **unlocked in the talent tree** (each branch holds 10 of the class's 30 skills as unlock nodes on tiers 0-5) and **slotted** in the Skill Book (primary + 1-5). The loadout is saved with the hero; swapping is allowed out of combat only. **Start:** the six skills of the MVP kit (primary + 5, renamed to their GDD names) are tier-0 nodes that come unlocked for free, so a new hero has a full bar, exactly like before. Other tier-0 nodes cost one point. | `data/talents/<class>.json` (`starter: true`), `player.gd` |
+| D2 | Primary attack | The LMB slot takes any unlocked skill tagged `primary_ok` (cooldown <= 1.2 s). Defaults: Fury Strike, Aimed Shot, **Frostbolt** for the Mage (Fireball's 2.5 s is too slow for LMB), Smite. | `data/skills/*.json` |
+| D3 | Talent vs skill points | One pool: "talent points" unlock skills, rank up passives and buy keystones. The legendary tome gives +1 talent point. | `player.gd` |
+| D4 | Passives and toggles | Passives (Feral Ferocity, Thrill of the Hunt, Crusader's Zeal) work as soon as they are unlocked and take no slot. Toggles (Mana Shield, Eagle Eye) take a slot and switch on and off (no cooldown beyond the GDD's 1-2 s). | `combat.gd` |
+| D5 | Stat points | The class `per_level` growth is **halved** (data) and every level gives **5 free points** spent in the Character panel. No respec. Saved with the hero. | `data/classes/*.json`, `player.gd` |
+| D6 | Legendary tier | Legendaries are **named uniques at tier 5**, shown as "Legendary" with the orange colour and a stronger glow. "Magic" = Uncommon in merchant text. No 6th tier. | `data/items/legendaries.json` |
+| D7 | Legendary numbers | The GDD stats are the **level-30 values**, scaled linearly by item level (`legendary.scale_floor` + (1 - floor) x ilvl / 30, data). Flat-damage affix numbers scale the same way; percentages stay fixed. | `item_generator.gd` |
+| D8 | Ring slots | Keep **2 ring slots**. Ring legendaries are unique: two copies of the same one cannot be worn. | `inventory.gd` |
+| D9 | New weapon kinds | New bases: **quiver** (Ranger off-hand), **athame** (Mage 1H, main hand only), **scythe** (Priest 2H). Crosier = holy staff art. The Priest can use maces (Rebuke and Hammer of the Righteous are mace strikes). Grip of the Titan sets `two_hand_and_shield`. | `data/items/bases/` |
+| D10 | Elites | Every floor rolls 1-3 **elite packs**: a named elite (+15% scale, x3 HP, +30% damage, 1-2 modifiers from `data/monsters/_elite_modifiers.json`), gold nameplate and glow. An **elite altar** appears where the elite dies (interact = book or loot). | `game.gd`, `enemy.gd` |
+| D11 | Gold Key | At generation the floor rolls 50% from the seed. If it passes, exactly one elite (or a chest, if the floor has no elite) carries the key. It is a shared party item: it opens the Gilded Portal for everyone and is consumed. | `dungeon_generator.gd`, `game.gd` |
+| D12 | Gold sharing | Every player has their **own wallet**. A gold pile picked up is split equally among all living party members. Saved with the hero. | `player.gd` |
+| D13 | Demonic tithe | Paid **once per player per floor**, on the first entry, after a confirmation dialog. The loss is a run-permanent modifier (`run_mods`). | `merchant.gd` |
+| D14 | Pact potion durations | The text duration where one is given (Void-Eye 45 s, Phantasmal 30 s, Serum 20 s), otherwise 60 s. | `data/items/pact_consumables.json` |
+| D15 | Pact potion scale | The flat numbers are at hero level 30 and scale with hero level (same rule as D7). | `data/items/pact_consumables.json` |
+| D16 | Serum of Damnation | HP cannot drop below 1 (statuses still apply). | `status_effects.json` `damage_floor` |
+| D17 | Run | A run = a saved game until a wipe. Run modifiers live in the hero save (`run_mods`) and are applied by `Stats`. | `stats.gd` |
+| D18 | Codex | Per profile (`user://codex.json`), **survives wipes** and new games. A Codex tab in the game menu and a main-menu entry. | `autoload/codex.gd` |
+| D19 | Reading books | The inventory **Use** action (right click, or the pad's use button on the focused slot) opens the reader **for the reader only**. Tomes are consumed and grant their bonus to the reader (host-validated). | `inventory_panel.gd`, `lore_reader.gd` |
+| D20 | Book drop rates | Roll the category first (80 / 18 / 2), then a book of that category from the floor's biome (+ "Ancient Lore" anywhere). Unread books (codex of the host) weigh x3. | `loot_manager.gd` |
+| D21 | Floor order | Depth cycles Crypt -> Sewers -> Foundry -> Archives -> Kurgan -> Crypt (harder). The boss is a seeded pick from the biome's `bosses` list. | `game.gd`, `data/floor_types/` |
+| D22 | Lava | Lava **lakes** (not walkable) and lava **channels / pools** (walkable, damaging). A player pushed into a lake takes 25% max HP and is put back on the last safe tile; monsters pushed in die. | `dungeon.gd`, `player.gd` |
+| D23 | Blind | Player: vision radius shrinks to ~40 px plus a vignette. Monster: 50% miss chance and loses its target lock. | `visibility.gd`, `enemy.gd` |
+| D24 | Silence | Blocks slots 1-5 and any primary with `school: spell`. Basic weapon primaries still work. | `combat.gd` |
+| D25 | Fear / disorient / sleep | Fear: forced movement away from the source. Disorient: random wandering, no attacks. Sleep: stun broken by damage. Players get the same, plus diminishing returns per CC category (data). | `status_effects.gd` |
+| D26 | Accuracy | `miss_chance` (default 0) is checked before dodge; accuracy debuffs add to it; "cannot miss" ignores it. | `combat.gd` |
+| D27 | Block / parry | Shields add `block_chance` (frontal hits only, 120° cone) and `block_value` (flat reduction). Parry exists only through Riposte and the Overpower trigger. | `combat.gd` |
+| D28 | Magic resist | `magic_resist` reduces every non-physical type; monsters have per-type `resist` and `immune`; `magic_pen` ignores a share of them. | `combat.gd` |
+| D29 | Corpses | Dead monsters leave a host-side corpse record (position, id, time) for 20 s and a bone pile / corpse sprite. Abilities query and consume them. | `game.gd` |
+| D30 | Movement-blocking terrain | A dynamic obstacle layer: AStarGrid2D solid points + StaticBody2D, host-spawned with a lifetime and replicated by an id'd spawn RPC. | `dungeon.gd` `obstacles` |
+| D31 | Player copies | Reuse `CharacterSprite` with the copied hero's gender + appearance, tinted. Echoes of Regret keep a host-side 10 s ring buffer of positions and casts. | `enemy.gd` |
+| D32 | Tome Prison | A prebuilt side arena inside the boss floor, not a new scene. A client-side monochrome post-process plus falling-ink telegraphs. | `boss_mechanics/dimension.gd` |
+| D33 | Inverted controls / ink | Replicated status flags (`invert_move`, `ink_obscure`) read by the local input layer and an overlay shader. Gamepad and mouse are both affected. | `player.gd`, `hud.gd` |
+| D34 | Revolving bookshelves | A door variant drawn as a bookshelf that opens by interaction. | `door.gd` |
+| D35 | Heat armor loss | `-1 armor per 10 s` x level scaling (data), stacking up to -30%, reset 5 s after combat. | `floor_mechanics.gd` |
+| D36 | Unlit regen penalty | Uses the light sampling: a player whose cell is below the light threshold has mana / fury regen halved. | `floor_mechanics.gd` |
+| D37 | Hazards vs friendly fire | Biome hazards are environment damage and hit players and monsters, except where the GDD says otherwise (blood pools heal monsters). | `combat.gd` |
+| D38 | Sludge-resistant footwear | Boots flag `terrain_immune` (Boots of Unstoppable March have it; a rare random boots affix too). | `data/items/affixes.json` |
+
+### Skill groups per talent branch (D1)
+
+Tier in brackets. **Bold** = starter (free) skill.
+
+| Class | Branch A | Branch B | Branch C |
+| --- | --- | --- | --- |
+| Warrior | **Berserker**: **Cleave** (0), Bloodthirst (0), Feral Ferocity (1), Victory Rush (1), Whirlwind (2), Berserker Rage (2), Overpower (3), Mortal Strike (3), Execute (4), Avatar (5) | **Juggernaut**: **Fury Strike** (0), **Shield Slam** (0), **Taunting Shout** (0), Riposte (1), Stoneform (1), Thorns of Steel (2), Shield Wall (2), Devastate (3), Iron Will (4), Last Stand (5) | **War Leader**: **Deadly Charge** (0), **Battle Cry** (0), Hamstring (1), Heroic Throw (1), Earthshaker (2), Skull Crack (2), Armor Sunder (3), Intimidating Roar (3), Heroic Leap (4), Rallying Cry (5) |
+| Ranger | **Sniper**: **Aimed Shot** (0), **Power Shot** (0), **Multishot** (0), Hunter's Mark (1), Piercing Bolt (1), Rapid Fire (2), Double Tap (3), Eagle Eye (3), Trickshot (4), Shadow Ballista (5) | **Toxicologist**: **Viper Arrow** (0), **Snare Trap** (0), **Explosive Trap** (0), Arterial Shot (1), Acid Flask (1), Caltrops (2), Serpent's Grip (2), Rain of Arrows (3), Gore Arrow (4), Venomous Vapors (5) | **Shadow Strider**: Disengage (0), Bola Throw (0), Shadow Flare (1), Concussive Blast (1), Smoke Screen (2), Tranquilizer Dart (2), Thrill of the Hunt (3), Survival Instinct (3), Bone Harpoon (4), Shadow Meld (5) |
+| Mage | **Pyromancer & Stormcaller**: **Fireball** (0), **Chain Lightning** (0), **Meteor Strike** (0), Flame Wave (1), Static Charge (1), Combustion (2), Lightning Orb (2), Living Bomb (3), Thunderstorm (4), Time Warp (5) | **Glacial & Tectonic Warden**: **Frostbolt** (0), **Frost Nova** (0), Earth Spike (1), Ice Barrier (1), Granite Armor (2), Deep Freeze (2), Tremor (3), Mana Shield (3), Blizzard (4), Boulder Crush (5) | **Void & Solar Weaver**: **Blink** (0), Shadow Bolt (0), Luminance (1), Dark Bargain (1), Drain Soul (2), Blinding Radiance (2), Counterspell (3), Grasp of the Void (3), Solar Prism (4), Singularity (5) |
+| Priest | **Divine Shepherd**: **Flash Heal** (0), **Power Word: Shield** (0), **Prayer of Healing** (0), Renew (1), Purify (1), Leap of Faith (2), Holy Nova (2), Lightwell (3), Guardian Spirit (4), Apotheosis (5) | **Paladin Bastion**: **Consecration** (0), **Rebuke** (0), Divine Aegis (1), Judgement (1), Hammer of the Righteous (2), Blessing of Might (2), Crown of Thorns (3), Crusader's Zeal (3), Bastion Sigil (4), Martyrdom (5) | **Dark Inquisitor**: **Smite** (0), Shadow Word: Pain (0), Holy Fire (1), Mind Blast (1), Chastise (2), Penance (2), Exorcism (3), Shackle Undead (3), Vampiric Embrace (4), Shadow Word: Death (5) |
+
+The MVP skill ids are kept (saves and tests reference them) and renamed: `warrior_strike` = Fury Strike,
+`warrior_shield_bash` = Shield Slam, `warrior_charge` = Deadly Charge, `ranger_shot` = Aimed Shot,
+`ranger_poison_arrow` = Viper Arrow, `mage_bolt` = Frostbolt, `mage_lightning` = Chain Lightning,
+`mage_meteor` = Meteor Strike, `priest_heal` = Flash Heal, `priest_holy_shield` = Power Word: Shield,
+`priest_renewal` = Prayer of Healing.
+
+### Budget deviation (PixelLab)
+
+The goal caps PixelLab spend at 2500 generations, but the account had **919** left at the start
+(used 1081 of 2000, reset 2026-11-14), and the plan estimates 2000-2800 for all art. Art is therefore
+spent **Crypt first** (phase 4, then the visual checkpoint), and every asset the allowance cannot cover
+stays a placeholder (recolours / scaled reuse of existing monsters, drawn shapes, workbench art) with its
+key in `data/assets.json`, so the user can swap files later without code changes. The ledger is in
+`docs/TODO.md`.
