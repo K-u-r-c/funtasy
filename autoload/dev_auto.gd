@@ -159,6 +159,8 @@ func _run() -> void:
 				await _wait(9999.0)
 			"boss":
 				await _boss_scenario()
+			"tank":
+				await _tank_scenario()
 			"host_leave":
 				await _wait(8.0)
 				log_line("host ends the session from the pause menu")
@@ -372,11 +374,12 @@ func _full_scenario() -> void:
 	m.add_threat(host_p, 100.0)
 	m.add_threat(client_p, 60.0)
 	var t1: Node = m.threat.update(0.1, m._valid_target)
-	m.add_threat(client_p, 50.0)  # 110 < 100 * 1.15: should NOT switch
+	var ratio: float = m.threat._switch_ratio(client_p)
+	m.add_threat(client_p, 100.0 * ratio - 60.0 - 5.0)  # just below the threshold: no switch
 	var t2: Node = m.threat.update(0.1, m._valid_target)
-	m.add_threat(client_p, 20.0)  # 130 > 115: switches
+	m.add_threat(client_p, 10.0)  # just above: switches
 	var t3: Node = m.threat.update(0.1, m._valid_target)
-	check(t1 == host_p and t2 == host_p and t3 == client_p, "threat table keeps target until challenger exceeds 115%")
+	check(t1 == host_p and t2 == host_p and t3 == client_p, "threat table keeps target until challenger exceeds %d%%" % roundi(ratio * 100.0))
 	m.taunted_by(host_p, 3.0)
 	check(m.threat.update(0.1, m._valid_target) == host_p, "taunt forces the target")
 	m.queue_free()
@@ -408,6 +411,8 @@ func _full_scenario() -> void:
 	# --- 2c. Hazards + friendly fire -----------------------------------------------------------
 	await _hazard_checks(g, host_p, client_p)
 
+	_reset_player(host_p)
+	host_p.iframe_left = 30.0
 	# --- 3. Doors -----------------------------------------------------------------------------
 	var door: Node = g.dungeon.doors[0]
 	host_p.host_teleport(g.nearest_floor(door.interact_pos() + Vector2(0, 40)))
@@ -469,6 +474,10 @@ func _full_scenario() -> void:
 	check(client_p.inv.count_of("potion_health") == potions_before + 1 and client_p.health.fraction() > 0.5, "Q potion consumed and healed (left %d, hp %.0f%%)" % [client_p.inv.count_of("potion_health"), client_p.health.fraction() * 100.0])
 
 	# --- 6. Downed -> revive ------------------------------------------------------------------
+	# The host is only a helper from here on; keep it standing so a stray hit can't turn the
+	# client's (intentional) death into a party wipe.
+	_reset_player(host_p)
+	host_p.iframe_left = 60.0
 	client_p.host_teleport(g.nearest_floor(host_p.global_position + Vector2(20, 0)))
 	await _wait(0.4)
 	client_p.iframe_left = 0.0
@@ -677,6 +686,79 @@ func _boss_scenario() -> void:
 		NetworkManager.to_clients("DevAuto", "client_cmd", ["check_depth", 2])
 		await _wait(0.5)
 		NetworkManager.to_clients("DevAuto", "client_cmd", ["done", null])
+	await _wait(1.0)
+
+
+## Real aggro check: the host (tank class) and a damage dealer both fight a monster pack with
+## their normal rotations; the pack should stay on the tank and not flip-flop.
+func _tank_scenario() -> void:
+	var g := _game()
+	var tank := _local()
+	await _wait_until(func(): return _other_player() != null, 10.0)
+	var dps := _other_player()
+	var c: Vector2 = g.layout.start
+	for e in g.enemies_root.get_children():
+		if not e.is_boss:
+			e.queue_free()
+	await _wait(0.3)
+	tank.host_teleport(c + Vector2(0, 0))
+	dps.host_teleport(c + Vector2(-120, 30))
+	await _wait(0.6)
+	var pack: Array = []
+	for i in 4:
+		pack.append(g.spawn_monster("ghoul", c + Vector2(110, -40 + i * 26), false))
+	await _wait(0.3)
+	for e in pack:
+		e.hp_mult *= 25.0  # test only: long enough fight to measure aggro
+		e.recompute_stats()
+		e.health.hp = e.health.max_hp
+	_fight = true
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["fight", true])
+	var on_tank := 0
+	var samples := 0
+	var switches := 0
+	var rapid := 0  # target changed and changed back within 2 s = erratic
+	var last: Dictionary = {}
+	var last_switch: Dictionary = {}
+	var t := 0.0
+	while t < 25.0:
+		for p in [tank, dps]:
+			p.iframe_left = 2.0
+			if p.life_state != Player.Life.ALIVE:
+				p.revive(1.0)
+		await _wait(0.5)
+		t += 0.5
+		if t < 2.0:
+			continue  # let the tank open the fight
+		for e in pack:
+			if not is_instance_valid(e) or not e.is_alive() or e.target == null:
+				continue
+			samples += 1
+			if e.target == tank:
+				on_tank += 1
+			if last.has(e) and last[e] != e.target:
+				switches += 1
+				if last_switch.has(e) and t - float(last_switch[e]) < 2.0:
+					rapid += 1
+				last_switch[e] = t
+			last[e] = e.target
+		var alive := 0
+		for e in pack:
+			if is_instance_valid(e) and e.is_alive():
+				alive += 1
+		if alive == 0:
+			break
+		pass
+	_fight = false
+	for a in ["attack", "skill_1", "skill_2", "skill_3", "skill_4", "skill_5"]:
+		Input.action_release(a)
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["fight", false])
+	var share := float(on_tank) / maxf(samples, 1.0)
+	var per_min := switches / maxf(t, 1.0) * 60.0
+	log_line("tank share %.0f%% of %d samples, %d switches (%.1f per monster-minute), %d rapid" % [share * 100.0, samples, switches, per_min / maxf(pack.size(), 1.0), rapid])
+	check(samples > 20 and share >= 0.7, "%s holds aggro against a %s (%.0f%% of samples)" % [tank.class_id, dps.class_id, share * 100.0])
+	check(rapid == 0, "monsters don't flip-flop between targets (%d switches, none back-and-forth within 2 s)" % switches)
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["done", null])
 	await _wait(1.0)
 
 

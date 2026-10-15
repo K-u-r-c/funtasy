@@ -29,6 +29,10 @@ manual run noted here.
 - [x] Steam: lobby creation, tagged lobby listing and SteamMultiplayerPeer hosting (automated, `run_tests.sh steam`)
 - [x] Exported Linux release binary passes the LAN pair scenarios (full, real boss fight, wipe + second run,
       host ends session, client leaves) with no engine/script errors; ~60 FPS in the boss room (35 monsters)
+- [x] Aggro in a real fight (warrior host vs mage client, both on skill rotations, 4 monsters): the warrior holds
+      ~80-90% of targets, no back-and-forth switching within 2 s (`tank` test); priest tank: 100%
+- [x] Real boss kill by two players with their skills (the harness teleports them to the boss and keeps them
+      invulnerable so the test doesn't depend on balance), then portal -> floor 2
 - [x] Gamepad drives menus end to end (main menu -> options rebinding -> lobby -> run -> overlays), simulated events
 
 ## Not verified / open

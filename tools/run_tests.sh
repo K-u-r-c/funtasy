@@ -73,6 +73,7 @@ if [ "$WHAT" = all ] || [ "$WHAT" = lan ]; then
 	pair full-wm "--class=warrior --name=HostW --scenario=full --quit=220" "--class=mage --name=ClientM --quit=220"
 	pair full-pr "--class=priest --name=HostP --scenario=full --quit=220" "--class=ranger --name=ClientR --quit=220"
 	pair boss "--class=warrior --name=HostB --scenario=boss --quit=300" "--class=priest --name=ClientB --quit=300"
+	pair tank "--class=warrior --name=HostT --scenario=tank --quit=120" "--class=mage --name=ClientT --quit=120"
 	pair host-leave "--class=mage --name=HostL --scenario=host_leave --quit=60" "--class=warrior --name=ClientL --quit=60"
 	pair client-leave "--class=ranger --name=HostC --scenario=client_leave --quit=60" "--class=priest --name=ClientC --quit=60"
 	pair wipe "--class=ranger --name=HostWipe --scenario=wipe --quit=60" "--class=priest --name=ClientWipe --quit=60"

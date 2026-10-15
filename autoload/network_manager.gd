@@ -84,8 +84,17 @@ func is_host() -> bool:
 	return multiplayer.is_server()
 
 
+func _connected() -> bool:
+	var peer := multiplayer.multiplayer_peer
+	return peer != null and peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED
+
+
+func _hosting_with_clients() -> bool:
+	return _connected() and multiplayer.is_server() and has_remote_peers()
+
+
 func has_remote_peers() -> bool:
-	return backend != Backend.SOLO and backend != Backend.NONE and not multiplayer.get_peers().is_empty()
+	return backend != Backend.SOLO and backend != Backend.NONE and _connected() and not multiplayer.get_peers().is_empty()
 
 
 # --- Starting / joining sessions -----------------------------------------------------------
@@ -230,10 +239,13 @@ func leave_to_menu(message: String = "") -> void:
 	if _leaving:
 		return
 	_leaving = true
+	print("[net] leaving the session: %s" % (message if not message.is_empty() else "by choice"))
+	if OS.is_debug_build():
+		print_stack()
 	var game := get_tree().get_first_node_in_group("game")
 	if game:
 		game.process_mode = Node.PROCESS_MODE_DISABLED
-	if multiplayer.is_server() and has_remote_peers():
+	if _hosting_with_clients():
 		to_clients("NetworkManager", "_end_session", [])
 		await get_tree().create_timer(0.3).timeout  # deliver it and let clients leave first
 	# Stop processing network traffic: nothing may arrive for nodes that are being freed.
@@ -246,7 +258,7 @@ func leave_to_menu(message: String = "") -> void:
 
 ## Host -> clients: the host is ending the session.
 func _end_session() -> void:
-	if not multiplayer.is_server():
+	if _connected() and not multiplayer.is_server():
 		leave_to_menu("The host ended the session")
 
 

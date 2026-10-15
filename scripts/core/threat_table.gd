@@ -38,7 +38,7 @@ func value_of(actor: Node) -> float:
 	return float(threat.get(actor, 0.0))
 
 
-func forget(actor: Node) -> void:
+func forget(actor: Variant) -> void:
 	threat.erase(actor)
 	last_seen.erase(actor)
 	if current == actor:
@@ -77,6 +77,15 @@ func update(delta: float, valid: Callable) -> Node:
 			best = a
 	if current == null or not threat.has(current):
 		current = best
-	elif best != current and best_v > threat[current] * float(GameData.bal("threat.switch_ratio")):
+	elif best != current and best_v > threat[current] * _switch_ratio(best):
 		current = best
 	return current
+
+
+## Classic rule: a challenger in melee range needs 110% of the current target's threat, one at
+## range needs 130%, so ranged damage dealers don't rip monsters off the tank too easily.
+func _switch_ratio(challenger: Node) -> float:
+	var me := get_parent() as Node2D
+	if me and challenger is Node2D and me.global_position.distance_to(challenger.global_position) > float(GameData.bal("threat.melee_range")):
+		return float(GameData.bal("threat.switch_ratio_ranged"))
+	return float(GameData.bal("threat.switch_ratio"))

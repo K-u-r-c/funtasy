@@ -302,6 +302,7 @@ func _check_wipe() -> void:
 			return
 	# Nobody is left standing, so nobody can revive anyone: the party is wiped.
 	_wiped = true
+	print("[game] party wiped on floor %d" % depth)
 	var rules: Dictionary = GameData.bal("wipe", {})
 	for p in players_root.get_children():
 		var ch: Dictionary = p.to_character()

@@ -131,6 +131,9 @@ tools/run_tests.sh lan      # only the 2-instance LAN scenarios
 tools/run_tests.sh steam    # Steam lobby smoke test (Steam client must be running)
 ```
 
+LAN pairs: full feature walk-through, a real boss fight, aggro (tank vs DPS), wipe + second run,
+host ending the session, client leaving mid-run.
+
 Visual tour (windowed): `godot --path . -- --scenario=shots --shot=/tmp/shots --class=mage` saves
 screenshots of every screen.
 
