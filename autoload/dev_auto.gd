@@ -10,6 +10,7 @@ extends Node
 var mode := ""
 var scenario := ""
 var class_id := "warrior"
+var gender := ""  ## --gender=male|female (empty = default)
 var char_name := ""
 var wanted_players := 2
 var quit_after := 0.0
@@ -35,6 +36,8 @@ func _ready() -> void:
 			scenario = v
 		elif a.begins_with("--class="):
 			class_id = v
+		elif a.begins_with("--gender="):
+			gender = v
 		elif a.begins_with("--name="):
 			char_name = v
 		elif a.begins_with("--players="):
@@ -56,7 +59,7 @@ func _ready() -> void:
 		char_name = "Test%s" % mode.capitalize()
 	if quit_after > 0.0:
 		get_tree().create_timer(quit_after).timeout.connect(_finish.bind("timeout"))
-	if not shot.is_empty() and not scenario in ["shots", "lobby_shot"]:
+	if not shot.is_empty() and not scenario in ["shots", "lobby_shot", "hero_shots", "monster_shots"]:
 		get_tree().create_timer(shot_at).timeout.connect(func():
 			get_viewport().get_texture().get_image().save_png(shot)
 			log_line("screenshot saved to %s" % shot))
@@ -122,6 +125,12 @@ func _run() -> void:
 		"shots":
 			await _shots_flow()
 			return
+		"hero_shots":
+			await _hero_shots_flow()
+			return
+		"monster_shots":
+			await _monster_shots_flow()
+			return
 		"lobby_shot":
 			# Lobby with a saved game selected (visual check), e.g. --shot=/tmp/lobby.png
 			NetworkManager.host_solo()
@@ -140,6 +149,10 @@ func _run() -> void:
 		"rebind_check":
 			_rebind_check()
 			return
+		"art_check":
+			_art_check()
+			_finish("art check")
+			return
 	match mode:
 		"solo":
 			NetworkManager.host_solo()
@@ -155,7 +168,7 @@ func _run() -> void:
 	var in_lobby := await _wait_until(func(): return get_tree().current_scene and get_tree().current_scene.name == "Lobby", 15.0)
 	check(in_lobby, "%s reached the lobby" % mode)
 	await _wait(0.5)
-	GameState.select_character(char_name, class_id)
+	GameState.select_character(char_name, class_id, gender)
 	log_line("selected %s (%s)" % [char_name, class_id])
 	if multiplayer.is_server():
 		var all := await _wait_until(func(): return GameState.roster.size() >= (1 if mode == "solo" else wanted_players), 25.0)
@@ -349,6 +362,14 @@ func client_cmd(cmd: String, arg: Variant) -> void:
 			for i in members.size():
 				if members[i].name == char_name:
 					GameState.claim_slot(i)
+		"check_genders":
+			var host_p: Player = null
+			for q in _game().players_root.get_children():
+				if q != p:
+					host_p = q
+			check(p.gender == str(arg[1]) and host_p != null and host_p.gender == str(arg[0])
+					and p.sprite._layer_keys.get("body", "") == CharacterSprite.body_key(str(arg[1])),
+					"client sees its %s hero and the host's %s hero" % [p.gender, host_p.gender if host_p else "?"])
 		"try_new_hero":
 			GameState.choose_new_character("Intruder", "mage")
 		"take_torch":
@@ -366,7 +387,7 @@ func client_cmd(cmd: String, arg: Variant) -> void:
 			check(wt != null and wt.state == int(arg[1]) and (p.torch_sync > 0) == bool(arg[2]),
 				"client sees torch %s state %d, carrying=%s" % [arg[0], wt.state if wt else -1, p.torch_sync > 0])
 		"pick_again":
-			GameState.choose_new_character(char_name, class_id)
+			GameState.choose_new_character(char_name, class_id, gender)
 		"check_life":
 			check(p.life_state == int(arg), "client sees its own life state %d (got %d)" % [int(arg), p.life_state])
 		"check_lobby":
@@ -411,6 +432,10 @@ func _full_scenario() -> void:
 			break
 	client_p.host_teleport(spot)
 	host_p.host_teleport(g.nearest_floor(spot + Vector2(-30, 0)))
+	# The fight checks skill use and kill credit, not survival: a pack must not wipe the party
+	# (that ends the run and the rest of the scenario). Downed / revive are tested later.
+	host_p.iframe_left = 12.0
+	client_p.iframe_left = 12.0
 	var xp_before := client_p.xp + client_p.level * 100000
 	NetworkManager.to_clients("DevAuto", "client_cmd", ["fight", true])
 	await _wait(9.0)
@@ -452,6 +477,7 @@ func _full_scenario() -> void:
 
 	# --- 2b. Monster abilities (melee, ranged, caster heal/curse/bolt) ------------------------
 	host_p.iframe_left = 30.0
+	client_p.iframe_left = 30.0
 	var pack: Array = []
 	for mid in ["ghoul", "skeleton_archer", "cultist", "cultist"]:
 		pack.append(g.spawn_monster(mid, g.nearest_floor(host_p.global_position + Vector2(randf_range(-90, 90), randf_range(-60, 60))), false))
@@ -471,6 +497,7 @@ func _full_scenario() -> void:
 		if is_instance_valid(e):
 			e.queue_free()
 	host_p.iframe_left = 0.0
+	client_p.iframe_left = 0.0
 	_reset_player(host_p)
 	await _wait(0.3)
 
@@ -949,12 +976,27 @@ func _continue_scenario() -> void:
 	var id := str(GameState.game.id)
 	var lvl := p.level
 	check(lvl >= 2 and int(SaveSystem.load_game(id).depth) == 2, "saved game records floor 2 and level %d" % lvl)
+	var want_gender := CharacterSprite.valid_gender(gender)
+	check(p.gender == want_gender and str(SaveSystem.load_game(id).members[0].get("gender", "")) == want_gender,
+			"hero gender %s is used in the world and saved" % want_gender)
 	NetworkManager.leave_to_menu()
 	await _wait_until(func(): return get_tree().current_scene.name == "MainMenu", 6.0)
 	await _wait(0.5)
 	NetworkManager.host_solo()
 	await _wait_until(func(): return get_tree().current_scene.name == "Lobby", 6.0)
 	await _wait(0.5)
+	# A save from before genders existed loads with the default body.
+	var legacy := SaveSystem.load_game(id)
+	legacy.id = "legacy_gender_test"
+	for m in legacy.members:
+		m.erase("gender")
+	SaveSystem.save_game(legacy)
+	check(GameState.select_saved_game("legacy_gender_test") and str(GameState.game_info.members[0].gender) == CharacterSprite.valid_gender(""),
+			"an old save without a gender loads with the default body")
+	GameState.claim_slot(0)
+	await _wait(0.2)
+	check(str(GameState.roster.get(1, {}).get("gender", "")) == CharacterSprite.valid_gender(""), "old save hero claimed with the default gender")
+	SaveSystem.delete_game("legacy_gender_test")
 	check(GameState.select_saved_game(id), "host selects the saved game in the lobby")
 	GameState.choose_new_character("Intruder", "mage")
 	await _wait(0.2)
@@ -966,6 +1008,8 @@ func _continue_scenario() -> void:
 	var ok := await _wait_until(func(): return _game() != null and _game().depth >= 1 and _local() != null, 15.0)
 	await _wait(1.0)
 	check(ok and _game().depth == 2 and _local().level == lvl, "continued on floor 2 with the same hero (floor %s, level %s)" % [_game().depth if _game() else -1, _local().level if _local() else -1])
+	check(ok and _local().gender == want_gender and _local().sprite._layer_keys.get("body", "") == CharacterSprite.body_key(want_gender),
+			"continued hero keeps gender %s and its body art" % want_gender)
 	# A 1-player save can't be continued by 2 players (checked through the start rule).
 	GameState.game_info.party_size = 2
 	check(not GameState.start_problem().is_empty(), "a saved game requires its party size")
@@ -978,6 +1022,20 @@ func _continue_lan_scenario() -> void:
 	var g := _game()
 	await _wait_until(func(): return _other_player() != null, 10.0)
 	var client_p := _other_player()
+	check(client_p.gender == "female" and _local().gender == CharacterSprite.valid_gender(gender),
+			"host sees the client's female hero and its own %s hero" % _local().gender)
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["check_genders", [_local().gender, "female"]])
+	await _wait(0.5)
+	# The host's HUD party frame shows the client's hero with the female body art.
+	var hud: Node = get_tree().get_first_node_in_group("hud")
+	var frame_ok := false
+	for f in hud._party_box.get_children():
+		if f.visible and f.p == client_p:
+			var layers: Array = f._portrait._layers
+			var tex: Variant = layers[0][0] if not layers.is_empty() else null
+			var atlas_path: String = tex.atlas.resource_path if tex is AtlasTexture else ""
+			frame_ok = atlas_path.begins_with(str(GameData.asset_entry(CharacterSprite.body_key("female")).path))
+	check(frame_ok, "host party frame shows the client's hero with the female body")
 	client_p.add_xp(Player.xp_to_next(1) + Player.xp_to_next(2) + 5)
 	var client_level := client_p.level
 	g.start_floor(2)
@@ -1002,6 +1060,7 @@ func _continue_lan_scenario() -> void:
 	if ok:
 		await _wait(1.0)
 		check(_other_player().level == client_level, "client hero kept its level in the continued game")
+		check(_other_player().gender == "female", "client hero kept its gender in the continued game")
 	NetworkManager.to_clients("DevAuto", "client_cmd", ["done", null])
 	await _wait(1.0)
 
@@ -1125,7 +1184,7 @@ func _wipe_scenario() -> void:
 	check(host_p == null or not is_instance_valid(host_p), "game scene freed")
 	# A second run starts cleanly: everyone has to create a new hero.
 	check(GameState.roster.is_empty(), "heroes of the wiped game can't be picked again")
-	GameState.choose_new_character(char_name, class_id)
+	GameState.choose_new_character(char_name, class_id, gender)
 	if NetworkManager.has_remote_peers():
 		NetworkManager.to_clients("DevAuto", "client_cmd", ["pick_again", null])
 	await _wait_until(func(): return GameState.roster.size() >= (2 if NetworkManager.has_remote_peers() else 1), 10.0)
@@ -1148,6 +1207,8 @@ func _classes_scenario() -> void:
 	var g := _game()
 	var p := _local()
 	await _wait(1.0)
+	# Only skill use is checked here: a lucky monster pack must not wipe the solo hero.
+	p.iframe_left = 9999.0
 	var target := _nearest_enemy(p.global_position)
 	p.host_teleport(g.nearest_floor(target.global_position + Vector2(-60, 0)))
 	await _wait(0.5)
@@ -1334,10 +1395,11 @@ func _ui_layout_scenario() -> void:
 	await _wait(0.4)
 	var cp: Node = hud._overlay
 	var p0 := _local()
-	check(cp._skill_rows.size() == p0.skills.size() and cp._skill_rows.all(func(r): return not str(r._desc.text).is_empty()),
-			"character panel lists all %d skills with descriptions" % p0.skills.size())
+	check(cp._skill_rows.size() == p0.skills.size() and cp._skill_rows.all(func(r): return r.get("_desc") == null and not str(r._name.text).is_empty()),
+			"character panel lists all %d skills compactly (no inline descriptions)" % p0.skills.size())
 	check(cp._stats_grid.get_child_count() >= 30, "character panel shows the stats (%d cells)" % cp._stats_grid.get_child_count())
 	hud.close_overlay()
+	await _skill_tooltip_checks(hud, win)
 	# Gamepad focus graph of the inventory: every slot reachable from the first backpack slot
 	# with the d-pad, and no neighbor leads out of the window.
 	hud.open_overlay(hud.InventoryPanel.new())
@@ -1396,6 +1458,7 @@ func _ui_layout_scenario() -> void:
 	check(desc.any(func(l): return str(l[0]).contains("you are level %d" % p.level)), "item card says the required and current level")
 	hud.close_overlay()
 	win.size = original
+	await _camera_lean_check()
 	await _wait(0.2)
 
 
@@ -1408,6 +1471,157 @@ func _action(a: String) -> void:
 	up.action = a
 	up.pressed = false
 	Input.parse_input_event(up)
+
+
+## Character panel skill tooltips: hover and keyboard focus open them, they stay on screen at
+## every aspect ratio, and their numbers are the host's (Combat.skill_numbers) and follow stat
+## and talent changes live.
+func _skill_tooltip_checks(hud: Node, win: Window) -> void:
+	var p0 := _local()
+	var before := win.size
+	for s in [Vector2i(720, 720), Vector2i(1920, 1080), Vector2i(3840, 1080)]:
+		win.size = s
+		await _wait(0.2)
+		hud.open_overlay(hud.CharacterPanel.new())
+		await _wait(0.4)
+		var cp: Node = hud._overlay
+		var tip: SkillTooltip = cp._tooltip
+		check(not tip.visible, "no skill tooltip before hovering at %dx%d" % [s.x, s.y])
+		var all_in := true
+		for row in cp._skill_rows:
+			await _mouse_move(row)
+			await _wait(0.1)
+			var vp := get_viewport().get_visible_rect()
+			if not (tip.visible and tip.slot == row.slot and vp.encloses(tip.get_global_rect())
+					and not tip.get_global_rect().intersects(row.get_global_rect().grow(-1.0))):
+				all_in = false
+				log_line("skill tooltip %d: visible %s rect %s vp %s" % [row.slot, tip.visible, tip.get_global_rect(), vp])
+		check(all_in, "hovering each skill shows its tooltip on screen, beside the row, at %dx%d" % [s.x, s.y])
+		hud.close_overlay()
+	win.size = before
+	await _wait(0.2)
+	# Keyboard focus: arrow down moves focus to the next skill and opens its tooltip.
+	hud.open_overlay(hud.CharacterPanel.new())
+	await _wait(0.4)
+	var cp2: Node = hud._overlay
+	var tip2: SkillTooltip = cp2._tooltip
+	_key(KEY_DOWN)
+	await _wait(0.2)
+	var f := get_viewport().gui_get_focus_owner()
+	check(f == cp2._skill_rows[1] and tip2.visible and tip2.slot == 1, "keyboard focus on a skill opens its tooltip")
+	# Values: the damage row is what Combat computes for the host, and follows stats and talents.
+	var slot := -1
+	for i in p0.skills.size():
+		if _first_damage(GameData.skill(p0.skills[i])) != {}:
+			slot = i
+			if i > 0:
+				break
+	var sk := GameData.skill(p0.skills[slot])
+	cp2._show_tip(cp2._skill_rows[slot])
+	await _wait(0.1)
+	var expect := func() -> int:
+		return maxi(1, roundi(Combat.value_of(_first_damage(sk), Combat.skill_numbers(p0.stats, p0.level, sk))))
+	var shown := func() -> String:
+		for r in SkillInfo.rows(p0, sk):
+			if int(r.kind) == SkillInfo.Kind.DAMAGE:
+				return str(r.v)
+		return ""
+	var base_value: int = expect.call()
+	check(str(shown.call()).begins_with("%d " % base_value) and _tip_text(tip2).contains("%d (crit" % base_value),
+			"%s tooltip shows %d damage (host formula), cooldown %.1fs" % [sk.name, base_value, p0.stats.cooldown_for(sk)])
+	check(_tip_text(tip2).contains("%.1fs" % p0.stats.cooldown_for(sk)), "tooltip shows the effective cooldown")
+	var school_power := "power_" + ("spell" if str(sk.get("school")) == "spell" else str(sk.get("school")))
+	p0.stats.final[school_power] = float(p0.stats.final.get(school_power, 0.0)) + 100.0
+	await _wait(0.1)
+	var boosted: int = expect.call()
+	check(boosted > base_value and _tip_text(tip2).contains("%d (crit" % boosted), "tooltip updates live with stats (%d -> %d)" % [base_value, boosted])
+	p0.recompute_stats()
+	# A learned talent that changes this skill shows up in the tooltip.
+	var talent := ""
+	for node in GameData.talents.get(p0.class_id, {}).get("nodes", []):
+		for m in node.mods:
+			if m.get("skill", "") == sk.id:
+				talent = node.id
+	if talent != "":
+		var saved: Dictionary = p0.talents.duplicate()
+		var t := saved.duplicate()
+		t[talent] = 1
+		p0.talents = t
+		await _wait(0.1)
+		check(_tip_text(tip2).contains("1/"), "tooltip lists the learned talent %s" % talent)
+		p0.talents = saved
+		p0.recompute_stats()
+	hud.close_overlay()
+	await _wait(0.2)
+
+
+func _first_damage(sk: Dictionary) -> Dictionary:
+	for e in sk.get("effects", []):
+		if e.has("damage"):
+			return e.damage
+	return {}
+
+
+func _tip_text(tip: Control) -> String:
+	var parts: Array = []
+	var stack: Array = [tip]
+	while not stack.is_empty():
+		var n: Node = stack.pop_back()
+		if n is Label and n.is_visible_in_tree():
+			parts.append(n.text)
+		stack.append_array(n.get_children())
+	return " | ".join(parts)
+
+
+func _key(code: Key) -> void:
+	for pressed in [true, false]:
+		var ev := InputEventKey.new()
+		ev.keycode = code
+		ev.physical_keycode = code
+		ev.pressed = pressed
+		Input.parse_input_event(ev)
+
+
+## Moves the mouse over the centre of `c` (real hover: mouse_entered fires).
+func _mouse_move(c: Control) -> void:
+	var xf := get_viewport().get_final_transform()
+	var at: Vector2 = xf * (c.get_global_transform_with_canvas() * (c.size / 2.0))
+	var m := InputEventMouseMotion.new()
+	m.position = at
+	m.global_position = at
+	m.relative = Vector2(6, 0)
+	Input.parse_input_event(m)
+	await get_tree().process_frame
+	await get_tree().process_frame
+
+
+## Mouse lean: when the cursor jumps to a screen corner the camera eases toward it (small steps
+## per frame, never a jump) and stops within camera.aim_lookahead; back at the centre it returns.
+func _camera_lean_check() -> void:
+	var g := _game()
+	var p := _local()
+	if g == null or p == null:
+		return
+	await _wait(1.0)
+	var cam: GameCamera = g.camera
+	var reach := float(GameData.bal("camera.aim_lookahead"))
+	var vp := get_viewport().get_visible_rect().size
+	var xf := get_viewport().get_final_transform()
+	var corner: Vector2 = xf * (vp * Vector2(0.97, 0.95))
+	var m := InputEventMouseMotion.new()
+	m.position = corner
+	m.global_position = corner
+	m.relative = Vector2(40, 40)
+	Input.parse_input_event(m)
+	var prev: Vector2 = cam._look
+	var max_step := 0.0
+	for i in 60:
+		await get_tree().process_frame
+		max_step = maxf(max_step, cam._look.distance_to(prev))
+		prev = cam._look
+	var lean := cam._look.length()
+	check(max_step <= 3.0 and lean > reach * 0.5 and lean <= reach + 0.5,
+			"camera eases toward the cursor (max %.1f px per frame, lean %.0f of %.0f px)" % [max_step, lean, reach])
 
 
 ## Walks the d-pad focus graph from `start`: which of `expected` can't be reached, and how many
@@ -1471,6 +1685,339 @@ func _snap(dir: String, name_: String) -> void:
 
 ## Windowed screenshot tour of every screen (visual review), e.g.
 ##   godot --path . -- --scenario=shots --shot=/tmp/shots --class=warrior
+## Worn gear covers the body: for every hero body, animation, direction and frame, the body
+## pixels left visible (not hidden by a mask nor drawn over) by a full plate set must be none, and with hood + robe
+## no shirt / shorts / hair pixel may show (only hands, feet and the face under the hood).
+func _art_check() -> void:
+	var BodyRegions := load("res://tools/body_regions.gd")
+	var chars: Dictionary = GameData.assets.characters
+	for g in CharacterSprite.genders():
+		var cfg_path := "res://tools/hero_%s.json" % g
+		if not FileAccess.file_exists(cfg_path):
+			continue
+		var br: RefCounted = BodyRegions.new(JSON.parse_string(FileAccess.get_file_as_string(cfg_path)))
+		var body_entry := GameData.asset_entry(CharacterSprite.body_key(g))
+		var sets := {"plate": ["head_helm", "chest_armor", "legs_armor", "boots_armor", "gloves_armor"], "cloth": ["head_hood", "chest_robe"]}
+		for set_name in sets:
+			var worst := 0
+			var worst_at := ""
+			var frames_checked := 0
+			var missing := false
+			for anim in chars.anims:
+				if anim == "ghost":
+					continue
+				var body := _img(str(body_entry.path) + anim + ".png")
+				var masks: Array = []
+				for layer in sets[set_name]:
+					var key := CharacterSprite.gear_key(layer, g)
+					if key.is_empty():
+						missing = true
+						continue
+					# A body pixel is covered when a hide mask drops it or a gear pixel is drawn over it.
+					for path in [str(GameData.asset_entry(key).path) + "hide/" + anim + ".png", str(GameData.asset_entry(key).path) + anim + ".png"]:
+						var m := _img(path)
+						if m:
+							masks.append(m)
+				if body == null or masks.is_empty():
+					continue
+				var cell := int(body_entry.frame_size)
+				for fy in body.get_height() / cell:
+					for fx in body.get_width() / cell:
+						var bad := 0
+						var cls: Dictionary = br.class_map(body.get_region(Rect2i(fx * cell, fy * cell, cell, cell)))
+						for q in cls:
+							var p: Vector2i = q + Vector2i(fx * cell, fy * cell)
+							if masks.any(func(m): return m.get_pixelv(p).a > 0.5):
+								continue
+							if set_name == "plate" or cls[q] in ["shirt", "shorts", "hair"]:
+								bad += 1
+						if bad > worst:
+							worst = bad
+							worst_at = "%s dir %d frame %d" % [anim, fy, fx]
+						frames_checked += 1
+			check(not missing and frames_checked > 0 and worst == 0,
+					"%s %s set covers the body in %d frames (worst: %d body pixels showing %s)" % [g, set_name, frames_checked, worst, worst_at])
+		_held_check(g, br, body_entry)
+
+
+## Held items sit in the hand: for every held layer, animation, direction and frame the layer is
+## drawn and some pixel of it is within 2 px of the body's detected hand.
+func _held_check(g: String, br: RefCounted, body_entry: Dictionary) -> void:
+	var cfg: Dictionary = br.cfg
+	var cell := int(body_entry.frame_size)
+	var worst := 0.0
+	var worst_at := ""
+	var missing := 0
+	var checked := 0
+	for anim in cfg.get("held_anims", []):
+		var body := _img(str(body_entry.path) + anim + ".png")
+		if body == null:
+			continue
+		var sheets := {}
+		for layer in cfg.held:
+			var key := CharacterSprite.gear_key(layer, g)
+			sheets[layer] = _img(str(GameData.asset_entry(key).path) + anim + ".png") if not key.is_empty() else null
+		for fy in body.get_height() / cell:
+			for fx in body.get_width() / cell:
+				var reg: Dictionary = br.segment(body.get_region(Rect2i(fx * cell, fy * cell, cell, cell)))
+				var hands: Array = reg.keys().filter(func(q): return reg[q] == "hands")
+				if hands.is_empty():
+					hands = reg.keys().filter(func(q): return reg[q] == "arms")
+				if hands.is_empty():
+					hands = reg.keys().filter(func(q): return reg[q] == "torso")
+				for layer in sheets:
+					var sh: Image = sheets[layer]
+					var pix: Array = []
+					if sh:
+						var fr := sh.get_region(Rect2i(fx * cell, fy * cell, cell, cell))
+						for y in cell:
+							for x in cell:
+								if fr.get_pixel(x, y).a >= 0.5:
+									pix.append(Vector2i(x, y))
+					checked += 1
+					if pix.is_empty():
+						missing += 1
+						if missing == 1:
+							worst_at = "first empty: %s %s dir %d frame %d" % [layer, anim, fy, fx]
+						continue
+					var best := 999.0
+					for q in pix:
+						for h in hands:
+							best = minf(best, maxf(absf(q.x - h.x), absf(q.y - h.y)))
+						if best <= 0.0:
+							break
+					if best > worst and missing == 0:
+						worst = best
+						worst_at = "%s %s dir %d frame %d" % [layer, anim, fy, fx]
+	check(checked > 0 and missing == 0 and worst <= 2.0,
+			"%s held items drawn in all %d layer frames and in the hand (%d empty, worst %d px, %s)" % [g, checked, missing, worst, worst_at])
+
+
+func _img(path: String) -> Image:
+	if not ResourceLoader.exists(path):
+		return null
+	var img := (load(path) as Texture2D).get_image()
+	img.convert(Image.FORMAT_RGBA8)
+	return img
+
+
+## Character art review: the lobby preview, then the hero in the start room next to a line-up
+## of CharacterSprites (bare / full kit, idle / walk / attack, 8 directions) and zoomed crops.
+func _hero_shots_flow() -> void:
+	var dir := shot if not shot.is_empty() else OS.get_user_data_dir().path_join("shots")
+	DirAccess.make_dir_recursive_absolute(dir)
+	NetworkManager.host_solo()
+	await _wait_until(func(): return get_tree().current_scene.name == "Lobby", 10.0)
+	await _wait(0.8)
+	var lobby: Node = get_tree().current_scene
+	lobby._select_gender(gender)
+	lobby._select_class(class_id)
+	await _wait(0.5)
+	await _snap(dir, "h01_lobby_%s_%s" % [gender, class_id])
+	lobby._preview.rotate_by(1)
+	await _wait(0.3)
+	await _snap(dir, "h02_lobby_turned")
+	GameState.select_character(char_name, class_id, gender)
+	await _wait(0.3)
+	NetworkManager.start_run()
+	await _wait_until(func(): return _game() != null and _local() != null, 15.0)
+	await _wait(1.5)
+	var g := _game()
+	var p := _local()
+	p.iframe_left = 9999.0
+	for e in g.enemies_root.get_children():
+		e.queue_free()
+	var look: Dictionary = preload("res://scripts/ui/lobby.gd").class_look(class_id)
+	var rows := [["idle", {}], ["walk", {}], ["idle", look], ["walk", look], ["attack", look], ["cast", look], ["dash", look], ["hit", look]]
+	var lineup := Node2D.new()
+	g.add_child(lineup)
+	lineup.global_position = p.global_position + Vector2(-150, -150)
+	lineup.y_sort_enabled = true
+	for r in rows.size():
+		for d in 8:
+			var cs := CharacterSprite.new()
+			lineup.add_child(cs)
+			cs.position = Vector2(d * 38, r * 56)
+			cs.set_layer("body", CharacterSprite.body_key(gender))
+			for layer in rows[r][1]:
+				var a: Array = rows[r][1][layer]
+				cs.set_layer(layer, CharacterSprite.gear_key(str(a[0]), gender), Color.from_string(str(a[1]), Color.WHITE))
+			cs.play(rows[r][0], Vector2.RIGHT.rotated(d * PI / 4.0), true)
+	g.camera.global_position = lineup.global_position + Vector2(140, 200)
+	await _wait(0.6)
+	await _snap(dir, "h03_lineup")
+	var img := get_viewport().get_texture().get_image()
+	var vp := get_viewport().get_visible_rect()
+	var xf := get_viewport().get_canvas_transform()
+	var tl: Vector2 = xf * (lineup.global_position + Vector2(-24, -56))
+	var br: Vector2 = xf * (lineup.global_position + Vector2(8 * 38, rows.size() * 56))
+	var sc := Vector2(img.get_size()) / vp.size
+	var crop := img.get_region(Rect2i(Vector2i(tl * sc), Vector2i((br - tl) * sc)).intersection(Rect2i(Vector2i.ZERO, img.get_size())))
+	crop.resize(crop.get_width() * 2, crop.get_height() * 2, Image.INTERPOLATE_NEAREST)
+	crop.save_png(dir.path_join("h04_lineup_zoom.png"))
+	# Scale line-up in the hero's light: the hero next to every monster and the boss.
+	lineup.queue_free()
+	lineup = Node2D.new()
+	g.add_child(lineup)
+	lineup.global_position = p.global_position + Vector2(-110, 30)
+	var scale_row: Array = [["hero", look], ["monsters.ghoul", {}], ["monsters.skeleton_archer", {}], ["monsters.cultist", {}], ["monsters.bone_lord", {}]]
+	for i in scale_row.size():
+		var cs := CharacterSprite.new()
+		lineup.add_child(cs)
+		cs.position = Vector2(i * 44 + (24 if i == 4 else 0), 0)
+		if scale_row[i][0] == "hero":
+			cs.set_layer("body", CharacterSprite.body_key(gender))
+			for layer in scale_row[i][1]:
+				var a2: Array = scale_row[i][1][layer]
+				cs.set_layer(layer, CharacterSprite.gear_key(str(a2[0]), gender), Color.from_string(str(a2[1]), Color.WHITE))
+		else:
+			cs.set_layer("body", str(scale_row[i][0]))
+		cs.play("idle", Vector2.DOWN, true)
+	g.camera.global_position = p.global_position
+	await _wait(0.6)
+	img = get_viewport().get_texture().get_image()
+	xf = get_viewport().get_canvas_transform()
+	tl = xf * (lineup.global_position + Vector2(-30, -90))
+	br = xf * (lineup.global_position + Vector2(4 * 44 + 70, 12))
+	sc = Vector2(img.get_size()) / vp.size
+	crop = img.get_region(Rect2i(Vector2i(tl * sc), Vector2i((br - tl) * sc)).intersection(Rect2i(Vector2i.ZERO, img.get_size())))
+	crop.resize(crop.get_width() * 2, crop.get_height() * 2, Image.INTERPOLATE_NEAREST)
+	crop.save_png(dir.path_join("h04b_scale_zoom.png"))
+	# Every held item on this body in 8 directions (attack frame), lit: one row per item.
+	lineup.queue_free()
+	lineup = Node2D.new()
+	g.add_child(lineup)
+	lineup.global_position = p.global_position + Vector2(-300, -230)
+	var held: Array = JSON.parse_string(FileAccess.get_file_as_string("res://tools/hero_%s.json" % CharacterSprite.valid_gender(gender))).held.keys()
+	var light := Combat.instance.fx._light(Color(1, 0.95, 0.85), 2.2, 9.0)
+	light.position = Vector2(300, 230)
+	lineup.add_child(light)
+	for r in held.size():
+		var layer: String = held[r]
+		var slot := "offhand" if layer.begins_with("offhand") else "weapon"
+		for d in 8:
+			var cs := CharacterSprite.new()
+			lineup.add_child(cs)
+			cs.position = Vector2((r % 2) * 320 + d * 38, (r / 2) * 58 + 50)
+			cs.set_layer("body", CharacterSprite.body_key(gender))
+			cs.set_layer(slot, CharacterSprite.gear_key(layer, gender))
+			cs.play("attack", Vector2.RIGHT.rotated(d * PI / 4.0), true)
+	g.camera.global_position = lineup.global_position + Vector2(300, 230)
+	await _wait(0.25)
+	img = get_viewport().get_texture().get_image()
+	xf = get_viewport().get_canvas_transform()
+	tl = xf * (lineup.global_position + Vector2(-24, -10))
+	br = xf * (lineup.global_position + Vector2(640, 7 * 58 + 60))
+	sc = Vector2(img.get_size()) / vp.size
+	crop = img.get_region(Rect2i(Vector2i(tl * sc), Vector2i((br - tl) * sc)).intersection(Rect2i(Vector2i.ZERO, img.get_size())))
+	crop.save_png(dir.path_join("h04c_held_items.png"))
+	# Downed (naked and in class gear) and ghost in 8 directions, lit.
+	lineup.queue_free()
+	lineup = Node2D.new()
+	g.add_child(lineup)
+	lineup.global_position = p.global_position + Vector2(-150, -90)
+	light = Combat.instance.fx._light(Color(1, 0.95, 0.85), 2.2, 9.0)
+	light.position = Vector2(150, 90)
+	lineup.add_child(light)
+	var end_rows := [["downed", {}], ["downed", look], ["ghost", {}]]
+	for r in end_rows.size():
+		for d in 8:
+			var cs := CharacterSprite.new()
+			lineup.add_child(cs)
+			cs.position = Vector2(d * 48, r * 56 + 50)
+			cs.set_layer("body", CharacterSprite.body_key(gender))
+			for layer in end_rows[r][1]:
+				var a3: Array = end_rows[r][1][layer]
+				cs.set_layer(layer, CharacterSprite.gear_key(str(a3[0]), gender), Color.from_string(str(a3[1]), Color.WHITE))
+			cs.play(end_rows[r][0], Vector2.RIGHT.rotated(d * PI / 4.0), true)
+			if end_rows[r][0] == "ghost":
+				cs.modulate.a = 0.45  # as Player draws its own ghost
+	g.camera.global_position = lineup.global_position + Vector2(150, 90)
+	await _wait(0.6)
+	img = get_viewport().get_texture().get_image()
+	xf = get_viewport().get_canvas_transform()
+	tl = xf * (lineup.global_position + Vector2(-26, -10))
+	br = xf * (lineup.global_position + Vector2(8 * 48, 3 * 56 + 60))
+	sc = Vector2(img.get_size()) / vp.size
+	crop = img.get_region(Rect2i(Vector2i(tl * sc), Vector2i((br - tl) * sc)).intersection(Rect2i(Vector2i.ZERO, img.get_size())))
+	crop.resize(crop.get_width() * 2, crop.get_height() * 2, Image.INTERPOLATE_NEAREST)
+	crop.save_png(dir.path_join("h04d_downed_ghost.png"))
+	# The hero in the world, fully equipped, walking and attacking.
+	g.camera.global_position = p.global_position
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 3
+	for b in GameData.classes[class_id].get("preview_gear", []):
+		var it := ItemGenerator.generate_equipment(b, 1, rng.randi_range(2, 5), rng)
+		it.req = 1
+		p.host_give_item(it)
+		p.request_equip.rpc_id(1, p.inv.backpack.size() - 1)
+		await _wait(0.1)
+	lineup.queue_free()
+	await _wait(0.8)
+	await _snap(dir, "h05_hero_equipped")
+	p.auto_aim = p.global_position + Vector2(-100, 30)
+	p.play_action.rpc("attack", Vector2(-1, 0.3))
+	await _wait(0.12)
+	await _snap(dir, "h06_hero_attack")
+	var hud := get_tree().get_first_node_in_group("hud")
+	hud.open_overlay(hud.CharacterPanel.new())
+	await _wait(0.5)
+	var cp: Node = hud._overlay
+	cp._show_tip(cp._skill_rows[1])
+	await _wait(0.3)
+	await _snap(dir, "h07_character_tooltip")
+	hud.open_overlay(hud.InventoryPanel.new())
+	await _wait(0.5)
+	await _snap(dir, "h08_inventory")
+	hud.close_overlay()
+	_finish("hero shots")
+
+
+## Monsters at the new scale in the game: health bars, names and feet next to the hero.
+func _monster_shots_flow() -> void:
+	var dir := shot if not shot.is_empty() else OS.get_user_data_dir().path_join("shots")
+	DirAccess.make_dir_recursive_absolute(dir)
+	NetworkManager.host_solo()
+	await _wait_until(func(): return get_tree().current_scene.name == "Lobby", 10.0)
+	await _wait(0.5)
+	GameState.select_character(char_name, class_id, gender)
+	await _wait(0.3)
+	NetworkManager.start_run()
+	await _wait_until(func(): return _game() != null and _local() != null, 15.0)
+	await _wait(1.5)
+	var g := _game()
+	var p := _local()
+	p.iframe_left = 9999.0
+	for e in g.enemies_root.get_children():
+		e.queue_free()
+	await _wait(0.2)
+	var spawned: Array = []
+	var spots := [[ "ghoul", Vector2(-70, -20), false], ["skeleton_archer", Vector2(-25, -45), false], ["cultist", Vector2(25, -45), false], ["bone_lord", Vector2(80, -10), true]]
+	for sp in spots:
+		var e: Node = g.spawn_monster(str(sp[0]), g.nearest_floor(p.global_position + sp[1]), bool(sp[2]))
+		if e:
+			spawned.append(e)
+	await _wait(0.6)
+	for e in spawned:
+		if is_instance_valid(e):
+			e.health.hp = e.health.max_hp * 0.6
+	# A ground zone (the priest's Consecration) under the pack: it must be drawn below them.
+	Combat.instance.run_effect({"type": "zone", "at": "self", "radius": 100, "duration": 6.0, "tick": 1.0,
+		"targets": "enemies", "color": "#ffd24d", "damage": {"base": 0, "coef": 0.0}},
+		Combat.instance.make_ctx(p, GameData.skill("priest_consecration")), p.global_position + Vector2(0, -30), p.global_position)
+	await _wait(0.4)
+	await _snap(dir, "m01_monsters")
+	var img := get_viewport().get_texture().get_image()
+	var vp := get_viewport().get_visible_rect()
+	var xf := get_viewport().get_canvas_transform()
+	var tl: Vector2 = xf * (p.global_position + Vector2(-140, -150))
+	var br: Vector2 = xf * (p.global_position + Vector2(160, 40))
+	var sc := Vector2(img.get_size()) / vp.size
+	var crop := img.get_region(Rect2i(Vector2i(tl * sc), Vector2i((br - tl) * sc)).intersection(Rect2i(Vector2i.ZERO, img.get_size())))
+	crop.save_png(dir.path_join("m02_monsters_zoom.png"))
+	_finish("monster shots")
+
+
 func _shots_flow() -> void:
 	var dir := shot if not shot.is_empty() else OS.get_user_data_dir().path_join("shots")
 	DirAccess.make_dir_recursive_absolute(dir)
@@ -1486,7 +2033,7 @@ func _shots_flow() -> void:
 	NetworkManager.host_solo()
 	await _wait_until(func(): return get_tree().current_scene.name == "Lobby", 10.0)
 	await _wait(0.8)
-	GameState.select_character(char_name, class_id)
+	GameState.select_character(char_name, class_id, gender)
 	await _wait(0.3)
 	await _snap(dir, "03_lobby")
 	NetworkManager.start_run()
@@ -1648,21 +2195,44 @@ func _gamepad_menu_flow() -> void:
 	var in_lobby := await _wait_until(func(): return get_tree().current_scene.name == "Lobby", 10.0)
 	check(in_lobby, "gamepad reached the lobby")
 	await _wait(0.8)
+	var lobby: Node = get_tree().current_scene
+	var vis := get_viewport().get_visible_rect()
+	check(vis.encloses(lobby._preview.get_global_rect()) and vis.encloses(lobby._start.get_global_rect()),
+			"lobby preview and Start button fit on a %dx%d view" % [vis.size.x, vis.size.y])
+	var other_g: String = "female" if lobby._selected_gender != "female" else "male"
+	var picked := false
+	for i in 8:
+		if lobby._gender_buttons.values().has(get_viewport().gui_get_focus_owner()):
+			break
+		await _press(JOY_BUTTON_DPAD_DOWN)
+	for i in 3:
+		if get_viewport().gui_get_focus_owner() == lobby._gender_buttons.get(other_g):
+			await _press(JOY_BUTTON_A)
+			picked = true
+			break
+		await _press(JOY_BUTTON_DPAD_RIGHT if other_g == "female" else JOY_BUTTON_DPAD_LEFT)
+	check(picked and lobby._selected_gender == other_g and lobby._preview.gender == other_g,
+			"gamepad picks the %s body; the preview follows" % other_g)
+	var d0: int = lobby._preview.dir_index
+	lobby._preview.rotate_by(1)
+	check(lobby._preview.dir_index == wrapi(d0 + 1, 0, 8) and lobby._preview.sprite.dir_index == lobby._preview.dir_index, "lobby preview turns")
 	var reached := false
 	for i in 10:
 		focus = get_viewport().gui_get_focus_owner()
-		if focus is Button and str(focus.text).begins_with("Play as"):
+		if focus == lobby._confirm:
 			reached = true
+			await _wait(0.2)
+			check(get_viewport().get_visible_rect().encloses(focus.get_global_rect()), "the focused confirm button is scrolled into view")
 			break
 		await _press(JOY_BUTTON_DPAD_DOWN)
 	check(reached, "D-pad reaches the confirm button in the lobby")
 	await _press(JOY_BUTTON_A)
 	await _wait(0.5)
-	check(GameState.roster.has(1), "character confirmed with A")
+	check(GameState.roster.has(1) and str(GameState.roster[1].get("gender", "")) == other_g, "character confirmed with A (%s)" % other_g)
 	var found := false
 	for i in 14:
 		focus = get_viewport().gui_get_focus_owner()
-		if focus is Button and str(focus.text).begins_with("Start run"):
+		if focus == lobby._start:
 			found = true
 			break
 		await _press(JOY_BUTTON_DPAD_DOWN)
@@ -1670,6 +2240,7 @@ func _gamepad_menu_flow() -> void:
 	await _press(JOY_BUTTON_A)
 	var in_game := await _wait_until(func(): return _game() != null and _local() != null, 15.0)
 	check(in_game, "run started from the lobby with the gamepad")
+	check(in_game and _local().gender == other_g, "the hero in the world has the chosen body")
 	if in_game:
 		await _wait(0.5)
 		var hud := get_tree().get_first_node_in_group("hud")

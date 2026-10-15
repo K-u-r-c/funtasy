@@ -62,9 +62,10 @@ if [ "$WHAT" = all ] || [ "$WHAT" = quick ]; then
 		run "classes-$c" --auto=solo --class=$c --name=Solo$c --scenario=classes --quit=60
 	done
 	run ui-layout --auto=solo --class=priest --name=Layout --scenario=ui_layout --quit=90
+	run art-check --scenario=art_check --quit=120
 	run gamepad-menu --scenario=gamepad_menu --quit=60
 	run gamepad --auto=solo --class=warrior --name=PadTester --scenario=gamepad --quit=60
-	run continue --auto=solo --class=ranger --name=Saver --scenario=continue --quit=60
+	run continue --auto=solo --class=ranger --gender=female --name=Saver --scenario=continue --quit=60
 	timeout 60 "$GODOT" --headless --path . -- --nosteam --profile=test_rebind --scenario=rebind --quit=20 > "$OUT/rebind.log" 2>&1
 	report rebind
 	timeout 60 "$GODOT" --headless --path . -- --nosteam --profile=test_rebind --scenario=rebind_check --quit=20 > "$OUT/rebind-check.log" 2>&1
@@ -78,7 +79,7 @@ if [ "$WHAT" = all ] || [ "$WHAT" = lan ]; then
 	pair tank "--class=warrior --name=HostT --scenario=tank --quit=120" "--class=mage --name=ClientT --quit=120"
 	pair host-leave "--class=mage --name=HostL --scenario=host_leave --quit=60" "--class=warrior --name=ClientL --quit=60"
 	pair client-leave "--class=ranger --name=HostC --scenario=client_leave --quit=60" "--class=priest --name=ClientC --quit=60"
-	pair continue-lan "--class=priest --name=HostS --scenario=continue_lan --quit=90" "--class=mage --name=ClientS --quit=90"
+	pair continue-lan "--class=priest --name=HostS --scenario=continue_lan --quit=90" "--class=mage --gender=female --name=ClientS --quit=90"
 	pair darkness "--class=mage --name=HostD --scenario=darkness --quit=90" "--class=warrior --name=ClientD --quit=90"
 	pair wipe "--class=ranger --name=HostWipe --scenario=wipe --quit=60" "--class=priest --name=ClientWipe --quit=60"
 fi
