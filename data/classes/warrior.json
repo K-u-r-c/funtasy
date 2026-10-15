@@ -10,5 +10,6 @@
 	"base_stats": {"strength": 12, "stamina": 12, "agility": 6, "intellect": 3},
 	"per_level": {"strength": 2.0, "stamina": 2.0, "agility": 0.5, "intellect": 0.2},
 	"primary_attack": "warrior_strike",
-	"skills": ["warrior_cleave", "warrior_shield_bash", "warrior_taunt", "warrior_charge", "warrior_battle_cry"]
+	"skills": ["warrior_cleave", "warrior_shield_bash", "warrior_taunt", "warrior_charge", "warrior_battle_cry"],
+	"preview_gear": ["plate_helm", "plate_chest", "greaves", "boots", "gloves", "sword", "shield"]
 }

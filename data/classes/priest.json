@@ -10,5 +10,6 @@
 	"base_stats": {"strength": 7, "stamina": 11, "agility": 4, "intellect": 12},
 	"per_level": {"strength": 1.0, "stamina": 1.7, "agility": 0.3, "intellect": 1.8},
 	"primary_attack": "priest_smite",
-	"skills": ["priest_heal", "priest_holy_shield", "priest_consecration", "priest_rebuke", "priest_renewal"]
+	"skills": ["priest_heal", "priest_holy_shield", "priest_consecration", "priest_rebuke", "priest_renewal"],
+	"preview_gear": ["robe", "greaves", "boots", "gloves", "holy_wand", "shield"]
 }
