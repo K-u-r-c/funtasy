@@ -62,7 +62,7 @@ ends the game for good (its save is deleted). Only the host can change the game 
 | Skills 1-5 | 1 2 3 4 5 | A B X Y RB |
 | Dodge (i-frames) | Space or Shift | LT |
 | Quick items Q / E (tap: use, hold: radial menu) | Q / E | LB / D-pad Right |
-| Interact / revive (hold) | F | D-pad Down |
+| Interact / revive (hold): the target under the cursor, or the one you face on a pad | F | D-pad Down |
 | Inventory / Talents / Map | I / T / M | View / D-pad Left / D-pad Up |
 | Menu | Esc | Menu |
 
@@ -82,8 +82,8 @@ on the ground (that's how you give items to teammates), R / Y = put a potion on 
   for about 2 minutes. Attacks break wall torches, so think before you swing near them.
 - **Loot** is shared and lies on the ground, glowing in its rarity color
   (white, green, blue, purple, orange). Weapons of another class deal 80% less damage.
-- **Floors**: kill the boss to open the portal; when everyone alive stands in it the party
-  descends. Difficulty scales with party size, level and depth.
+- **Floors**: kill the boss to open the portal; every living player interacts with it to get
+  ready, and the party descends once everyone alive is ready. Difficulty scales with party size, level and depth.
 
 ## Project layout
 

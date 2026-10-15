@@ -59,7 +59,8 @@ Each one is an assumption that can be changed; most are a single value in `data/
 | Downed / ghost | 0 HP -> downed for 10 s. A living teammate holds Interact nearby for 2 s to revive at 35% HP. Otherwise the player becomes a ghost: invisible to enemies, camera spectates living teammates until the next floor, where ghosts return at 50% HP. | `balance.player` |
 | Party wipe | When no player is left standing (everyone downed or a ghost) the game is **over**: its save is deleted with its heroes and the party returns to the lobby to start a new game. | `game.gd` `_check_wipe`, `GameState.end_game` |
 | Scaling | Per extra player: monster HP +60% (boss +70%), damage +12%, monster count +30%. Per monster level: HP +22%, damage +14%. Difficulty setting multiplies HP and damage (0.75 / 1.0 / 1.4). | `balance.scaling`, `game_settings.json` |
-| Descending | When the boss dies a portal opens in the boss room; the party descends when every living player stands in it (or someone interacts with it and at least half are in it). | `game.gd` |
+| Descending | When the boss dies a portal opens in the boss room. Walking into it does nothing: every living player has to **interact** with it to be ready (interacting again cancels), and the party descends once all living players are ready. Downed players and ghosts come along. |
+| Choosing an interaction | Everything in reach is a candidate; with the mouse the candidate closest to the cursor is used, with a gamepad the one the character faces (nearer first on ties). The prompt shows which one it is. | `game.gd` `find_interactable` |
 | Floor types | Floor type order cycles through `data/floor_types/` by depth (MVP: only `crypt`). The boss is defined by the floor type. | `game.gd` `start_floor` |
 | Pause | The game never pauses (online co-op); the pause menu is an overlay that blocks the local player's input. | `pause_menu.gd` |
 

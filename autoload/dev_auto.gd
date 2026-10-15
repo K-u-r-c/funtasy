@@ -287,6 +287,13 @@ func client_cmd(cmd: String, arg: Variant) -> void:
 					p.auto_aim = Vector2.INF
 				check(_seen_visible > 0, "client saw enemies through its own field of view")
 		"pickup":
+			# Point at the item, as a player would with the mouse.
+			var items: Array = _game().items_root.get_children()
+			items.sort_custom(func(x, y): return x.global_position.distance_to(p.global_position) < y.global_position.distance_to(p.global_position))
+			if not items.is_empty():
+				p.auto_aim = items[0].global_position
+				await get_tree().physics_frame
+				await get_tree().physics_frame
 			var target: Dictionary = _game().find_interactable(p)
 			for gi in _game().items_root.get_children():
 				log_line("item %s at %.0f px" % [gi.item.get("name"), gi.global_position.distance_to(p.global_position)])
@@ -329,6 +336,11 @@ func client_cmd(cmd: String, arg: Variant) -> void:
 		"try_new_hero":
 			GameState.choose_new_character("Intruder", "mage")
 		"take_torch":
+			var ts: Array = _game().dungeon.torches.values()
+			ts.sort_custom(func(x, y): return x.global_position.distance_to(p.global_position) < y.global_position.distance_to(p.global_position))
+			p.auto_aim = ts[0].global_position
+			await get_tree().physics_frame
+			await get_tree().physics_frame
 			var tgt: Dictionary = _game().find_interactable(p)
 			check(tgt.get("kind", "") == "torch", "client finds a wall torch to take (%s)" % tgt.get("text", "none"))
 			if not tgt.is_empty():
@@ -451,6 +463,7 @@ func _full_scenario() -> void:
 
 	_reset_player(host_p)
 	host_p.iframe_left = 30.0
+	await _interaction_choice_checks(g, host_p)
 	# --- 3. Doors -----------------------------------------------------------------------------
 	var door: Node = g.dungeon.doors[0]
 	host_p.host_teleport(g.nearest_floor(door.interact_pos() + Vector2(0, 40)))
@@ -516,7 +529,13 @@ func _full_scenario() -> void:
 	# client's (intentional) death into a party wipe.
 	_reset_player(host_p)
 	host_p.iframe_left = 60.0
-	client_p.host_teleport(g.nearest_floor(host_p.global_position + Vector2(20, 0)))
+	var near_host: Vector2 = host_p.global_position
+	for off in [Vector2(20, 0), Vector2(-20, 0), Vector2(0, 20), Vector2(0, -20)]:
+		var cand: Vector2 = host_p.global_position + off
+		if g.dungeon.cell_at(g.dungeon.cell_of(cand)) == DungeonGenerator.CELL_FLOOR and Combat.instance.has_los(host_p.global_position, cand):
+			near_host = cand
+			break
+	client_p.host_teleport(near_host)
 	await _wait(0.4)
 	client_p.iframe_left = 0.0
 	Combat.instance.deal_damage(Combat.instance.env_ctx(0.0), client_p, 99999.0)
@@ -573,7 +592,20 @@ func _full_scenario() -> void:
 	check(g.items_root.get_child_count() >= 3, "boss dropped bonus loot (%d items on the ground)" % g.items_root.get_child_count())
 	check(host_p.xp + host_p.level * 100000 > host_xp, "host earned boss XP")
 	NetworkManager.to_clients("DevAuto", "client_cmd", ["check_portal", null])
-	host_p.host_teleport(g.portal.global_position)
+	# Standing in the portal does nothing; every living player has to interact with it.
+	for pl in g.players_root.get_children():
+		pl.host_teleport(g.portal.global_position + Vector2(randf_range(-12, 12), 6))
+	await _wait(2.5)
+	check(g.depth == 1, "walking into the portal doesn't descend")
+	host_p.host_teleport(g.portal.global_position + Vector2(0, 30))
+	await _wait(0.4)
+	host_p.auto_aim = g.portal.global_position
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+	var pt: Dictionary = g.find_interactable(host_p)
+	check(pt.get("kind", "") == "portal", "the portal is an interaction (%s)" % pt.get("text", "none"))
+	host_p.auto_aim = Vector2.INF
+	_descend_all(g)
 	await _wait(3.0)
 	check(g.depth == 2, "party descended to floor 2")
 	await _wait(1.0)
@@ -715,6 +747,45 @@ func _floor2_props_check(g: Node, host_p: Player) -> void:
 	await _wait(0.5)
 
 
+## Every living player interacts with the portal (that's how the party descends).
+func _descend_all(g: Node) -> void:
+	for pl in g.players_root.get_children():
+		if pl.life_state == Player.Life.ALIVE:
+			pl.host_teleport(g.portal.global_position + Vector2(randf_range(-10, 10), 4))
+			g.host_interact(pl, g.portal)
+
+
+## Picking an interaction: the mouse points at it; on a gamepad the character faces it.
+func _interaction_choice_checks(g: Node, host_p: Player) -> void:
+	var spot: Vector2 = g.layout.start
+	host_p.host_teleport(spot)
+	var rng := RandomNumberGenerator.new()
+	g.loot.drop_item(ItemGenerator.generate_consumable("potion_health", 1, rng), spot + Vector2(-26, 0))
+	g.loot.drop_item(ItemGenerator.generate_consumable("potion_mana", 1, rng), spot + Vector2(26, 0))
+	await _wait(0.6)
+	var left: Node = null
+	var right: Node = null
+	for it in g.items_root.get_children():
+		if it.global_position.distance_to(spot + Vector2(-26, 0)) < 4.0:
+			left = it
+		elif it.global_position.distance_to(spot + Vector2(26, 0)) < 4.0:
+			right = it
+	for side in [[left, "left"], [right, "right"]]:
+		host_p.auto_aim = side[0].global_position + Vector2(0, -6)
+		await get_tree().physics_frame
+		await get_tree().physics_frame
+		check(g.find_interactable(host_p).get("node") == side[0], "mouse: the item under the cursor (%s) is chosen" % side[1])
+	host_p.auto_aim = Vector2.INF
+	InputSettings.using_gamepad = true
+	for side in [[left, Vector2.LEFT, "left"], [right, Vector2.RIGHT, "right"]]:
+		host_p.facing = side[1]
+		check(g.find_interactable(host_p).get("node") == side[0], "gamepad: the item the character faces (%s) is chosen" % side[2])
+	InputSettings.using_gamepad = false
+	left.queue_free()
+	right.queue_free()
+	await _wait(0.2)
+
+
 func _reset_player(p: Player) -> void:
 	if p.life_state != Player.Life.ALIVE:
 		p.revive(1.0)
@@ -759,8 +830,7 @@ func _boss_scenario() -> void:
 		return
 	await _wait(1.0)
 	check(g.portal != null, "portal opened")
-	for p in g.players_root.get_children():
-		p.host_teleport(g.portal.global_position + Vector2(randf_range(-10, 10), 0))
+	_descend_all(g)
 	var down := await _wait_until(func(): return g.depth == 2, 8.0)
 	check(down, "party reached floor 2 through the portal")
 	if NetworkManager.has_remote_peers():

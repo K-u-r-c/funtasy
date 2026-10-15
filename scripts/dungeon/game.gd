@@ -20,6 +20,7 @@ var _begun := false
 var _enemy_counter := 0
 var _hazard_left := 0.0
 var _portal_left := 0.0
+var portal_ready: Dictionary = {}  ## peer id -> true: players who chose to descend (replicated)
 var _descend_timer := -1.0
 var _wiped := false
 var _clock_sync_left := 0.0
@@ -242,7 +243,12 @@ func host_interact(p: Player, node: Node) -> void:
 		dungeon.open_chest.rpc(node.prop_id)
 		loot.roll_and_drop("chest", node.global_position + Vector2(0, 18))
 	elif node == portal:
-		_try_descend(true)
+		# The portal never pulls anyone in: every living player opts in with Interact.
+		if portal_ready.has(p.peer_id):
+			portal_ready.erase(p.peer_id)
+		else:
+			portal_ready[p.peer_id] = true
+		_try_descend()
 
 
 func _physics_process(delta: float) -> void:
@@ -268,7 +274,7 @@ func _physics_process(delta: float) -> void:
 		_portal_left -= delta
 		if _portal_left <= 0.0:
 			_portal_left = 0.25
-			_try_descend(false)
+			_try_descend()
 	if _descend_timer >= 0.0:
 		_descend_timer -= delta
 		if _descend_timer < 0.0:
@@ -276,18 +282,17 @@ func _physics_process(delta: float) -> void:
 	_check_wipe()
 
 
-func _try_descend(interacted: bool) -> void:
+## Host: descend once every living player is ready (downed players and ghosts come along).
+func _try_descend() -> void:
 	if portal == null or _descend_timer >= 0.0:
 		return
-	var alive := 0
-	var inside := 0
-	for p in players_root.get_children():
-		if p.life_state == Player.Life.ALIVE:
-			alive += 1
-			if p.global_position.distance_to(portal.global_position) <= portal.radius:
-				inside += 1
-	_portal_status.rpc(inside, alive)
-	if alive > 0 and (inside == alive or (interacted and inside > 0 and inside * 2 >= alive)):
+	for id in portal_ready.keys():
+		var pl := player_by_peer(id)
+		if pl == null or pl.life_state != Player.Life.ALIVE:
+			portal_ready.erase(id)
+	var alive := _alive_count()
+	_portal_status.rpc(portal_ready.keys(), alive)
+	if alive > 0 and portal_ready.size() >= alive:
 		_descend_timer = 1.5
 		broadcast_message.rpc("Descending...", "#c08cff")
 
@@ -406,10 +411,14 @@ func _boss_defeated(portal_pos: Vector2) -> void:
 	entities.add_child(portal)
 
 
-@rpc("authority", "call_local", "unreliable")
-func _portal_status(inside: int, alive: int) -> void:
+## Host -> all (reliable): who is ready to descend.
+@rpc("authority", "call_local", "reliable")
+func _portal_status(ready_ids: Array, alive: int) -> void:
+	portal_ready.clear()
+	for id in ready_ids:
+		portal_ready[int(id)] = true
 	if hud and hud.has_method("set_portal_status"):
-		hud.set_portal_status(inside, alive)
+		hud.set_portal_status(ready_ids.size(), alive)
 
 
 @rpc("authority", "call_local", "reliable")
@@ -470,45 +479,69 @@ func _process(_delta: float) -> void:
 
 
 ## Nearest thing the local player can interact with: {node, kind, text} or {}.
+## The single thing the local player would interact with: {node, kind, text} or {}.
+## Everything within reach is a candidate; the player chooses by pointing at it:
+## - mouse: the candidate closest to the cursor,
+## - gamepad: the candidate the character faces (aim direction), nearer ones first on ties.
 func find_interactable(p: Player) -> Dictionary:
-	var best: Dictionary = {}
-	var best_d := INF
-	var reach := float(GameData.bal("world.interact_range"))
 	var pos := p.global_position
+	var reach := float(GameData.bal("world.interact_range"))
+	var candidates: Array = []  ## [point to aim at, node, kind, text]
 	for g in items_root.get_children():
-		var d := pos.distance_to(g.global_position)
-		if d < float(GameData.bal("world.pickup_range")) and d < best_d:
-			best_d = d
-			best = {"node": g, "kind": "item", "text": g.interact_text()}
+		if pos.distance_to(g.global_position) < float(GameData.bal("world.pickup_range")):
+			candidates.append([g.global_position, g, "item", g.interact_text()])
 	for o in players_root.get_children():
-		if o != p and o.life_state == Player.Life.DOWNED:
-			var d2 := pos.distance_to(o.global_position)
-			if d2 < float(GameData.bal("world.revive_range")) and d2 < best_d + 20.0:
-				best_d = d2
-				best = {"node": o, "kind": "revive", "text": "Hold to revive %s" % o.display_name}
+		if o != p and o.life_state == Player.Life.DOWNED and pos.distance_to(o.global_position) < float(GameData.bal("world.revive_range")):
+			candidates.append([o.global_position, o, "revive", "Hold to revive %s" % o.display_name])
+	for door in dungeon.doors:
+		# Doors are wide: in reach when the nearest point of the doorway is.
+		if _distance_to_rect(pos, door.world_rect) < reach * 0.6:
+			candidates.append([door.world_rect.get_center(), door, "door", door.interact_text()])
+	for prop in dungeon.props.values():
+		if is_instance_valid(prop) and prop.interactable() and pos.distance_to(prop.global_position) < reach:
+			candidates.append([prop.global_position, prop, "chest", prop.interact_text()])
+	for t in dungeon.torches.values():
+		if is_instance_valid(t) and t.is_lit() and pos.distance_to(t.interact_pos()) < reach:
+			candidates.append([t.global_position, t, "torch", t.interact_text()])
+	if portal and pos.distance_to(portal.global_position) < portal.radius:
+		var ready := portal_ready.has(p.peer_id)
+		var text := "Cancel - stay on this floor" if ready else "Enter the portal"
+		candidates.append([portal.global_position, portal, "portal", "%s (%d/%d ready)" % [text, portal_ready.size(), _alive_count()]])
+	var best: Array = []
+	var best_score := INF
+	for c in candidates:
+		var point: Vector2 = c[0]
+		if c[1].has_method("host_set_open"):
+			point = _closest_on_rect(p.aim_pos if not InputSettings.using_gamepad else pos, c[1].world_rect)
+		var score: float
+		if InputSettings.using_gamepad:
+			var to := point - pos
+			var dot := p.facing.dot(to.normalized()) if to.length() > 12.0 else 1.0
+			score = (1.0 - dot) * 100.0 + to.length() * 0.25
+		else:
+			score = point.distance_to(p.aim_pos)
+		if score < best_score:
+			best_score = score
+			best = c
 	if best.is_empty():
-		for door in dungeon.doors:
-			var d3 := pos.distance_to(door.interact_pos())
-			if d3 < reach + door.world_rect.size.length() * 0.35 and d3 < best_d:
-				best_d = d3
-				best = {"node": door, "kind": "door", "text": door.interact_text()}
-		for prop in dungeon.props.values():
-			if is_instance_valid(prop) and prop.interactable():
-				var d4 := pos.distance_to(prop.global_position)
-				if d4 < reach and d4 < best_d:
-					best_d = d4
-					best = {"node": prop, "kind": "chest", "text": prop.interact_text()}
-		for t in dungeon.torches.values():
-			if is_instance_valid(t) and t.is_lit():
-				var d5 := pos.distance_to(t.interact_pos())
-				if d5 < reach and d5 < best_d:
-					best_d = d5
-					best = {"node": t, "kind": "torch", "text": t.interact_text()}
-		if portal and pos.distance_to(portal.global_position) < portal.radius + 10.0:
-			best = {"node": portal, "kind": "portal", "text": portal.interact_text()}
-	if not best.is_empty():
-		best.text = "[%s] %s" % [InputSettings.prompt_for("interact"), best.text]
-	return best
+		return {}
+	return {"node": best[1], "kind": best[2], "text": "[%s] %s" % [InputSettings.prompt_for("interact"), best[3]]}
+
+
+func _closest_on_rect(pos: Vector2, r: Rect2) -> Vector2:
+	return Vector2(clampf(pos.x, r.position.x, r.end.x), clampf(pos.y, r.position.y, r.end.y))
+
+
+func _distance_to_rect(pos: Vector2, r: Rect2) -> float:
+	return pos.distance_to(Vector2(clampf(pos.x, r.position.x, r.end.x), clampf(pos.y, r.position.y, r.end.y)))
+
+
+func _alive_count() -> int:
+	var n := 0
+	for pl in players_root.get_children():
+		if pl.life_state == Player.Life.ALIVE:
+			n += 1
+	return n
 
 
 func nearest_floor(pos: Vector2) -> Vector2:
