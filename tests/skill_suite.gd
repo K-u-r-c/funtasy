@@ -75,6 +75,9 @@ func run_keystones() -> void:
 			if t.has("cast"):
 				var err := Combat.instance.try_use_skill(p, str(t.cast), dummies[0].global_position)
 				da.check(err.is_empty(), "keystone %s: %s cast" % [nd.id, t.cast])
+				if t.has("then_remove"):
+					await da._wait(0.3)
+					p.status.remove(str(t.then_remove))
 			else:
 				await _trigger(str(t.trigger))
 			await da._wait(float(t.get("wait", 0.8)))
@@ -115,6 +118,15 @@ func _trigger(what: String) -> void:
 			Combat.instance.heal(Combat.instance.make_ctx(p, {"id": "test", "school": "spell"}), ally, ally.health.max_hp * 0.8)
 		"cast_skill":
 			Combat.instance.try_use_skill(p, arg, d0.global_position)
+		"cast4":
+			for i in 4:
+				Combat.instance.fire(p, "on_skill_cast", {"skill": str(p.skills[0]), "school": str(GameData.skill(str(p.skills[0])).get("school", "")), "target": null, "ctx": {}})
+		"poison_kill":
+			var v2: Enemy = g.spawn_monster("ghoul", g.nearest_floor(d0.global_position + Vector2(0, 20)), false)
+			await da._wait(0.2)
+			var pctx := Combat.instance.make_ctx(p, GameData.skill(str(p.skills[0])))
+			Combat.instance.apply_status(pctx, v2, "poison", 5.0, 1.0)
+			Combat.instance.deal_damage(pctx, v2, v2.health.hp * 5.0, {"damage_type": "true"})
 		"dot":
 			Combat.instance.apply_status(Combat.instance.make_ctx(p, {"id": "test", "school": "spell"}), d0, arg, 4.0, 3.0)
 			await da._wait(1.2)

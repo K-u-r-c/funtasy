@@ -212,6 +212,7 @@ func deal_damage(ctx: Dictionary, target: Actor, amount: float, opts: Dictionary
 		var dodge := target.stats.get_stat("dodge")
 		if dtype == "physical":
 			dodge += target.stats.get_stat("dodge_physical")
+		dodge += target.stats.get_stat("dodge_uncapped")  # Dance of Shadows: past the 40% cap
 		if not ctx.get("cannot_miss", false) and dodge > 0.0 and rng.randf() < dodge:
 			fx.number.rpc(pos, "Dodge", "info")
 			_avoided(target, caster, data, "on_dodge")
@@ -320,6 +321,10 @@ func deal_damage(ctx: Dictionary, target: Actor, amount: float, opts: Dictionary
 			fire(target, "on_fatal", data)
 		if data.prevented:
 			amount = maxf(target.health.hp + target.health.absorb - 1.0, 0.0)
+	# Kill credit must be in place before the blow lands (death fires inside take()).
+	if caster:
+		target.last_attacker = caster
+		target.last_attack_ctx = ctx
 	var dealt := target.health.take(amount)
 	data.amount = amount
 	data.dealt = dealt

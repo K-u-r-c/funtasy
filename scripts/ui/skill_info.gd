@@ -51,7 +51,10 @@ static func talent_rows(p: Player, skill_id: String) -> Array:
 			continue
 		var parts: Array = []
 		for m in node.get("mods", []):
-			if not m.has("skill") or (m.skill != skill_id and m.skill != "*"):
+			if not m.has("skill"):
+				continue
+			var targets: Array = m.skill if m.skill is Array else [m.skill]
+			if not targets.has(skill_id) and not targets.has("*"):
 				continue
 			var v := float(m.value) * rank
 			match str(m.field):

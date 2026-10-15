@@ -289,5 +289,131 @@
 		"color": "#e8c040",
 		"text": "MO",
 		"shape": "diamond"
+	},
+	"icons.r_hunters_mark": {
+		"color": "#3a7a4a",
+		"text": "HS"
+	},
+	"icons.r_disengage": {
+		"color": "#3a3a5a",
+		"text": "Di"
+	},
+	"icons.r_rain_of_arrows": {
+		"color": "#6a9a2a",
+		"text": "RO"
+	},
+	"icons.r_arterial_shot": {
+		"color": "#6a9a2a",
+		"text": "AS"
+	},
+	"icons.r_shadow_flare": {
+		"color": "#3a3a5a",
+		"text": "SF"
+	},
+	"icons.r_serpents_grip": {
+		"color": "#6a9a2a",
+		"text": "SS"
+	},
+	"icons.r_smoke_screen": {
+		"color": "#3a3a5a",
+		"text": "SS"
+	},
+	"icons.r_piercing_bolt": {
+		"color": "#3a7a4a",
+		"text": "PB"
+	},
+	"icons.r_rapid_fire": {
+		"color": "#3a7a4a",
+		"text": "RF"
+	},
+	"icons.r_acid_flask": {
+		"color": "#6a9a2a",
+		"text": "AF"
+	},
+	"icons.r_tranquilizer_dart": {
+		"color": "#3a3a5a",
+		"text": "TD"
+	},
+	"icons.r_bola": {
+		"color": "#3a3a5a",
+		"text": "BT"
+	},
+	"icons.r_shadow_meld": {
+		"color": "#3a3a5a",
+		"text": "SM"
+	},
+	"icons.r_double_tap": {
+		"color": "#3a7a4a",
+		"text": "DT"
+	},
+	"icons.r_caltrops": {
+		"color": "#6a9a2a",
+		"text": "Ca"
+	},
+	"icons.r_eagle_eye": {
+		"color": "#3a7a4a",
+		"text": "EE"
+	},
+	"icons.r_concussive_blast": {
+		"color": "#3a3a5a",
+		"text": "CB"
+	},
+	"icons.r_thrill_of_the_hunt": {
+		"color": "#3a3a5a",
+		"text": "TO"
+	},
+	"icons.r_venomous_vapors": {
+		"color": "#6a9a2a",
+		"text": "VV"
+	},
+	"icons.r_trickshot": {
+		"color": "#3a7a4a",
+		"text": "Tr"
+	},
+	"icons.r_gore_arrow": {
+		"color": "#6a9a2a",
+		"text": "GA"
+	},
+	"icons.r_survival_instinct": {
+		"color": "#3a3a5a",
+		"text": "SI"
+	},
+	"icons.r_bone_harpoon": {
+		"color": "#3a3a5a",
+		"text": "BH"
+	},
+	"icons.r_shadow_ballista": {
+		"color": "#3a7a4a",
+		"text": "SB"
+	},
+	"icons.rk_ballistic": {
+		"color": "#e8c040",
+		"text": "BP",
+		"shape": "diamond"
+	},
+	"icons.rk_death_mark": {
+		"color": "#e8c040",
+		"text": "DM",
+		"shape": "diamond"
+	},
+	"icons.rk_corrosive": {
+		"color": "#e8c040",
+		"text": "CR",
+		"shape": "diamond"
+	},
+	"icons.rk_chain_reaction": {
+		"color": "#e8c040",
+		"text": "CR",
+		"shape": "diamond"
+	},
+	"icons.rk_phantasmal": {
+		"color": "#e8c040",
+		"text": "PS",
+		"shape": "diamond"
+	},
+	"icons.rk_dance": {
+		"color": "#e8c040",
+		"text": "DO",
+		"shape": "diamond"
 	}
 }

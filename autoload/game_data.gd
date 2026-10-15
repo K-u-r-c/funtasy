@@ -341,8 +341,10 @@ func _validate_refs() -> void:
 			if node.has("skill") and not skills.has(node.skill):
 				errors.append("talent '%s' unlocks unknown skill '%s'" % [node.id, node.skill])
 			for m2 in node.get("mods", []):
-				if m2.has("skill") and m2.skill != "*" and not skills.has(m2.skill):
-					errors.append("talent '%s' modifies unknown skill '%s'" % [node.id, m2.skill])
+				if m2.has("skill"):
+					for msk in (m2.skill if m2.skill is Array else [m2.skill]):
+						if msk != "*" and msk != "*traps" and not skills.has(msk):
+							errors.append("talent '%s' modifies unknown skill '%s'" % [node.id, msk])
 			_validate_procs("talent '%s'" % node.id, node.get("procs", []), types)
 	for eid in elite_modifiers:
 		_validate_procs("elite modifier '%s'" % eid, elite_modifiers[eid].get("procs", []), types)
