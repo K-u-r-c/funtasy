@@ -18,6 +18,7 @@ var cells := PackedByteArray()
 var astar := AStarGrid2D.new()
 var doors: Array = []
 var props: Dictionary = {}  ## name -> Prop
+var debris: Array = []  ## destroyed props (still in the tree as rubble until the floor ends)
 var spikes: Array = []
 var lights: Array = []  ## torch / lava lights, culled by distance in Visibility
 var discovered := PackedByteArray()  ## local fog-of-war memory (per peer)
@@ -79,32 +80,39 @@ func build(new_layout: Dictionary, def: Dictionary, entity_root: Node2D) -> void
 		lights.append(l)
 
 
+## Removes the previous floor. Nodes are detached from the tree immediately (not just queued):
+## the next floor reuses the same deterministic names (Door_0, Prop_0, ...), and a name that is
+## still taken would get auto-renamed, breaking the RPCs that address doors and props.
 func clear() -> void:
 	for d in doors:
-		if is_instance_valid(d):
-			d.queue_free()
+		_discard(d)
 	doors.clear()
 	for p in props.values():
-		if is_instance_valid(p):
-			p.queue_free()
+		_discard(p)
 	props.clear()
+	for p in debris:
+		_discard(p)
+	debris.clear()
 	for s in spikes:
-		s.queue_free()
+		_discard(s)
 	spikes.clear()
 	for l in lights:
 		if is_instance_valid(l):
 			var torch: Node = l.get_parent()
-			if torch != self and is_instance_valid(torch):
-				torch.queue_free()
-			else:
-				l.queue_free()
+			_discard(torch if torch != self else l)
 	lights.clear()
-	if floor_layer:
-		floor_layer.queue_free()
-		floor_layer = null
-	if wall_layer:
-		wall_layer.queue_free()
-		wall_layer = null
+	_discard(floor_layer)
+	floor_layer = null
+	_discard(wall_layer)
+	wall_layer = null
+
+
+func _discard(n: Node) -> void:
+	if n == null or not is_instance_valid(n):
+		return
+	if n.get_parent():
+		n.get_parent().remove_child(n)
+	n.queue_free()
 
 
 # --- Tiles ---------------------------------------------------------------------------------------
@@ -272,6 +280,7 @@ func props_in_radius(pos: Vector2, r: float) -> Array:
 func _add_prop(prop_name: String, type: String, pos: Vector2) -> void:
 	var p: StaticBody2D = PROP_SCRIPT.new()
 	p.name = prop_name
+	p.prop_id = prop_name
 	p.setup(type, pos)
 	entities.add_child(p)
 	props[prop_name] = p
@@ -286,6 +295,7 @@ func destroy_prop(prop_name: String) -> void:
 	if p == null or not is_instance_valid(p):
 		return
 	props.erase(prop_name)
+	debris.append(p)
 	astar.set_point_solid(cell_of(p.global_position), false)
 	p.break_apart()
 

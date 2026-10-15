@@ -285,6 +285,11 @@ func client_cmd(cmd: String, arg: Variant) -> void:
 		"check_door":
 			var door: Node = _game().dungeon.get_node_or_null(NodePath("../Entities/" + str(arg[0])))
 			check(door != null and door.is_open == bool(arg[1]), "client sees door %s open=%s" % [arg[0], arg[1]])
+		"check_prop_gone":
+			check(not _game().dungeon.props.has(str(arg)), "client sees floor 2 prop %s destroyed" % arg)
+		"check_chest_open":
+			var ch: Node = _game().dungeon.props.get(str(arg))
+			check(ch != null and ch.opened, "client sees the floor 2 chest opened")
 		"check_portal":
 			check(_game().portal != null, "client sees the exit portal")
 		"check_depth":
@@ -545,6 +550,8 @@ func _full_scenario() -> void:
 	NetworkManager.to_clients("DevAuto", "client_cmd", ["check_saved", client_p.level])
 	check(g.enemies_root.get_child_count() > 3, "floor 2 populated with monsters")
 	await _wait(1.0)
+	await _floor2_props_check(g, host_p)
+	await _wait(1.0)
 	NetworkManager.to_clients("DevAuto", "client_cmd", ["done", null])
 	await _wait(1.0)
 
@@ -632,6 +639,44 @@ func _hazard_checks(g: Node, host_p: Player, client_p: Player) -> void:
 	_reset_player(host_p)
 	_reset_player(client_p)
 	await _wait(0.2)
+
+
+## Regression: after descending, props must still break and chests must open only once
+## (the previous floor's nodes used to keep their names and the new ones got renamed).
+func _floor2_props_check(g: Node, host_p: Player) -> void:
+	var renamed := 0
+	for id in g.dungeon.props:
+		if str(g.dungeon.props[id].name) != str(id):
+			renamed += 1
+	check(renamed == 0, "floor 2 prop nodes keep their ids (%d renamed)" % renamed)
+	var target: Node = null
+	var chest: Node = null
+	for id in g.dungeon.props:
+		var pr: Node = g.dungeon.props[id]
+		if target == null and pr.destructible() and not pr.def.has("explode"):
+			target = pr
+		if chest == null and pr.interactable():
+			chest = pr
+	if target:
+		var tid: String = target.prop_id
+		target.take_damage(9999.0, Combat.instance.make_ctx(host_p, GameData.skill(host_p.skills[0])))
+		await _wait(0.5)
+		check(not g.dungeon.props.has(tid), "floor 2 prop %s destroyed on the host" % tid)
+		NetworkManager.to_clients("DevAuto", "client_cmd", ["check_prop_gone", tid])
+	if chest:
+		host_p.host_teleport(chest.global_position + Vector2(0, 20))
+		await _wait(0.6)
+		var before: int = g.items_root.get_child_count()
+		g.host_interact(host_p, chest)
+		await _wait(0.4)
+		var after_first: int = g.items_root.get_child_count()
+		g.host_interact(host_p, chest)
+		await _wait(0.4)
+		check(chest.opened and after_first > before and g.items_root.get_child_count() == after_first, "floor 2 chest opens once (no bottomless chest)")
+		NetworkManager.to_clients("DevAuto", "client_cmd", ["check_chest_open", chest.prop_id])
+	else:
+		log_line("no chest on floor 2, chest check skipped")
+	await _wait(0.5)
 
 
 func _reset_player(p: Player) -> void:

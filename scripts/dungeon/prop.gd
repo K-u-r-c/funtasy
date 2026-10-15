@@ -4,6 +4,7 @@ extends StaticBody2D
 ## HP); explosive barrels blow up through the normal damage system.
 
 var type := ""
+var prop_id := ""  ## key in Dungeon.props, used by RPCs (independent of the node name)
 var def: Dictionary = {}
 var hp := 0.0
 var opened := false
@@ -71,7 +72,7 @@ func take_damage(amount: float, ctx: Dictionary) -> void:
 	var game := get_tree().get_first_node_in_group("game")
 	if game == null:
 		return
-	game.dungeon.destroy_prop.rpc(name)
+	game.dungeon.destroy_prop.rpc(prop_id)
 	if def.has("explode"):
 		var ex: Dictionary = def.explode
 		# Player-triggered explosions follow the friendly-fire rule; others hurt everyone.

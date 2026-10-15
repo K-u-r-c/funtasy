@@ -230,7 +230,7 @@ func host_interact(p: Player, node: Node) -> void:
 					return
 		node.host_set_open(not node.is_open)
 	elif node.has_method("interactable") and node.interactable():
-		dungeon.open_chest.rpc(node.name)
+		dungeon.open_chest.rpc(node.prop_id)
 		loot.roll_and_drop("chest", node.global_position + Vector2(0, 18))
 	elif node == portal:
 		_try_descend(true)
