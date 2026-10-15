@@ -51,7 +51,7 @@ func _ready() -> void:
 		char_name = "Test%s" % mode.capitalize()
 	if quit_after > 0.0:
 		get_tree().create_timer(quit_after).timeout.connect(_finish.bind("timeout"))
-	if not shot.is_empty() and scenario != "shots":
+	if not shot.is_empty() and not scenario in ["shots", "lobby_shot"]:
 		get_tree().create_timer(shot_at).timeout.connect(func():
 			get_viewport().get_texture().get_image().save_png(shot)
 			log_line("screenshot saved to %s" % shot))
@@ -107,6 +107,18 @@ func _run() -> void:
 			return
 		"shots":
 			await _shots_flow()
+			return
+		"lobby_shot":
+			# Lobby with a saved game selected (visual check), e.g. --shot=/tmp/lobby.png
+			NetworkManager.host_solo()
+			await _wait_until(func(): return get_tree().current_scene.name == "Lobby", 6.0)
+			var games := SaveSystem.list_games()
+			if not games.is_empty():
+				get_tree().current_scene._game_opt.select(1)
+				get_tree().current_scene._on_game_selected(1)
+			await _wait(0.8)
+			await _snap(shot.get_base_dir(), shot.get_file().get_basename())
+			_finish("lobby shot")
 			return
 		"rebind":
 			_rebind_test()

@@ -80,7 +80,7 @@ func start_problem() -> String:
 	ids.append_array(multiplayer.get_peers())
 	for id in ids:
 		if not roster.has(id):
-			return "Waiting for every player to pick a character."
+			return "Waiting for every player to pick a hero."
 	if is_continuing() and ids.size() != int(game_info.party_size):
 		return "This saved game needs exactly %d player%s (%d connected)." % [int(game_info.party_size), "" if int(game_info.party_size) == 1 else "s", ids.size()]
 	return ""
