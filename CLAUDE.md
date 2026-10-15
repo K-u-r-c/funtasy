@@ -1,10 +1,10 @@
-# CLAUDE.md — Dark Fantasy Co-op Dungeon Crawler (MVP)
+# CLAUDE.md — Dark Fantasy Co-op Dungeon Crawler
 
 ## What this project is
 
 A multiplayer (co-op, 1–4 players) 2D dungeon crawler in a dark fantasy pixel art style, with a light 3/4 view (top-down with a touch of perspective). Infinite procedurally generated dungeon, a boss at the end of every floor, shared random loot, talent trees, and 4 character classes.
 
-Current phase goal: **MVP** — a playable loop from start to finish (menu → lobby → dungeon → combat → loot → boss → next floor) for at least 2 players online. Do not polish or expand beyond the MVP scope.
+Current phase goal: **full Game Design Document** — the MVP loop (menu → lobby → dungeon → combat → loot → boss → next floor) is done; the game now grows to everything in the GDD (`.design/GAME_DESIGN_DOCUMENT.md`, a local, git-ignored workspace together with `.design/IMPLEMENTATION_PLAN.md` and `.design/lore_books/`). The GDD is the source of truth for content and numbers; its gaps and contradictions are resolved in `docs/DECISIONS.md` (D1–D38). Work follows the plan's phases 0–10 (`docs/TODO.md`).
 
 ## Language
 
@@ -21,7 +21,7 @@ Current phase goal: **MVP** — a playable loop from start to finish (menu → l
   - **LAN** (ENet, IP + port),
   - **Steam** (GodotSteam addon + `SteamMultiplayerPeer`). For testing use the Steam test app id (480 / Spacewar) and Steam lobbies.
   - The transport layer is **swappable** (`NetworkManager` hides ENet vs Steam; the rest of the game only uses Godot's multiplayer API).
-  - Optional headless dedicated server from the same project (not in MVP).
+  - Optional headless dedicated server from the same project (out of scope).
 - Version control: git; small, descriptive commits; one commit = one logical change.
 
 ## Visual rules
@@ -72,7 +72,7 @@ Requirements:
 
 ## Classes
 
-Each class: **5 skills** (keys 1–5) + a **talent tree** that modifies those skills and grants percentage stat bonuses.
+Each class: **30 skills** (GDD section 3). Skills are unlocked in a **talent tree** (3 branches × 6 tiers with T2/T5 keystones, GDD section 8) and slotted in a **Skill Book loadout**: primary attack (LMB/RT) + 5 slots (keys 1–5). Passives work once unlocked; toggles take a slot.
 
 ### Warrior
 
@@ -174,11 +174,12 @@ Difficulty (HP, damage, enemy count, loot quality) depends on: **number of playe
 
 - **Procedurally generated**, **infinite**, deterministic from a **seed** (the host sends the seed).
 - A floor = rooms with doors + corridors, destructible props, hazards (explosive barrels, lava, spikes), monsters, chests; **a boss at the end of the floor** + extra good loot, then the transition to the next floor.
-- **Floor types** and **bosses** are **data-driven** (a separate resource per biome/type) so adding new ones requires no code changes. In the MVP: **one floor type** and **one boss**.
+- **Floor types** and **bosses** are **data-driven** (a separate resource per biome/type) so adding new ones requires no code changes. **5 biomes** (Crypt, Sewers, Foundry, Archives, Kurgan), each with its own architecture, lighting, environment mechanic, hazards, props, **7 monsters** and **2 bosses** (a seeded pick per floor).
+- Every floor has a secure **merchant chamber** (Archibald the Gilded behind the Gilded Portal, Malphas the Soul Broker behind the Demon Altarpiece).
 
 ## Audio
 
-- Music and ambience **per floor type** and **separately for the boss** (crossfade between them). In the MVP: one set for the floor and one for the boss; structure ready for more. Suno files go in `assets/audio/` and are wired through data, not code.
+- Music and ambience **per floor type** and **separately for the boss** (crossfade between them). One track per biome and one per boss (15), plus SFX keys; the user supplies the Suno files (`docs/SUNO_PROMPTS.md`). Suno files go in `assets/audio/` and are wired through data, not code.
 
 ## Lobby and game settings
 
@@ -214,21 +215,28 @@ res://
 - Every RPC clearly documented: who calls it, who executes it, reliable/unreliable.
 - A feature is not "done" until it works over the network (2 instances: host + client), on LAN and — where possible — through Steam.
 
-## MVP scope (what IS in)
+## Scope (what IS in: the full GDD)
 
-- Lobby host/join (LAN + Steam), class and name selection, host-only settings (friendly fire), 1–4 players.
-- 4 classes × 5 skills with cooldowns, working resources (mana/fury), aggro.
-- Talent tree (small but functional).
-- Stats, slotted equipment, backpack, consumables on Q/E with radial menu, 5 rarity tiers, dropping/picking up, glow, appearance change (a few items per slot on placeholders), off-class weapon penalty.
-- Procedural dungeon, doors, fog of war, destructible props, hazards (barrels, lava, spikes), **3 enemy types** (ranged, melee, caster) and **1 boss**, transition to the next floor.
-- Downed/revive/ghost mechanic, shared XP, leveling, save/wipe.
-- Dynamic lighting and basic "modern" effects on pixel art.
-- Main menu + options with rebinding (keyboard/mouse/gamepad); HUD (HP, resource, cooldowns 1–5, XP, Q/E slots).
-- Audio: one set for the floor, one for the boss (placeholders).
+- Everything from the MVP: lobby host/join (LAN + Steam), class/name/gender, host-only settings, 1–4 players, items and rarity, Q/E radial, downed/revive/ghost, shared XP, save/wipe, lighting, fog of war, rebinding, HUD.
+- 5 biomes with architecture profiles, lighting, environment mechanics, hazards, props, a merchant chamber on every floor and a seeded boss pick.
+- 35 monsters with behaviour modules, elite packs and elite altars; 10 bosses with phases and arena mechanics.
+- 120 skills (30 per class): new effect primitives, ally targeting, channel/charge, toggles, passives, transforms, deployables.
+- Talent trees: 3 branches × 6 tiers with T2/T5 keystones and skill unlocks, plus the Skill Book loadout.
+- Damage types, resistances, creature types, expanded status effects with diminishing returns.
+- 5 free stat points per level; run-permanent modifiers in the save.
+- Gold, the Gold Key, Archibald (shared shop), Malphas (tithe, contracts, 10 pact potions).
+- 108 legendaries with affix hooks and icons.
+- 105 lore books: `tools/import_lore.py` → `data/lore_books.json`, reader modal, permanent codex, stat tomes.
+- All new UI in the Obsidian Glass style, navigable with gamepad and keyboard.
+- Audio: placeholder keys wired through data for 5 biome tracks, 10 boss tracks and the new SFX.
 
-## Out of MVP scope (do NOT do now)
+## Out of scope (do NOT do now)
 
-Matchmaking, accounts and cloud, auction/trading UI, crafting, seasons, story, localization (the game is English-only), animation polish, final art and soundtrack, additional floor types and bosses (only the structure for them), dedicated server.
+Matchmaking, accounts and cloud, auction/trading UI, crafting, seasons, a story campaign, localization (the game is English-only), dedicated server, final soundtrack (the user makes it in Suno), new worn armour sets beyond the existing plate/cloth layers (optional, budget permitting).
+
+## PixelLab budget
+
+Every PixelLab generation is counted (`get_balance` before and after each batch; spend = counter difference) in the ledger in `docs/TODO.md`. Never exceed the account's remaining allowance or the goal cap. Cheap first: reuse, 5 drawn directions + mirrors, template animations, `create_map_object` for props, icon sheets cut by `tools/cut_icon_sheet.py`, the free workbenches, recolour/scale variants. Gameplay never waits for art: placeholders first.
 
 ## Working conventions for Claude
 
@@ -236,7 +244,7 @@ Matchmaking, accounts and cloud, auction/trading UI, crafting, seasons, story, l
 - After every step the project must **run without errors**; verify by running (`godot --headless --quit`, tests) instead of assuming.
 - Code: typed GDScript, `snake_case` (functions/variables/files), `PascalCase` (classes/scenes); comments only where the "why" isn't obvious.
 - Don't guess missing design decisions — record the assumption in `docs/DECISIONS.md` or ask.
-- Don't add features outside the MVP scope. Don't refactor "while you're there".
+- Don't add features outside the scope above. Don't refactor "while you're there".
 - Keep `docs/DECISIONS.md` and `docs/TODO.md` up to date.
 - Never delete or overwrite user-provided assets; add them next to placeholders and swap the references.
 - Talk to the user in Polish; everything in the project (code, docs, in-game text) in English.
