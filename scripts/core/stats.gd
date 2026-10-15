@@ -46,7 +46,7 @@ func compute_player(class_def: Dictionary, level: int, equipment: Dictionary, ta
 	var pct := {}
 	var mult := {"damage_mult": 1.0, "damage_taken_mult": 1.0, "healing_mult": 1.0, "threat_mult": float(class_def.get("threat_mult", 1.0)),
 		"move_speed_mult": 1.0, "resource_regen_mult": 1.0}
-	skill_mods = {}
+	skill_mods = skill_mods_for(class_def, talents)
 	var tree: Dictionary = GameData.talents.get(class_def.id, {})
 	for node in tree.get("nodes", []):
 		var rank := int(talents.get(node.id, 0))
@@ -55,9 +55,7 @@ func compute_player(class_def: Dictionary, level: int, equipment: Dictionary, ta
 		for m in node.mods:
 			var v := float(m.value) * rank
 			if m.has("skill"):
-				var sm: Dictionary = skill_mods.get(m.skill, {})
-				sm[m.field] = float(sm.get(m.field, 0.0)) + v
-				skill_mods[m.skill] = sm
+				continue
 			else:
 				match str(m.stat):
 					"strength_pct", "stamina_pct", "agility_pct", "intellect_pct", "armor_pct", "max_hp_pct":
@@ -157,6 +155,23 @@ func _clamp(s: Dictionary) -> void:
 
 
 ## Talent modifier for a skill field, summed with the "*" wildcard.
+## Talent modifiers per skill id ({skill: {field: summed value}}). Static so any peer can
+## rebuild them from the replicated talents (clients only receive `final`).
+static func skill_mods_for(class_def: Dictionary, talents: Dictionary) -> Dictionary:
+	var out := {}
+	var tree: Dictionary = GameData.talents.get(class_def.get("id", ""), {})
+	for node in tree.get("nodes", []):
+		var rank := int(talents.get(node.id, 0))
+		if rank <= 0:
+			continue
+		for m in node.mods:
+			if m.has("skill"):
+				var sm: Dictionary = out.get(m.skill, {})
+				sm[m.field] = float(sm.get(m.field, 0.0)) + float(m.value) * rank
+				out[m.skill] = sm
+	return out
+
+
 func skill_mod(skill_id: String, field: String) -> float:
 	var v := 0.0
 	if skill_mods.has(skill_id):

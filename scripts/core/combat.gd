@@ -80,7 +80,7 @@ func try_use_skill(caster: Actor, skill_id: String, aim: Vector2) -> String:
 	caster.play_action.rpc(str(skill.get("anim", "attack")), dir)
 	if skill.has("sfx"):
 		fx.sound.rpc(skill.sfx, caster.global_position)
-	var cast_time := float(skill.get("cast_time", 0.0)) / (1.0 + caster.stats.get_stat("haste"))
+	var cast_time := cast_time_for(caster.stats, skill)
 	if cast_time > 0.01:
 		caster.casting = {"skill": skill_id, "aim": aim, "left": cast_time}
 		fx.cast_bar.rpc(caster.get_path(), cast_time)
@@ -97,25 +97,46 @@ func finish_cast(caster: Actor, skill_id: String, aim: Vector2) -> void:
 
 
 func make_ctx(caster: Actor, skill: Dictionary) -> Dictionary:
+	var ctx := skill_numbers(caster.stats, caster.level, skill)
+	ctx.merge({
+		"caster": caster, "team": caster.team,
+		"peer": int(caster.get("peer_id")) if caster.get("peer_id") != null else 0,
+		"origin": caster.global_position,
+	})
+	return ctx
+
+
+## The numbers a skill uses, from its caster's stats. Host combat and the UI's skill tooltips
+## both read these, so what the tooltip shows is what the host deals.
+static func skill_numbers(st: Stats, level: int, skill: Dictionary) -> Dictionary:
 	var sid: String = skill.get("id", "")
 	var school: String = skill.get("school", "melee")
-	var st := caster.stats
 	return {
-		"caster": caster, "team": caster.team, "skill": sid, "school": school,
+		"skill": sid, "school": school,
 		"power": st.power_for(school),
 		"damage_mult": st.get_stat("damage_mult", 1.0) * (1.0 + st.skill_mod(sid, "damage_mult")),
 		"heal_mult": st.get_stat("healing_mult", 1.0) * (1.0 + st.skill_mod(sid, "heal_mult")),
 		"crit_chance": st.get_stat("crit_chance"), "crit_damage": st.get_stat("crit_damage", 0.5),
-		"leech": st.get_stat("leech"), "level": caster.level,
+		"leech": st.get_stat("leech"), "level": level,
 		"threat_mult": float(skill.get("threat_mult", 1.0)) * st.get_stat("threat_mult", 1.0),
 		"resource_on_hit": float(skill.get("resource_on_hit", -1.0)),
 		"radius_mult": 1.0 + st.skill_mod(sid, "radius_mult"),
 		"duration_mult": 1.0 + st.skill_mod(sid, "duration_mult"),
 		"count_add": int(st.skill_mod(sid, "count_add")),
 		"pierce_add": int(st.skill_mod(sid, "pierce_add")),
-		"peer": int(caster.get("peer_id")) if caster.get("peer_id") != null else 0,
-		"origin": caster.global_position,
 	}
+
+
+## Damage / healing / magnitude of a {"base", "coef"} spec for the given skill numbers.
+static func value_of(spec: Variant, nums: Dictionary) -> float:
+	if not spec is Dictionary or spec.is_empty():
+		return 0.0
+	return (float(spec.get("base", 0)) + float(nums.power) * float(spec.get("coef", 0))) * float(nums.damage_mult)
+
+
+## Cast time after haste.
+static func cast_time_for(st: Stats, skill: Dictionary) -> float:
+	return float(skill.get("cast_time", 0.0)) / (1.0 + st.get_stat("haste"))
 
 
 ## Context for damage that belongs to nobody (lava, spikes, monster-triggered barrels).
@@ -594,9 +615,7 @@ func _heal_targets(eff: Dictionary, ctx: Dictionary, origin: Vector2, aim: Vecto
 
 
 func _value(spec: Variant, ctx: Dictionary) -> float:
-	if not spec is Dictionary or spec.is_empty():
-		return 0.0
-	return (float(spec.get("base", 0)) + float(ctx.power) * float(spec.get("coef", 0))) * float(ctx.damage_mult)
+	return value_of(spec, ctx)
 
 
 func _magnitude(eff: Dictionary, ctx: Dictionary) -> float:

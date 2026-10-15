@@ -1,7 +1,7 @@
 extends UIModal
 ## Character overlay (Character action, C): the hero at large scale with level and XP, every
-## stat the Stats component computes (hover a stat for what it does) and the six skills with
-## their key, effective cooldown and cost (haste, talents and gear included) and description.
+## stat the Stats component computes (hover a stat for what it does) and the six skills as a
+## compact list; hovering or focusing a skill opens its SkillTooltip (damage, cooldown, cost...).
 
 const STAT_HELP := {
 	"Health": "Maximum health. Raised by Stamina.",
@@ -30,6 +30,8 @@ var _xp_bar: StatBar
 var _xp_label: Label
 var _offclass: Label
 var _skill_rows: Array = []
+var _tooltip: SkillTooltip
+var _tips_armed := false
 var _last_stats: Dictionary = {}
 var _last_level := -1
 
@@ -108,9 +110,34 @@ func _build() -> void:
 		row.slot = i
 		_skills_box.add_child(row)
 		_skill_rows.append(row)
+		row.mouse_entered.connect(_show_tip.bind(row))
+		row.focus_entered.connect(_focus_tip.bind(row))
+		row.mouse_exited.connect(_hide_tip.bind(row))
+		row.focus_exited.connect(_hide_tip.bind(row))
+	_tooltip = SkillTooltip.new()
+	add_child(_tooltip)
 	_refresh()
 	if not _skill_rows.is_empty():
 		_skill_rows[0].grab_focus.call_deferred()
+	(func(): _tips_armed = true).call_deferred()
+
+
+## Keyboard/gamepad focus opens the tooltip too, except for the focus the panel grabs on open.
+func _focus_tip(row: SkillRow) -> void:
+	if _tips_armed and InputSettings.focus_nav_active():
+		_show_tip(row)
+
+
+func _show_tip(row: SkillRow) -> void:
+	_tooltip.show_for(player, row.slot, row)
+
+
+## Leaving a row with the mouse falls back to the focused row's tooltip (gamepad/keyboard).
+func _hide_tip(row: SkillRow) -> void:
+	_tooltip.hide_for(row)
+	var f := get_viewport().gui_get_focus_owner()
+	if f is SkillRow and f != row and InputSettings.focus_nav_active():
+		_show_tip(f)
 
 
 func _process(_delta: float) -> void:
@@ -167,50 +194,39 @@ func _refresh() -> void:
 		row.refresh(player)
 
 
-## One skill: icon, name, key glyph, effective cooldown/cost and the description.
+## One skill in the compact list: icon, name and key glyph (details in the tooltip).
 class SkillRow:
 	extends PanelContainer
 	var slot := 0
 	var _icon: TextureRect
 	var _name: Label
 	var _glyph: InputGlyph
-	var _meta: Label
-	var _desc: Label
 
 	func _init() -> void:
 		theme_type_variation = &"GlassInset"
 		focus_mode = Control.FOCUS_ALL
-		mouse_filter = Control.MOUSE_FILTER_PASS
+		mouse_filter = Control.MOUSE_FILTER_STOP
 		var row := HBoxContainer.new()
 		row.add_theme_constant_override("separation", 8)
+		row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		add_child(row)
 		var frame := PanelContainer.new()
 		frame.add_theme_stylebox_override("panel", UITheme.glass(Color("05070bf2"), UITheme.GOLD_DIM, 1, 2))
-		frame.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+		frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		row.add_child(frame)
 		_icon = TextureRect.new()
 		_icon.custom_minimum_size = Vector2(32, 32)
 		_icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		frame.add_child(_icon)
-		var v := VBoxContainer.new()
-		v.add_theme_constant_override("separation", 1)
-		v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		row.add_child(v)
-		var top := HBoxContainer.new()
-		top.add_theme_constant_override("separation", 6)
-		v.add_child(top)
 		_name = UITheme.label("", UITheme.GOLD, UITheme.FONT_BODY)
-		top.add_child(_name)
+		_name.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_name.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		row.add_child(_name)
 		_glyph = InputGlyph.new("")
-		top.add_child(_glyph)
-		_meta = UITheme.label("", UITheme.CYAN, UITheme.FONT_SMALL)
-		_meta.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		_meta.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-		top.add_child(_meta)
-		_desc = UITheme.label("", UITheme.TEXT, UITheme.FONT_SMALL)
-		_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		_desc.custom_minimum_size = Vector2(200, 0)
-		v.add_child(_desc)
+		_glyph.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		_glyph.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		row.add_child(_glyph)
 		focus_entered.connect(func(): AudioManager.play_sfx("ui_move", 0.0))
 
 	func refresh(p: Player) -> void:
@@ -218,12 +234,3 @@ class SkillRow:
 		_icon.texture = GameData.texture("icons." + str(sk.get("icon", "attack")))
 		_name.text = str(sk.get("name", "?")) if slot > 0 else "%s  (primary)" % sk.get("name", "?")
 		_glyph.action = Player.SLOT_ACTIONS[slot]
-		var parts: Array = []
-		parts.append("CD %.1fs" % p.stats.cooldown_for(sk))
-		var cost := p.stats.cost_for(sk)
-		if cost > 0.0:
-			parts.append("%d %s" % [roundi(cost), str(p.class_def.resource).capitalize()])
-		if float(sk.get("cast_time", 0.0)) > 0.0:
-			parts.append("cast %.1fs" % float(sk.cast_time))
-		_meta.text = "  ".join(parts)
-		_desc.text = str(sk.get("description", ""))

@@ -23,7 +23,13 @@ var downed_left := 0.0
 var revive_progress := 0.0
 var xp := 0
 var talent_points := 0
-var talents: Dictionary = {}
+var talents: Dictionary = {}:
+	set(v):
+		talents = v
+		# Clients only receive the final stats; talent skill modifiers (cooldowns, costs, damage
+		# per skill) are rebuilt locally from the replicated ranks for the UI.
+		if stats and not class_def.is_empty():
+			stats.skill_mods = Stats.skill_mods_for(class_def, v)
 var appearance: Dictionary = {}:
 	set(v):
 		appearance = v
