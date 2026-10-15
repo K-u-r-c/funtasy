@@ -1,0 +1,14 @@
+{
+	"id": "training_dummy",
+	"creature_type": "undead",
+	"name": "Training Dummy",
+	"_comment": "Test only (never in a floor's monster list): a target that doesn't move or fight back.",
+	"test_only": true,
+	"sprite": "monsters.skeleton_archer",
+	"ai": {"type": "none", "aggro_radius": 0, "preferred_range": [0, 0], "abilities": []},
+	"base_stats": {"hp": 100000, "damage": 1, "armor": 0, "move_speed": 0, "crit_chance": 0.0, "dodge": 0.0},
+	"collision_radius": 9,
+	"xp": 0,
+	"tint": "#c8b090",
+	"no_corpse": true
+}

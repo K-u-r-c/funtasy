@@ -194,6 +194,10 @@ func _run() -> void:
 				await _wipe_scenario()
 			"classes":
 				await _classes_scenario()
+			"skills":
+				await SkillSuite.new(self).run_class(class_id)
+			"primitives":
+				await SkillSuite.new(self).run_primitives()
 			"idle":
 				await _wait(9999.0)
 			"boss":
