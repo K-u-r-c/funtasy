@@ -1,0 +1,205 @@
+{
+  "_comment": "PixelLab sources of the male hero (character 'Base Male V3 48' 07917d03-3dff-497d-9a72-8a895951376b, plate state 410dbbde-f083-486c-b7be-ccb4a9e7f785, robe state bed3a06d-427c-4856-94b6-dfe1e3ea93fa). Rebuild: python3 tools/build_hero.py tools/hero_male_sources.json <work dir>",
+  "config": "tools/hero_male.json",
+  "frame": 48,
+  "cell": 64,
+  "clips": [
+    [
+      "idle",
+      2
+    ],
+    [
+      "walk",
+      4
+    ],
+    [
+      "attack",
+      5
+    ],
+    [
+      "death",
+      4
+    ]
+  ],
+  "picks": {
+    "idle": [
+      0,
+      2
+    ],
+    "walk": [
+      0,
+      2,
+      4,
+      6
+    ],
+    "attack": [
+      0,
+      2,
+      3,
+      4,
+      5
+    ],
+    "death": [
+      0,
+      2,
+      4,
+      6
+    ],
+    "cast": [
+      0,
+      1,
+      2,
+      4,
+      5
+    ],
+    "dash": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "hit": [
+      0,
+      2,
+      4
+    ]
+  },
+  "anim_base": "https://backblaze.pixellab.ai/file/pixellab-characters/77723907-bb47-435c-8a8c-a8180a499da6/07917d03-3dff-497d-9a72-8a895951376b/animations/",
+  "anims": {
+    "idle": {
+      "south-east": "3ff40acc-da3d-49c2-82d1-66f6a5e60d79",
+      "south-west": "cefa48f1-d997-4b1b-aea2-0857565f1934",
+      "north-east": "041cc2fd-baad-47cc-bb6b-78cad767ba88",
+      "north": "997a5e09-5593-4867-a651-c0783c82b928",
+      "west": "b16e63a0-09a6-4fb6-afd6-13309010c13d",
+      "north-west": "6fd6b532-e4b4-4f45-af1e-ee5ade8d23ae",
+      "east": "26ee6514-d618-4f95-b953-029cfc189db1",
+      "south": "77e73ea8-d48d-4e96-92ef-55b36d8ac628"
+    },
+    "walk": {
+      "north": "f9581ce4-0c63-4aa6-9e14-b58d550fcd86",
+      "north-west": "78312128-655d-4ef2-9845-3b1095b3ba0f",
+      "north-east": "7f43212f-3a5b-45db-88ec-ca178243343f",
+      "west": "1f94376d-6359-43c3-b530-64970456912c",
+      "south-east": "46f441ad-1743-4a7f-8744-0b89de1d266d",
+      "south-west": "3764b4d9-0814-4522-ab27-587d085d7f2d",
+      "south": "0cae6505-e940-4f7e-b7ce-21cd0527a9ea",
+      "east": "4ff1a394-683c-455c-a076-16acfe1dab0f"
+    },
+    "attack": {
+      "north": "2e27e959-cb36-4737-a39e-e59f7477493e",
+      "north-east": "8a7d5cbc-b83e-4ac6-a7e0-2f1889cddc41",
+      "north-west": "b5d38b96-c90c-401c-9422-18313d3d0c8a",
+      "south-west": "58e31fe4-daf7-46a2-b9e6-4ddd249bae9e",
+      "west": "1e2b71c5-54b7-4a3d-b4ad-fc74c0d02021",
+      "south-east": "ccbf34fa-befb-4701-b0d0-bf7eacf95d8f",
+      "south": "86aeb881-4ec2-4843-93d6-444f8e08d087",
+      "east": "b24f6885-5df5-4459-acc4-9122e98513da"
+    },
+    "death": {
+      "north-east": "ecf1f9a0-0b2b-4ee2-bf71-a0f49d6bb7d0",
+      "north": "069f8653-6c5e-4b58-9aa7-55bb7e4db8c4",
+      "north-west": "3b73df97-1f27-4bf2-9d4d-7b7977e453b9",
+      "west": "252f713d-a310-4de1-a9e4-71f80fa46637",
+      "south-east": "b32c9ec3-6411-4492-881e-85d283e54670",
+      "south-west": "7a77e92b-17c9-4249-aeeb-a68aefa83d4b",
+      "south": "8a7ad817-db66-465c-a716-8325a14d3d62",
+      "east": "8520c9b8-3936-42ab-9d3c-b54c085d5b6d"
+    },
+    "cast": {
+      "south-east": "ce035327-221f-47f6-b43a-1b091e2245fb",
+      "north": "f7a1e75f-0190-4ea9-ac85-0555f68f0bd5",
+      "east": "c69ca82b-01e1-4868-9a4d-698236b82562",
+      "north-east": "9547a312-7376-47c2-914b-b0d96977b86a",
+      "south": "3c7341d5-fc71-484a-9c77-da8d9e5afebb"
+    },
+    "dash": {
+      "north-east": "bd687d60-ca5a-45c2-bf00-7ecd92c1155e",
+      "south-east": "4a264bb5-5747-4793-a919-e0c605950f90",
+      "north": "b4fb9d5b-1781-4dd8-b84b-919fcda91ff2",
+      "east": "dee19b5c-74e2-48cb-bfef-3683af26bad3",
+      "south": "ce8e02b7-c91c-40e5-bb20-c5bdc6e59565"
+    },
+    "hit": {
+      "north-east": "d22e9143-d544-40c2-abab-3b7a88a83160",
+      "north": "129dfbfb-0bde-49c8-ba5a-e6054b422a05",
+      "east": "030e48c3-d823-4cd4-bddb-32c48aa1cf86",
+      "south-east": "c46c0bef-6864-4c82-b861-59c0ebb150c8",
+      "south": "de8dd42c-74b2-4104-8aa0-a115d156ceb1"
+    }
+  },
+  "mirror": {
+    "west": "east",
+    "north-west": "north-east",
+    "south-west": "south-east"
+  },
+  "outfits": {
+    "plate": {
+      "src_dir": "res://assets/sprites/pixellab/gear_src/male_plate",
+      "jobs": {
+        "south": "9c80d794-0b3d-48f6-9529-5839a561ed01",
+        "east": "d87ca3a9-c9db-467a-9022-cc155e16b665",
+        "south-east": "1a84bc3a-cc3b-43ce-bdc9-6184f5c69134",
+        "north": "e8c3b704-b79a-40fc-b8a3-7001116b9b20",
+        "north-east": "f0da3626-2149-4e06-8328-dc1f320914b6"
+      },
+      "jobs2": {
+        "south": "b56f5bee-e813-4c08-bd41-76a5078ae4e0",
+        "east": "66e9d263-dfc6-4cf6-bb2c-dafccae19e25",
+        "south-east": "52784ed0-007e-4fc8-8f88-cdd2f57c7ca8",
+        "north": "c96ccff9-ccf7-4289-90af-5c27da0201cc",
+        "north-east": "3bb03462-6b5d-4e63-973c-1ea907c1ad4f"
+      }
+    },
+    "cloth": {
+      "src_dir": "res://assets/sprites/pixellab/gear_src/male_cloth",
+      "jobs": {
+        "south": "9aebac84-9846-4b57-9cbc-2b4a1e9edf2d",
+        "east": "aada1f29-39ac-45f6-89ba-0af3e4482479",
+        "south-east": "ee2d04fa-04a2-4c1c-a0a2-e4d21035b8b8",
+        "north": "9a8eb381-475d-4a71-bea2-3fce5401dd2f",
+        "north-east": "e917d8f5-8588-4743-875f-ae838c6ab116"
+      },
+      "jobs2": {
+        "south": "97d7d6fa-15d3-4881-b658-5d2426168dc6",
+        "east": "a02d57be-1ff3-4e94-9f5b-4cf3fa9ec321",
+        "south-east": "70216587-3e58-459d-8ffb-3daa464daca3",
+        "north": "660bcc30-4585-4a0f-bf1d-eb61847bfd58",
+        "north-east": "563aef28-242b-489c-810c-ca6809503753"
+      }
+    }
+  },
+  "clips2": [
+    [
+      "cast",
+      5
+    ],
+    [
+      "dash",
+      4
+    ],
+    [
+      "hit",
+      3
+    ]
+  ],
+  "strip_glow": [
+    "cast"
+  ],
+  "ghost": {
+    "anim_base": "https://backblaze.pixellab.ai/file/pixellab-characters/77723907-bb47-435c-8a8c-a8180a499da6/80e87f22-cf66-468b-ab61-1079ec49e46e/animations/",
+    "anims": {
+      "north-east": "203d3b6c-afea-47d9-b30a-cc00a4c257e7",
+      "north": "e987349e-3ba0-43c6-adcc-a89db051b396",
+      "east": "b1cac36e-fbd9-4a12-a3e4-e19099a1ca61",
+      "south-east": "3091e0a6-3003-4092-8406-c85503dbd839",
+      "south": "77439b61-86e7-48d8-8603-9465d9ef28bb"
+    },
+    "pick": [
+      0,
+      1,
+      2,
+      3
+    ]
+  }
+}

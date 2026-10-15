@@ -1,0 +1,196 @@
+{
+  "_comment": "PixelLab sources of the female hero (character 'Base Female V3 48' b20ba156-9faa-4c6b-adf8-a2c1b64fe244, plate state 60f32847-1c15-4cc3-866e-ce7dacdf2f0b, robe state 6fa9a59a-17a6-42fa-9df3-b64401c5c806). Rebuild: python3 tools/build_hero.py tools/hero_female_sources.json <work dir>",
+  "config": "tools/hero_female.json",
+  "frame": 48,
+  "cell": 64,
+  "clips": [
+    [
+      "idle",
+      2
+    ],
+    [
+      "walk",
+      4
+    ],
+    [
+      "attack",
+      5
+    ],
+    [
+      "death",
+      4
+    ]
+  ],
+  "picks": {
+    "idle": [
+      0,
+      2
+    ],
+    "walk": [
+      0,
+      2,
+      4,
+      6
+    ],
+    "attack": [
+      0,
+      2,
+      3,
+      4,
+      5
+    ],
+    "death": [
+      0,
+      2,
+      4,
+      6
+    ],
+    "cast": [
+      0,
+      1,
+      2,
+      4,
+      5
+    ],
+    "dash": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "hit": [
+      0,
+      2,
+      4
+    ]
+  },
+  "anim_base": "https://backblaze.pixellab.ai/file/pixellab-characters/77723907-bb47-435c-8a8c-a8180a499da6/b20ba156-9faa-4c6b-adf8-a2c1b64fe244/animations/",
+  "anims": {
+    "idle": {
+      "south-east": "fa8d8438-8c06-465f-ac20-97edc23b723f",
+      "north": "104eefee-f39b-47eb-b6c2-00cdac184fdc",
+      "north-east": "83ba24b3-0fec-40fe-9c8a-1d2b79113186",
+      "south": "38315570-cf84-40ee-b1cf-edb70695cfbf",
+      "east": "23893fd5-59c6-46c8-9115-db55638d8cb3"
+    },
+    "walk": {
+      "north-east": "e0d1f4a7-927d-4bfa-8d4a-c4f353a76ac5",
+      "north": "c5dfe97a-ab8d-44bf-8c71-6c6f345895e3",
+      "south-east": "01befbc0-4800-4a4d-9707-28bb078f296d",
+      "east": "3c49f22b-8438-4919-87b0-895cf4dbc0ea",
+      "south": "ce81e688-037e-4269-ac19-dcf95454e7e1"
+    },
+    "attack": {
+      "north": "52c9adf5-9b15-406e-8460-7a0c3d2465c3",
+      "north-east": "4ced6130-99c0-4d9b-bab8-d739287b1846",
+      "south-east": "9f6548bb-0963-4ce6-9fe3-fe894331ed2e",
+      "east": "35380f72-4eb5-43d3-b16f-fc8756f5565a",
+      "south": "cbb88987-afd6-427c-b695-19bb79a28109"
+    },
+    "death": {
+      "south": "a01c2156-1e95-4442-b74f-6599d3ae9799",
+      "north": "04699655-2954-4a89-9d18-72a6189a6510",
+      "north-east": "153c4316-9476-4acf-a1e2-2519def2eb79",
+      "east": "815c3997-a82b-4a1c-b95b-d1ce9473fed2",
+      "south-east": "88343f7c-f42e-4dcd-8246-ca71d7e10e3a"
+    },
+    "cast": {
+      "south-east": "42bf7fb9-2554-499c-a624-981e7aeb6e44",
+      "east": "867a974c-ba2d-47bc-8072-3929268395dc",
+      "north-east": "2f9fb60d-97c0-4499-8ca8-adf421eafce0",
+      "north": "2ed1a46f-8bdf-4721-abac-d4ea44428a24",
+      "south": "f97e0819-203d-4a08-9b60-bd9dff15b25d"
+    },
+    "dash": {
+      "north": "f9ab007a-c883-4a2a-86af-9beb50a195ab",
+      "north-east": "4053ff1c-3bb1-49de-a7f7-d96352909e4e",
+      "east": "69e1dd2e-7349-444f-a571-b2f8b4abef93",
+      "south-east": "33c298bd-95f4-44a0-a3a3-0e7ac18038a8",
+      "south": "1e2afbf0-c702-492d-8a60-941deb6b6721"
+    },
+    "hit": {
+      "north-east": "7b55dafe-0681-4eea-9281-fe7fc17c5814",
+      "east": "83f027d6-466d-417c-ab7b-892e45e39ee5",
+      "north": "e236f532-9076-4e4a-81bc-57b154aba9ab",
+      "south-east": "43407131-4553-46ef-a9c2-6b45eb05ffc2",
+      "south": "90ddfe45-7377-4689-bf69-8cc0beb9f3da"
+    }
+  },
+  "mirror": {
+    "west": "east",
+    "north-west": "north-east",
+    "south-west": "south-east"
+  },
+  "outfits": {
+    "plate": {
+      "src_dir": "res://assets/sprites/pixellab/gear_src/female_plate",
+      "jobs": {
+        "south": "dd05ffb1-a0b8-4423-9c21-d1ed1b753da1",
+        "east": "85d203a4-b726-4070-a0c4-e0cb13746ff8",
+        "north": "06799f3e-8779-44e2-9bdb-a8788881704b",
+        "north-east": "51a4870c-b43e-46b1-b4cd-f8b8012e0eef",
+        "south-east": "6da5fb03-1e8b-49c7-b9d7-aa40f3cc43ad"
+      },
+      "jobs2": {
+        "south": "53fe4b46-d149-48bc-a88b-0c321a424a5f",
+        "east": "dbbcde71-a1e9-4a51-9064-52d62288e2aa",
+        "south-east": "d8109c6c-9337-4773-bd77-6cb960e301b2",
+        "north": "c7a6fd49-62ec-4a01-86ea-bb4d40458e21",
+        "north-east": "8daf180e-8ca5-4e4d-b1a6-bb9e587f05a6"
+      }
+    },
+    "cloth": {
+      "src_dir": "res://assets/sprites/pixellab/gear_src/female_cloth",
+      "jobs": {
+        "south": "965c6d2c-72d7-4785-bdce-1b3542bc0ad5",
+        "east": "dbe7f15e-2ced-44f6-b26b-2361c33c5576",
+        "south-east": "05ddb8a3-efdf-45b7-a194-f2f85f1c4af8",
+        "north": "4479fd31-3ecf-4695-bcc9-5a9727e734bb",
+        "north-east": "fc038d1e-c9bd-4456-874c-aaa4356aa704"
+      },
+      "jobs2": {
+        "south": "e0dddd3e-5fd3-4a37-bd7e-7e8b148c61d1",
+        "east": "5817a973-4ff2-4fe7-ae49-19abc189650a",
+        "south-east": "8dadddbf-91f0-46d6-a77e-fcf45268c286",
+        "north": "6d23a66a-b386-4630-8a07-d14efd50b9de",
+        "north-east": "4b1a2c34-7bae-4e8d-ba1d-61d9e94a9155"
+      }
+    }
+  },
+  "strip_glow": [
+    "cast"
+  ],
+  "clips2": [
+    [
+      "cast",
+      5
+    ],
+    [
+      "dash",
+      4
+    ],
+    [
+      "hit",
+      3
+    ]
+  ],
+  "ghost": {
+    "anim_base": "https://backblaze.pixellab.ai/file/pixellab-characters/77723907-bb47-435c-8a8c-a8180a499da6/96aede29-7f17-42cb-8538-5f770f2dff8c/animations/",
+    "anims": {
+      "north": "dd6dfd94-a0d3-422b-8e98-1a086dcd5519",
+      "north-east": "c925643d-87c6-4184-87d4-9a3c40dbff21",
+      "east": "08f4d407-5043-4ce2-a40f-fcc36e4cf532",
+      "south-east": "73c0f65b-26d4-409d-9363-d95c94644821",
+      "south": "9c737086-38bb-4fa7-a2d5-55c590dfa1ca"
+    },
+    "pick": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "fix_colors": [
+      "#a5496c"
+    ]
+  }
+}

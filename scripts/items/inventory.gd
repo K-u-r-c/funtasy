@@ -158,7 +158,9 @@ func appearance() -> Dictionary:
 			layer = "offhand"
 		var rar := GameData.rarity(int(it.get("rarity", 1)))
 		var tint := Color.from_string(str(it.get("tint", "#ffffff")), Color.WHITE).lerp(Color.from_string(rar.color, Color.WHITE), 0.3)
-		out[layer] = ["characters.layers." + str(it.appearance), tint.to_html(false)]
+		# The worn art has its own colours; the tint (a multiply) only shades it.
+		tint = Color.WHITE.lerp(tint, float(GameData.bal("inventory.appearance_tint", 0.4)))
+		out[layer] = [str(it.appearance), tint.to_html(false)]
 	return out
 
 

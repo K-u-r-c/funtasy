@@ -124,7 +124,8 @@
 	},
 	"inventory": {
 		"start_capacity": 12,
-		"max_capacity": 32
+		"max_capacity": 32,
+		"appearance_tint": 0.4
 	},
 	"ai": {
 		"think_interval": 0.2,

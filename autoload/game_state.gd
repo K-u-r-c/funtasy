@@ -3,7 +3,7 @@ extends Node
 ## - which game the party plays: a new one, or a saved game the host continues
 ##   (`game_info`, replicated). Saves belong to games, not to characters: a saved game has a
 ##   fixed party size and its own heroes, and a party wipe ends (deletes) it;
-## - the lobby roster (peer id -> name/class/level/slot), replicated by the host;
+## - the lobby roster (peer id -> name/class/gender/level/slot), replicated by the host;
 ## - the host's game settings (data/game_settings.json), replicated to every client;
 ## - host-only: the authoritative character of every peer and the saved-game record.
 
@@ -11,11 +11,11 @@ signal roster_changed
 signal settings_changed
 signal game_changed
 
-var roster: Dictionary = {}  ## peer id -> {name, class_id, level, slot}
+var roster: Dictionary = {}  ## peer id -> {name, class_id, gender, level, slot}
 var settings: Dictionary = {}  ## game setting id -> value
-## Replicated: {mode: "new"|"continue", id, party_size, depth, members: [{name, class_id, level}]}
+## Replicated: {mode: "new"|"continue", id, party_size, depth, members: [{name, class_id, gender, level}]}
 var game_info: Dictionary = {}
-var local_choice: Dictionary = {}  ## this peer's pick: {name, class_id} (new) or {slot} (continue)
+var local_choice: Dictionary = {}  ## this peer's pick: {name, class_id, gender} (new) or {slot} (continue)
 var last_hero: Dictionary = {}  ## last name/class this peer typed, to pre-fill the lobby
 
 # Host only
@@ -33,9 +33,9 @@ func _ready() -> void:
 	NetworkManager.session_closed.connect(_on_session_closed)
 
 
-static func new_character(char_name: String, class_id: String) -> Dictionary:
+static func new_character(char_name: String, class_id: String, gender: String = "") -> Dictionary:
 	return {
-		"name": char_name, "class_id": class_id, "level": 1, "xp": 0,
+		"name": char_name, "class_id": class_id, "gender": CharacterSprite.valid_gender(gender), "level": 1, "xp": 0,
 		"talents": {}, "equipment": {}, "backpack": [],
 		"backpack_capacity": int(GameData.bal("inventory.start_capacity", 12)),
 		"quick": {"q": "", "e": ""},
@@ -68,7 +68,7 @@ func select_saved_game(id: String) -> bool:
 	game = g
 	var members: Array = []
 	for m in g.members:
-		members.append({"name": m.name, "class_id": m.class_id, "level": int(m.level)})
+		members.append({"name": m.name, "class_id": m.class_id, "gender": CharacterSprite.valid_gender(str(m.get("gender", ""))), "level": int(m.level)})
 	game_info = {"mode": "continue", "id": g.id, "party_size": int(g.party_size), "depth": int(g.get("depth", 1)), "members": members}
 	_reset_choices()
 	return true
@@ -150,9 +150,9 @@ func _sync_game(info: Dictionary) -> void:
 # =========================================================================================
 
 
-## New game: play a fresh level 1 hero with this name and class.
-func choose_new_character(char_name: String, class_id: String) -> void:
-	local_choice = {"name": char_name, "class_id": class_id}
+## New game: play a fresh level 1 hero with this name, class and gender.
+func choose_new_character(char_name: String, class_id: String, gender: String = "") -> void:
+	local_choice = {"name": char_name, "class_id": class_id, "gender": CharacterSprite.valid_gender(gender)}
 	last_hero = local_choice.duplicate()
 	_submit()
 
@@ -164,8 +164,8 @@ func claim_slot(slot: int) -> void:
 
 
 ## Kept for the test driver and old callers: same as choose_new_character.
-func select_character(char_name: String, class_id: String) -> void:
-	choose_new_character(char_name, class_id)
+func select_character(char_name: String, class_id: String, gender: String = "") -> void:
+	choose_new_character(char_name, class_id, gender)
 
 
 func _submit() -> void:
@@ -193,16 +193,17 @@ func _apply_choice(peer: int, choice: Dictionary) -> void:
 				return  # already taken
 		var ch: Dictionary = game.members[slot].duplicate(true)
 		characters[peer] = ch
-		roster[peer] = {"name": ch.name, "class_id": ch.class_id, "level": int(ch.level), "slot": slot}
+		ch.gender = CharacterSprite.valid_gender(str(ch.get("gender", "")))  # saves from before genders
+		roster[peer] = {"name": ch.name, "class_id": ch.class_id, "gender": ch.gender, "level": int(ch.level), "slot": slot}
 	else:
 		var cid := str(choice.get("class_id", ""))
 		if not GameData.classes.has(cid):
 			return
-		var ch2 := new_character(str(choice.get("name", "Hero")).strip_edges().substr(0, 16), cid)
+		var ch2 := new_character(str(choice.get("name", "Hero")).strip_edges().substr(0, 16), cid, str(choice.get("gender", "")))
 		if ch2.name.is_empty():
 			ch2.name = "Hero"
 		characters[peer] = ch2
-		roster[peer] = {"name": ch2.name, "class_id": cid, "level": 1, "slot": -1}
+		roster[peer] = {"name": ch2.name, "class_id": cid, "gender": ch2.gender, "level": 1, "slot": -1}
 	_broadcast_roster()
 
 

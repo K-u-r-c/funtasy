@@ -1,0 +1,553 @@
+{
+	"_comment": "PixelLab sources of the monsters and the boss (v3 characters + template / v3 animations; W, NW, SW mirrored). Rebuild: python3 tools/build_monster.py tools/monsters_sources.json <work dir> [name ...]",
+	"anim_base": "https://backblaze.pixellab.ai/file/pixellab-characters/77723907-bb47-435c-8a8c-a8180a499da6/",
+	"monsters": {
+		"ghoul": {
+			"character": "ade2bc11-2372-4166-9cb3-94d8644a1539",
+			"cell": 64,
+			"canvas": 48,
+			"out": "res://assets/sprites/pixellab/monsters/ghoul",
+			"mirror": {
+				"west": "east",
+				"north-west": "north-east",
+				"south-west": "south-east"
+			},
+			"anims": {
+				"idle": {
+					"src": "idle",
+					"pick": [
+						0,
+						1,
+						2,
+						3
+					],
+					"fps": 5
+				},
+				"walk": {
+					"src": "walk",
+					"pick": [
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7
+					],
+					"fps": 12
+				},
+				"attack": {
+					"src": "attack",
+					"pick": [
+						0,
+						1,
+						2,
+						3,
+						4,
+						5
+					],
+					"fps": 14
+				},
+				"cast": {
+					"src": "attack",
+					"pick": [
+						0,
+						1,
+						2,
+						3,
+						4,
+						5
+					],
+					"fps": 12
+				},
+				"dash": {
+					"src": "walk",
+					"pick": [
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7
+					],
+					"fps": 16
+				},
+				"hit": {
+					"src": "idle",
+					"pick": [
+						0,
+						1
+					],
+					"fps": 10
+				},
+				"downed": {
+					"src": "death",
+					"pick": [
+						6,
+						6
+					],
+					"fps": 2
+				},
+				"death": {
+					"src": "death",
+					"pick": [
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6
+					],
+					"fps": 10
+				}
+			},
+			"groups": {
+				"idle": {
+					"north": "c5e99c19-a685-4e1c-85a6-3a983f671967",
+					"south-east": "7d38e9b4-2e64-4c4b-8190-17c8c099b2e7",
+					"north-east": "b33e0127-3b8c-48b2-984f-9f8df389e1bc",
+					"east": "ac324eb4-e9cf-42be-9102-5048cc076d03",
+					"south": "1d09da9b-df04-46d7-904a-2a8d9a7fc567"
+				},
+				"walk": {
+					"south-east": "b64b2bb0-df24-4b13-96e2-6c99d4add479",
+					"north": "3a04ef63-a14b-46c5-b733-81c5471ec532",
+					"north-east": "2df35802-934c-463a-b8b9-e6049f0fc5f2",
+					"east": "772a44ce-3bfc-420f-8d69-c6dca54bbacf",
+					"south": "24460fcd-ce44-4f66-a33e-3b50256faf99"
+				},
+				"attack": {
+					"north": "76a59b83-d591-48cb-b871-8b586bf77d62",
+					"east": "57a9fd5d-aed5-4c66-a400-b89808fafde9",
+					"north-east": "ea6231ad-9217-4b7d-93a0-2827d4f05672",
+					"south-east": "d2503ee6-010c-4d5e-b59b-2f7729b9b60f",
+					"south": "298f1deb-b38c-4390-8f14-747e39cf16da"
+				},
+				"death": {
+					"north": "a81478f1-a382-4b32-ae89-1e99f5c4ab42",
+					"north-east": "efa9d8f8-0864-4b40-9ec2-2cd13455bfd1",
+					"east": "4c5c2e45-ece5-4f77-bcb3-005600acaf86",
+					"south-east": "c9af4ebb-9dfb-4d1d-8af8-686cd858b903",
+					"south": "255f0981-f4be-4c5c-b856-95772f55b68e"
+				}
+			}
+		},
+		"skeleton_archer": {
+			"character": "f37e4e44-8d1d-4d87-aca6-09dba978c949",
+			"cell": 64,
+			"canvas": 48,
+			"out": "res://assets/sprites/pixellab/monsters/skeleton_archer",
+			"mirror": {
+				"west": "east",
+				"north-west": "north-east",
+				"south-west": "south-east"
+			},
+			"anims": {
+				"idle": {
+					"src": "idle",
+					"pick": [
+						0,
+						1,
+						2,
+						3
+					],
+					"fps": 5
+				},
+				"walk": {
+					"src": "walk",
+					"pick": [
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7
+					],
+					"fps": 12
+				},
+				"attack": {
+					"src": "attack",
+					"pick": [
+						0,
+						1,
+						2,
+						3,
+						4,
+						5
+					],
+					"fps": 14
+				},
+				"cast": {
+					"src": "attack",
+					"pick": [
+						0,
+						1,
+						2,
+						3,
+						4,
+						5
+					],
+					"fps": 12
+				},
+				"dash": {
+					"src": "walk",
+					"pick": [
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7
+					],
+					"fps": 16
+				},
+				"hit": {
+					"src": "idle",
+					"pick": [
+						0,
+						1
+					],
+					"fps": 10
+				},
+				"downed": {
+					"src": "death",
+					"pick": [
+						6,
+						6
+					],
+					"fps": 2
+				},
+				"death": {
+					"src": "death",
+					"pick": [
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6
+					],
+					"fps": 10
+				}
+			},
+			"groups": {
+				"idle": {
+					"south": "6439a0af-ab1b-40b8-a59b-2348ae102245",
+					"north": "88d648f3-ed21-43a0-9ca9-eddc4f8c35ae",
+					"north-east": "3e011766-b1fe-4615-bccf-34f0e17f3742",
+					"south-east": "1bb3eade-3b97-4718-bb12-f09109478285",
+					"east": "4df13e33-8184-4b95-94f6-3d8d1944a5f0"
+				},
+				"walk": {
+					"north": "5c38874a-118a-4511-a926-a016ae09348c",
+					"south": "429cc069-f01d-439a-a0db-b7103d9c9d8b",
+					"north-east": "62ade06a-ddbb-46ac-a769-6edcd45cbd62",
+					"south-east": "4a7cf937-1483-4bf3-abea-e403109f1bb4",
+					"east": "3c61e035-7c26-4363-b259-e1cf64b6ded2"
+				},
+				"attack": {
+					"north": "fc41a3bf-8f4b-4fd5-b1f5-fec7ed88afed",
+					"east": "c718b32f-8a98-4722-a35e-ca2ddec2e111",
+					"north-east": "4f10652a-1fc1-425e-9f16-aa10b6e2f3eb",
+					"south": "d92f0849-1c37-4d01-a8f2-eca8f5eaaafa",
+					"south-east": "4d39f5b7-af4e-46f5-b154-4b56d60eb78b"
+				},
+				"death": {
+					"north": "a37d9b19-ee85-4177-aa41-c6fe6f37c675",
+					"north-east": "8e71ec01-e5d7-4c6f-bce0-9b0601289546",
+					"east": "a4896916-d0c0-4563-8e6c-83eefedd07da",
+					"south-east": "ead0e2fd-e3e1-469c-8c83-abf24e7633f4",
+					"south": "3c8731de-f9ca-4ecb-8f23-5a51cf08ca0e"
+				}
+			}
+		},
+		"cultist": {
+			"character": "6f2ea336-dd71-422b-8993-85aacc714daf",
+			"cell": 64,
+			"canvas": 48,
+			"out": "res://assets/sprites/pixellab/monsters/cultist",
+			"mirror": {
+				"west": "east",
+				"north-west": "north-east",
+				"south-west": "south-east"
+			},
+			"anims": {
+				"idle": {
+					"src": "idle",
+					"pick": [
+						0,
+						1,
+						2,
+						3
+					],
+					"fps": 5
+				},
+				"walk": {
+					"src": "walk",
+					"pick": [
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7
+					],
+					"fps": 12
+				},
+				"attack": {
+					"src": "attack",
+					"pick": [
+						0,
+						1,
+						2
+					],
+					"fps": 10
+				},
+				"cast": {
+					"src": "cast",
+					"pick": [
+						0,
+						1,
+						2,
+						3,
+						4,
+						5
+					],
+					"fps": 12
+				},
+				"dash": {
+					"src": "walk",
+					"pick": [
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7
+					],
+					"fps": 16
+				},
+				"hit": {
+					"src": "idle",
+					"pick": [
+						0,
+						1
+					],
+					"fps": 10
+				},
+				"downed": {
+					"src": "death",
+					"pick": [
+						6,
+						6
+					],
+					"fps": 2
+				},
+				"death": {
+					"src": "death",
+					"pick": [
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6
+					],
+					"fps": 10
+				}
+			},
+			"groups": {
+				"idle": {
+					"north": "b1e0a55e-b2a7-4eb1-8649-86793a858aec",
+					"north-east": "f24dc242-99ee-4d77-b5d6-127f2de996c1",
+					"east": "7d8efc60-0ca3-4999-8c21-242a9b8cd8ec",
+					"south": "18990941-d16e-4579-bf57-c54bb62cddb0",
+					"south-east": "92ce3598-c8e2-4d43-908f-7deba0ba7c2b"
+				},
+				"walk": {
+					"north": "eccc7f7f-016e-457b-b74e-4ddd7693758f",
+					"north-east": "aef5250a-25f6-4702-944b-cf1d1cde0aec",
+					"east": "c843b29c-90dc-4dda-b167-06d4ed56fce5",
+					"south-east": "63284a75-99ff-4e50-a8a7-59d5ecc06af9",
+					"south": "ad7a438e-facb-4d77-9c14-bf3d24ba94b9"
+				},
+				"attack": {
+					"north": "a4d68520-31f2-4ae3-b60a-7a9dc928ee12",
+					"east": "dcc1d16b-7571-4444-b6a0-9a8c87725f5e",
+					"south-east": "eb3ef608-3fd0-455c-b29f-eb13756e088f",
+					"north-east": "677c112e-e302-4d95-905c-2c398e659400",
+					"south": "f74cb9a5-24fa-4b14-8066-fd3bf0329008"
+				},
+				"cast": {
+					"north-east": "684d70a4-01b3-4896-865b-55052f6c22bd",
+					"east": "52e33b1f-cf7b-46aa-8087-a999fe94f4b5",
+					"north": "9ef1479a-d876-4e20-9835-fa622d9d0207",
+					"south-east": "1ae78094-4065-466b-978a-7c1d895ad00c",
+					"south": "07992c43-3d5e-446d-b850-605d7d665389"
+				},
+				"death": {
+					"north": "2ed7f838-07a7-4e43-b08a-1dd2ac8de292",
+					"north-east": "d8a1edf6-404d-4e47-9939-dbb7e26268d0",
+					"south-east": "1c5328b3-040f-4137-9536-bd6998f23e5b",
+					"south": "0811cd7e-7af8-4dcc-b347-f543f85b88fa",
+					"east": "1c04dfe8-10e1-40ad-beab-83058a6ab1de"
+				}
+			}
+		},
+		"bone_lord": {
+			"character": "d2cb849e-35e3-4d43-bccc-c75a053283a3",
+			"cell": 112,
+			"canvas": 76,
+			"out": "res://assets/sprites/pixellab/monsters/bone_lord",
+			"mirror": {
+				"west": "east",
+				"north-west": "north-east",
+				"south-west": "south-east"
+			},
+			"anims": {
+				"idle": {
+					"src": "idle",
+					"pick": [
+						0,
+						1,
+						2,
+						3
+					],
+					"fps": 5
+				},
+				"walk": {
+					"src": "walk",
+					"pick": [
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7
+					],
+					"fps": 12
+				},
+				"attack": {
+					"src": "attack",
+					"pick": [
+						0,
+						1,
+						2,
+						3,
+						4,
+						5
+					],
+					"fps": 12
+				},
+				"cast": {
+					"src": "cast",
+					"pick": [
+						0,
+						1,
+						2,
+						3,
+						4,
+						5
+					],
+					"fps": 12
+				},
+				"dash": {
+					"src": "walk",
+					"pick": [
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7
+					],
+					"fps": 16
+				},
+				"hit": {
+					"src": "idle",
+					"pick": [
+						0,
+						1
+					],
+					"fps": 10
+				},
+				"downed": {
+					"src": "death",
+					"pick": [
+						6,
+						6
+					],
+					"fps": 2
+				},
+				"death": {
+					"src": "death",
+					"pick": [
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6
+					],
+					"fps": 10
+				}
+			},
+			"groups": {
+				"idle": {
+					"east": "eb5df9f8-4d96-49fe-8475-e03147651f86",
+					"south-east": "644f50f7-93c9-430e-9324-1e803ae6e9e7",
+					"north": "0d1247c5-bd98-4bd5-87bb-4fc0e5d6c291",
+					"south": "d9f456d3-f2f9-4f2a-8fb5-eb61f199e34c",
+					"north-east": "111f23b8-689d-4577-80f5-706e71967cf7"
+				},
+				"walk": {
+					"south-east": "2cf1f84c-8863-4602-9ccd-0b0ee556ca12",
+					"east": "6a507c96-786e-40a5-a729-99f3130cacc8",
+					"north": "aeb0487a-2dd7-4c16-8044-43bfbb0ab7cf",
+					"north-east": "fb6e1ac7-2b05-4cfd-91f4-dcf1921aa8b0",
+					"south": "225caec6-6926-4bdd-877f-22da31355bb3"
+				},
+				"attack": {
+					"north-east": "001e3c92-591f-4fb5-842d-20908b98fe19",
+					"east": "2cfba777-f17f-4f0c-88e2-736f26d6f1b9",
+					"south-east": "5fd230fb-5b04-4ee6-bab7-e6799a4ad4ef",
+					"north": "fcc874df-884d-4c97-91a9-a3cce8d20ced",
+					"south": "6e9b8936-28cd-454c-9010-614b79eeaa10"
+				},
+				"cast": {
+					"north-east": "7477c40f-76a4-4a6e-9520-e87b34c1c1f3",
+					"north": "0e3ac33f-d0cb-4d85-a8c6-4d683926c7eb",
+					"east": "6dea5dcb-0f0f-4730-9ed9-b29a03c14eb8",
+					"south-east": "376e795c-1048-4340-b9af-8dc8e2a19de2",
+					"south": "e41795a1-aa02-484e-b0e2-f7b96b8230fe"
+				},
+				"death": {
+					"north": "ee33968e-81a8-4438-929f-74bed275d368",
+					"north-east": "5b7fb513-4120-4f54-a66c-63fdd16d95a8",
+					"east": "489a3fd5-25de-4925-b0f6-5238a3f11eb7",
+					"south-east": "f1fc335e-77b4-4b86-a06e-5c8bc0c006a5",
+					"south": "6fe03e04-8453-4bca-9ab6-0295e437785e"
+				}
+			}
+		}
+	}
+}

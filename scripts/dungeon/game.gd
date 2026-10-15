@@ -137,7 +137,7 @@ func _place_players() -> void:
 		var connected: bool = id == 1 or multiplayer.get_peers().has(id)
 		if existing == null and connected:
 			var r: Dictionary = GameState.roster[id]
-			player_spawner.spawn({"peer": id, "pos": pos, "class_id": r.class_id, "name": r.name, "level": r.level})
+			player_spawner.spawn({"peer": id, "pos": pos, "class_id": r.class_id, "gender": r.get("gender", ""), "name": r.name, "level": r.level})
 		elif existing:
 			existing.host_teleport(pos)
 			if existing.life_state != Player.Life.ALIVE:

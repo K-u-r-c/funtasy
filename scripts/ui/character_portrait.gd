@@ -24,7 +24,11 @@ func _init(p_crop := true, p_scale := 2) -> void:
 func _src_rect() -> Rect2:
 	# The body's asset entry may override the global frame size / portrait crop (final art).
 	var chars: Dictionary = GameData.assets.get("characters", {})
-	var body: Dictionary = chars.get("layers", {}).get("body_human", {})
+	var body: Dictionary = {}
+	if is_instance_valid(actor) and actor.get("sprite") != null:
+		body = actor.sprite.body_entry()
+	if body.is_empty():
+		body = GameData.asset_entry(CharacterSprite.body_key(""))
 	if crop:
 		var c: Array = body.get("portrait_crop", chars.get("portrait_crop", [16, 8, 32, 32]))
 		return Rect2(c[0], c[1], c[2], c[3])

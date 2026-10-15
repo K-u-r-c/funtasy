@@ -143,8 +143,11 @@ func play_action(anim_name: String, dir: Vector2) -> void:
 	if dir != Vector2.ZERO:
 		facing = dir
 	_action_anim = anim_name
-	var anim_def: Dictionary = GameData.assets.characters.anims.get(anim_name, {"frames": 4, "fps": 10})
-	_action_left = float(anim_def.frames) / float(anim_def.fps)
+	if sprite and sprite.anim_length(anim_name) > 0.0:
+		_action_left = sprite.anim_length(anim_name)  # the art's own frames / fps
+	else:
+		var anim_def: Dictionary = GameData.assets.characters.anims.get(anim_name, {"frames": 4, "fps": 10})
+		_action_left = float(anim_def.frames) / float(anim_def.fps)
 	if anim_name == "hit":
 		_flash = 0.12
 	if sprite:

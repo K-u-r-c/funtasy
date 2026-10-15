@@ -2,7 +2,7 @@
 """Build game sheets from a PixelLab character archive (dev tool, see docs/DECISIONS.md "Final art").
 
 usage: build_char.py CHAR_ID OUT_RES_DIR WORK_DIR MAPPING_JSON
-MAPPING_JSON: {"idle": {"src": "idle"}, "dash": {"src": "walk", "fps": 14},
+MAPPING_JSON: {"_cell": 64, "idle": {"src": "idle"}, "dash": {"src": "walk", "fps": 14}, "walk": {"src": "walk", "pick": [0, 2, 4, 6]},
                "ghost": {"ghost_of": "idle"}, "downed": {"src": "death", "tail": 2}, ...}
 Prints the assets.json entry (frame_size, feet_offset, anims overrides) as JSON.
 """
@@ -15,6 +15,7 @@ BASE = {"idle": (4, 5), "walk": (6, 10), "attack": (4, 14), "cast": (4, 10), "da
 
 cid, out_dir, work, mapping_path = sys.argv[1:5]
 mapping = json.load(open(mapping_path))
+cell_override = mapping.pop("_cell", None)  # paste frames centred on a larger cell (gear headroom)
 os.makedirs(work, exist_ok=True)
 zpath = os.path.join(work, "char.zip")
 urllib.request.urlretrieve(f"https://api.pixellab.ai/mcp/characters/{cid}/download", zpath)
@@ -27,6 +28,7 @@ with zipfile.ZipFile(zpath) as z:
 meta = json.load(open(os.path.join(x, "metadata.json")))
 state = meta["states"][0]
 size = state["character"]["size"]["width"]
+cell = cell_override or size
 anims = state["frames"]["animations"]
 # animation display names may differ in case; index lower-case
 by_name = {k.lower(): v for k, v in anims.items()}
@@ -50,12 +52,14 @@ for game_anim, spec in mapping.items():
             frames = [os.path.join(x, rot[d])]
         if "tail" in spec:
             frames = frames[-spec["tail"]:]
+        if "pick" in spec:
+            frames = [frames[i] for i in spec["pick"] if i < len(frames)]
         rows.append(frames)
     n = len(rows[2])
     base_frames, base_fps = BASE[game_anim]
     duration = base_frames / base_fps
     fps = spec.get("fps", round(n / duration, 1))
-    ops.append({"op": "sheet", "rows": rows, "frames": n, "cell": size, "dst": f"{out_dir}/{game_anim}.png"})
+    ops.append({"op": "sheet", "rows": rows, "frames": n, "cell": cell, "dst": f"{out_dir}/{game_anim}.png"})
     entry_anims[game_anim] = {"frames": n, "fps": fps}
 for game_anim, spec in mapping.items():
     if "ghost_of" in spec:
@@ -76,7 +80,9 @@ line = [l for l in r2.stdout.splitlines() if "used" in l][0]
 import re
 m = re.search(r"P: \((\d+), (\d+)\), S: \((\d+), (\d+)\)", line)
 py, sy = int(m.group(2)), int(m.group(4))
-feet = size - (py + sy)
+feet = size - (py + sy) + (cell - size) // 2
 if missing:
     print("MISSING " + " ".join(missing), file=sys.stderr)
-print(json.dumps({"missing": missing, "frame_size": size, "feet_offset": feet, "anims": entry_anims, "body_box": [int(m.group(1)), py, int(m.group(3)), sy]}))
+json.dump({"cell": cell, "frames": {a: o["rows"] for a, o in zip([k for k in mapping if "ghost_of" not in mapping[k]], [o for o in ops if o["op"] == "sheet"])}},
+          open(os.path.join(work, "frames.json"), "w"))
+print(json.dumps({"missing": missing, "frame_size": cell, "feet_offset": feet, "anims": entry_anims, "body_box": [int(m.group(1)), py, int(m.group(3)), sy]}))

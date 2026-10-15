@@ -13,6 +13,7 @@ const SLOT_ACTIONS := ["attack", "skill_1", "skill_2", "skill_3", "skill_4", "sk
 var peer_id := 1
 var class_id := "warrior"
 var class_def: Dictionary = {}
+var gender := "male"  ## body art (data/assets.json characters.genders); set at spawn
 var skills: Array = []  ## slot 0 = primary attack, 1..5 = class skills
 
 # Replicated by the host (StateSync).
@@ -67,6 +68,7 @@ func setup(data: Dictionary) -> void:
 	position = data.pos
 	net_pos = position
 	class_id = data.class_id
+	gender = CharacterSprite.valid_gender(str(data.get("gender", "")))
 	class_def = GameData.classes[class_id]
 	display_name = data.name
 	level = int(data.get("level", 1))
@@ -150,7 +152,7 @@ func recompute_stats() -> void:
 
 func to_character() -> Dictionary:
 	var d := inv.to_dict()
-	return {"name": display_name, "class_id": class_id, "level": level, "xp": xp, "talents": talents.duplicate(),
+	return {"name": display_name, "class_id": class_id, "gender": gender, "level": level, "xp": xp, "talents": talents.duplicate(),
 		"equipment": d.equipment, "backpack": d.backpack, "backpack_capacity": d.capacity, "quick": d.quick}
 
 
@@ -374,7 +376,7 @@ func request_dodge(dir: Vector2) -> void:
 	if not _from_owner() or life_state != Life.ALIVE or _dodge_cd_host > 0.1 or move_speed() <= 0.0:
 		return
 	_dodge_cd_host = float(GameData.bal("player.dodge_cooldown"))
-	iframe_left = float(GameData.bal("player.dodge_iframes"))
+	iframe_left = maxf(iframe_left, float(GameData.bal("player.dodge_iframes")))
 	_move_allowance = float(GameData.bal("player.dodge_duration")) + 0.25
 	Combat.instance.fx.sound.rpc("dash", global_position)
 
@@ -809,12 +811,11 @@ func _update_carried_torch(delta: float) -> void:
 func _apply_appearance() -> void:
 	if sprite == null:
 		return
-	if sprite.get_child_count() == 0:
-		sprite.set_layer("body", "characters.layers.body_human")
+	sprite.set_layer("body", CharacterSprite.body_key(gender))
 	var keep := {"body": true}
 	for layer in appearance:
 		var a: Array = appearance[layer]
-		sprite.set_layer(layer, a[0], Color.from_string(a[1], Color.WHITE))
+		sprite.set_layer(layer, CharacterSprite.gear_key(str(a[0]), gender), Color.from_string(a[1], Color.WHITE))
 		keep[layer] = true
 	for layer in ["head", "chest", "legs", "boots", "gloves", "weapon", "offhand"]:
 		if not keep.has(layer):

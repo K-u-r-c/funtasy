@@ -1,0 +1,416 @@
+{
+	"_comment": "Female hero art (see docs/DECISIONS.md 'Character art pipeline'). tools/gear_cut.gd cuts the worn layers out of the outfit sheets (gear_src) and derives the extra animations; tools/bake_gear.gd bakes the held items. Both read this file.",
+	"cell": 64,
+	"body_dir": "res://assets/sprites/pixellab/characters/female/body",
+	"out_root": "res://assets/sprites/pixellab/characters/female",
+	"anims": [
+		"idle",
+		"walk",
+		"attack",
+		"death",
+		"cast",
+		"dash",
+		"hit"
+	],
+	"palette": {
+		"outline": [
+			"#000000",
+			"#040303",
+			"#0a090a",
+			"#100f0e"
+		],
+		"shirt": [
+			"#d8cca4",
+			"#988972",
+			"#a19b7f",
+			"#b8ad8c",
+			"#837765",
+			"#a1937a",
+			"#c5b896",
+			"#f7ebda",
+			"#eae1d3",
+			"#e7e1d8"
+		],
+		"skin": [
+			"#b15641",
+			"#e69664",
+			"#d78254",
+			"#9c4437",
+			"#eca36f",
+			"#d0794e",
+			"#bf6548",
+			"#83322b",
+			"#762b26",
+			"#f6b38a",
+			"#fab383",
+			"#df986e",
+			"#e08360",
+			"#f8cba4"
+		],
+		"shorts": [
+			"#313132",
+			"#626151",
+			"#6f6354",
+			"#4c4c44",
+			"#262627",
+			"#191819",
+			"#42423e",
+			"#565659",
+			"#736f6e"
+		],
+		"hair": [
+			"#391c17",
+			"#663a27",
+			"#723f2a",
+			"#46231c"
+		]
+	},
+	"outfits": {
+		"plate": {
+			"dir": "res://assets/sprites/pixellab/gear_src/female_plate",
+			"layers": {
+				"head_helm": {
+					"regions": [
+						"head"
+					]
+				},
+				"chest_armor": {
+					"regions": [
+						"torso",
+						"arms"
+					]
+				},
+				"legs_armor": {
+					"regions": [
+						"legs"
+					]
+				},
+				"boots_armor": {
+					"regions": [
+						"feet"
+					]
+				},
+				"gloves_armor": {
+					"regions": [
+						"hands"
+					]
+				}
+			}
+		},
+		"cloth": {
+			"dir": "res://assets/sprites/pixellab/gear_src/female_cloth",
+			"layers": {
+				"head_hood": {
+					"regions": [
+						"head"
+					]
+				},
+				"chest_robe": {
+					"regions": [
+						"torso",
+						"arms",
+						"legs",
+						"feet"
+					],
+					"hide": [
+						"torso",
+						"arms"
+					]
+				}
+			}
+		}
+	},
+	"derive": {
+		"downed": {
+			"from": "death",
+			"pick": [
+				3,
+				3
+			]
+		}
+	},
+	"held_anims": [
+		"idle",
+		"walk",
+		"attack",
+		"cast",
+		"dash",
+		"hit"
+	],
+	"hand_vectors": {
+		"main": [
+			[
+				1,
+				0
+			],
+			[
+				0.2,
+				1
+			],
+			[
+				-1,
+				0.2
+			],
+			[
+				-1,
+				0.2
+			],
+			[
+				-1,
+				0
+			],
+			[
+				-0.4,
+				-1
+			],
+			[
+				1,
+				-0.2
+			],
+			[
+				1,
+				-0.2
+			]
+		],
+		"off": [
+			[
+				0.6,
+				0.4
+			],
+			[
+				1,
+				0.2
+			],
+			[
+				1,
+				0.2
+			],
+			[
+				0.2,
+				1
+			],
+			[
+				-0.6,
+				0.4
+			],
+			[
+				-1,
+				0
+			],
+			[
+				-1,
+				-0.2
+			],
+			[
+				0.4,
+				-1
+			]
+		]
+	},
+	"held_mirror": [
+		false,
+		false,
+		true,
+		true,
+		true,
+		true,
+		false,
+		false
+	],
+	"held": {
+		"weapon_sword": {
+			"picture": "res://assets/sprites/pixellab/items/sword.png",
+			"grip": [
+				0.22,
+				0.78
+			],
+			"scale": 0.54,
+			"hand": "main",
+			"swing": [
+				-150,
+				-60
+			],
+			"pose": "down"
+		},
+		"weapon_greatsword": {
+			"picture": "res://assets/sprites/pixellab/items/greatsword.png",
+			"grip": [
+				0.22,
+				0.78
+			],
+			"scale": 0.68,
+			"hand": "main",
+			"swing": [
+				-150,
+				-60
+			],
+			"pose": "down"
+		},
+		"weapon_axe": {
+			"picture": "res://assets/sprites/pixellab/items/axe.png",
+			"grip": [
+				0.22,
+				0.78
+			],
+			"scale": 0.54,
+			"hand": "main",
+			"swing": [
+				-150,
+				-60
+			],
+			"pose": "down"
+		},
+		"weapon_greataxe": {
+			"picture": "res://assets/sprites/pixellab/items/greataxe.png",
+			"grip": [
+				0.22,
+				0.78
+			],
+			"scale": 0.68,
+			"hand": "main",
+			"swing": [
+				-150,
+				-60
+			],
+			"pose": "down"
+		},
+		"weapon_mace": {
+			"picture": "res://assets/sprites/pixellab/items/mace.png",
+			"grip": [
+				0.22,
+				0.78
+			],
+			"scale": 0.54,
+			"hand": "main",
+			"swing": [
+				-150,
+				-60
+			],
+			"pose": "down"
+		},
+		"weapon_warhammer": {
+			"picture": "res://assets/sprites/pixellab/items/warhammer.png",
+			"grip": [
+				0.22,
+				0.78
+			],
+			"scale": 0.68,
+			"hand": "main",
+			"swing": [
+				-150,
+				-60
+			],
+			"pose": "down"
+		},
+		"weapon_bow": {
+			"picture": "res://assets/sprites/pixellab/items/bow.png",
+			"grip": [
+				0.5,
+				0.5
+			],
+			"scale": 0.58,
+			"hand": "main",
+			"swing": [
+				0,
+				0
+			],
+			"pose": "up"
+		},
+		"weapon_crossbow": {
+			"picture": "res://assets/sprites/pixellab/items/crossbow.png",
+			"grip": [
+				0.5,
+				0.6
+			],
+			"scale": 0.54,
+			"hand": "main",
+			"swing": [
+				0,
+				0
+			],
+			"pose": "up"
+		},
+		"weapon_sling": {
+			"picture": "res://assets/sprites/pixellab/items/sling.png",
+			"grip": [
+				0.4,
+				0.3
+			],
+			"scale": 0.48,
+			"hand": "main",
+			"swing": [
+				-140,
+				-90
+			],
+			"pose": "down"
+		},
+		"weapon_wand": {
+			"picture": "res://assets/sprites/pixellab/items/wand.png",
+			"grip": [
+				0.22,
+				0.78
+			],
+			"scale": 0.48,
+			"hand": "main",
+			"swing": [
+				-140,
+				-90
+			],
+			"pose": "down"
+		},
+		"weapon_staff": {
+			"picture": "res://assets/sprites/pixellab/items/staff.png",
+			"grip": [
+				0.4,
+				0.6
+			],
+			"scale": 0.68,
+			"hand": "main",
+			"swing": [
+				-20,
+				30
+			],
+			"pose": "up"
+		},
+		"offhand_shield": {
+			"picture": "res://assets/sprites/pixellab/items/shield.png",
+			"grip": [
+				0.5,
+				0.5
+			],
+			"scale": 0.5,
+			"hand": "off",
+			"swing": [
+				0,
+				0
+			],
+			"pose": "flat"
+		},
+		"offhand_trinket": {
+			"picture": "res://assets/sprites/pixellab/items/trinket.png",
+			"grip": [
+				0.5,
+				0.5
+			],
+			"scale": 0.31,
+			"hand": "off",
+			"swing": [
+				0,
+				0
+			],
+			"pose": "flat"
+		}
+	},
+	"held_poses": {
+		"down": 120.0,
+		"up": -45.0,
+		"flat": 0.0
+	},
+	"align": {
+		"idle": "walk",
+		"attack": "walk",
+		"cast": "walk",
+		"dash": "walk",
+		"hit": "walk"
+	}
+}
