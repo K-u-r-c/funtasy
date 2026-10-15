@@ -592,6 +592,9 @@ func _full_scenario() -> void:
 	check(g.items_root.get_child_count() >= 3, "boss dropped bonus loot (%d items on the ground)" % g.items_root.get_child_count())
 	check(host_p.xp + host_p.level * 100000 > host_xp, "host earned boss XP")
 	NetworkManager.to_clients("DevAuto", "client_cmd", ["check_portal", null])
+	for e in g.enemies_root.get_children():
+		e.queue_free()  # the boss's summons would otherwise keep fighting the waiting players
+	host_p.iframe_left = 60.0
 	# Standing in the portal does nothing; every living player has to interact with it.
 	for pl in g.players_root.get_children():
 		pl.host_teleport(g.portal.global_position + Vector2(randf_range(-12, 12), 6))
@@ -995,7 +998,7 @@ func _darkness_scenario() -> void:
 	var start_room: Rect2i = g.layout.rooms[0].rect
 	var start_torches: Array = []
 	for t in g.dungeon.torches.values():
-		var tc: Vector2i = g.dungeon.cell_of(t.global_position)
+		var tc: Vector2i = g.dungeon.cell_of(t.global_position - Vector2(0, 8))  # the wall cell it hangs on
 		if tc.x >= start_room.position.x and tc.x < start_room.end.x and tc.y == start_room.position.y - 1:
 			start_torches.append(t)
 	check(start_torches.size() >= 2, "start room has wall torches (%d)" % start_torches.size())

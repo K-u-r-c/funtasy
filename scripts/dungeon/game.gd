@@ -277,14 +277,17 @@ func _physics_process(delta: float) -> void:
 			_try_descend()
 	if _descend_timer >= 0.0:
 		_descend_timer -= delta
-		if _descend_timer < 0.0:
+		# A wipe while the portal counts down ends the run instead of descending.
+		if _wiped:
+			_descend_timer = -1.0
+		elif _descend_timer < 0.0:
 			start_floor(depth + 1)
 	_check_wipe()
 
 
 ## Host: descend once every living player is ready (downed players and ghosts come along).
 func _try_descend() -> void:
-	if portal == null or _descend_timer >= 0.0:
+	if portal == null or _descend_timer >= 0.0 or _wiped:
 		return
 	for id in portal_ready.keys():
 		var pl := player_by_peer(id)
