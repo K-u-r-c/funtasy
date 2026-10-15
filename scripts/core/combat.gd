@@ -436,7 +436,14 @@ func _end_projectile(id: int, at: Vector2) -> void:
 	var p: Dictionary = projectiles.get(id, {})
 	projectiles.erase(id)
 	fx.projectile_end.rpc(id, at)
-	if not p.is_empty() and p.eff.has("explode"):
+	if p.is_empty():
+		return
+	# Wall torches sit on the wall face, so a projectile stopped by the wall next to one puts it out.
+	if game and p.eff.has("damage"):
+		for t in game.dungeon.torches.values():
+			if is_instance_valid(t) and t.is_lit() and t.global_position.distance_to(at) <= float(GameData.bal("lighting.torch_hit_radius")):
+				t.take_damage(1.0, p.ctx)
+	if p.eff.has("explode"):
 		apply_aoe(p.eff.explode, p.ctx, at)
 
 

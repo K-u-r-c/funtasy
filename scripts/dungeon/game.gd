@@ -111,7 +111,7 @@ func start_floor(new_depth: int) -> void:
 	# Host-only: the spawn list depends on party size, so it is generated with that multiplier.
 	var n := players_root.get_child_count() if players_root.get_child_count() > 0 else GameState.roster.size()
 	var count_mult := 1.0 + float(GameData.bal("scaling.count_per_extra_player")) * (maxi(n, 1) - 1)
-	var host_layout := DungeonGenerator.new().generate(floor_seed, floor_def, count_mult)
+	var host_layout := DungeonGenerator.new().generate(floor_seed, floor_def, count_mult, new_depth)
 	_place_players()
 	for group in host_layout.spawns:
 		for m in group.monsters:
@@ -227,6 +227,10 @@ func host_interact(p: Player, node: Node) -> void:
 		return
 	if node is GroundItem:
 		loot.try_pickup(p, node)
+	elif node.has_method("is_lit") and node.has_method("set_state"):
+		if node.is_lit():
+			p.host_take_torch()
+			dungeon.set_torch_state.rpc(node.torch_id, node.State.TAKEN)
 	elif node.has_method("host_set_open"):
 		# Don't let a door close on someone standing in the doorway.
 		if node.is_open:
@@ -348,11 +352,14 @@ func _build_floor(new_depth: int, floor_seed: int, ft_id: String) -> void:
 	depth = new_depth
 	floor_time = 0.0
 	floor_def = GameData.floor_types[ft_id]
-	layout = DungeonGenerator.new().generate(floor_seed, floor_def, 1.0)
+	layout = DungeonGenerator.new().generate(floor_seed, floor_def, 1.0, new_depth)
 	dungeon.build(layout, floor_def, entities)
 	visibility.reset_floor()
 	camera.set_bounds(dungeon.world_rect().grow(64))
-	ambient.color = Color.from_string(str(floor_def.get("ambient_color", "#101018")), Color(0.06, 0.05, 0.08))
+	# Darkness deepens with every floor.
+	var base := Color.from_string(str(floor_def.get("ambient_color", "#07060a")), Color(0.03, 0.02, 0.04))
+	var factor := maxf(float(GameData.bal("lighting.ambient_min_factor")), 1.0 - float(GameData.bal("lighting.ambient_darken_per_depth")) * (new_depth - 1))
+	ambient.color = Color(base.r * factor, base.g * factor, base.b * factor)
 	for c in corpses_root.get_children():
 		c.queue_free()
 	if portal and not multiplayer.is_server():
@@ -491,6 +498,12 @@ func find_interactable(p: Player) -> Dictionary:
 				if d4 < reach and d4 < best_d:
 					best_d = d4
 					best = {"node": prop, "kind": "chest", "text": prop.interact_text()}
+		for t in dungeon.torches.values():
+			if is_instance_valid(t) and t.is_lit():
+				var d5 := pos.distance_to(t.interact_pos())
+				if d5 < reach and d5 < best_d:
+					best_d = d5
+					best = {"node": t, "kind": "torch", "text": t.interact_text()}
 		if portal and pos.distance_to(portal.global_position) < portal.radius + 10.0:
 			best = {"node": portal, "kind": "portal", "text": portal.interact_text()}
 	if not best.is_empty():

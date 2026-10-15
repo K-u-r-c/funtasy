@@ -1,11 +1,13 @@
 class_name Visibility
 extends Node2D
-## Local (per peer) fog of war:
-## - grid field of view around the viewer (walls and closed doors block it); cells ever seen
-##   stay "discovered" (dimmed, without enemies) for the map/minimap, unseen cells are black;
-## - enemies are shown only while inside the viewer's line of sight (physics raycast, so
-##   destructible props hide them too). Optional shared vision uses every teammate's sight;
-## - the viewer carries a shadow-casting light, so walls and props cast real shadows;
+## Local (per peer) fog of war and darkness:
+## - a cell is seen when it is in the viewer's line of sight (walls and closed doors block it)
+##   AND lit: by the viewer's own small light, a torch (on a wall or carried), lava or a spell.
+##   Cells ever seen stay "discovered" (dimmed, without enemies) for the map/minimap;
+## - monsters are shown only while in line of sight (physics raycast, so destructible props hide
+##   them too) AND lit. Optional shared vision also uses every teammate's sight;
+## - the viewer's own light sits at its feet: collisions keep the feet out of every occluder,
+##   so standing right against a door or table never puts the light inside its shadow caster;
 ## - far-away torches/lava lights are switched off to keep lighting cheap.
 
 const FOG_UNSEEN := 1.0
@@ -15,8 +17,9 @@ var dungeon: Dungeon
 var game: Node
 var viewer: Node2D
 var vision_light: PointLight2D
-var fov_radius := 13
-var sight_range := 430.0  ## both overwritten from balance.vision in _ready
+var fov_radius := 16
+var max_sight := 600.0
+var personal_radius := 75.0  ## all three overwritten from data/balance.json in _ready
 
 var _fog_img: Image
 var _fog_tex: ImageTexture
@@ -29,13 +32,14 @@ var _opaque := PackedByteArray()
 
 func _ready() -> void:
 	fov_radius = int(GameData.bal("vision.fov_radius"))
-	sight_range = float(GameData.bal("vision.sight_range"))
+	max_sight = float(GameData.bal("vision.max_sight"))
+	personal_radius = float(GameData.bal("lighting.personal_light_radius"))
 	vision_light = PointLight2D.new()
 	LightLayers.setup_light(vision_light)
 	vision_light.texture = GameData.texture("fx.light")
-	vision_light.texture_scale = sight_range / 110.0
-	vision_light.energy = 1.25
-	vision_light.color = Color(1.0, 0.93, 0.85)
+	LightLayers.register(vision_light, personal_radius)
+	vision_light.energy = float(GameData.bal("lighting.personal_light_energy"))
+	vision_light.color = Color(0.85, 0.8, 0.95)
 	vision_light.shadow_enabled = true
 	vision_light.shadow_filter = Light2D.SHADOW_FILTER_PCF5
 	vision_light.shadow_filter_smooth = 1.5
@@ -74,7 +78,7 @@ func rebuild_opaque() -> void:
 func _process(delta: float) -> void:
 	if dungeon == null or _fog_img == null or viewer == null or not is_instance_valid(viewer):
 		return
-	vision_light.global_position = viewer.global_position + Vector2(0, -12)
+	vision_light.global_position = viewer.global_position
 	_fov_left -= delta
 	if _fov_left <= 0.0:
 		_fov_left = 0.12
@@ -97,12 +101,14 @@ func _update_fov() -> void:
 	var origin := dungeon.cell_of(viewer.global_position)
 	var now := {}
 	var r := fov_radius
+	var lights := _lights_near(viewer.global_position, r * dungeon.tile)
+	var half := dungeon.tile * 0.5
 	for dy in range(-r, r + 1):
 		for dx in range(-r, r + 1):
 			if dx * dx + dy * dy > r * r:
 				continue
 			var target := origin + Vector2i(dx, dy)
-			if _line_clear(origin, target):
+			if _cell_lit(dungeon.cell_center(target), lights, half) and _line_clear(origin, target):
 				now[target] = true
 	var changed := false
 	for c in _visible_now:
@@ -152,16 +158,38 @@ func _viewers() -> Array:
 	return out
 
 
+## Registered gameplay lights (see LightLayers) that can reach `range` px around `pos`.
+func _lights_near(pos: Vector2, range_px: float) -> Array:
+	var out: Array = []
+	for l in get_tree().get_nodes_in_group(LightLayers.GROUP):
+		if not l.is_visible_in_tree():
+			continue
+		var rad := float(l.get_meta("radius", 0.0))
+		if rad > 0.0 and l.global_position.distance_to(pos) <= range_px + rad:
+			out.append([l.global_position, rad])
+	return out
+
+
+func _cell_lit(p: Vector2, lights: Array, margin: float) -> bool:
+	for l in lights:
+		if p.distance_to(l[0]) <= float(l[1]) + margin:
+			return true
+	return false
+
+
 func _update_enemies() -> void:
 	if game == null:
 		return
 	var space := get_world_2d().direct_space_state
 	var viewers := _viewers()
+	var lights := _lights_near(viewer.global_position, max_sight)
 	for e in game.enemies_root.get_children():
 		var seen := false
+		var lit := _cell_lit(e.global_position, lights, 6.0)
 		for v in viewers:
 			var from: Vector2 = v.global_position
-			if from.distance_to(e.global_position) > sight_range:
+			var d := from.distance_to(e.global_position)
+			if d > max_sight or (not lit and d > personal_radius):
 				continue
 			var q := PhysicsRayQueryParameters2D.create(from + Vector2(0, -6), e.global_position + Vector2(0, -6), Combat.LOS_MASK)
 			if space.intersect_ray(q).is_empty():

@@ -45,7 +45,10 @@ func projectile(id: int, sprite_key: String, pos: Vector2, dir: Vector2, speed: 
 	s.position = HEIGHT
 	n.add_child(s)
 	if not light_html.is_empty():
-		n.add_child(_light(Color.from_string(light_html, Color.WHITE), 0.9, 0.35))
+		var pl := _light(Color.from_string(light_html, Color.WHITE), 0.9, 0.35)
+		# Spells light up the dark (and reveal monsters) as they fly.
+		LightLayers.register(pl, float(GameData.bal("lighting.spell_projectile_radius")))
+		n.add_child(pl)
 		s.modulate = Color(1.6, 1.6, 1.6)
 	world.add_child(n)
 	_projectiles[id] = {"node": n, "vel": dir * speed, "life": life + 0.1}
@@ -106,13 +109,15 @@ func ring(pos: Vector2, r: float, color_html: String, fx_key: String) -> void:
 			world.add_child(a)
 			a.play("default")
 			a.animation_finished.connect(a.queue_free)
-		var l := _light(c, 2.2, clampf(r / 40.0, 1.0, 4.0))
-		l.position = pos
-		world.add_child(l)
-		var lt := l.create_tween()
-		lt.tween_property(l, "energy", 0.0, 0.5)
-		lt.tween_callback(l.queue_free)
 		_puff(pos, c, 18)
+	# Every impact flashes light over its area (magic lights up the dark for a moment).
+	var l := _light(c, 2.2 if fx_key == "explosion" else 1.3, 1.0)
+	LightLayers.register(l, maxf(r, 40.0))
+	l.position = pos
+	world.add_child(l)
+	var lt := l.create_tween()
+	lt.tween_property(l, "energy", 0.0, float(GameData.bal("lighting.spell_impact_light_time")))
+	lt.tween_callback(l.queue_free)
 
 
 ## Host -> all (unreliable): warning circle for delayed AoEs (meteor, slam, curse).
@@ -131,7 +136,8 @@ func telegraph(pos: Vector2, r: float, color_html: String, delay: float) -> void
 	var t := s.create_tween()
 	t.tween_property(s, "modulate:a", 0.85, delay).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	t.tween_callback(s.queue_free)
-	var l := _light(c, 0.6, r / 60.0)
+	var l := _light(c, 0.6, 1.0)
+	LightLayers.register(l, r)
 	l.position = pos
 	world.add_child(l)
 	var lt := l.create_tween()
@@ -157,7 +163,9 @@ func zone(id: int, pos: Vector2, r: float, color_html: String, duration: float, 
 		var t := s.create_tween().set_loops()
 		t.tween_property(s, "modulate:a", 0.3, 0.6)
 		t.tween_property(s, "modulate:a", 0.6, 0.6)
-		n.add_child(_light(c, 0.8, r / 60.0))
+		var zl := _light(c, 0.8, 1.0)
+		LightLayers.register(zl, r)
+		n.add_child(zl)
 	else:
 		var s2 := Sprite2D.new()
 		s2.texture = _tex("props." + sprite_key)

@@ -77,6 +77,9 @@ on the ground (that's how you give items to teammates), R / Y = put a potion on 
 - **Death**: at 0 HP you are downed for 10 s; a teammate holds Interact next to you to revive.
   Otherwise you become a ghost and spectate until the next floor. If nobody is left standing
   the party is wiped and that game is over (its save is deleted).
+- **Darkness**: the dungeon is nearly pitch black and gets darker every floor. You only see
+  monsters that are lit, by torches, lava or spells. Take a torch from a wall (Interact); it burns
+  for about 2 minutes. Attacks break wall torches, so think before you swing near them.
 - **Loot** is shared and lies on the ground, glowing in its rarity color
   (white, green, blue, purple, orange). Weapons of another class deal 80% less damage.
 - **Floors**: kill the boss to open the portal; when everyone alive stands in it the party

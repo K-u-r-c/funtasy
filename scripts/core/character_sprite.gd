@@ -33,6 +33,7 @@ func set_layer(slot: String, key: String, tint: Color = Color.WHITE) -> void:
 	if spr == null:
 		spr = AnimatedSprite2D.new()
 		spr.name = slot
+		spr.light_mask = LightLayers.SELF_LIT
 		add_child(spr)
 		_layers[slot] = spr
 		_sort_layers()

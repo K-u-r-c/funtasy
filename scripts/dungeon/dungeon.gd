@@ -18,6 +18,7 @@ var cells := PackedByteArray()
 var astar := AStarGrid2D.new()
 var doors: Array = []
 var props: Dictionary = {}  ## name -> Prop
+var torches: Dictionary = {}  ## torch id -> wall torch
 var debris: Array = []  ## destroyed props (still in the tree as rubble until the floor ends)
 var spikes: Array = []
 var lights: Array = []  ## torch / lava lights, culled by distance in Visibility
@@ -63,19 +64,24 @@ func build(new_layout: Dictionary, def: Dictionary, entity_root: Node2D) -> void
 		sp.setup(s.cell, tile, float(s.phase))
 		add_child(sp)
 		spikes.append(sp)
+	n = 0
 	for t in layout.torches:
 		var torch: Node2D = TORCH_SCRIPT.new()
+		torch.name = "Torch_%d" % n
+		torch.torch_id = torch.name
 		torch.position = Vector2(t.cell * tile) + Vector2(tile / 2.0, tile - 6.0)
 		torch.color = Color.from_string(str(floor_def.get("torch_color", "#ff9944")), Color.ORANGE)
 		entities.add_child(torch)
+		torches[torch.torch_id] = torch
 		lights.append(torch.light)
+		n += 1
 	for pool in layout.lava_pools:
 		var l := PointLight2D.new()
 		LightLayers.setup_light(l)
 		l.texture = GameData.texture("fx.light")
 		l.color = Color.from_string(str(floor_def.get("lava_color", "#ff5511")), Color.ORANGE_RED)
 		l.energy = 1.1
-		l.texture_scale = maxf(pool.size.x, pool.size.y) * tile / 90.0
+		LightLayers.register(l, float(GameData.bal("lighting.lava_light_per_cell")) * maxf(pool.size.x, pool.size.y))
 		l.position = Vector2(pool.position * tile) + Vector2(pool.size * tile) / 2.0
 		add_child(l)
 		lights.append(l)
@@ -94,6 +100,9 @@ func clear() -> void:
 	for p in debris:
 		_discard(p)
 	debris.clear()
+	for t in torches.values():
+		_discard(t)
+	torches.clear()
 	for s in spikes:
 		_discard(s)
 	spikes.clear()
@@ -270,12 +279,24 @@ func closed_door_near(pos: Vector2, next: Vector2) -> Node:
 	return null
 
 
+## Destructible things (props and lit wall torches) around `pos`.
 func props_in_radius(pos: Vector2, r: float) -> Array:
 	var out: Array = []
 	for p in props.values():
 		if is_instance_valid(p) and p.destructible() and p.global_position.distance_to(pos) <= r + 10.0:
 			out.append(p)
+	for t in torches.values():
+		if is_instance_valid(t) and t.destructible() and t.global_position.distance_to(pos) <= r + 10.0:
+			out.append(t)
 	return out
+
+
+## Host -> all (reliable, call_local): a wall torch was taken or broken.
+@rpc("authority", "call_local", "reliable")
+func set_torch_state(torch_id: String, new_state: int) -> void:
+	var t: Node = torches.get(torch_id)
+	if t and is_instance_valid(t):
+		t.set_state(new_state)
 
 
 func _add_prop(prop_name: String, type: String, pos: Vector2) -> void:

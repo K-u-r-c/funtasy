@@ -22,6 +22,8 @@ manual run noted here.
 - [x] Progression: downed (10 s) -> revive / ghost spectate, wipe ends the saved game -> lobby, contribution-based shared XP,
       levels, talent trees, saving (verified over LAN)
 - [x] Lighting (vision light with shadows, torches, lava, item and spell lights), glow, particles, screen shake
+- [x] Darkness mechanic: dark ambient that deepens per floor, monsters/map only visible when lit, wall torches
+      that can be taken (120 s) or broken, spells that light up the dark (`darkness` LAN test)
 - [x] Audio manager with crossfaded floor/boss music and pooled SFX (placeholder files)
 - [x] HUD, minimap, map, inventory, talents, pause, options; gamepad navigation (verified in-game overlays)
 - [x] Export presets (Windows/Linux/macOS): all three export with the official 4.7.2 templates; the Linux

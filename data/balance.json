@@ -23,8 +23,29 @@
 		"dash_iframe_ratio": 0.8
 	},
 	"vision": {
-		"sight_range": 430,
-		"fov_radius": 13
+		"max_sight": 600,
+		"fov_radius": 16
+	},
+	"lighting": {
+		"_comment": "Darkness is a mechanic: monsters are only visible while lit. Radii are lit areas in px.",
+		"personal_light_radius": 75,
+		"personal_light_energy": 0.55,
+		"carried_torch_radius": 320,
+		"carried_torch_energy": 1.25,
+		"carried_torch_duration": 120,
+		"carried_torch_warning": 15,
+		"wall_torch_radius": 270,
+		"wall_torch_energy": 1.15,
+		"wall_torch_hp": 1,
+		"lava_light_per_cell": 40,
+		"spell_projectile_radius": 70,
+		"spell_impact_light_time": 0.5,
+		"lit_room_chance": 1.0,
+		"lit_room_chance_per_depth": -0.12,
+		"lit_room_chance_min": 0.2,
+		"ambient_darken_per_depth": 0.12,
+		"ambient_min_factor": 0.35,
+		"torch_hit_radius": 26
 	},
 	"stats": {
 		"hp_per_stamina": 4,

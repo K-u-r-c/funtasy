@@ -17,6 +17,7 @@ var skills: Array = []  ## slot 0 = primary attack, 1..5 = class skills
 
 # Replicated by the host (StateSync).
 var life_state: int = Life.ALIVE
+var torch_sync := 0  ## whole seconds left on the carried torch (host-driven, 0 = none)
 var downed_left := 0.0
 var revive_progress := 0.0
 var xp := 0
@@ -33,6 +34,10 @@ var inv := Inventory.new()  ## host: authoritative; owner: last snapshot from th
 var local_cd: Dictionary = {}  ## owner: slot -> [left, total]
 var item_cd_left := 0.0
 var item_cd_total := 1.0
+var torch_left := 0.0  ## host: exact seconds left on the carried torch
+var _torch_node: Node2D
+var _torch_light: PointLight2D
+var _torch_t := 0.0
 
 # Host-only state
 var iframe_left := 0.0
@@ -74,7 +79,7 @@ func setup(data: Dictionary) -> void:
 	NetSync.make(self, "StateSync", [
 		"Health:hp", "Health:max_hp", "Health:absorb", "Resource:value", "Resource:max_value", "Resource:kind",
 		"Status:shown", "Stats:final", ".:life_state", ".:downed_left", ".:revive_progress", ".:level",
-		".:xp", ".:talent_points", ".:talents", ".:appearance",
+		".:xp", ".:talent_points", ".:talents", ".:appearance", ".:torch_sync",
 	], [], 0.1)
 	var owner_sync := NetSync.make(self, "OwnerSync", [], [".:net_pos", ".:facing", ".:aim_pos"], 0.05)
 	owner_sync.set_multiplayer_authority(peer_id)
@@ -86,6 +91,7 @@ func _ready() -> void:
 	if multiplayer.is_server():
 		_host_init()
 	_apply_appearance()
+	_build_carried_torch()
 	if is_local():
 		EventBus.local_player_spawned.emit(self)
 
@@ -186,10 +192,12 @@ func _physics_process(delta: float) -> void:
 		_dodge_cd_host = maxf(_dodge_cd_host - delta, 0.0)
 		for k in _item_cd_host.keys():
 			_item_cd_host[k] -= delta
+		_host_torch_tick(delta)
 
 
 func _process(delta: float) -> void:
 	update_visuals(delta)
+	_update_carried_torch(delta)
 	if sprite:
 		sprite.visible = life_state != Life.GHOST or is_local()
 		if life_state == Life.GHOST:
@@ -720,6 +728,82 @@ func revive(hp_fraction: float) -> void:
 
 
 # --- Visual ------------------------------------------------------------------------------------
+
+
+# --- Carried torch ---------------------------------------------------------------------------
+
+
+## Host: the player took a wall torch; it burns for balance.lighting.carried_torch_duration.
+func host_take_torch() -> void:
+	torch_left = float(GameData.bal("lighting.carried_torch_duration"))
+	torch_sync = ceili(torch_left)
+	_notify.rpc_id(peer_id, "You take the torch")
+
+
+func _host_torch_tick(delta: float) -> void:
+	if torch_left <= 0.0:
+		return
+	torch_left = maxf(torch_left - delta, 0.0)
+	var t := ceili(torch_left)
+	if t != torch_sync:
+		torch_sync = t
+		if t == 0:
+			_notify.rpc_id(peer_id, "Your torch burned out")
+
+
+func _build_carried_torch() -> void:
+	_torch_node = Node2D.new()
+	_torch_node.name = "CarriedTorch"
+	add_child(_torch_node)
+	var s := Sprite2D.new()
+	s.texture = GameData.texture("props.torch")
+	s.position = Vector2(10, -24)
+	s.scale = Vector2(0.75, 0.75)
+	s.light_mask = LightLayers.SELF_LIT
+	_torch_node.add_child(s)
+	_torch_light = PointLight2D.new()
+	LightLayers.setup_light(_torch_light)
+	_torch_light.texture = GameData.texture("fx.light")
+	_torch_light.color = Color(1.0, 0.62, 0.3)
+	_torch_light.shadow_enabled = true
+	_torch_light.shadow_filter = Light2D.SHADOW_FILTER_PCF5
+	_torch_light.shadow_filter_smooth = 2.0
+	# At the feet, like the personal light: never inside an occluder.
+	LightLayers.register(_torch_light, float(GameData.bal("lighting.carried_torch_radius")))
+	_torch_node.add_child(_torch_light)
+	var p := CPUParticles2D.new()
+	p.texture = GameData.texture("fx.pixel")
+	p.amount = 5
+	p.lifetime = 0.7
+	p.position = Vector2(10, -32)
+	p.direction = Vector2(0, -1)
+	p.spread = 25.0
+	p.gravity = Vector2(0, -30)
+	p.initial_velocity_min = 6.0
+	p.initial_velocity_max = 14.0
+	p.scale_amount_max = 0.8
+	p.color = Color(1.6, 0.8, 0.3)
+	_torch_node.add_child(p)
+	_torch_node.visible = false
+
+
+## Every peer: show the torch and its light while it burns; it gutters in its last seconds.
+func _update_carried_torch(delta: float) -> void:
+	if _torch_node == null:
+		return
+	var burning := torch_sync > 0 and life_state != Life.GHOST
+	_torch_node.visible = burning
+	if not burning:
+		return
+	_torch_t += delta
+	var energy := float(GameData.bal("lighting.carried_torch_energy"))
+	var warn := float(GameData.bal("lighting.carried_torch_warning"))
+	var flicker := sin(_torch_t * 9.0) * 0.06 + sin(_torch_t * 23.0) * 0.04
+	if torch_sync <= warn:
+		var k := float(torch_sync) / warn
+		energy *= 0.35 + 0.65 * k
+		flicker += sin(_torch_t * 31.0) * 0.2 * (1.0 - k)
+	_torch_light.energy = maxf(0.1, energy + flicker)
 
 
 func _apply_appearance() -> void:

@@ -35,6 +35,7 @@ var _overlay: Control
 var _radial: Control
 var _wipe: Control
 var _dodge_slot: Control
+var _torch_label: Label
 var _last_message := ""
 var _last_message_at := 0
 
@@ -86,6 +87,11 @@ func _build_bottom() -> void:
 	_status_box.alignment = BoxContainer.ALIGNMENT_CENTER
 	_status_box.custom_minimum_size = Vector2(0, 18)
 	bottom.add_child(_status_box)
+	_torch_label = UITheme.label("", Color(1.0, 0.7, 0.35), 13)
+	_torch_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_torch_label.add_theme_color_override("font_outline_color", Color.BLACK)
+	_torch_label.add_theme_constant_override("outline_size", 4)
+	bottom.add_child(_torch_label)
 
 	var row := HBoxContainer.new()
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -286,6 +292,7 @@ func _process(_delta: float) -> void:
 		_dodge_slot.queue_redraw()
 		_update_status()
 		_update_center()
+		_update_torch()
 	_update_party()
 	_update_boss()
 
@@ -307,6 +314,17 @@ func _update_status() -> void:
 			l2.add_theme_color_override("font_color", Color.from_string(str(def.get("color", "#ffffff")), Color.WHITE))
 		else:
 			l2.visible = false
+
+
+func _update_torch() -> void:
+	var t: int = player.torch_sync
+	if t <= 0:
+		_torch_label.text = "No light - take a torch from a wall"
+		_torch_label.add_theme_color_override("font_color", UITheme.TEXT_DIM)
+		return
+	_torch_label.text = "Torch %d:%02d" % [t / 60, t % 60]
+	var warn := int(GameData.bal("lighting.carried_torch_warning"))
+	_torch_label.add_theme_color_override("font_color", Color(1.0, 0.35, 0.25) if t <= warn else Color(1.0, 0.7, 0.35))
 
 
 func _update_center() -> void:

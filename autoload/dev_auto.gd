@@ -177,6 +177,8 @@ func _run() -> void:
 				await _continue_scenario()
 			"continue_lan":
 				await _continue_lan_scenario()
+			"darkness":
+				await _darkness_scenario()
 			"host_leave":
 				await _wait(8.0)
 				log_line("host ends the session from the pause menu")
@@ -326,6 +328,15 @@ func client_cmd(cmd: String, arg: Variant) -> void:
 					GameState.claim_slot(i)
 		"try_new_hero":
 			GameState.choose_new_character("Intruder", "mage")
+		"take_torch":
+			var tgt: Dictionary = _game().find_interactable(p)
+			check(tgt.get("kind", "") == "torch", "client finds a wall torch to take (%s)" % tgt.get("text", "none"))
+			if not tgt.is_empty():
+				p.request_interact.rpc_id(1, tgt.node.get_path())
+		"check_torch":
+			var wt: Node = _game().dungeon.torches.get(str(arg[0]))
+			check(wt != null and wt.state == int(arg[1]) and (p.torch_sync > 0) == bool(arg[2]),
+				"client sees torch %s state %d, carrying=%s" % [arg[0], wt.state if wt else -1, p.torch_sync > 0])
 		"pick_again":
 			GameState.choose_new_character(char_name, class_id)
 		"check_life":
@@ -901,6 +912,106 @@ func _continue_lan_scenario() -> void:
 	await _wait(1.0)
 
 
+## LAN: wall torches can be taken (then burn out) and broken; monsters are only visible when lit;
+## deeper floors have fewer lit rooms.
+func _darkness_scenario() -> void:
+	var g := _game()
+	var host_p := _local()
+	await _wait_until(func(): return _other_player() != null, 10.0)
+	var client_p := _other_player()
+	await _wait(1.0)
+	for e in g.enemies_root.get_children():
+		e.queue_free()
+	host_p.iframe_left = 999.0
+	client_p.iframe_left = 999.0
+	# 1. The start room is always lit.
+	var start_room: Rect2i = g.layout.rooms[0].rect
+	var start_torches: Array = []
+	for t in g.dungeon.torches.values():
+		var tc: Vector2i = g.dungeon.cell_of(t.global_position)
+		if tc.x >= start_room.position.x and tc.x < start_room.end.x and tc.y == start_room.position.y - 1:
+			start_torches.append(t)
+	check(start_torches.size() >= 2, "start room has wall torches (%d)" % start_torches.size())
+	# 2. The client takes one.
+	var torch: Node = start_torches[0]
+	client_p.host_teleport(torch.interact_pos() + Vector2(0, 18))
+	await _wait(0.8)
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["take_torch", null])
+	await _wait(0.8)
+	check(torch.state == torch.State.TAKEN and client_p.torch_sync == int(GameData.bal("lighting.carried_torch_duration")), "client took the torch (%d s of light)" % client_p.torch_sync)
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["check_torch", [torch.torch_id, torch.State.TAKEN, true]])
+	await _wait(0.3)
+	# 3. It burns out.
+	client_p.torch_left = 1.5
+	await _wait(2.2)
+	check(client_p.torch_sync == 0, "the carried torch burns out")
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["check_torch", [torch.torch_id, torch.State.TAKEN, false]])
+	# 4. A projectile at another torch breaks it.
+	var other: Node = start_torches[1]
+	host_p.host_teleport(g.nearest_floor(other.global_position + Vector2(0, 90)))
+	await _wait(0.6)
+	var bolt := {"id": "test_bolt", "school": "spell", "effects": [{"type": "projectile", "sprite": "magic", "speed": 700, "range": 300, "radius": 6, "damage": {"base": 5, "coef": 0.0}}]}
+	Combat.instance.run_effect(bolt.effects[0], Combat.instance.make_ctx(host_p, bolt), host_p.global_position, other.global_position)
+	await _wait(0.8)
+	check(other.state == other.State.BROKEN, "a projectile breaks a wall torch")
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["check_torch", [other.torch_id, other.State.BROKEN, false]])
+	# 5. Monsters in the dark are invisible until something lights them.
+	var spots := _dark_pair(g)
+	check(not spots.is_empty(), "found a dark spot with line of sight")
+	if not spots.is_empty():
+		host_p.host_teleport(spots[0])
+		var m: Enemy = g.spawn_monster("ghoul", spots[1], false)
+		await get_tree().physics_frame
+		m.set_physics_process(false)
+		m.position = spots[1]
+		m.net_pos = spots[1]
+		await _wait(0.6)
+		check(not m.visible, "a monster in line of sight but in the dark is hidden")
+		Combat.instance.fx.ring.rpc(m.global_position, 70.0, "#ff7722", "")
+		await _wait(0.15)
+		check(m.visible, "a spell's flash reveals it")
+		await _wait(1.0)
+		check(not m.visible, "it is hidden again when the flash fades")
+		host_p.host_take_torch()
+		await _wait(0.5)
+		check(m.visible, "a carried torch reveals it")
+		host_p.torch_left = 0.0
+		host_p.torch_sync = 0
+		m.queue_free()
+	# 6. Deeper floors are darker.
+	var lit := {}
+	for d in [1, 8]:
+		var lay := DungeonGenerator.new().generate(12345, g.floor_def, 1.0, d)
+		lit[d] = lay.torches.size()
+	check(lit[8] < lit[1], "deeper floors have fewer torches (floor 1: %d, floor 8: %d)" % [lit[1], lit[8]])
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["done", null])
+	await _wait(1.0)
+
+
+## Two floor points ~150 px apart with line of sight, neither lit by any light.
+func _dark_pair(g: Node) -> Array:
+	var d: Dungeon = g.dungeon
+	for y in range(2, d.size.y - 2):
+		for x in range(2, d.size.x - 7):
+			var a := d.cell_center(Vector2i(x, y))
+			var b := d.cell_center(Vector2i(x + 5, y))
+			if d.cell_at(Vector2i(x, y)) != DungeonGenerator.CELL_FLOOR or d.cell_at(Vector2i(x + 5, y)) != DungeonGenerator.CELL_FLOOR:
+				continue
+			if a.distance_to(g.layout.start) < 500.0:
+				continue
+			var dark := true
+			for l in get_tree().get_nodes_in_group(LightLayers.GROUP):
+				if l == g.visibility.vision_light:
+					continue
+				var rad := float(l.get_meta("radius", 0.0)) + 40.0
+				if l.global_position.distance_to(a) < rad or l.global_position.distance_to(b) < rad:
+					dark = false
+					break
+			if dark and Combat.instance.has_los(a, b):
+				return [a, b]
+	return []
+
+
 func _wipe_scenario() -> void:
 	var g := _game()
 	await _wait(2.0)
@@ -1134,6 +1245,22 @@ func _shots_flow() -> void:
 		p.host_teleport(g.nearest_floor(door.interact_pos() + Vector2(0, 80)))
 		await _wait(1.2)
 		await _snap(dir, "12_door_from_south")
+		# Pressed against the door from the south: the player must stay lit and visible.
+		var door_bottom: float = door.world_rect.end.y
+		p.host_teleport(Vector2(door.world_rect.get_center().x, door_bottom + 9.0))
+		await _wait(1.0)
+		await _snap(dir, "13_against_door")
+	# Darkness: a corridor away from torches, first without, then with a carried torch.
+	var dark := _dark_pair(g)
+	if not dark.is_empty():
+		p.host_teleport(dark[0])
+		p.torch_left = 0.0
+		p.torch_sync = 0
+		await _wait(1.2)
+		await _snap(dir, "14_dark_no_torch")
+		p.host_take_torch()
+		await _wait(1.0)
+		await _snap(dir, "15_dark_with_torch")
 		var fps_samples: Array = []
 		for i in 5:
 			await _wait(1.0)

@@ -19,7 +19,8 @@ var tile := 32
 var cells := PackedByteArray()
 
 
-func generate(seed_value: int, floor_def: Dictionary, count_mult: float = 1.0) -> Dictionary:
+## `depth` makes deeper floors darker (fewer lit rooms), so every peer must pass the same value.
+func generate(seed_value: int, floor_def: Dictionary, count_mult: float = 1.0, depth: int = 1) -> Dictionary:
 	rng.seed = seed_value
 	tile = int(GameData.bal("world.tile_size"))
 	var grid: Array = floor_def.grid
@@ -45,7 +46,7 @@ func generate(seed_value: int, floor_def: Dictionary, count_mult: float = 1.0) -
 	layout.props = _place_props(rooms, floor_def, used)
 	layout.chests = _place_chests(rooms, floor_def, used)
 	layout.spikes = _place_spikes(rooms, floor_def, used)
-	layout.torches = _place_torches(rooms)
+	layout.torches = _place_torches(rooms, floor_def, depth)
 	layout.spawns = _place_spawns(rooms, floor_def, used, count_mult)
 	var boss_room: Dictionary = rooms[1]
 	var start_room: Dictionary = rooms[0]
@@ -321,11 +322,25 @@ func _place_spikes(rooms: Array, fd: Dictionary, used: Dictionary) -> Array:
 	return out
 
 
-func _place_torches(rooms: Array) -> Array:
+## The start room and the boss room are always lit; other rooms are lit with a chance that
+## shrinks with depth (data: balance.lighting), so darkness spreads on deeper floors.
+func _place_torches(rooms: Array, fd: Dictionary, depth: int) -> Array:
 	var out: Array = []
+	var chance := clampf(float(GameData.bal("lighting.lit_room_chance")) + float(GameData.bal("lighting.lit_room_chance_per_depth")) * (depth - 1),
+		float(GameData.bal("lighting.lit_room_chance_min")), 1.0)
+	var per_room: Array = fd.get("torches_per_room", [1, 3])
 	for room in rooms:
 		var r: Rect2i = room.rect
-		var count := 4 if room.role == "boss" else rng.randi_range(1, 3)
+		var roll := rng.randf()
+		var count := rng.randi_range(int(per_room[0]), int(per_room[1]))
+		match room.role:
+			"boss":
+				count = 4
+			"start":
+				count = maxi(count, 2)
+			_:
+				if roll > chance:
+					count = 0
 		var wall_cells: Array = []
 		for x in range(r.position.x + 1, r.end.x - 1):
 			var c := Vector2i(x, r.position.y - 1)

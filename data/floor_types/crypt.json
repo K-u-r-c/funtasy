@@ -5,7 +5,7 @@
 	"music": "crypt",
 	"boss_music": "boss_bone_lord",
 	"boss": "bone_lord",
-	"ambient_color": "#0b0910",
+	"ambient_color": "#07060a",
 	"torch_color": "#ff9944",
 	"lava_color": "#ff5511",
 	"grid": [96, 72],
