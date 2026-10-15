@@ -1,0 +1,167 @@
+{
+	"_comment": "Placeholder icons drawn by tools/gen_placeholder_icons.py until PixelLab art replaces them (see data/assets.json).",
+	"items.gold": {
+		"color": "#e8b830",
+		"text": "G",
+		"shape": "circle"
+	},
+	"items.gold_key": {
+		"color": "#f0c850",
+		"text": "K",
+		"shape": "diamond"
+	},
+	"items.book_standard": {
+		"color": "#7a5a3a",
+		"text": "L",
+		"shape": "book"
+	},
+	"items.book_tome": {
+		"color": "#3a6ad0",
+		"text": "T",
+		"shape": "book"
+	},
+	"items.book_legendary": {
+		"color": "#e07a20",
+		"text": "A",
+		"shape": "book"
+	},
+	"items.torch_bundle": {
+		"color": "#c86a2a",
+		"text": "Tr",
+		"shape": "bar"
+	},
+	"items.pact_colossus": {
+		"color": "#8a2a2a",
+		"text": "Co",
+		"shape": "circle"
+	},
+	"items.pact_butcher": {
+		"color": "#a01818",
+		"text": "Bu",
+		"shape": "circle"
+	},
+	"items.pact_void_eye": {
+		"color": "#6a2ab0",
+		"text": "VE",
+		"shape": "circle"
+	},
+	"items.pact_astral": {
+		"color": "#3a5ad8",
+		"text": "As",
+		"shape": "circle"
+	},
+	"items.pact_phantasmal": {
+		"color": "#8090a8",
+		"text": "Ph",
+		"shape": "circle"
+	},
+	"items.pact_hellfire": {
+		"color": "#e04a10",
+		"text": "Hf",
+		"shape": "circle"
+	},
+	"items.pact_serum": {
+		"color": "#5a0a1a",
+		"text": "Se",
+		"shape": "circle"
+	},
+	"items.pact_magma": {
+		"color": "#ff6a1a",
+		"text": "Mg",
+		"shape": "circle"
+	},
+	"items.pact_leech_oil": {
+		"color": "#4a7a2a",
+		"text": "Le",
+		"shape": "circle"
+	},
+	"items.pact_thorns": {
+		"color": "#3a5a2a",
+		"text": "Th",
+		"shape": "circle"
+	},
+	"props.gilded_portal": {
+		"color": "#d8a830",
+		"text": "Gate",
+		"shape": "square",
+		"size": 48
+	},
+	"props.gilded_portal_open": {
+		"color": "#f8e080",
+		"text": "Open",
+		"shape": "square",
+		"size": 48
+	},
+	"props.demon_altar": {
+		"color": "#8a1a2a",
+		"text": "Altar",
+		"shape": "square",
+		"size": 48
+	},
+	"props.archibald": {
+		"color": "#c8a050",
+		"text": "Arch",
+		"shape": "circle",
+		"size": 48
+	},
+	"props.malphas": {
+		"color": "#a02040",
+		"text": "Mal",
+		"shape": "circle",
+		"size": 48
+	},
+	"props.elite_altar": {
+		"color": "#c09030",
+		"text": "Elt",
+		"shape": "diamond",
+		"size": 40
+	},
+	"props.elite_altar_used": {
+		"color": "#605030",
+		"text": "-",
+		"shape": "diamond",
+		"size": 40
+	},
+	"props.bookshelf": {
+		"color": "#5a3a22",
+		"text": "Bks",
+		"shape": "square",
+		"size": 40
+	},
+	"props.secret_sarcophagus": {
+		"color": "#56606a",
+		"text": "Sar",
+		"shape": "bar",
+		"size": 48
+	},
+	"props.secret_sarcophagus_open": {
+		"color": "#353c44",
+		"text": "-",
+		"shape": "bar",
+		"size": 48
+	},
+	"sfx.coin": {
+		"like": "sfx.pickup",
+		"prompt": "short bright clink of a few gold coins dropping into a leather purse, dry, no reverb"
+	},
+	"sfx.key_unlock": {
+		"like": "sfx.pickup",
+		"prompt": "heavy ornate gold key turning in an old lock, metallic clunk then a soft magical chime"
+	},
+	"sfx.merchant_chime": {
+		"like": "sfx.level_up",
+		"prompt": "warm shop bell chime with a faint arcane shimmer, dark fantasy"
+	},
+	"sfx.tithe": {
+		"like": "sfx.death",
+		"prompt": "deep demonic whisper and a wet heartbeat thump, ominous, short"
+	},
+	"sfx.book_open": {
+		"like": "sfx.pickup",
+		"prompt": "old heavy leather tome opening, creaking spine and rustling parchment pages"
+	},
+	"sfx.page": {
+		"like": "sfx.pickup",
+		"prompt": "single parchment page turning, dry and crisp"
+	}
+}

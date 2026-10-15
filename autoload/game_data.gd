@@ -54,7 +54,9 @@ func _ready() -> void:
 func reload() -> void:
 	errors.clear()
 	balance = _load_json("balance.json", {})
-	assets = _load_json("assets.json", {})
+	# Generated placeholder art first, the hand-kept registry on top (real art wins).
+	assets = _load_json("assets_placeholders.json", {}) if FileAccess.file_exists(DATA_DIR + "assets_placeholders.json") else {}
+	_deep_merge(assets, _load_json("assets.json", {}))
 	game_settings = _load_json("game_settings.json", [])
 	input_defaults = _load_json("input_defaults.json", {})
 	rarities = _load_json("items/rarities.json", [])
@@ -94,6 +96,14 @@ func reload() -> void:
 	_validate_refs()
 	for e in errors:
 		push_error("GameData: " + e)
+
+
+static func _deep_merge(into: Dictionary, over: Dictionary) -> void:
+	for k in over:
+		if into.get(k) is Dictionary and over[k] is Dictionary:
+			_deep_merge(into[k], over[k])
+		else:
+			into[k] = over[k]
 
 
 func bal(path: String, fallback: Variant = null) -> Variant:
