@@ -88,6 +88,7 @@ if [ "$WHAT" = all ] || [ "$WHAT" = lan ]; then
 	pair client-leave "--class=ranger --name=HostC --scenario=client_leave --quit=60" "--class=priest --name=ClientC --quit=60"
 	pair continue-lan "--class=priest --name=HostS --scenario=continue_lan --quit=90" "--class=mage --gender=female --name=ClientS --quit=90"
 	pair darkness "--class=mage --name=HostD --scenario=darkness --quit=90" "--class=warrior --name=ClientD --quit=90"
+	pair economy-lan "--class=warrior --name=HostE --scenario=economy_lan --quit=120" "--class=mage --name=ClientE --quit=120"
 	pair wipe "--class=ranger --name=HostWipe --scenario=wipe --quit=60" "--class=priest --name=ClientWipe --quit=60"
 fi
 if [ "$WHAT" = steam ]; then

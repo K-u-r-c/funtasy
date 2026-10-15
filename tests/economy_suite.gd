@@ -246,3 +246,105 @@ func merchants() -> void:
 	await da._wait(0.4)
 	var expect := 100.0 * GameData.level_scale(p.level)
 	da.check(absf(p.stats.get_stat("stamina") - sta0 - expect) < 2.0, "Colossus Draught adds %.0f Stamina at level %d (D15)" % [expect, p.level])
+
+
+
+# =========================================================================================
+# LAN pair (host + client): split gold, shared stock, client intents, the reader is local
+# =========================================================================================
+
+
+func run_lan() -> void:
+	g = da._game()
+	p = da._local()
+	await da._wait_until(func(): return g.players_root.get_child_count() >= 2, 10.0)
+	await da._wait(1.0)
+	var c: Player = da._other_player()
+	for pl in g.players_root.get_children():
+		pl.iframe_left = 9999.0
+	# Gold: a pile picked up by the host is split with the client.
+	var hg := p.gold
+	var cg := c.gold
+	g.loot.drop_item(LootTable.make_gold(41, g.loot.rng), p.global_position + Vector2(8, 0))
+	await da._wait(0.4)
+	for it in g.items_root.get_children():
+		if it.item.get("kind", "") == "gold":
+			g.loot.try_pickup(p, it)
+	await da._wait(0.4)
+	da.check(p.gold == hg + 21 and c.gold == cg + 20, "41 gold split host +%d / client +%d" % [p.gold - hg, c.gold - cg])
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["eco_check_gold", c.gold])
+	await da._wait(0.5)
+	# The merchant chamber: the client buys from the shared stock.
+	var m: Dictionary = g.layout.merchant
+	g.add_party_key(1)
+	p.host_teleport(m.portal + Vector2(0, 18))
+	c.host_teleport(m.archibald + Vector2(14, 16))
+	await da._wait(0.5)
+	g.host_interact(p, g.dungeon.props["Merchant_Portal"])
+	c.host_add_gold(1000)
+	await da._wait(0.4)
+	var price := int(g.merchants.stock[0].price)
+	var cg2 := c.gold
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["eco_buy", 0])
+	await da._wait(0.8)
+	da.check(int(g.merchants.stock[0].left) == 0 and c.gold == cg2 - price, "the client bought stock line 0 for %d gold" % price)
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["eco_check_stock", 0])
+	await da._wait(0.4)
+	# The client pays the tithe and signs a contract.
+	c.host_teleport(m.altar + Vector2(0, 18))
+	await da._wait(0.4)
+	var mods := c.run_mods.size()
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["eco_tithe", null])
+	await da._wait(0.8)
+	da.check(c.run_mods.size() == mods + 1, "the client's tithe is a run modifier on the client's hero")
+	# Reading: only the reader's screen opens the book; only the reader's codex learns it.
+	c.host_give_item(LootTable.make_book("lore_007", g.loot.rng))
+	await da._wait(0.4)
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["eco_read", "lore_007"])
+	await da._wait(0.8)
+	var hud: Node = da.get_tree().get_first_node_in_group("hud")
+	da.check(hud._overlay == null and not Codex.is_read("lore_007"), "the host's screen and codex are untouched by the client's reading")
+	# Client loadout and stat points.
+	c.add_xp(Player.xp_to_next(c.level))
+	c.resource._since_combat = 99.0
+	await da._wait(0.4)
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["eco_progress", null])
+	await da._wait(1.0)
+	da.check(int(c.allocated.get("intellect", 0)) == 1, "the client spent a stat point through the host")
+	da.check(str(c.skills[1]) == str(c.default_loadout()[2]) and str(c.skills[2]) == str(c.default_loadout()[1]), "the client's loadout swap went through")
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["done", null])
+	await da._wait(1.0)
+
+
+## Client side of run_lan.
+func client_cmd(cmd: String, arg: Variant) -> void:
+	g = da._game()
+	p = da._local()
+	match cmd:
+		"eco_check_gold":
+			da.check(p.gold == int(arg), "the client's wallet shows %d gold" % int(arg))
+		"eco_buy":
+			g.merchants.request_buy.rpc_id(1, int(arg))
+		"eco_check_stock":
+			da.check(int(g.merchants.stock[int(arg)].left) == 0 and g.merchants.portal_open, "the client sees the shared stock line sold out")
+		"eco_tithe":
+			g.merchants.request_tithe.rpc_id(1, true)
+			await da._wait(0.5)
+			var hud: Node = da.get_tree().get_first_node_in_group("hud")
+			da.check(hud._overlay != null, "after the tithe Malphas's window opens on the client")
+			hud.close_overlay()
+		"eco_read":
+			for i in p.inv.backpack.size():
+				if str(p.inv.backpack[i].get("book", "")) == str(arg):
+					p.request_read_book.rpc_id(1, i)
+			await da._wait(0.5)
+			var hud2: Node = da.get_tree().get_first_node_in_group("hud")
+			da.check(Codex.is_read(str(arg)) and hud2._overlay != null and str(hud2._overlay.get("book_id")) == str(arg), "the client reads the book in its own reader")
+			hud2.close_overlay()
+		"eco_progress":
+			p.request_spend_stat.rpc_id(1, "intellect", 1)
+			var lo: Array = p.skills.duplicate()
+			var t = lo[1]
+			lo[1] = lo[2]
+			lo[2] = t
+			p.request_loadout.rpc_id(1, lo)

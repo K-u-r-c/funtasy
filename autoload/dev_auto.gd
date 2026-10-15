@@ -217,6 +217,8 @@ func _run() -> void:
 				await MonsterSuite.new(self).run(biome)
 			"economy":
 				await EconomySuite.new(self).run()
+			"economy_lan":
+				await EconomySuite.new(self).run_lan()
 			"lore":
 				await LoreSuite.new(self).run()
 			"tour":
@@ -421,6 +423,8 @@ func client_cmd(cmd: String, arg: Variant) -> void:
 			check(get_tree().current_scene.name == "Lobby", "client returned to the lobby after the wipe")
 		"done":
 			_finish.call_deferred("host finished")
+		_ when cmd.begins_with("eco_"):
+			await EconomySuite.new(self).client_cmd(cmd, arg)
 		"leave":
 			log_line("client leaves to the main menu mid-run")
 			NetworkManager.leave_to_menu()
@@ -1369,8 +1373,16 @@ func _ui_layout_scenario() -> void:
 		check(seen.x <= float(GameData.bal("camera.max_view_width")) + 1.0 and seen.y <= float(GameData.bal("camera.max_view_height")) + 1.0
 				and seen.x <= bounds.size.x + 1.0 and seen.y <= bounds.size.y + 1.0,
 				"camera shows %dx%d world px at %s (no void past the dungeon)" % [seen.x, seen.y, tag])
-		for panel_script in [hud.CharacterPanel, hud.InventoryPanel, hud.TalentPanel, hud.MapPanel, hud.PauseMenu]:
-			hud.open_overlay(panel_script.new())
+		for panel_script in [hud.CharacterPanel, hud.InventoryPanel, hud.TalentPanel, hud.MapPanel, hud.PauseMenu,
+				hud.SkillBookPanel, hud.CodexPanel, hud.ShopPanel, hud.PactPanel, hud.LoreReader, hud.ConfirmDialog]:
+			var panel: Control = panel_script.new()
+			if panel_script == hud.LoreReader:
+				panel.book_id = "lore_001"
+				panel.title_text = "Diary of the Last Gravedigger"
+			elif panel_script == hud.ConfirmDialog:
+				panel.title_text = "The Demon Altarpiece"
+				panel.body_text = "Crossing the threshold costs a blood tithe."
+			hud.open_overlay(panel)
 			await _wait(0.4)
 			var w: Control = hud._overlay.window
 			var wr := w.get_global_rect()
@@ -1380,7 +1392,7 @@ func _ui_layout_scenario() -> void:
 			var name_ := str(panel_script.resource_path.get_file().get_basename())
 			check(vp.encloses(wr) and centered and wr.size.x <= cap.x + 1.0 and wr.size.y <= cap.y + 1.0,
 					"%s window %dx%d centered on screen, within its max size at %s" % [name_, wr.size.x, wr.size.y, tag])
-			if panel_script != hud.MapPanel:
+			if panel_script != hud.MapPanel and panel_script != hud.CodexPanel or (panel_script == hud.CodexPanel and Codex.count() > 0):
 				var f := get_viewport().gui_get_focus_owner()
 				check(f != null and hud._overlay.is_ancestor_of(f), "%s has gamepad focus at %s" % [name_, tag])
 		hud.close_overlay()
@@ -1412,7 +1424,7 @@ func _ui_layout_scenario() -> void:
 	check(sizes.all(func(z): return z == sizes[0]), "all game menu panels share one window size %s" % [sizes])
 	_action("ui_tab_prev")
 	await _wait(0.35)
-	check(hud._overlay.get_script() == hud.MapPanel, "tab prev goes back to the map")
+	check(str(hud._overlay.menu_tab) == str(UIModal.MENU_TABS[-1][0]), "tab prev wraps to the last tab")
 	_action("inventory")
 	await _wait(0.35)
 	check(hud._overlay.get_script() == hud.InventoryPanel, "a panel's key switches to it while another panel is open")
@@ -1443,6 +1455,12 @@ func _ui_layout_scenario() -> void:
 	nodes.append(tp._reset)
 	res = _focus_graph(tp, nodes[0], nodes)
 	check(res.missing.is_empty() and res.leaks == 0, "talent d-pad graph reaches all %d nodes + reset, stays in the window (missing %d, leaks %d)" % [nodes.size() - 1, res.missing.size(), res.leaks])
+	hud.open_overlay(hud.SkillBookPanel.new())
+	await _wait(0.5)
+	var sbp: Node = hud._overlay
+	var sb_nodes: Array = sbp._slot_buttons + sbp._skill_buttons.values()
+	res = _focus_graph(sbp, sb_nodes[0], sb_nodes)
+	check(res.missing.is_empty() and res.leaks == 0, "Skill Book d-pad graph reaches the bar and every skill (missing %d, leaks %d)" % [res.missing.size(), res.leaks])
 	hud.close_overlay()
 	# Mouse drag and drop in the inventory, with real mouse events.
 	win.size = Vector2i(1920, 1080)

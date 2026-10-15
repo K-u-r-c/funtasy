@@ -13,7 +13,7 @@ var _scroll: ScrollContainer
 
 func _init() -> void:
 	prompts = [["ui_up", "Scroll"], ["ui_cancel", "Close"]]
-	max_size = Vector2(640, 520)
+	max_size = Vector2(760, 520)
 	fill_height = true
 
 
@@ -34,7 +34,7 @@ func _build() -> void:
 	_scroll.add_child(v)
 	var text := UITheme.label(str(b.get("text", "")), INK, UITheme.FONT_BODY)
 	text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	text.custom_minimum_size = Vector2(560, 0)
+	text.custom_minimum_size = Vector2(520, 0)
 	v.add_child(text)
 	if str(b.get("classification", "")) != "standard":
 		var eff := UITheme.label(str(b.get("effect_text", "")).replace(" (Permanent)", " for the rest of the run"), UITheme.GOLD, UITheme.FONT_SMALL)
