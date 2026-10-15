@@ -10,12 +10,12 @@ extends Node
 ## Only whitelisted methods can be reached, so a client can't call arbitrary autoload code.
 
 const FROM_HOST := {
-	"GameState": ["_receive_character", "_sync_roster", "_sync_settings"],
+	"GameState": ["_sync_game", "_sync_roster", "_sync_settings"],
 	"NetworkManager": ["_begin_run", "_return_to_lobby", "_end_session"],
 	"DevAuto": ["client_cmd"],
 }
 const FROM_CLIENTS := {
-	"GameState": ["_submit_character"],
+	"GameState": ["_submit_choice"],
 	"NetworkManager": ["_report_loaded"],
 }
 

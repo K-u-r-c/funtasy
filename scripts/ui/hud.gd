@@ -384,13 +384,7 @@ func show_wipe(final_depth: int) -> void:
 	t.add_theme_color_override("font_color", Color(0.9, 0.2, 0.15))
 	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(t)
-	var rules: Dictionary = GameData.bal("wipe", {})
-	var lost: Array = []
-	if rules.get("lose_equipment", true):
-		lost.append("equipped items")
-	if rules.get("lose_backpack", true):
-		lost.append("backpack contents")
-	var l := UITheme.label("Reached floor %d. Lost: %s. Levels and talents are kept.\nReturning to the lobby..." % [final_depth, ", ".join(lost) if not lost.is_empty() else "nothing"], UITheme.TEXT, 15)
+	var l := UITheme.label("Reached floor %d. This game is over and its heroes are gone.\nReturning to the lobby..." % final_depth, UITheme.TEXT, 15)
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	v.add_child(l)

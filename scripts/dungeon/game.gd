@@ -90,7 +90,7 @@ func _try_begin() -> void:
 		return
 	_begun = true
 	run_seed = randi()
-	start_floor(1)
+	start_floor(GameState.start_depth())
 
 
 func start_floor(new_depth: int) -> void:
@@ -112,16 +112,20 @@ func start_floor(new_depth: int) -> void:
 	var n := players_root.get_child_count() if players_root.get_child_count() > 0 else GameState.roster.size()
 	var count_mult := 1.0 + float(GameData.bal("scaling.count_per_extra_player")) * (maxi(n, 1) - 1)
 	var host_layout := DungeonGenerator.new().generate(floor_seed, floor_def, count_mult)
-	_place_players(new_depth == 1 and players_root.get_child_count() == 0)
+	_place_players()
 	for group in host_layout.spawns:
 		for m in group.monsters:
 			spawn_monster(str(m.id), m.pos, false)
 	spawn_monster(str(floor_def.boss), host_layout.boss_pos, true)
 	boss_alive = true
 	boss_engaged = false
+	GameState.current_depth = new_depth
+	GameState.save_game()
 
 
-func _place_players(first: bool) -> void:
+## Spawns connected players that have no character in the world yet (start of a run, which can
+## be a later floor when a saved game is continued) and moves everyone else to the start room.
+func _place_players() -> void:
 	var start: Vector2 = layout.start
 	var i := 0
 	var ids: Array = GameState.roster.keys()
@@ -129,7 +133,8 @@ func _place_players(first: bool) -> void:
 	for id in ids:
 		var pos: Vector2 = start + START_OFFSETS[i % START_OFFSETS.size()]
 		var existing: Player = player_by_peer(id)
-		if first and existing == null:
+		var connected: bool = id == 1 or multiplayer.get_peers().has(id)
+		if existing == null and connected:
 			var r: Dictionary = GameState.roster[id]
 			player_spawner.spawn({"peer": id, "pos": pos, "class_id": r.class_id, "name": r.name, "level": r.level})
 		elif existing:
@@ -303,17 +308,8 @@ func _check_wipe() -> void:
 	# Nobody is left standing, so nobody can revive anyone: the party is wiped.
 	_wiped = true
 	print("[game] party wiped on floor %d" % depth)
-	var rules: Dictionary = GameData.bal("wipe", {})
-	for p in players_root.get_children():
-		var ch: Dictionary = p.to_character()
-		if bool(rules.get("lose_equipment", true)):
-			ch.equipment = {}
-		if bool(rules.get("lose_backpack", true)):
-			ch.backpack = []
-		if bool(rules.get("lose_level_progress", false)):
-			ch.xp = 0
-		GameState.characters[p.peer_id] = ch
-		GameState.push_character_to_owner(p.peer_id)
+	# A wipe ends this game for good: its save (and the heroes in it) is deleted.
+	GameState.end_game()
 	_show_wipe.rpc(depth)
 	get_tree().create_timer(6.0).timeout.connect(_end_run)
 
@@ -321,6 +317,12 @@ func _check_wipe() -> void:
 ## Host: despawn every replicated node first so clients get the despawns while they still have
 ## the game scene, then send everyone back to the lobby.
 func _end_run() -> void:
+	NetworkManager.return_to_lobby()
+
+
+## Host: despawns every replicated node (players stop streaming first) so clients receive the
+## despawns while they still have the game scene. Awaited before leaving the run.
+func teardown_run() -> void:
 	_stop_owner_sync.rpc()
 	await get_tree().create_timer(0.3).timeout
 	combat.clear_floor()
@@ -328,7 +330,6 @@ func _end_run() -> void:
 		for c in root.get_children():
 			c.queue_free()
 	await get_tree().create_timer(0.3).timeout
-	NetworkManager.return_to_lobby()
 
 
 func _on_peer_disconnected(id: int) -> void:

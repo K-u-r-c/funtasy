@@ -148,12 +148,12 @@ func to_character() -> Dictionary:
 		"equipment": d.equipment, "backpack": d.backpack, "backpack_capacity": d.capacity, "quick": d.quick}
 
 
-## Host: store the authoritative character and send it to the owner to save locally.
+## Host: store the authoritative character in the saved game.
 func persist() -> void:
 	if not multiplayer.is_server():
 		return
 	GameState.characters[peer_id] = to_character()
-	GameState.push_character_to_owner(peer_id)
+	GameState.save_game()
 
 
 func _talent_points_total() -> int:

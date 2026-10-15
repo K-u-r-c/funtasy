@@ -43,8 +43,7 @@ func _open_settings() -> void:
 
 
 func _leave() -> void:
-	if player and is_instance_valid(player) and multiplayer.is_server():
+	if multiplayer.is_server():
 		for p in get_tree().get_nodes_in_group("players"):
 			p.persist()
-	GameState.save_local_character()
 	NetworkManager.leave_to_menu()

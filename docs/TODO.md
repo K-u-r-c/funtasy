@@ -8,7 +8,7 @@ manual run noted here.
 - [x] Foundation: folders, pixel-perfect settings, y-sort, autoloads, asset registry, generated placeholders
 - [x] Input: all actions via InputMap, KB/mouse + gamepad defaults, full rebinding (2 KB + 2 pad slots per action),
       conflict resolution, reset, saved to `user://settings.cfg` (verified: rebind survives restart)
-- [x] Networking: ENet + Steam behind `NetworkManager`, lobby with name/class, saved characters, host-only settings
+- [x] Networking: ENet + Steam behind `NetworkManager`, lobby with new/saved games (fixed party size), name/class or hero slots, host-only settings
       generated from `data/game_settings.json` (verified: host + client over LAN)
 - [x] Combat core: Stats, Health, Mana/Fury, statuses, projectiles, melee arcs, AoE, zones, traps, crit, haste,
       dodge, leech, dash with i-frames, threat tables with hysteresis, taunts, friendly fire
@@ -19,7 +19,7 @@ manual run noted here.
 - [x] Dungeon: seeded infinite floors, rooms + corridors, player doors (monsters open them after a delay),
       grid fog of war + LOS enemy visibility, destructible props (explosive barrels), lava, spikes, chests,
       3 monster types, phased boss + bonus loot + portal, scaling by players/level/depth
-- [x] Progression: downed (10 s) -> revive / ghost spectate, wipe -> lobby, contribution-based shared XP,
+- [x] Progression: downed (10 s) -> revive / ghost spectate, wipe ends the saved game -> lobby, contribution-based shared XP,
       levels, talent trees, saving (verified over LAN)
 - [x] Lighting (vision light with shadows, torches, lava, item and spell lights), glow, particles, screen shake
 - [x] Audio manager with crossfaded floor/boss music and pooled SFX (placeholder files)
@@ -45,7 +45,6 @@ manual run noted here.
       for pads with an unusual layout (the entry for this pad is commented out: not needed).
 - [ ] Final art (Pixellab) and music (Suno): replace placeholders via `data/assets.json`.
 - [ ] Balance pass: numbers in `data/balance.json` are first guesses.
-- [ ] Confirm the wipe rules (currently: lose equipped items + backpack, keep level/talents).
 
 ## Known limitations
 

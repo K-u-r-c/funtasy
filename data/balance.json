@@ -124,12 +124,6 @@
 		"explosion_damage": 45,
 		"explosion_radius": 80
 	},
-	"wipe": {
-		"_comment": "What a party wipe costs every character (see docs/DECISIONS.md).",
-		"lose_equipment": true,
-		"lose_backpack": true,
-		"lose_level_progress": false
-	},
 	"audio": {
 		"music_crossfade": 1.5
 	},

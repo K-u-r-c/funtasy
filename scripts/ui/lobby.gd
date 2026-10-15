@@ -1,13 +1,22 @@
 extends Control
-## Pre-run lobby. Every player picks a name + class (a saved character with the same name and
-## class is loaded automatically), the host edits the game settings (generated from
-## data/game_settings.json) and starts the run once everyone has confirmed a character.
+## Pre-run lobby.
+## The host chooses the game: a new game (everyone creates a fresh level 1 hero) or a saved game
+## (it keeps its party size; every player takes one of its heroes). Heroes only exist inside
+## their game, so a hero can't be brought into another party. The host also edits the game
+## settings (generated from data/game_settings.json) and starts once the party is ready.
 
+var _game_opt: OptionButton
+var _delete_btn: Button
+var _game_desc: Label
+var _saved: Array = []  ## host: saved games listed in _game_opt (index - 1)
+
+var _new_box: VBoxContainer
 var _name_edit: LineEdit
 var _class_buttons: Dictionary = {}
 var _class_desc: Label
-var _saved_box: VBoxContainer
 var _confirm: AnimButton
+var _slots_box: VBoxContainer
+
 var _roster_box: VBoxContainer
 var _settings_box: GridContainer
 var _start: AnimButton
@@ -58,29 +67,20 @@ func _ready() -> void:
 	_status = UITheme.label("", UITheme.TEXT_DIM, 14)
 	bottom.add_child(_status)
 
-	GameState.roster_changed.connect(_refresh_roster)
+	GameState.roster_changed.connect(_refresh)
+	GameState.game_changed.connect(_refresh)
 	GameState.settings_changed.connect(_refresh_settings)
-	NetworkManager.peer_joined.connect(func(_id): _refresh_roster())
-	NetworkManager.peer_left.connect(func(_id): _refresh_roster())
+	NetworkManager.peer_joined.connect(func(_id): _refresh())
+	NetworkManager.peer_left.connect(func(_id): _refresh())
 
-	var saved := SaveSystem.list_characters()
-	if not GameState.local_character.is_empty():
-		_name_edit.text = GameState.local_character.name
-		_select_class(GameState.local_character.class_id)
-	elif not saved.is_empty():
-		_name_edit.text = saved[0].name
-		_select_class(saved[0].class_id)
-	else:
-		_name_edit.text = NetworkManager.local_name().substr(0, 16)
-		_select_class("warrior")
-	_refresh_saved()
-	_refresh_roster()
+	var last: Dictionary = GameState.last_hero
+	_name_edit.text = str(last.get("name", NetworkManager.local_name().substr(0, 16)))
+	_select_class(str(last.get("class_id", "warrior")))
+	_refresh_games()
+	_refresh()
 	_refresh_settings()
-	_confirm.grab_focus()
+	(_game_opt if multiplayer.is_server() else _confirm).grab_focus()
 	AudioManager.play_music("menu")
-	# Coming back from a run: re-announce our (possibly updated) character.
-	if not GameState.local_character.is_empty():
-		GameState.submit_local_character()
 
 
 func _session_text() -> String:
@@ -94,7 +94,9 @@ func _session_text() -> String:
 	return ""
 
 
-# --- Character panel ------------------------------------------------------------------------
+# =========================================================================================
+# Left panel: game choice + hero choice
+# =========================================================================================
 
 
 func _build_character_panel() -> Control:
@@ -103,19 +105,42 @@ func _build_character_panel() -> Control:
 	var v := VBoxContainer.new()
 	v.add_theme_constant_override("separation", 8)
 	panel.add_child(v)
-	v.add_child(UITheme.label("Your character", UITheme.ACCENT, 18))
+
+	v.add_child(UITheme.label("Game", UITheme.ACCENT, 18))
+	var game_row := HBoxContainer.new()
+	game_row.add_theme_constant_override("separation", 6)
+	v.add_child(game_row)
+	_game_opt = OptionButton.new()
+	_game_opt.custom_minimum_size = Vector2(330, 30)
+	_game_opt.disabled = not multiplayer.is_server()
+	_game_opt.item_selected.connect(_on_game_selected)
+	_game_opt.fit_to_longest_item = false
+	game_row.add_child(_game_opt)
+	_delete_btn = Button.new()
+	_delete_btn.text = "Delete"
+	_delete_btn.visible = multiplayer.is_server()
+	_delete_btn.pressed.connect(_on_delete_game)
+	game_row.add_child(_delete_btn)
+	_game_desc = UITheme.label("", UITheme.TEXT_DIM, 13)
+	_game_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_game_desc.custom_minimum_size = Vector2(410, 0)
+	v.add_child(_game_desc)
+
+	v.add_child(UITheme.label("Your hero", UITheme.ACCENT, 18))
+	# New game: name + class
+	_new_box = VBoxContainer.new()
+	_new_box.add_theme_constant_override("separation", 8)
+	v.add_child(_new_box)
 	var name_row := HBoxContainer.new()
 	name_row.add_child(UITheme.label("Name "))
 	_name_edit = LineEdit.new()
 	_name_edit.max_length = 16
 	_name_edit.custom_minimum_size = Vector2(260, 30)
-	_name_edit.text_changed.connect(func(_t): _refresh_confirm_text())
 	name_row.add_child(_name_edit)
-	v.add_child(name_row)
-
+	_new_box.add_child(name_row)
 	var classes := HBoxContainer.new()
 	classes.add_theme_constant_override("separation", 6)
-	v.add_child(classes)
+	_new_box.add_child(classes)
 	for cid in ["warrior", "ranger", "mage", "priest"]:
 		if not GameData.classes.has(cid):
 			continue
@@ -130,53 +155,65 @@ func _build_character_panel() -> Control:
 	_class_desc = UITheme.label("", UITheme.TEXT_DIM, 13)
 	_class_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_class_desc.custom_minimum_size = Vector2(410, 54)
-	v.add_child(_class_desc)
-
+	_new_box.add_child(_class_desc)
 	_confirm = AnimButton.new()
 	_confirm.pressed.connect(_on_confirm)
-	v.add_child(_confirm)
-
-	v.add_child(UITheme.label("Saved characters", UITheme.ACCENT, 14))
-	var scroll := ScrollContainer.new()
-	scroll.custom_minimum_size = Vector2(0, 130)
-	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	scroll.follow_focus = true
-	v.add_child(scroll)
-	_saved_box = VBoxContainer.new()
-	_saved_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	scroll.add_child(_saved_box)
+	_new_box.add_child(_confirm)
+	# Saved game: pick one of its heroes
+	_slots_box = VBoxContainer.new()
+	_slots_box.add_theme_constant_override("separation", 6)
+	v.add_child(_slots_box)
 	return panel
 
 
+func _refresh_games() -> void:
+	_game_opt.clear()
+	_game_opt.add_item("New game")
+	_saved = SaveSystem.list_games() if multiplayer.is_server() else []
+	for g in _saved:
+		_game_opt.add_item(_game_title(g))
+	if multiplayer.is_server():
+		var idx := 0
+		for i in _saved.size():
+			if _saved[i].id == GameState.game_info.get("id", ""):
+				idx = i + 1
+		_game_opt.select(idx)
+
+
+func _game_title(g: Dictionary) -> String:
+	var names: Array = []
+	for m in g.members:
+		names.append(m.name)
+	return "Floor %d - %d player%s - %s" % [int(g.get("depth", 1)), int(g.party_size), "" if int(g.party_size) == 1 else "s", ", ".join(names)]
+
+
+func _on_game_selected(idx: int) -> void:
+	if idx == 0:
+		GameState.select_new_game()
+	else:
+		GameState.select_saved_game(str(_saved[idx - 1].id))
+	_refresh()
+
+
+func _on_delete_game() -> void:
+	var idx := _game_opt.selected
+	if idx <= 0:
+		return
+	SaveSystem.delete_game(str(_saved[idx - 1].id))
+	GameState.select_new_game()
+	_refresh_games()
+	_status.text = "Saved game deleted."
+
+
 func _select_class(cid: String) -> void:
+	if not GameData.classes.has(cid):
+		cid = "warrior"
 	_selected_class = cid
 	for k in _class_buttons:
 		_class_buttons[k].set_pressed_no_signal(k == cid)
 	var c: Dictionary = GameData.classes[cid]
 	_class_desc.text = "%s  Resource: %s." % [c.description, str(c.resource).capitalize()]
-	_refresh_confirm_text()
-
-
-func _refresh_confirm_text() -> void:
-	var nm := _name_edit.text.strip_edges()
-	var saved := SaveSystem.load_character(nm, _selected_class) if not nm.is_empty() else {}
-	var lvl := " (new, level 1)" if saved.is_empty() else " (level %d)" % int(saved.level)
-	_confirm.text = "Play as %s%s" % [GameData.classes[_selected_class].name, lvl]
-
-
-func _refresh_saved() -> void:
-	for c in _saved_box.get_children():
-		c.queue_free()
-	for ch in SaveSystem.list_characters():
-		var b := Button.new()
-		var cname: String = GameData.classes.get(ch.class_id, {}).get("name", ch.class_id)
-		b.text = "%s - %s, level %d" % [ch.name, cname, int(ch.level)]
-		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		b.pressed.connect(func():
-			_name_edit.text = ch.name
-			_select_class(ch.class_id)
-			_confirm.grab_focus())
-		_saved_box.add_child(b)
+	_confirm.text = "Play as a new %s (level 1)" % c.name
 
 
 func _on_confirm() -> void:
@@ -184,13 +221,38 @@ func _on_confirm() -> void:
 	if nm.is_empty():
 		_status.text = "Enter a name first."
 		return
-	GameState.select_character(nm, _selected_class)
-	GameState.save_local_character()
-	_refresh_saved()
-	_status.text = "Character confirmed."
+	GameState.choose_new_character(nm, _selected_class)
+	_status.text = "Hero confirmed."
 
 
-# --- Party + settings -----------------------------------------------------------------------
+func _refresh_slots() -> void:
+	for c in _slots_box.get_children():
+		c.queue_free()
+	if not GameState.is_continuing():
+		return
+	var taken := {}
+	for id in GameState.roster:
+		taken[int(GameState.roster[id].get("slot", -1))] = id
+	var members: Array = GameState.game_info.get("members", [])
+	for i in members.size():
+		var m: Dictionary = members[i]
+		var cdef: Dictionary = GameData.classes.get(m.class_id, {})
+		var b := Button.new()
+		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		b.custom_minimum_size = Vector2(410, 32)
+		var who := ""
+		if taken.has(i):
+			who = "  (you)" if taken[i] == multiplayer.get_unique_id() else "  (taken)"
+		b.text = "%s - %s, level %d%s" % [m.name, cdef.get("name", m.class_id), int(m.level), who]
+		b.add_theme_color_override("font_color", UITheme.hex(cdef.get("color", "#ffffff")))
+		b.disabled = taken.has(i) and taken[i] != multiplayer.get_unique_id()
+		b.pressed.connect(func(): GameState.claim_slot(i))
+		_slots_box.add_child(b)
+
+
+# =========================================================================================
+# Right panel: party + settings
+# =========================================================================================
 
 
 func _build_party_panel() -> Control:
@@ -245,10 +307,28 @@ func _refresh_settings() -> void:
 			c.select(int(v))
 
 
+func _refresh() -> void:
+	var cont := GameState.is_continuing()
+	_new_box.visible = not cont
+	_delete_btn.disabled = not cont
+	if cont:
+		var info: Dictionary = GameState.game_info
+		_game_desc.text = "Continue from floor %d. This game needs exactly %d player%s; each player takes one of its heroes." % [int(info.depth), int(info.party_size), "" if int(info.party_size) == 1 else "s"]
+		if not multiplayer.is_server():
+			_game_opt.clear()
+			_game_opt.add_item("Saved game: floor %d, %d players" % [int(info.depth), int(info.party_size)])
+	else:
+		_game_desc.text = "Everyone starts a fresh level 1 hero. The game is saved by the host and ends for good if the whole party falls."
+		if not multiplayer.is_server():
+			_game_opt.clear()
+			_game_opt.add_item("New game")
+	_refresh_slots()
+	_refresh_roster()
+
+
 func _refresh_roster() -> void:
 	for c in _roster_box.get_children():
 		c.queue_free()
-	var waiting := 0
 	var ids: Array = [1]
 	ids.append_array(multiplayer.get_peers() if multiplayer.is_server() else [])
 	for id in GameState.roster:
@@ -264,26 +344,23 @@ func _refresh_roster() -> void:
 			row.add_child(UITheme.label("%s%s" % [r.name, "  (host)" if id == 1 else ""]))
 			row.add_child(UITheme.label("%s, level %d" % [cdef.get("name", r.class_id), int(r.level)], UITheme.hex(cdef.get("color", "#ffffff"))))
 		else:
-			waiting += 1
 			row.add_child(UITheme.label("Player %d" % id, UITheme.TEXT_DIM))
-			row.add_child(UITheme.label("choosing a character...", UITheme.TEXT_DIM))
+			row.add_child(UITheme.label("choosing a hero...", UITheme.TEXT_DIM))
 		_roster_box.add_child(row)
 	if multiplayer.is_server():
-		var all_ready := waiting == 0 and GameState.roster.has(1)
-		_start.disabled = not all_ready
+		var problem := GameState.start_problem()
+		_start.disabled = not problem.is_empty()
 		_start.text = "Start run (%d player%s)" % [ids.size(), "" if ids.size() == 1 else "s"]
-		if not all_ready:
-			_status.text = "Waiting for every player to confirm a character."
-		else:
-			_status.text = ""
+		_status.text = problem
 	elif GameState.roster.has(multiplayer.get_unique_id()):
 		_status.text = "Waiting for the host to start..."
+	else:
+		_status.text = "Pick your hero."
 
 
 func _on_start() -> void:
-	if not multiplayer.is_server():
-		return
-	NetworkManager.start_run()
+	if multiplayer.is_server() and GameState.start_problem().is_empty():
+		NetworkManager.start_run()
 
 
 func _unhandled_input(ev: InputEvent) -> void:

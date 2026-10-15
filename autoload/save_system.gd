@@ -2,7 +2,7 @@ extends Node
 ## Local persistence.
 ## - user://settings.cfg: one ConfigFile shared by video/audio/input settings. Every writer
 ##   goes through write_section() so saving one section never wipes the others.
-## - user://characters/<key>.json: one file per character (name + class).
+## - user://games/<id>.json: one file per saved game (host side; see below).
 ## Launching with the user arg --profile=<name> moves both under user://profiles/<name>/
 ## (used by the automated tests so they never touch real saves and settings).
 
@@ -10,7 +10,7 @@ const SAVE_VERSION := 1
 
 var base_dir := "user://"
 var SETTINGS_PATH := "user://settings.cfg"
-var CHAR_DIR := "user://characters/"
+var GAME_DIR := "user://games/"
 
 
 func _init() -> void:
@@ -19,7 +19,7 @@ func _init() -> void:
 			base_dir = "user://profiles/%s/" % a.get_slice("=", 1).validate_filename()
 			DirAccess.make_dir_recursive_absolute(base_dir)
 	SETTINGS_PATH = base_dir + "settings.cfg"
-	CHAR_DIR = base_dir + "characters/"
+	GAME_DIR = base_dir + "games/"
 
 
 func read_section(section: String) -> Dictionary:
@@ -44,40 +44,40 @@ func write_section(section: String, values: Dictionary) -> void:
 		push_error("SaveSystem: could not save settings (%d)" % err)
 
 
-# --- Characters ----------------------------------------------------------------------------
+# --- Saved games ---------------------------------------------------------------------------
+# A saved game belongs to the host who created it: {id, created_at, updated_at, party_size,
+# depth, members: [character dict, ...]}. Characters only exist inside their game, so a hero
+# can't be carried into another party, and a party wipe deletes the game.
 
 
-static func character_key(char_name: String, class_id: String) -> String:
-	var safe := ""
-	for c in char_name.to_lower():
-		safe += c if (c >= "a" and c <= "z") or (c >= "0" and c <= "9") else "_"
-	return "%s__%s" % [safe, class_id]
+func new_game_id() -> String:
+	return "%d_%04d" % [int(Time.get_unix_time_from_system()), randi() % 10000]
 
 
-func list_characters() -> Array:
+func list_games() -> Array:
 	var out: Array = []
-	var dir := DirAccess.open(CHAR_DIR)
+	var dir := DirAccess.open(GAME_DIR)
 	if dir == null:
 		return out
 	for f in dir.get_files():
 		if f.ends_with(".json"):
-			var c := _read_json(CHAR_DIR + f)
-			if not c.is_empty():
-				out.append(c)
-	out.sort_custom(func(a, b): return int(a.get("saved_at", 0)) > int(b.get("saved_at", 0)))
+			var g := _read_json(GAME_DIR + f)
+			if not g.is_empty() and g.has("id") and g.has("members"):
+				out.append(g)
+	out.sort_custom(func(a, b): return int(a.get("updated_at", 0)) > int(b.get("updated_at", 0)))
 	return out
 
 
-func load_character(char_name: String, class_id: String) -> Dictionary:
-	return _read_json(CHAR_DIR + character_key(char_name, class_id) + ".json")
+func load_game(id: String) -> Dictionary:
+	return _read_json(GAME_DIR + id.validate_filename() + ".json")
 
 
-func save_character(data: Dictionary) -> void:
-	DirAccess.make_dir_recursive_absolute(CHAR_DIR)
+func save_game(data: Dictionary) -> void:
+	DirAccess.make_dir_recursive_absolute(GAME_DIR)
 	data = data.duplicate(true)
 	data["version"] = SAVE_VERSION
-	data["saved_at"] = int(Time.get_unix_time_from_system())
-	var path: String = CHAR_DIR + character_key(data.name, data.class_id) + ".json"
+	data["updated_at"] = int(Time.get_unix_time_from_system())
+	var path: String = GAME_DIR + str(data.id).validate_filename() + ".json"
 	var f := FileAccess.open(path, FileAccess.WRITE)
 	if f == null:
 		push_error("SaveSystem: cannot write %s" % path)
@@ -85,8 +85,8 @@ func save_character(data: Dictionary) -> void:
 	f.store_string(JSON.stringify(data, "\t"))
 
 
-func delete_character(char_name: String, class_id: String) -> void:
-	var path := CHAR_DIR + character_key(char_name, class_id) + ".json"
+func delete_game(id: String) -> void:
+	var path := GAME_DIR + id.validate_filename() + ".json"
 	if FileAccess.file_exists(path):
 		DirAccess.remove_absolute(path)
 

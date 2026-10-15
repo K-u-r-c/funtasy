@@ -161,6 +161,10 @@ func _run() -> void:
 				await _boss_scenario()
 			"tank":
 				await _tank_scenario()
+			"continue":
+				await _continue_scenario()
+			"continue_lan":
+				await _continue_lan_scenario()
 			"host_leave":
 				await _wait(8.0)
 				log_line("host ends the session from the pause menu")
@@ -303,9 +307,15 @@ func client_cmd(cmd: String, arg: Variant) -> void:
 				if p.inv.equipment[s].get("uid") == arg:
 					found = true
 			check(found, "client inventory snapshot contains traded item")
-		"check_saved":
-			var saved := SaveSystem.load_character(GameState.local_character.name, GameState.local_character.class_id)
-			check(not saved.is_empty() and int(saved.get("level", 0)) == int(arg), "client save file has level %d (got %s)" % [int(arg), saved.get("level", "none")])
+		"claim_mine":
+			var members: Array = GameState.game_info.get("members", [])
+			for i in members.size():
+				if members[i].name == char_name:
+					GameState.claim_slot(i)
+		"try_new_hero":
+			GameState.choose_new_character("Intruder", "mage")
+		"pick_again":
+			GameState.choose_new_character(char_name, class_id)
 		"check_life":
 			check(p.life_state == int(arg), "client sees its own life state %d (got %d)" % [int(arg), p.life_state])
 		"check_lobby":
@@ -547,7 +557,10 @@ func _full_scenario() -> void:
 	check(client_p.life_state == Player.Life.ALIVE, "ghost revived on the next floor")
 	NetworkManager.to_clients("DevAuto", "client_cmd", ["check_depth", 2])
 	NetworkManager.to_clients("DevAuto", "client_cmd", ["check_life", Player.Life.ALIVE])
-	NetworkManager.to_clients("DevAuto", "client_cmd", ["check_saved", client_p.level])
+	var saved := SaveSystem.load_game(str(GameState.game.get("id", "")))
+	var slot := int(GameState.roster[client_p.peer_id].slot)
+	check(not saved.is_empty() and int(saved.depth) == 2 and int(saved.party_size) == 2 \
+		and int(saved.members[slot].level) == client_p.level, "host saved the game: floor 2, 2 players, client hero level %d" % client_p.level)
 	check(g.enemies_root.get_child_count() > 3, "floor 2 populated with monsters")
 	await _wait(1.0)
 	await _floor2_props_check(g, host_p)
@@ -807,6 +820,75 @@ func _tank_scenario() -> void:
 	await _wait(1.0)
 
 
+## Solo: play, level up and reach floor 2, leave; then continue the saved game and check the
+## hero and floor came back, and that a saved game refuses a different party size.
+func _continue_scenario() -> void:
+	var g := _game()
+	var p := _local()
+	await _wait(1.0)
+	p.add_xp(Player.xp_to_next(1) + 5)
+	g.start_floor(2)
+	await _wait(1.0)
+	var id := str(GameState.game.id)
+	var lvl := p.level
+	check(lvl >= 2 and int(SaveSystem.load_game(id).depth) == 2, "saved game records floor 2 and level %d" % lvl)
+	NetworkManager.leave_to_menu()
+	await _wait_until(func(): return get_tree().current_scene.name == "MainMenu", 6.0)
+	await _wait(0.5)
+	NetworkManager.host_solo()
+	await _wait_until(func(): return get_tree().current_scene.name == "Lobby", 6.0)
+	await _wait(0.5)
+	check(GameState.select_saved_game(id), "host selects the saved game in the lobby")
+	GameState.choose_new_character("Intruder", "mage")
+	await _wait(0.2)
+	check(not GameState.roster.has(1), "a new hero can't join a saved game")
+	GameState.claim_slot(0)
+	await _wait(0.2)
+	check(GameState.start_problem().is_empty() and int(GameState.roster[1].level) == lvl, "hero from the saved game claimed (level %d)" % lvl)
+	NetworkManager.start_run()
+	var ok := await _wait_until(func(): return _game() != null and _game().depth >= 1 and _local() != null, 15.0)
+	await _wait(1.0)
+	check(ok and _game().depth == 2 and _local().level == lvl, "continued on floor 2 with the same hero (floor %s, level %s)" % [_game().depth if _game() else -1, _local().level if _local() else -1])
+	# A 1-player save can't be continued by 2 players (checked through the start rule).
+	GameState.game_info.party_size = 2
+	check(not GameState.start_problem().is_empty(), "a saved game requires its party size")
+	GameState.game_info.party_size = 1
+
+
+## LAN: two players save on floor 2, go back to the lobby, the host picks the saved game, the
+## client claims its own hero over the network, and both continue on floor 2.
+func _continue_lan_scenario() -> void:
+	var g := _game()
+	await _wait_until(func(): return _other_player() != null, 10.0)
+	var client_p := _other_player()
+	client_p.add_xp(Player.xp_to_next(1) + Player.xp_to_next(2) + 5)
+	var client_level := client_p.level
+	g.start_floor(2)
+	await _wait(1.0)
+	var id := str(GameState.game.id)
+	NetworkManager.return_to_lobby()
+	await _wait_until(func(): return get_tree().current_scene.name == "Lobby", 8.0)
+	await _wait(0.8)
+	check(GameState.select_saved_game(id), "host selects the 2-player saved game")
+	await _wait(0.5)
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["try_new_hero", null])
+	await _wait(0.5)
+	check(GameState.roster.size() == 0, "the client can't bring a new hero into the saved game")
+	GameState.claim_slot(0 if GameState.game_info.members[0].name == char_name else 1)
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["claim_mine", null])
+	var ready := await _wait_until(func(): return GameState.start_problem().is_empty(), 6.0)
+	var cid := multiplayer.get_peers()[0]
+	check(ready and GameState.roster.has(cid) and int(GameState.roster[cid].level) == client_level, "client claimed its own hero over the network (level %d)" % client_level)
+	NetworkManager.start_run()
+	var ok := await _wait_until(func(): return _game() != null and _game().players_root.get_child_count() == 2 and _game().depth == 2, 15.0)
+	check(ok, "both players continue on floor 2")
+	if ok:
+		await _wait(1.0)
+		check(_other_player().level == client_level, "client hero kept its level in the continued game")
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["done", null])
+	await _wait(1.0)
+
+
 func _wipe_scenario() -> void:
 	var g := _game()
 	await _wait(2.0)
@@ -816,14 +898,19 @@ func _wipe_scenario() -> void:
 	await _wait(1.0)
 	check(g._wiped, "party wipe detected when nobody is standing")
 	var host_p := _local()
-	check(GameState.characters[1].equipment.is_empty(), "wipe rules applied (equipment lost)")
+	var game_id := str(GameState.game.get("id", "x"))
+	check(SaveSystem.load_game(game_id).is_empty() and not GameState.is_continuing(), "a wipe ends the game: its save is deleted")
 	var back := await _wait_until(func(): return get_tree().current_scene.name == "Lobby", 12.0)
 	check(back, "host returned to the lobby after the wipe")
 	if NetworkManager.has_remote_peers():
 		NetworkManager.to_clients("DevAuto", "client_cmd", ["check_lobby", null])
 	await _wait(1.0)
 	check(host_p == null or not is_instance_valid(host_p), "game scene freed")
-	# A second run starts cleanly with the wiped characters.
+	# A second run starts cleanly: everyone has to create a new hero.
+	check(GameState.roster.is_empty(), "heroes of the wiped game can't be picked again")
+	GameState.choose_new_character(char_name, class_id)
+	if NetworkManager.has_remote_peers():
+		NetworkManager.to_clients("DevAuto", "client_cmd", ["pick_again", null])
 	await _wait_until(func(): return GameState.roster.size() >= (2 if NetworkManager.has_remote_peers() else 1), 10.0)
 	NetworkManager.start_run()
 	var again := await _wait_until(func(): return _game() != null and _game().depth == 1 and _game().players_root.get_child_count() == GameState.roster.size(), 20.0)
@@ -1080,8 +1167,14 @@ func _gamepad_menu_flow() -> void:
 	var in_lobby := await _wait_until(func(): return get_tree().current_scene.name == "Lobby", 10.0)
 	check(in_lobby, "gamepad reached the lobby")
 	await _wait(0.8)
-	focus = get_viewport().gui_get_focus_owner()
-	check(focus is Button and str(focus.text).begins_with("Play as"), "lobby focuses the confirm button")
+	var reached := false
+	for i in 10:
+		focus = get_viewport().gui_get_focus_owner()
+		if focus is Button and str(focus.text).begins_with("Play as"):
+			reached = true
+			break
+		await _press(JOY_BUTTON_DPAD_DOWN)
+	check(reached, "D-pad reaches the confirm button in the lobby")
 	await _press(JOY_BUTTON_A)
 	await _wait(0.5)
 	check(GameState.roster.has(1), "character confirmed with A")

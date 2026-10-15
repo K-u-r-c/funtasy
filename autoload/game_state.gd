@@ -1,28 +1,36 @@
 extends Node
 ## Session state shared by menus, lobby and the run:
-## - the local character (loaded/saved through SaveSystem),
-## - the lobby roster (peer id -> name/class/level/ready), replicated by the host,
-## - the host's game settings (data/game_settings.json), replicated to every client,
-## - host-only: the full character data of every peer (authoritative during a run).
+## - which game the party plays: a new one, or a saved game the host continues
+##   (`game_info`, replicated). Saves belong to games, not to characters: a saved game has a
+##   fixed party size and its own heroes, and a party wipe ends (deletes) it;
+## - the lobby roster (peer id -> name/class/level/slot), replicated by the host;
+## - the host's game settings (data/game_settings.json), replicated to every client;
+## - host-only: the authoritative character of every peer and the saved-game record.
 
 signal roster_changed
 signal settings_changed
+signal game_changed
 
-var local_character: Dictionary = {}
-var roster: Dictionary = {}  ## peer id -> {name, class_id, level}
+var roster: Dictionary = {}  ## peer id -> {name, class_id, level, slot}
 var settings: Dictionary = {}  ## game setting id -> value
-var characters: Dictionary = {}  ## host only: peer id -> character dict
+## Replicated: {mode: "new"|"continue", id, party_size, depth, members: [{name, class_id, level}]}
+var game_info: Dictionary = {}
+var local_choice: Dictionary = {}  ## this peer's pick: {name, class_id} (new) or {slot} (continue)
+var last_hero: Dictionary = {}  ## last name/class this peer typed, to pre-fill the lobby
+
+# Host only
+var characters: Dictionary = {}  ## peer id -> character dict
+var game: Dictionary = {}  ## the saved-game record being played (see SaveSystem)
+var current_depth := 1
 
 
 func _ready() -> void:
 	reset_settings()
+	_set_new_game_info()
 	NetworkManager.peer_joined.connect(_on_peer_joined)
 	NetworkManager.peer_left.connect(_on_peer_left)
 	NetworkManager.connected_as_client.connect(_on_connected_as_client)
 	NetworkManager.session_closed.connect(_on_session_closed)
-
-
-# --- Characters ----------------------------------------------------------------------------
 
 
 static func new_character(char_name: String, class_id: String) -> Dictionary:
@@ -34,64 +42,173 @@ static func new_character(char_name: String, class_id: String) -> Dictionary:
 	}
 
 
-## Picks the saved character with this name+class, or creates a fresh one (in underwear).
-func select_character(char_name: String, class_id: String) -> void:
-	var saved := SaveSystem.load_character(char_name, class_id)
-	local_character = saved if not saved.is_empty() else new_character(char_name, class_id)
-	local_character.name = char_name
-	local_character.class_id = class_id
-	if NetworkManager.is_active():
-		submit_local_character()
+func is_continuing() -> bool:
+	return game_info.get("mode", "new") == "continue"
 
 
-func submit_local_character() -> void:
-	if multiplayer.is_server():
-		_store_submitted(1, local_character)
-	else:
-		NetworkManager.to_host("GameState", "_submit_character", [local_character])
+# =========================================================================================
+# Host: choosing the game
+# =========================================================================================
 
 
-func save_local_character() -> void:
-	if not local_character.is_empty():
-		SaveSystem.save_character(local_character)
-
-
-## Called by the host whenever an authoritative character changed enough to persist.
-func push_character_to_owner(peer_id: int) -> void:
-	if not multiplayer.is_server() or not characters.has(peer_id):
-		return
-	if peer_id == multiplayer.get_unique_id():
-		_receive_character(characters[peer_id])
-	else:
-		NetworkManager.to_peer(peer_id, "GameState", "_receive_character", [characters[peer_id]])
-
-
-## Client -> host (via SessionRpc). A client announces the character it will play.
-func _submit_character(data: Dictionary) -> void:
+func select_new_game() -> void:
 	if not multiplayer.is_server():
 		return
-	_store_submitted(multiplayer.get_remote_sender_id(), data)
+	game = {}
+	_set_new_game_info()
+	_reset_choices()
 
 
-## Host -> owner (via SessionRpc). Authoritative character snapshot for local saving.
-func _receive_character(data: Dictionary) -> void:
-	local_character = data.duplicate(true)
-	save_local_character()
+func select_saved_game(id: String) -> bool:
+	if not multiplayer.is_server():
+		return false
+	var g := SaveSystem.load_game(id)
+	if g.is_empty():
+		return false
+	game = g
+	var members: Array = []
+	for m in g.members:
+		members.append({"name": m.name, "class_id": m.class_id, "level": int(m.level)})
+	game_info = {"mode": "continue", "id": g.id, "party_size": int(g.party_size), "depth": int(g.get("depth", 1)), "members": members}
+	_reset_choices()
+	return true
 
 
-func _store_submitted(peer_id: int, data: Dictionary) -> void:
-	if not GameData.classes.has(str(data.get("class_id", ""))):
+## Host: can the run start with the players currently connected?
+func start_problem() -> String:
+	var ids: Array = [1]
+	ids.append_array(multiplayer.get_peers())
+	for id in ids:
+		if not roster.has(id):
+			return "Waiting for every player to pick a character."
+	if is_continuing() and ids.size() != int(game_info.party_size):
+		return "This saved game needs exactly %d player%s (%d connected)." % [int(game_info.party_size), "" if int(game_info.party_size) == 1 else "s", ids.size()]
+	return ""
+
+
+## Host, when the run starts: creates the saved game for a new party.
+func begin_game() -> void:
+	if not multiplayer.is_server():
 		return
-	var clean := new_character(str(data.get("name", "Hero")).substr(0, 20), data.class_id)
-	for key in clean:
-		if data.has(key):
-			clean[key] = data[key]
-	characters[peer_id] = clean
-	roster[peer_id] = {"name": clean.name, "class_id": clean.class_id, "level": int(clean.level)}
+	var ids: Array = roster.keys()
+	ids.sort()
+	if not is_continuing():
+		game = {"id": SaveSystem.new_game_id(), "created_at": int(Time.get_unix_time_from_system()),
+			"party_size": ids.size(), "depth": 1, "members": []}
+		for i in ids.size():
+			roster[ids[i]].slot = i
+			game.members.append(characters[ids[i]])
+	current_depth = int(game.get("depth", 1))
+
+
+func start_depth() -> int:
+	return maxi(1, int(game.get("depth", 1)))
+
+
+## Host: writes the current state of every hero (and the floor reached) to the saved game.
+func save_game() -> void:
+	if not multiplayer.is_server() or game.is_empty():
+		return
+	for peer in characters:
+		var slot := int(roster.get(peer, {}).get("slot", -1))
+		if slot >= 0 and slot < game.members.size():
+			game.members[slot] = characters[peer].duplicate(true)
+	game.depth = current_depth
+	SaveSystem.save_game(game)
+
+
+## Host: the party was wiped, this game is over for good.
+func end_game() -> void:
+	if not multiplayer.is_server() or game.is_empty():
+		return
+	SaveSystem.delete_game(str(game.id))
+	game = {}
+	_set_new_game_info()
+	_reset_choices()
+
+
+func _set_new_game_info() -> void:
+	game_info = {"mode": "new", "id": "", "party_size": 0, "depth": 1, "members": []}
+
+
+func _reset_choices() -> void:
+	roster.clear()
+	characters.clear()
+	NetworkManager.to_all("GameState", "_sync_game", [game_info])
 	_broadcast_roster()
 
 
-# --- Roster --------------------------------------------------------------------------------
+## Host -> all (via SessionRpc): the game being set up changed; everyone picks again.
+func _sync_game(info: Dictionary) -> void:
+	game_info = info
+	local_choice = {}
+	game_changed.emit()
+
+
+# =========================================================================================
+# Every peer: picking a character
+# =========================================================================================
+
+
+## New game: play a fresh level 1 hero with this name and class.
+func choose_new_character(char_name: String, class_id: String) -> void:
+	local_choice = {"name": char_name, "class_id": class_id}
+	last_hero = local_choice.duplicate()
+	_submit()
+
+
+## Saved game: play the hero in this slot.
+func claim_slot(slot: int) -> void:
+	local_choice = {"slot": slot}
+	_submit()
+
+
+## Kept for the test driver and old callers: same as choose_new_character.
+func select_character(char_name: String, class_id: String) -> void:
+	choose_new_character(char_name, class_id)
+
+
+func _submit() -> void:
+	if not NetworkManager.is_active() or local_choice.is_empty():
+		return
+	if multiplayer.is_server():
+		_apply_choice(1, local_choice)
+	else:
+		NetworkManager.to_host("GameState", "_submit_choice", [local_choice])
+
+
+## Client -> host (via SessionRpc).
+func _submit_choice(choice: Dictionary) -> void:
+	if multiplayer.is_server():
+		_apply_choice(multiplayer.get_remote_sender_id(), choice)
+
+
+func _apply_choice(peer: int, choice: Dictionary) -> void:
+	if is_continuing():
+		var slot := int(choice.get("slot", -1))
+		if slot < 0 or slot >= game.get("members", []).size():
+			return
+		for other in roster:
+			if other != peer and int(roster[other].get("slot", -1)) == slot:
+				return  # already taken
+		var ch: Dictionary = game.members[slot].duplicate(true)
+		characters[peer] = ch
+		roster[peer] = {"name": ch.name, "class_id": ch.class_id, "level": int(ch.level), "slot": slot}
+	else:
+		var cid := str(choice.get("class_id", ""))
+		if not GameData.classes.has(cid):
+			return
+		var ch2 := new_character(str(choice.get("name", "Hero")).strip_edges().substr(0, 16), cid)
+		if ch2.name.is_empty():
+			ch2.name = "Hero"
+		characters[peer] = ch2
+		roster[peer] = {"name": ch2.name, "class_id": cid, "level": 1, "slot": -1}
+	_broadcast_roster()
+
+
+# =========================================================================================
+# Roster
+# =========================================================================================
 
 
 func _broadcast_roster() -> void:
@@ -114,7 +231,9 @@ func classes_in_party() -> Array:
 	return out
 
 
-# --- Game settings (host-only edits) -------------------------------------------------------
+# =========================================================================================
+# Game settings (host-only edits)
+# =========================================================================================
 
 
 func reset_settings() -> void:
@@ -141,29 +260,37 @@ func _sync_settings(data: Dictionary) -> void:
 	EventBus.game_settings_changed.emit()
 
 
-# --- Session callbacks ---------------------------------------------------------------------
+# =========================================================================================
+# Session callbacks
+# =========================================================================================
 
 
 func _on_peer_joined(id: int) -> void:
 	if multiplayer.is_server():
 		NetworkManager.to_peer(id, "GameState", "_sync_settings", [settings])
+		NetworkManager.to_peer(id, "GameState", "_sync_game", [game_info])
 		NetworkManager.to_peer(id, "GameState", "_sync_roster", [roster])
 
 
 func _on_peer_left(id: int) -> void:
 	if multiplayer.is_server():
-		roster.erase(id)
-		characters.erase(id)
-		_broadcast_roster()
+		# During a run the leaver's hero keeps its slot (saved with the rest of the party).
+		if not NetworkManager.in_run:
+			roster.erase(id)
+			characters.erase(id)
+			_broadcast_roster()
 
 
 func _on_connected_as_client() -> void:
-	if not local_character.is_empty():
-		submit_local_character()
+	_submit()
 
 
 func _on_session_closed() -> void:
 	roster.clear()
 	characters.clear()
+	game = {}
+	local_choice = {}
+	_set_new_game_info()
 	reset_settings()
 	roster_changed.emit()
+	game_changed.emit()

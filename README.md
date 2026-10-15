@@ -29,10 +29,15 @@ Main menu -> **Play**:
 | Host Steam lobby | Creates a public Steam lobby (test app id 480 / Spacewar). |
 | Join Steam lobby | Lists lobbies tagged for this game; pick one. |
 
-In the **lobby** every player enters a name and picks a class. A saved character with the same
-name and class is loaded automatically (level, items, talents). Only the host can change the
-game settings (friendly fire, difficulty, shared vision) and start the run once everyone has
-confirmed a character.
+In the **lobby** the host picks **New game** or one of their **saved games**:
+
+- *New game*: every player enters a name and picks a class (a fresh level 1 hero, in underwear).
+- *Saved game*: it must be continued by exactly the same number of players; every player takes one
+  of its heroes (level, items and talents are kept) and the party resumes on the floor it reached.
+
+Heroes only exist inside their game, so they can't be taken into another party, and a party wipe
+ends the game for good (its save is deleted). Only the host can change the game settings
+(friendly fire, difficulty, shared vision) and start the run once the party is ready.
 
 ### Hosting over LAN
 
@@ -71,7 +76,7 @@ on the ground (that's how you give items to teammates), R / Y = put a potion on 
   Mage (Mana, elemental spells), Priest (Mana, holy tank/healer). 5 skills each, all on cooldown.
 - **Death**: at 0 HP you are downed for 10 s; a teammate holds Interact next to you to revive.
   Otherwise you become a ghost and spectate until the next floor. If nobody is left standing
-  the party is wiped (see `docs/DECISIONS.md` for what is lost).
+  the party is wiped and that game is over (its save is deleted).
 - **Loot** is shared and lies on the ground, glowing in its rarity color
   (white, green, blue, purple, orange). Weapons of another class deal 80% less damage.
 - **Floors**: kill the boss to open the portal; when everyone alive stands in it the party
@@ -131,7 +136,8 @@ tools/run_tests.sh lan      # only the 2-instance LAN scenarios
 tools/run_tests.sh steam    # Steam lobby smoke test (Steam client must be running)
 ```
 
-LAN pairs: full feature walk-through, a real boss fight, aggro (tank vs DPS), wipe + second run,
+LAN pairs: full feature walk-through, a real boss fight, aggro (tank vs DPS), continuing a saved
+2-player game, wipe + second run,
 host ending the session, client leaving mid-run.
 
 Visual tour (windowed): `godot --path . -- --scenario=shots --shot=/tmp/shots --class=mage` saves
@@ -139,7 +145,7 @@ screenshots of every screen.
 
 The tests drive real game instances headless through `autoload/dev_auto.gd`
 (`--auto=host|join|solo --scenario=...`); see that file for the scenarios. Note that test runs
-create test characters in `user://characters/`.
+use throw-away profiles (`user://profiles/test_*`), so your saves are never touched.
 
 ## Exporting
 

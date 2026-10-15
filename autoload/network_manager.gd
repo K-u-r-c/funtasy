@@ -240,8 +240,6 @@ func leave_to_menu(message: String = "") -> void:
 		return
 	_leaving = true
 	print("[net] leaving the session: %s" % (message if not message.is_empty() else "by choice"))
-	if OS.is_debug_build():
-		print_stack()
 	var game := get_tree().get_first_node_in_group("game")
 	if game:
 		game.process_mode = Node.PROCESS_MODE_DISABLED
@@ -274,6 +272,7 @@ func start_run() -> void:
 		return
 	if backend == Backend.STEAM and lobby_id != 0:
 		steam.setLobbyJoinable(lobby_id, false)
+	GameState.begin_game()
 	to_all("NetworkManager", "_begin_run")
 
 
@@ -296,6 +295,9 @@ func _return_to_lobby() -> void:
 func return_to_lobby() -> void:
 	if not multiplayer.is_server():
 		return
+	var game := get_tree().get_first_node_in_group("game")
+	if game:
+		await game.teardown_run()
 	to_all("NetworkManager", "_return_to_lobby")
 
 
