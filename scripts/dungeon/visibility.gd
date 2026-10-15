@@ -31,6 +31,7 @@ func _ready() -> void:
 	fov_radius = int(GameData.bal("vision.fov_radius"))
 	sight_range = float(GameData.bal("vision.sight_range"))
 	vision_light = PointLight2D.new()
+	LightLayers.setup_light(vision_light)
 	vision_light.texture = GameData.texture("fx.light")
 	vision_light.texture_scale = sight_range / 110.0
 	vision_light.energy = 1.25

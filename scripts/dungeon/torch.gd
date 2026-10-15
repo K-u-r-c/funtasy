@@ -14,6 +14,7 @@ func _ready() -> void:
 	s.offset = Vector2(0, -14)
 	add_child(s)
 	light = PointLight2D.new()
+	LightLayers.setup_light(light)
 	light.texture = GameData.texture("fx.light")
 	light.color = color
 	light.energy = _base_energy

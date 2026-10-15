@@ -27,6 +27,7 @@ func setup(new_type: String, pos: Vector2) -> void:
 	shape.position = Vector2(0, -float(sz[1]) / 2.0)
 	add_child(shape)
 	_sprite = Sprite2D.new()
+	_sprite.light_mask = LightLayers.SELF_LIT
 	_sprite.texture = GameData.texture(str(def.sprite))
 	if _sprite.texture:
 		_sprite.offset = Vector2(0, -_sprite.texture.get_height() / 2.0 + 2.0)

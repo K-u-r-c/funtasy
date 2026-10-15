@@ -71,6 +71,7 @@ func build(new_layout: Dictionary, def: Dictionary, entity_root: Node2D) -> void
 		lights.append(torch.light)
 	for pool in layout.lava_pools:
 		var l := PointLight2D.new()
+		LightLayers.setup_light(l)
 		l.texture = GameData.texture("fx.light")
 		l.color = Color.from_string(str(floor_def.get("lava_color", "#ff5511")), Color.ORANGE_RED)
 		l.energy = 1.1

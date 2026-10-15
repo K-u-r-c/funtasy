@@ -23,6 +23,7 @@ func _tex(key: String) -> Texture2D:
 
 func _light(color: Color, energy: float, scale_: float) -> PointLight2D:
 	var l := PointLight2D.new()
+	LightLayers.setup_light(l)
 	l.texture = _tex("fx.light")
 	l.color = color
 	l.energy = energy

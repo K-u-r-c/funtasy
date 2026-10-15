@@ -24,6 +24,7 @@ func _ready() -> void:
 	add_child(a)
 	a.play("default")
 	var l := PointLight2D.new()
+	LightLayers.setup_light(l)
 	l.texture = GameData.texture("fx.light")
 	l.color = Color(0.65, 0.4, 1.0)
 	l.energy = 1.6

@@ -76,6 +76,7 @@ func _refresh() -> void:
 		# Side doors: one sprite per cell, drawn edge-on.
 		for i in cells.size():
 			var s := Sprite2D.new()
+			s.light_mask = LightLayers.SELF_LIT
 			s.texture = GameData.texture("props.door_open")
 			s.offset = Vector2(0, -tex.get_height() / 2.0)
 			s.position = Vector2(0, -world_rect.size.y + (i + 1) * world_rect.size.y / cells.size())
@@ -88,6 +89,7 @@ func _refresh() -> void:
 	else:
 		for i in cells.size():
 			var s2 := Sprite2D.new()
+			s2.light_mask = LightLayers.SELF_LIT
 			s2.texture = tex
 			s2.offset = Vector2(0, -tex.get_height() / 2.0)
 			var cx := -world_rect.size.x / 2.0 + (i + 0.5) * world_rect.size.x / cells.size()

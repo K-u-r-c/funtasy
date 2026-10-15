@@ -1020,6 +1020,21 @@ func _shots_flow() -> void:
 		await _wait(3.0)
 		p.iframe_left = 30.0
 		await _snap(dir, "10_boss")
+	# Occluders seen from the south (they must not vanish in their own shadow).
+	for e in g.enemies_root.get_children():
+		e.queue_free()
+	for id in g.dungeon.props:
+		var pr: Node = g.dungeon.props[id]
+		if pr.type == "table":
+			p.host_teleport(g.nearest_floor(pr.global_position + Vector2(0, 70)))
+			break
+	await _wait(1.2)
+	await _snap(dir, "11_table_from_south")
+	if not g.dungeon.doors.is_empty():
+		var door: Node = g.dungeon.doors[0]
+		p.host_teleport(g.nearest_floor(door.interact_pos() + Vector2(0, 80)))
+		await _wait(1.2)
+		await _snap(dir, "12_door_from_south")
 		var fps_samples: Array = []
 		for i in 5:
 			await _wait(1.0)

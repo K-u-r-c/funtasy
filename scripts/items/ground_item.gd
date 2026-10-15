@@ -35,6 +35,7 @@ func _ready() -> void:
 	_icon.material = mat
 	add_child(_icon)
 	var light := PointLight2D.new()
+	LightLayers.setup_light(light)
 	light.texture = GameData.texture("fx.light")
 	light.color = color
 	light.energy = float(rar.get("light_energy", 0.6))
