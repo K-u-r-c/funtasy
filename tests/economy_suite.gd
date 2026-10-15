@@ -23,6 +23,7 @@ func run() -> void:
 	await talents_and_loadout()
 	await gold()
 	await elites_and_key()
+	await merchants()
 
 
 func stat_points() -> void:
@@ -160,3 +161,88 @@ func elites_and_key() -> void:
 		g.host_interact(p, altar)
 		await da._wait(0.3)
 		da.check(altar.opened and g.items_root.get_child_count() > n, "praying at the altar gives loot once")
+
+
+func merchants() -> void:
+	var m: Dictionary = g.layout.get("merchant", {})
+	da.check(not m.is_empty(), "the floor has a merchant chamber")
+	if m.is_empty():
+		return
+	var room: Rect2i = g.layout.rooms[int(m.room)].rect
+	var spawned_inside := false
+	for e in g.enemies_root.get_children():
+		if room.has_point(g.dungeon.cell_of(e.global_position)) and not e.is_elite() and e.def_id != "ghoul":
+			spawned_inside = true
+	da.check(not spawned_inside, "no monsters spawn in the merchant chamber")
+	da.check(g.dungeon.is_safe(g.dungeon.cell_center(room.get_center())) and g.dungeon.astar.is_point_solid(room.get_center()), "monsters can't path into the merchant chamber")
+	var probe: Enemy = g.spawn_monster("ghoul", g.nearest_floor(m.portal + Vector2(0, 30)), false)
+	await da._wait(0.3)
+	p.host_teleport(m.archibald + Vector2(0, 16))
+	await da._wait(0.2)
+	da.check(not probe._valid_target(p), "monsters don't target a hero inside the merchant chamber")
+	probe.queue_free()
+	var mer: Merchants = g.merchants
+	da.check(mer.stock.size() >= 5 and mer.contracts.size() == 2, "Archibald has stock (%d) and Malphas 2 contracts" % mer.stock.size())
+	var portal: Node = g.dungeon.props["Merchant_Portal"]
+	var arch: Node = g.dungeon.props["Merchant_Archibald"]
+	p.host_teleport(m.portal + Vector2(0, 20))
+	await da._wait(0.3)
+	g.add_party_key(-g.party_keys)
+	g.host_interact(p, portal)
+	await da._wait(0.2)
+	da.check(not mer.portal_open, "the Gilded Portal stays shut without a Gold Key")
+	g.add_party_key(1)
+	g.host_interact(p, portal)
+	await da._wait(0.3)
+	da.check(mer.portal_open and g.party_keys == 0, "the Gold Key opens the Gilded Portal and is used up")
+	# Buying: the stock is shared, gold is checked.
+	p.host_add_gold(5000)
+	var gold0 := p.gold
+	var price := int(mer.stock[0].price)
+	mer.request_buy.rpc_id(1, 0)
+	await da._wait(0.3)
+	da.check(p.gold == gold0 - price and int(mer.stock[0].left) == 0, "buying takes %d gold and empties that stock line" % price)
+	mer.request_buy.rpc_id(1, 0)
+	await da._wait(0.2)
+	da.check(p.gold == gold0 - price, "a sold-out line can't be bought again")
+	var idx: int = p.inv.backpack.size() - 1
+	var sp := Merchants.sell_price(p.inv.backpack[idx])
+	mer.request_sell.rpc_id(1, idx)
+	await da._wait(0.3)
+	da.check(p.gold == gold0 - price + sp and sp > 0, "selling pays %d gold" % sp)
+	# Malphas: the tithe once per floor, then contracts and pacts.
+	var altar: Node = g.dungeon.props["Merchant_Altar"]
+	p.host_teleport(m.altar + Vector2(0, 20))
+	await da._wait(0.3)
+	var mods0 := p.run_mods.size()
+	g.host_interact(p, altar)
+	await da._wait(0.2)
+	da.check(p.run_mods.size() == mods0, "kneeling only asks for the tithe")
+	mer.request_tithe.rpc_id(1, true)
+	await da._wait(0.3)
+	da.check(p.run_mods.size() == mods0 + 1 and str(p.run_mods[-1].source) == "Demonic tithe", "the tithe takes a stat for the run")
+	mer.request_tithe.rpc_id(1, true)
+	await da._wait(0.2)
+	da.check(p.run_mods.size() == mods0 + 1, "the tithe is paid once per floor")
+	mer.request_contract.rpc_id(1, 0)
+	await da._wait(0.3)
+	da.check(p.run_mods.size() == mods0 + 3, "a contract swaps two stats for the run")
+	mer.request_contract.rpc_id(1, 0)
+	await da._wait(0.2)
+	da.check(p.run_mods.size() == mods0 + 3, "each contract is signed once")
+	mer.request_pact.rpc_id(1, "hellfire")
+	await da._wait(0.3)
+	da.check(p.inv.count_of("pact_hellfire") == 1 and p.run_mods.size() == mods0 + 4, "a pact potion costs its stat")
+	var haste0 := p.stats.get_stat("haste")
+	p.inv.quick.q = "pact_hellfire"
+	p.request_use_quick.rpc_id(1, "q")
+	await da._wait(0.4)
+	da.check(p.status.has("pact_hellfire") and p.stats.get_stat("haste") > haste0 + 0.5, "Hellfire Ichor gives +100%% haste (%.2f)" % p.stats.get_stat("haste"))
+	mer.request_pact.rpc_id(1, "colossus")
+	await da._wait(1.0)  # the shared potion cooldown
+	var sta0 := p.stats.get_stat("stamina")
+	p.inv.quick.e = "pact_colossus"
+	p.request_use_quick.rpc_id(1, "e")
+	await da._wait(0.4)
+	var expect := 100.0 * GameData.level_scale(p.level)
+	da.check(absf(p.stats.get_stat("stamina") - sta0 - expect) < 2.0, "Colossus Draught adds %.0f Stamina at level %d (D15)" % [expect, p.level])

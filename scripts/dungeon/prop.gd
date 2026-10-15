@@ -51,10 +51,14 @@ func blocks_path() -> bool:
 
 
 func interactable() -> bool:
+	if def.has("npc") or def.has("gate"):
+		return true  # merchants and their doors stay usable
 	return bool(def.get("interactable", false)) and not opened
 
 
 func interact_text() -> String:
+	if def.has("npc") or def.has("gate"):
+		return "%s %s" % [str(def.get("verb", "Open")), str(def.name)]
 	return "%s %s" % [str(def.get("verb", "Open")), str(def.name).to_lower()]
 
 

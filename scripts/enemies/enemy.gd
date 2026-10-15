@@ -274,8 +274,13 @@ func _alert_nearby(attacker: Actor) -> void:
 
 
 func _valid_target(a: Node) -> bool:
-	return is_instance_valid(a) and a is Actor and a.is_targetable() and a.team != team \
-		and not (a.status.has_flag("stealthed") and not a.status.has_flag("revealed"))
+	if not (is_instance_valid(a) and a is Actor and a.is_targetable() and a.team != team):
+		return false
+	if a.status.has_flag("stealthed") and not a.status.has_flag("revealed"):
+		return false
+	# Heroes in the merchant chamber are on safe ground.
+	var game := get_tree().get_first_node_in_group("game")
+	return not (team == Team.MONSTERS and game and game.dungeon.is_safe(a.global_position))
 
 
 ## Who this actor fights: players (and their minions) for monsters, monsters for player minions.
@@ -478,6 +483,8 @@ func _path_dir(game: Node, goal: Vector2, delta: float) -> Vector2:
 	var next := _path[0]
 	# Closed doors: simple monsters open them after a short delay.
 	var door: Node = game.dungeon.closed_door_near(global_position, next)
+	if door and door.monster_proof:
+		return Vector2.ZERO  # the merchant chamber is safe ground
 	if door:
 		_door_wait += delta
 		if _door_wait >= float(GameData.bal("world.door_enemy_open_delay")):

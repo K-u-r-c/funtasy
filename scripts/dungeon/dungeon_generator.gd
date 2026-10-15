@@ -32,6 +32,7 @@ func generate(seed_value: int, floor_def: Dictionary, count_mult: float = 1.0, d
 	var layout := {"size": Vector2i(w, h)}
 	var rooms := _place_rooms(floor_def)
 	_connect_rooms(rooms)
+	_pick_merchant_room(rooms)
 	var doors := _find_doors(rooms)
 	layout.rooms = rooms
 	layout.doors = doors
@@ -51,6 +52,7 @@ func generate(seed_value: int, floor_def: Dictionary, count_mult: float = 1.0, d
 	var boss_room: Dictionary = rooms[1]
 	var start_room: Dictionary = rooms[0]
 	layout.boss_room = 1
+	layout.merchant = _merchant_layout(rooms, used)
 	layout.start = _cell_center(start_room.rect.get_center())
 	layout.boss_pos = _cell_center(boss_room.rect.get_center() - Vector2i(0, 2))
 	layout.portal_pos = _cell_center(boss_room.rect.get_center() + Vector2i(0, 2))
@@ -176,6 +178,42 @@ func _carve_line(a: Vector2i, b: Vector2i) -> void:
 		p += step
 
 
+## Every floor has a secure merchant chamber: the normal room closest to a medium size
+## (seeded like everything else). It gets no monsters, hazards or loose props.
+func _pick_merchant_room(rooms: Array) -> void:
+	var best := -1
+	var best_score := INF
+	for i in range(2, rooms.size()):
+		var r: Rect2i = rooms[i].rect
+		var score := absf(r.size.x - 11) + absf(r.size.y - 9) + rng.randf() * 2.0
+		if r.size.x >= 9 and r.size.y >= 8 and score < best_score:
+			best_score = score
+			best = i
+	if best < 0 and rooms.size() > 2:
+		best = 2
+	if best >= 0:
+		rooms[best].role = "merchant"
+
+
+## Places the merchant chamber's pieces: Archibald behind the Gilded Portal (left), Malphas
+## behind the Demon Altarpiece (right). Returns {} when the floor has no merchant room.
+func _merchant_layout(rooms: Array, used: Dictionary) -> Dictionary:
+	for i in rooms.size():
+		if rooms[i].role != "merchant":
+			continue
+		var r: Rect2i = rooms[i].rect
+		var c := r.get_center()
+		var dx := maxi(2, r.size.x / 2 - 2)
+		var out := {"room": i,
+			"archibald": _cell_center(c + Vector2i(-dx, -1)), "portal": _cell_center(c + Vector2i(-dx, 1)),
+			"malphas": _cell_center(c + Vector2i(dx, -1)), "altar": _cell_center(c + Vector2i(dx, 1))}
+		for x in range(r.position.x, r.end.x):
+			for y in range(r.position.y, r.end.y):
+				used[Vector2i(x, y)] = true
+		return out
+	return {}
+
+
 ## Openings in a room's wall ring 2-3 cells wide become doors.
 func _find_doors(rooms: Array) -> Array:
 	var doors: Array = []
@@ -202,7 +240,8 @@ func _find_doors(rooms: Array) -> Array:
 						var rect := Rect2i(run[0], Vector2i.ONE)
 						for rc in run:
 							rect = rect.expand(rc).expand(rc + Vector2i.ONE)
-						doors.append({"cells": run.duplicate(), "vertical": bool(side[3]), "rect": rect})
+						doors.append({"cells": run.duplicate(), "vertical": bool(side[3]), "rect": rect,
+							"monster_proof": room.role == "merchant"})
 					run.clear()
 	return doors
 
@@ -278,7 +317,7 @@ func _place_props(rooms: Array, fd: Dictionary, used: Dictionary) -> Array:
 					used[c] = true
 					out.append({"type": "pillar", "pos": _cell_center(c)})
 			continue
-		if room.role == "start":
+		if room.role == "start" or room.role == "merchant":
 			continue
 		var n := rng.randi_range(int(fd.props_per_room[0]), int(fd.props_per_room[1]))
 		for i in n:
@@ -336,7 +375,7 @@ func _place_torches(rooms: Array, fd: Dictionary, depth: int) -> Array:
 		match room.role:
 			"boss":
 				count = 4
-			"start":
+			"start", "merchant":
 				count = maxi(count, 2)
 			_:
 				if roll > chance:

@@ -9,5 +9,9 @@
 	"chest": {"name": "Chest", "sprite": "props.chest", "sprite_open": "props.chest_open", "hp": 0, "size": [26, 12], "blocks_sight": false, "interactable": true},
 	"elite_altar": {"name": "Elite Altar", "sprite": "props.elite_altar", "sprite_open": "props.elite_altar_used", "hp": 0, "size": [20, 10], "blocks_sight": false, "interactable": true, "verb": "Pray at", "loot": "altar"},
 	"secret_sarcophagus": {"name": "Secret Sarcophagus", "sprite": "props.secret_sarcophagus", "sprite_open": "props.secret_sarcophagus_open", "hp": 0, "size": [40, 14], "blocks_sight": false, "interactable": true, "verb": "Search", "loot": "secret"},
-	"bookshelf": {"name": "Bookshelf", "sprite": "props.bookshelf", "hp": 20, "size": [32, 12], "blocks_sight": true, "debris": true, "sfx": "break", "drop_chance": 0.6, "loot": "bookshelf"}
+	"bookshelf": {"name": "Bookshelf", "sprite": "props.bookshelf", "hp": 20, "size": [32, 12], "blocks_sight": true, "debris": true, "sfx": "break", "drop_chance": 0.6, "loot": "bookshelf"},
+	"archibald": {"name": "Archibald the Gilded", "sprite": "props.archibald", "hp": 0, "size": [16, 10], "blocks_sight": false, "interactable": true, "verb": "Trade with", "npc": "archibald"},
+	"malphas": {"name": "Malphas the Soul Broker", "sprite": "props.malphas", "hp": 0, "size": [16, 10], "blocks_sight": false, "interactable": true, "verb": "Bargain with", "npc": "malphas"},
+	"gilded_portal": {"name": "Gilded Portal", "sprite": "props.gilded_portal", "sprite_open": "props.gilded_portal_open", "hp": 0, "size": [30, 10], "blocks_sight": false, "interactable": true, "verb": "Unlock", "gate": "gilded"},
+	"demon_altar": {"name": "Demon Altarpiece", "sprite": "props.demon_altar", "hp": 0, "size": [30, 10], "blocks_sight": false, "interactable": true, "verb": "Kneel at", "gate": "demonic"}
 }

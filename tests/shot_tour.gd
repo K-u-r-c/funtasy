@@ -98,3 +98,36 @@ func _menus(_arg: String) -> void:
 		await da._wait(0.6)
 		await snap("menu_%s" % t[0])
 	hud.close_overlay()
+
+
+## The merchant chamber, Archibald's shop, the tithe dialog and Malphas's bargains.
+func _merchants(_arg: String) -> void:
+	var m: Dictionary = g.layout.get("merchant", {})
+	if m.is_empty():
+		da.check(false, "floor has a merchant chamber")
+		return
+	p.iframe_left = 9999.0
+	p.host_add_gold(400)
+	p.host_teleport((m.archibald + m.malphas) / 2.0 + Vector2(0, 40))
+	await da._wait(1.0)
+	await snap("merchant_chamber")
+	g.add_party_key(1)
+	p.host_teleport(m.portal + Vector2(0, 18))
+	await da._wait(0.3)
+	g.host_interact(p, g.dungeon.props["Merchant_Portal"])
+	await da._wait(0.5)
+	var hud: Node = da.get_tree().get_first_node_in_group("hud")
+	hud.open_merchant("archibald")
+	await da._wait(0.6)
+	await snap("merchant_shop")
+	hud.close_overlay()
+	p.host_teleport(m.altar + Vector2(0, 18))
+	await da._wait(0.3)
+	g.host_interact(p, g.dungeon.props["Merchant_Altar"])
+	await da._wait(0.6)
+	await snap("merchant_tithe")
+	hud.close_overlay()
+	g.merchants.request_tithe.rpc_id(1, true)
+	await da._wait(0.8)
+	await snap("merchant_pacts")
+	hud.close_overlay()

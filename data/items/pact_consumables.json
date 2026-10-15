@@ -1,1 +1,207 @@
-{}
+{
+	"_comment": "The 10 demonic pact potions (GDD 5.3). cost = run-permanent stat loss (D13/D17); durations per D14; flat numbers are level-30 values scaled by hero level (D15).",
+	"colossus": {
+		"name": "Colossus Draught",
+		"icon": "items.pact_colossus",
+		"cost": [
+			{
+				"stat": "stamina",
+				"value": -10
+			}
+		],
+		"duration": 60,
+		"description": "+100 Stamina (at level 30) and 30% larger for 1 minute.",
+		"effects": [
+			{
+				"type": "status",
+				"status": "pact_colossus",
+				"duration": 60,
+				"level_scaled": true
+			}
+		]
+	},
+	"butcher": {
+		"name": "Butcher's Distillate",
+		"icon": "items.pact_butcher",
+		"cost": [
+			{
+				"stat": "strength",
+				"value": -8
+			}
+		],
+		"duration": 60,
+		"description": "+80 Strength (at level 30) and +15% Leech for 1 minute.",
+		"effects": [
+			{
+				"type": "status",
+				"status": "pact_butcher",
+				"duration": 60,
+				"level_scaled": true
+			}
+		]
+	},
+	"void_eye": {
+		"name": "Void-Eye Tincture",
+		"icon": "items.pact_void_eye",
+		"cost": [
+			{
+				"stat": "agility",
+				"value": -6
+			}
+		],
+		"duration": 45,
+		"description": "Every attack and spell is a critical strike for 45 seconds.",
+		"effects": [
+			{
+				"type": "status",
+				"status": "pact_void_eye",
+				"duration": 45,
+				"level_scaled": true
+			}
+		]
+	},
+	"astral": {
+		"name": "Astral Nectar",
+		"icon": "items.pact_astral",
+		"cost": [
+			{
+				"stat": "intellect",
+				"value": -10
+			}
+		],
+		"duration": 60,
+		"description": "Spells cost no mana and +75 Spell Power (at level 30) for 1 minute.",
+		"effects": [
+			{
+				"type": "status",
+				"status": "pact_astral",
+				"duration": 60,
+				"level_scaled": true
+			}
+		]
+	},
+	"phantasmal": {
+		"name": "Phantasmal Phial",
+		"icon": "items.pact_phantasmal",
+		"cost": [
+			{
+				"stat": "stamina",
+				"value": -5
+			}
+		],
+		"duration": 30,
+		"description": "Dodge every physical attack for 30 seconds.",
+		"effects": [
+			{
+				"type": "status",
+				"status": "pact_phantasmal",
+				"duration": 30,
+				"level_scaled": true
+			}
+		]
+	},
+	"hellfire": {
+		"name": "Hellfire Ichor",
+		"icon": "items.pact_hellfire",
+		"cost": [
+			{
+				"stat": "armor",
+				"value": -10
+			}
+		],
+		"duration": 60,
+		"description": "+100% Haste and +50% Movement Speed for 1 minute.",
+		"effects": [
+			{
+				"type": "status",
+				"status": "pact_hellfire",
+				"duration": 60,
+				"level_scaled": true
+			}
+		]
+	},
+	"serum": {
+		"name": "Serum of Damnation",
+		"icon": "items.pact_serum",
+		"cost": [
+			{
+				"stat": "max_hp",
+				"value": -15
+			}
+		],
+		"duration": 20,
+		"description": "Your health can't drop below 1 for 20 seconds.",
+		"effects": [
+			{
+				"type": "status",
+				"status": "pact_serum",
+				"duration": 20,
+				"level_scaled": true
+			}
+		]
+	},
+	"magma": {
+		"name": "Liquid Magma Flask",
+		"icon": "items.pact_magma",
+		"cost": [
+			{
+				"stat": "strength",
+				"value": -5
+			},
+			{
+				"stat": "agility",
+				"value": -5
+			}
+		],
+		"duration": 60,
+		"description": "A flame aura burns nearby foes for 150 fire damage per second (at level 30) for 1 minute.",
+		"effects": [
+			{
+				"type": "status",
+				"status": "pact_magma",
+				"duration": 60,
+				"level_scaled": true
+			}
+		]
+	},
+	"leech_oil": {
+		"name": "Unholy Leech Oil",
+		"icon": "items.pact_leech_oil",
+		"cost": [
+			{
+				"stat": "intellect",
+				"value": -8
+			}
+		],
+		"duration": 60,
+		"description": "20% of all damage the party deals heals you for 1 minute.",
+		"effects": [
+			{
+				"type": "status",
+				"status": "pact_leech_oil",
+				"duration": 60,
+				"level_scaled": true
+			}
+		]
+	},
+	"thorns": {
+		"name": "Barrow Thorns Brew",
+		"icon": "items.pact_thorns",
+		"cost": [
+			{
+				"stat": "stamina",
+				"value": -6
+			}
+		],
+		"duration": 60,
+		"description": "Reflect 300% of melee damage taken as true damage for 1 minute.",
+		"effects": [
+			{
+				"type": "status",
+				"status": "pact_thorns",
+				"duration": 60,
+				"level_scaled": true
+			}
+		]
+	}
+}

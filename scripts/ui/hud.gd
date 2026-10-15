@@ -15,6 +15,9 @@ const InventoryPanel := preload("res://scripts/ui/inventory_panel.gd")
 const TalentPanel := preload("res://scripts/ui/talent_panel.gd")
 const MapPanel := preload("res://scripts/ui/map_panel.gd")
 const SkillBookPanel := preload("res://scripts/ui/skill_book_panel.gd")
+const ShopPanel := preload("res://scripts/ui/shop_panel.gd")
+const PactPanel := preload("res://scripts/ui/pact_panel.gd")
+const ConfirmDialog := preload("res://scripts/ui/confirm_dialog.gd")
 const PauseMenu := preload("res://scripts/ui/pause_menu.gd")
 const RadialMenu := preload("res://scripts/ui/radial_menu.gd")
 const Minimap := preload("res://scripts/ui/minimap.gd")
@@ -613,6 +616,25 @@ func _unhandled_input(ev: InputEvent) -> void:
 		return
 	open_overlay(panel)
 	get_viewport().set_input_as_handled()
+
+
+## Merchants -> local player: open Archibald's shop or Malphas's bargains.
+func open_merchant(kind: String) -> void:
+	open_overlay(ShopPanel.new() if kind == "archibald" else PactPanel.new())
+
+
+## Malphas asks the local player for the blood tithe (D13).
+func ask_tithe(text: String) -> void:
+	var d := ConfirmDialog.new()
+	d.title_text = "The Demon Altarpiece"
+	d.body_text = text
+	d.yes_text = "Pay the tithe"
+	d.no_text = "Turn away"
+	var game := get_tree().get_first_node_in_group("game")
+	d.on_answer = func(ok: bool):
+		if ok and game:
+			game.merchants.request_tithe.rpc_id(1, true)
+	open_overlay(d)
 
 
 func open_overlay(panel: Control) -> void:

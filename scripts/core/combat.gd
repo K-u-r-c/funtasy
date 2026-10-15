@@ -324,6 +324,8 @@ func status_tick(actor: Actor, e: Dictionary) -> void:
 		var tc: Dictionary = (ctx if e.source is Dictionary and is_instance_valid(ctx.get("caster")) else make_ctx(actor, {"id": e.id, "school": "spell"})).duplicate()
 		tc.event_target = actor
 		tc.magnitude = e.magnitude
+		if e.def.get("scale_damage_by_magnitude", false):
+			tc.damage_mult = float(e.magnitude)
 		run_effect(eff, tc, actor.global_position, actor.global_position)
 
 

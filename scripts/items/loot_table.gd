@@ -73,7 +73,7 @@ static func _consumable(rng: RandomNumberGenerator) -> Dictionary:
 
 ## A gold pile for this source (D12), or {}.
 static func gold_pile(source: String, item_level: int, rng: RandomNumberGenerator) -> Dictionary:
-	var range_: Variant = GameData.bal("gold." + source, null)
+	var range_: Variant = (GameData.bal("gold") as Dictionary).get(source)
 	if not range_ is Array:
 		return {}
 	if source == "monster" and rng.randf() > float(GameData.bal("gold.monster_chance")):

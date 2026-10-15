@@ -912,7 +912,11 @@ func _use_consumable(base_id: String) -> void:
 					resource.gain(resource.max_value * float(e.fraction))
 			"status":
 				var mag := health.max_hp * float(e.get("magnitude_fraction", 0.0))
+				if e.get("level_scaled", false):
+					mag = GameData.level_scale(level)
 				status.apply(str(e.status), float(e.duration), mag, ctx)
+			"torch":
+				host_take_torch()
 	Combat.instance.fx.sound.rpc(str(def.get("sfx", "potion")), global_position)
 	_inventory_changed()
 

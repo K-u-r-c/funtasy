@@ -143,6 +143,22 @@
 		"xp_mult": 3.0,
 		"key_chance": 0.5
 	},
+	"merchant": {
+		"_comment": "Item value = tier_value[rarity - 1] x (1 + per_item_level x (item level - 1)); Archibald sells at buy_mult and buys at sell_mult.",
+		"tier_value": [4, 10, 24, 50, 100],
+		"per_item_level": 0.25,
+		"buy_mult": 1.0,
+		"sell_mult": 0.3,
+		"consumable_price": {"potion_health": 16, "potion_mana": 16, "potion_haste": 24, "food": 12, "torch_bundle": 8},
+		"consumable_per_level": 0.12,
+		"book_value": {"standard": 6, "tome": 30, "legendary": 120},
+		"interact_range": 140
+	},
+	"level_scale": {
+		"_comment": "Level-30 numbers (legendaries D7, pacts D15) scale by floor + (1 - floor) x level / 30.",
+		"floor": 0.2,
+		"max_level": 30
+	},
 	"inventory": {
 		"start_capacity": 12,
 		"max_capacity": 32,

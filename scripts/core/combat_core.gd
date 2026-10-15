@@ -336,6 +336,11 @@ func deal_damage(ctx: Dictionary, target: Actor, amount: float, opts: Dictionary
 				caster.resource.gain(on_hit * (caster.stats.mult("resource_gen") if caster.resource.kind == "fury" else 1.0))
 			elif caster.resource.kind == "fury":
 				caster.resource.gain(float(GameData.bal("fury.per_damage_dealt_hit")) * caster.stats.mult("resource_gen"))
+		# Unholy Leech Oil: the party's damage heals whoever drank it.
+		if caster.team == Actor.Team.PLAYERS and game and not opts.get("reflected", false):
+			for pl in game.players_root.get_children():
+				if pl.is_alive() and pl.status.has_flag("party_leech"):
+					pl.health.heal(amount * float(GameData.bal("combat.party_leech", 0.2)))
 		var leech := float(ctx.leech) * caster.stats.mult("leech_efficiency")
 		if leech > 0.0 and caster.is_alive():
 			var healed := caster.health.heal(amount * leech * caster.stats.mult("healing_taken"))

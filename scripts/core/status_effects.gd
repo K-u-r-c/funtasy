@@ -282,6 +282,10 @@ func stat_mods() -> Dictionary:
 		_merge(out, e.def.get("stats", {}), 1.0)
 		if e.def.has("stack_stats"):
 			_merge(out, e.def.stack_stats, float(e.stacks))
+		if e.def.has("scaled_stats"):
+			# Pact potions: level-30 numbers scaled by the drinker's level (the magnitude).
+			for k in e.def.scaled_stats:
+				out[k] = float(out.get(k, 0.0)) + float(e.def.scaled_stats[k]) * float(e.magnitude)
 		for f in e.def.get("stat_flags", []):
 			flags.append(f)
 	if not flags.is_empty():

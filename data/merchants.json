@@ -1,1 +1,124 @@
-{}
+{
+	"_comment": "Merchant chamber (GDD 5). Archibald's stock rules; Malphas's tithe options and contract pool. Prices in balance.merchant.",
+	"archibald": {
+		"name": "Archibald the Gilded",
+		"equipment": 3,
+		"rarity": [
+			2,
+			3
+		],
+		"consumables": {
+			"potion_health": 3,
+			"potion_mana": 3,
+			"torch_bundle": 2
+		}
+	},
+	"malphas": {
+		"name": "Malphas the Soul Broker",
+		"tithe": [
+			{
+				"stat": "strength",
+				"value": -3
+			},
+			{
+				"stat": "stamina",
+				"value": -3
+			},
+			{
+				"stat": "agility",
+				"value": -3
+			},
+			{
+				"stat": "intellect",
+				"value": -3
+			},
+			{
+				"stat": "max_hp",
+				"value": -10
+			}
+		],
+		"contracts_per_floor": 2,
+		"contracts": [
+			{
+				"give": {
+					"stat": "intellect",
+					"value": -5
+				},
+				"get": {
+					"stat": "strength",
+					"value": 5
+				}
+			},
+			{
+				"give": {
+					"stat": "agility",
+					"value": -5
+				},
+				"get": {
+					"stat": "stamina",
+					"value": 7
+				}
+			},
+			{
+				"give": {
+					"stat": "max_hp_pct",
+					"value": -0.1
+				},
+				"get": {
+					"stat": "crit_chance",
+					"value": 0.06
+				}
+			},
+			{
+				"give": {
+					"stat": "strength",
+					"value": -5
+				},
+				"get": {
+					"stat": "agility",
+					"value": 5
+				}
+			},
+			{
+				"give": {
+					"stat": "stamina",
+					"value": -5
+				},
+				"get": {
+					"stat": "intellect",
+					"value": 6
+				}
+			},
+			{
+				"give": {
+					"stat": "armor",
+					"value": -15
+				},
+				"get": {
+					"stat": "dodge",
+					"value": 0.03
+				}
+			},
+			{
+				"give": {
+					"stat": "max_hp",
+					"value": -15
+				},
+				"get": {
+					"stat": "leech",
+					"value": 0.02
+				}
+			},
+			{
+				"give": {
+					"stat": "crit_chance",
+					"value": -0.03
+				},
+				"get": {
+					"stat": "haste",
+					"value": 0.06
+				}
+			}
+		]
+	}
+}

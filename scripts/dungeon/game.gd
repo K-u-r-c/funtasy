@@ -48,9 +48,14 @@ var _dyn_counter := 0
 @onready var enemy_spawner: MultiplayerSpawner = $EnemySpawner
 @onready var item_spawner: MultiplayerSpawner = $ItemSpawner
 @onready var ambient: CanvasModulate = $Ambient
+var merchants: Merchants
 
 
 func _ready() -> void:
+	merchants = Merchants.new()
+	merchants.name = "Merchants"
+	merchants.game = self
+	add_child(merchants)
 	combat.game = self
 	combat.fx = fx
 	fx.world = fx_root
@@ -123,6 +128,7 @@ func start_floor(new_depth: int) -> void:
 	var count_mult := 1.0 + float(GameData.bal("scaling.count_per_extra_player")) * (maxi(n, 1) - 1)
 	var host_layout := DungeonGenerator.new().generate(floor_seed, floor_def, count_mult, new_depth)
 	_place_players()
+	merchants.host_new_floor(floor_seed, monster_level())
 	var elites := _pick_elites(host_layout, floor_seed)
 	for gi in host_layout.spawns.size():
 		var group: Dictionary = host_layout.spawns[gi]
@@ -321,6 +327,8 @@ func host_interact(p: Player, node: Node) -> void:
 		return
 	if node is GroundItem:
 		loot.try_pickup(p, node)
+	elif node.get("def") is Dictionary and (node.def.has("npc") or node.def.has("gate")):
+		merchants.host_interact(p, node)
 	elif node.has_method("is_lit") and node.has_method("set_state"):
 		if node.is_lit():
 			p.host_take_torch()

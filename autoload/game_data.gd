@@ -90,8 +90,17 @@ func reload() -> void:
 			skills[s.id] = s
 	for file in _list_json("talents"):
 		talents[file.get_basename()] = _load_json("talents/" + file, {})
-	for table in [status_effects, obstacles, elite_modifiers, pact_consumables, props, consumables]:
+	for table in [status_effects, obstacles, elite_modifiers, pact_consumables, props, consumables, merchants]:
 		table.erase("_comment")
+	# Pact potions are consumables too (bought from Malphas, used from Q / E).
+	for pid in pact_consumables:
+		var pc: Dictionary = pact_consumables[pid].duplicate()
+		pc.pact = true
+		pc.max_stack = 1
+		pc.weight = 0
+		pc.cooldown = 1.0
+		pc.sfx = "potion"
+		consumables["pact_" + pid] = pc
 	_validate()
 	_validate_refs()
 	for e in errors:
@@ -104,6 +113,12 @@ static func _deep_merge(into: Dictionary, over: Dictionary) -> void:
 			_deep_merge(into[k], over[k])
 		else:
 			into[k] = over[k]
+
+
+## D7 / D15: a level-30 number scaled down for a lower level.
+func level_scale(level: int) -> float:
+	var lo := float(bal("level_scale.floor", 0.2))
+	return lo + (1.0 - lo) * clampf(float(level) / float(bal("level_scale.max_level", 30)), 0.0, 1.0)
 
 
 func bal(path: String, fallback: Variant = null) -> Variant:
