@@ -48,6 +48,12 @@ func try_pickup(player: Player, g: GroundItem) -> void:
 		return
 	if player.global_position.distance_to(g.global_position) > float(GameData.bal("world.pickup_range")) + 16.0:
 		return
+	if g.item.get("kind", "") == "gold_key":
+		game.add_party_key(1)
+		game.broadcast_message.rpc("%s found a Gold Key - the Gilded Portal can be opened" % player.display_name, "#f0c850")
+		game.combat.fx.sound.rpc("key_unlock", g.global_position)
+		g.queue_free()
+		return
 	if g.item.get("kind", "") == "gold":
 		split_gold(player, int(g.item.get("amount", 0)))
 		game.combat.fx.sound.rpc("coin", g.global_position)

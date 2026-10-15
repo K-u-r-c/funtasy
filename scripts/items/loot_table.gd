@@ -16,6 +16,11 @@ static func roll(source: String, item_level: int, depth: int, party_classes: Arr
 			var r: Array = GameData.bal("loot.chest_drops")
 			count = rng.randi_range(int(r[0]), int(r[1]))
 			min_tier = int(GameData.bal("loot.chest_min_rarity"))
+		"altar", "secret":
+			count = 1 if source == "altar" else rng.randi_range(1, 2)
+			min_tier = 2
+		"bookshelf", "elite":
+			count = 0
 		"boss":
 			var rb: Array = override.get("drops", GameData.bal("loot.boss_drops"))
 			count = rng.randi_range(int(rb[0]), int(rb[1]))

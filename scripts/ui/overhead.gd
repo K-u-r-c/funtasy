@@ -22,8 +22,12 @@ func _draw() -> void:
 		if not e.visible or not is_instance_valid(e) or e.is_boss:
 			continue
 		var top: Vector2 = e.global_position + Vector2(0, -e.sprite.visual_height() - 7.0)
+		if e.get_meta("hide_bar", false):
+			continue
+		if e.is_elite():
+			_text(top + Vector2(0, -4), e.display_name, Color(0.95, 0.78, 0.3), 11)
 		if e.aggro or e.health.hp < e.health.max_hp:
-			_bar(top, 28.0, e.health.fraction(), Color(0.85, 0.2, 0.18))
+			_bar(top, 28.0, e.health.fraction(), Color(0.95, 0.7, 0.2) if e.is_elite() else Color(0.85, 0.2, 0.18))
 		_cast(e, top + Vector2(0, -6), now)
 	for p in game.players_root.get_children():
 		var head: Vector2 = p.global_position + Vector2(0, -p.sprite.visual_height() - 11.0)

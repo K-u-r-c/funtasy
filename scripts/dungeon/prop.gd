@@ -55,7 +55,7 @@ func interactable() -> bool:
 
 
 func interact_text() -> String:
-	return "Open %s" % str(def.name).to_lower()
+	return "%s %s" % [str(def.get("verb", "Open")), str(def.name).to_lower()]
 
 
 func interact_pos() -> Vector2:
@@ -84,7 +84,7 @@ func take_damage(amount: float, ctx: Dictionary) -> void:
 			"color": ex.get("color", "#ff7722"), "fx": ex.get("fx", "explosion"), "shake": ex.get("shake", 4)}
 		Combat.instance.apply_aoe.call_deferred(eff, ectx, global_position)
 	elif randf() < float(def.get("drop_chance", 0.0)):
-		game.loot.roll_and_drop("prop", global_position)
+		game.loot.roll_and_drop(str(def.get("loot", "prop")), global_position)
 
 
 ## Every peer: replace the prop with debris.

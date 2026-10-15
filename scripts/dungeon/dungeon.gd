@@ -297,6 +297,15 @@ func props_in_radius(pos: Vector2, r: float) -> Array:
 	return out
 
 
+## Host -> all (reliable): a prop that wasn't in the layout appears (elite altars, merchant
+## chamber pieces). Its name comes from the host so later RPCs can address it.
+@rpc("authority", "call_local", "reliable")
+func spawn_prop(prop_name: String, type: String, pos: Vector2) -> void:
+	if props.has(prop_name):
+		return
+	_add_prop(prop_name, type, pos)
+
+
 ## Host -> all (reliable): dynamic terrain appears on these cells for `lifetime` seconds (D30).
 ## blocks: "all" (movement and projectiles, layer 64), "movement" (layer 128) or "none".
 ## Every peer removes it on its own when the lifetime ends.

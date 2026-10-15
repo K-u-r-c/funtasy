@@ -24,6 +24,8 @@ var _abilities: Array = []
 var _preferred: Array = [0, 40]
 var _aggro_radius := 220.0
 var lifetime := -1.0  ## host: summoned minions and decoys expire
+var elite: Array = []  ## elite modifier ids (D10), from the spawn data on every peer
+var key_carrier := false  ## host: drops the floor's Gold Key (D11)
 var copy_peer := 0  ## replicated at spawn: draw this player's look instead of the monster art (D31)
 var behaviors: Array = []  ## host: MonsterBehavior modules from data (scripts/enemies/behaviors/)
 var behavior_state := "":  ## replicated: what the behaviours look like right now (bone pile, mound...)
@@ -48,6 +50,11 @@ func setup(data: Dictionary) -> void:
 	team = int(data.get("team", Team.MONSTERS))
 	lifetime = float(data.get("lifetime", -1.0))
 	copy_peer = int(data.get("copy_peer", 0))
+	elite = data.get("elite", [])
+	key_carrier = bool(data.get("key", false))
+	if not elite.is_empty():
+		var names: Array = elite.map(func(m): return str(GameData.elite_modifiers.get(m, {}).get("name", m)))
+		display_name = "%s %s" % [" ".join(names), display_name]
 	radius = float(def.get("collision_radius", 8))
 	collision_layer = 4
 	collision_mask = 1 | 2 | 8 | 16 | 32 | 64 | 128
@@ -64,6 +71,16 @@ func _ready() -> void:
 	sprite.set_layer("body", str(def.sprite), Color.from_string(str(def.get("tint", "#ffffff")), Color.WHITE))
 	if copy_peer > 0:
 		_copy_look.call_deferred()
+	if is_elite():
+		# Elites glow in their first modifier's colour so they read from afar.
+		var l := PointLight2D.new()
+		LightLayers.setup_light(l)
+		l.texture = GameData.texture("fx.light")
+		l.color = Color.from_string(str(GameData.elite_modifiers.get(elite[0], {}).get("color", "#e8c040")), Color.GOLD)
+		l.energy = 0.7
+		l.position = Vector2(0, -12)
+		LightLayers.register(l, 48.0)
+		add_child(l)
 	if multiplayer.is_server():
 		threat = ThreatTable.new()
 		threat.name = "Threat"
@@ -76,6 +93,11 @@ func _ready() -> void:
 		_configure_ai()
 		recompute_stats()
 		health.hp = health.max_hp
+		for m in elite:
+			var md: Dictionary = GameData.elite_modifiers.get(m, {})
+			if md.has("absorb_pct"):
+				health.absorb = health.max_hp * float(md.absorb_pct)
+				health.absorb_time = 99999.0
 		_strafe = 1.0 if randf() < 0.5 else -1.0
 
 
@@ -144,9 +166,25 @@ func recompute_stats() -> void:
 	health.set_max(stats.get_stat("max_hp"))
 
 
-## Extra stat sources (elite modifiers, behaviours) for Stats.compute_monster.
+## Extra stat sources (elite modifiers, behaviours) for Stats.compute_monster; also refreshes the
+## elite procs.
 func monster_extra() -> Dictionary:
-	return {}
+	var st := {}
+	static_procs = []
+	for m in elite:
+		var md: Dictionary = GameData.elite_modifiers.get(m, {})
+		StatusEffects._merge(st, md.get("stats", {}), 1.0)
+		for i in md.get("procs", []).size():
+			static_procs.append(md.procs[i].merged({"_key": "e:%s:%d" % [m, i], "source": m}, true))
+	return {"stats": st}
+
+
+func visual_scale() -> float:
+	return float(GameData.bal("elite.scale")) if not elite.is_empty() else 1.0
+
+
+func is_elite() -> bool:
+	return not elite.is_empty()
 
 
 func _physics_process(delta: float) -> void:

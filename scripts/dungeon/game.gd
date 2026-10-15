@@ -28,6 +28,7 @@ var corpses: Dictionary = {}  ## host: corpse id -> {id, def_id, pos, t, creatur
 var _corpse_counter := 0
 var _aura_left := 0.0
 var party_keys := 0  ## Gold Keys the party carries (D11), replicated by _sync_keys
+var _dyn_counter := 0
 
 @onready var dungeon: Dungeon = $Dungeon
 @onready var entities: Node2D = $Entities
@@ -113,15 +114,21 @@ func start_floor(new_depth: int) -> void:
 		portal.queue_free()
 		portal = null
 	_descend_timer = -1.0
+	# A Gold Key belongs to its floor (D11): an unused one doesn't carry over.
+	if party_keys > 0:
+		add_party_key(-party_keys)
 	_build_floor.rpc(new_depth, floor_seed, ft_id)
 	# Host-only: the spawn list depends on party size, so it is generated with that multiplier.
 	var n := players_root.get_child_count() if players_root.get_child_count() > 0 else GameState.roster.size()
 	var count_mult := 1.0 + float(GameData.bal("scaling.count_per_extra_player")) * (maxi(n, 1) - 1)
 	var host_layout := DungeonGenerator.new().generate(floor_seed, floor_def, count_mult, new_depth)
 	_place_players()
-	for group in host_layout.spawns:
-		for m in group.monsters:
-			spawn_monster(str(m.id), m.pos, false)
+	var elites := _pick_elites(host_layout, floor_seed)
+	for gi in host_layout.spawns.size():
+		var group: Dictionary = host_layout.spawns[gi]
+		for mi in group.monsters.size():
+			var m: Dictionary = group.monsters[mi]
+			spawn_monster(str(m.id), m.pos, false, elites.get(Vector2i(gi, mi), {}))
 	spawn_monster(str(floor_def.boss), host_layout.boss_pos, true)
 	boss_alive = true
 	boss_engaged = false
@@ -151,8 +158,38 @@ func _place_players() -> void:
 		i += 1
 
 
+## Host: D10 / D11 - 1-3 spawn groups get an elite (1-2 modifiers); with the floor's 50% roll
+## (seeded) one elite carries the Gold Key. Returns {Vector2i(group, monster): spawn extra}.
+func _pick_elites(host_layout: Dictionary, floor_seed: int) -> Dictionary:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = floor_seed + 101
+	var groups: Array = []
+	for gi in host_layout.spawns.size():
+		if not host_layout.spawns[gi].monsters.is_empty():
+			groups.append(gi)
+	var out := {}
+	var packs: Array = GameData.bal("elite.packs")
+	var n := mini(rng.randi_range(int(packs[0]), int(packs[1])), groups.size())
+	var mods: Array = GameData.elite_modifiers.keys()
+	mods.sort()
+	for i in n:
+		var gi2: int = groups.pop_at(rng.randi_range(0, groups.size() - 1))
+		var mi := rng.randi_range(0, host_layout.spawns[gi2].monsters.size() - 1)
+		var picked: Array = []
+		var mr: Array = GameData.bal("elite.modifiers")
+		for k in rng.randi_range(int(mr[0]), int(mr[1])):
+			var m: String = mods[rng.randi_range(0, mods.size() - 1)]
+			if not picked.has(m):
+				picked.append(m)
+		out[Vector2i(gi2, mi)] = {"elite": picked}
+	if not out.is_empty() and rng.randf() < float(GameData.bal("elite.key_chance")):
+		var keys: Array = out.keys()
+		out[keys[rng.randi_range(0, keys.size() - 1)]].key = true
+	return out
+
+
 ## extra (optional spawn data): team ("players" for player summons), lifetime, copy_peer,
-## taunt (radius taunted on spawn), elite.
+## taunt (radius taunted on spawn), elite (modifier ids), key (carries the Gold Key).
 func spawn_monster(def_id: String, pos: Vector2, boss: bool, extra: Dictionary = {}) -> Node:
 	var def: Dictionary = (GameData.bosses if boss else GameData.monsters).get(def_id, {})
 	if def.is_empty():
@@ -165,6 +202,9 @@ func spawn_monster(def_id: String, pos: Vector2, boss: bool, extra: Dictionary =
 	hp_mult *= 1.0 + float(GameData.bal("scaling.boss_hp_per_extra_player" if boss else "scaling.hp_per_extra_player")) * (n - 1)
 	var dmg_mult := (1.0 + float(GameData.bal("scaling.damage_per_level")) * (lvl - 1)) * diff
 	dmg_mult *= 1.0 + float(GameData.bal("scaling.damage_per_extra_player")) * (n - 1)
+	if not extra.get("elite", []).is_empty():
+		hp_mult *= float(GameData.bal("elite.hp_mult"))
+		dmg_mult *= float(GameData.bal("elite.damage_mult"))
 	_enemy_counter += 1
 	var data := {"name": "E%d" % _enemy_counter, "def_id": def_id, "boss": boss, "pos": pos,
 		"level": lvl, "hp_mult": hp_mult, "dmg_mult": dmg_mult}
@@ -248,6 +288,14 @@ func on_enemy_killed(e: Enemy) -> void:
 	var now := Time.get_ticks_msec() / 1000.0
 	var window := float(GameData.bal("progression.contribution_window"))
 	var xp := roundi(float(e.def.xp) * (1.0 + float(GameData.bal("progression.monster_xp_per_level")) * (e.level - 1)))
+	if e.is_elite():
+		xp = roundi(xp * float(GameData.bal("elite.xp_mult")))
+		_dyn_counter += 1
+		dungeon.spawn_prop.rpc("Altar_%d" % _dyn_counter, "elite_altar", nearest_floor(e.global_position))
+		loot.drop_item(LootTable.gold_pile("elite", monster_level(), loot.rng), e.global_position + Vector2(12, 6))
+		broadcast_message.rpc("%s falls - an elite altar rises" % e.display_name, "#e8c040")
+	if e.key_carrier:
+		loot.drop_item(gold_key_item(), e.global_position + Vector2(-12, 6))
 	for peer in e.contributors:
 		if now - float(e.contributors[peer]) > window:
 			continue
@@ -286,7 +334,7 @@ func host_interact(p: Player, node: Node) -> void:
 		node.host_set_open(not node.is_open)
 	elif node.has_method("interactable") and node.interactable():
 		dungeon.open_chest.rpc(node.prop_id)
-		loot.roll_and_drop("chest", node.global_position + Vector2(0, 18))
+		loot.roll_and_drop(str(node.def.get("loot", "chest")), node.global_position + Vector2(0, 18))
 	elif node == portal:
 		# The portal never pulls anyone in: every living player opts in with Interact.
 		# Once the countdown runs the choice is locked, so extra presses can't toggle it.
@@ -667,3 +715,24 @@ func _spawn_enemy(data: Dictionary) -> Node:
 	var e: Enemy = Boss.new() if bool(data.get("boss", false)) else Enemy.new()
 	e.setup(data)
 	return e
+
+
+
+# --- Gold Key (D11): a shared party item ------------------------------------------------------
+
+
+func gold_key_item() -> Dictionary:
+	return {"kind": "gold_key", "base": "gold_key", "name": "Gold Key", "icon": "items.gold_key", "rarity": 5,
+		"uid": ItemGenerator.new_uid(loot.rng)}
+
+
+## Host: the party picked up / used a key.
+func add_party_key(delta_keys: int) -> void:
+	party_keys = maxi(party_keys + delta_keys, 0)
+	_sync_keys.rpc(party_keys)
+
+
+## Host -> all (reliable): how many Gold Keys the party carries.
+@rpc("authority", "call_local", "reliable")
+func _sync_keys(n: int) -> void:
+	party_keys = n

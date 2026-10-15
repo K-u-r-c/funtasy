@@ -133,6 +133,16 @@
 		"altar": [15, 30],
 		"per_level": 0.18
 	},
+	"elite": {
+		"_comment": "Elite packs (D10) and the Gold Key (D11).",
+		"packs": [1, 3],
+		"modifiers": [1, 2],
+		"hp_mult": 3.0,
+		"damage_mult": 1.3,
+		"scale": 1.15,
+		"xp_mult": 3.0,
+		"key_chance": 0.5
+	},
 	"inventory": {
 		"start_capacity": 12,
 		"max_capacity": 32,
