@@ -15,9 +15,10 @@ screenshot review at 1920x1080 and 3440x1440.
       targeting, channel / charge input, dynamic obstacles, corpses, creature types; generic test
       harness (every skill of a class, every monster) (verified: `skills-*`, `primitives`, `monsters`
       suites, full suite green, combat tour screenshots at 1920x1080 and 3440x1440)
-- [ ] **2. Progression and economy**: stat points, talent tree v2 + Skill Book loadout (save
+- [x] **2. Progression and economy**: stat points, talent tree v2 + Skill Book loadout (save
       migration), gold, Gold Key, elites + altars, merchant chamber, Archibald, Malphas (tithe,
-      contracts, pact potions), run mods, lore import / book items / reader / codex
+      contracts, pact potions), run mods, lore import / book items / reader / codex (verified: `economy`,
+      `economy-lan`, `lore`, `ui-layout` suites, full suite green, screenshots of menus, merchants, lore)
 - [ ] **3. Classes**: 120 skills, 4 talent trees with keystones, icons, VFX, SFX keys, tooltips
 - [ ] **4. Crypt complete**: 4 new + 3 extended monsters, Morvath + Vespera, hazards (pressure
       plates, pendulums), props, mechanics (unlit regen, urn miasma), lore drops.

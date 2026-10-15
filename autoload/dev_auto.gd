@@ -2329,25 +2329,25 @@ func _joy_button(button: int, pressed: bool) -> void:
 
 
 func _rebind_test() -> void:
-	var removed := InputSettings.bind("skill_1", "kbm", 0, "key:K")
+	var removed := InputSettings.bind("skill_1", "kbm", 0, "key:J")
 	InputSettings.bind("interact", "pad", 0, "button:y")
-	check(removed.is_empty(), "binding K to skill 1 had no conflicts")
-	var conflict := InputSettings.bind("skill_2", "kbm", 0, "key:K")
-	check(conflict.size() == 1, "binding K again resolves the conflict (%s)" % ", ".join(conflict))
-	InputSettings.bind("skill_1", "kbm", 0, "key:K")
-	check(_has_key("skill_1", KEY_K), "InputMap updated for skill 1")
+	check(removed.is_empty(), "binding J to skill 1 had no conflicts")
+	var conflict := InputSettings.bind("skill_2", "kbm", 0, "key:J")
+	check(conflict.size() == 1, "binding J again resolves the conflict (%s)" % ", ".join(conflict))
+	InputSettings.bind("skill_1", "kbm", 0, "key:J")
+	check(_has_key("skill_1", KEY_J), "InputMap updated for skill 1")
 	_finish("rebind saved")
 
 
 func _rebind_check() -> void:
-	check(_has_key("skill_1", KEY_K), "rebinding of skill 1 survived a restart")
+	check(_has_key("skill_1", KEY_J), "rebinding of skill 1 survived a restart")
 	var pad_ok := false
 	for ev in InputMap.action_get_events("interact"):
 		if ev is InputEventJoypadButton and ev.button_index == JOY_BUTTON_Y:
 			pad_ok = true
 	check(pad_ok, "gamepad rebinding of interact survived a restart")
 	InputSettings.reset_to_defaults()
-	check(_has_key("skill_1", KEY_1) and not _has_key("skill_1", KEY_K), "reset to defaults restores skill 1 = 1")
+	check(_has_key("skill_1", KEY_1) and not _has_key("skill_1", KEY_J), "reset to defaults restores skill 1 = 1")
 	_finish("rebind checked")
 
 
