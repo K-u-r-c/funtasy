@@ -21,5 +21,9 @@
 	"torches_per_room": [1, 3],
 	"chests": [1, 3],
 	"lava_room_chance": 0.3,
-	"spikes_per_room": [0, 3]
+	"spikes_per_room": [0, 3],
+	"bookshelves_per_room": [0, 1],
+	"secret_containers": [1, 2],
+	"secret_container": "secret_sarcophagus",
+	"lore_origin": "crypt"
 }

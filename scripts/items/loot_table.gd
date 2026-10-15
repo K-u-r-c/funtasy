@@ -29,6 +29,15 @@ static func roll(source: String, item_level: int, depth: int, party_classes: Arr
 	var g := gold_pile(source, item_level, rng)
 	if not g.is_empty():
 		out.append(g)
+	# Lore books (D20): bookshelves always, altars and secret containers sometimes.
+	var book_chance := {"bookshelf": 1.0, "altar": float(GameData.bal("lore.altar_book_chance")),
+		"secret": float(GameData.bal("lore.secret_book_chance"))}.get(source, 0.0) as float
+	if book_chance > 0.0 and rng.randf() < book_chance:
+		var b := roll_book(str(override.get("biome", "")), rng)
+		if not b.is_empty():
+			out.append(b)
+			if source == "altar":
+				count = 0
 	var bonus := float(GameData.bal("scaling.rarity_bonus_per_depth")) * (depth - 1)
 	for i in count:
 		var r2 := rng.randf()
@@ -85,3 +94,32 @@ static func gold_pile(source: String, item_level: int, rng: RandomNumberGenerato
 static func make_gold(amount: int, rng: RandomNumberGenerator) -> Dictionary:
 	return {"kind": "gold", "base": "gold", "amount": amount, "name": "%d Gold" % amount, "icon": "items.gold",
 		"rarity": 1, "uid": ItemGenerator.new_uid(rng)}
+
+
+## D20: category first (80 / 18 / 2), then a book of that category from the biome (+ Ancient
+## Lore anywhere; the legendary tome has no biome). Books the host hasn't read weigh more.
+static func roll_book(biome: String, rng: RandomNumberGenerator) -> Dictionary:
+	var cw: Dictionary = GameData.bal("lore.category_weights")
+	var cats: Array = cw.keys()
+	var ws: Array = cats.map(func(c): return float(cw[c]))
+	var cat: String = cats[ItemGenerator._weighted_index(ws, rng)]
+	var pool: Array = []
+	var weights: Array = []
+	for id in GameData.lore_order:
+		var b: Dictionary = GameData.lore_books[id]
+		if b.classification != cat:
+			continue
+		if cat != "legendary" and not (b.biome == biome or b.biome == "ancient" or biome.is_empty()):
+			continue
+		pool.append(id)
+		weights.append(1.0 if Codex.is_read(id) else float(GameData.bal("lore.unread_weight")))
+	if pool.is_empty():
+		return {}
+	return make_book(str(pool[ItemGenerator._weighted_index(weights, rng)]), rng)
+
+
+static func make_book(id: String, rng: RandomNumberGenerator) -> Dictionary:
+	var b: Dictionary = GameData.lore_books[id]
+	return {"kind": "book", "base": "book", "book": id, "name": b.title, "classification": b.classification,
+		"icon": "items.book_" + str(b.classification), "rarity": int(GameData.bal("lore.rarity")[b.classification]),
+		"uid": ItemGenerator.new_uid(rng)}

@@ -45,6 +45,7 @@ func generate(seed_value: int, floor_def: Dictionary, count_mult: float = 1.0, d
 	layout.lava_pools = _place_lava(rooms, floor_def, door_zone)
 	var used := door_zone.duplicate()
 	layout.props = _place_props(rooms, floor_def, used)
+	layout.props.append_array(_place_lore_props(rooms, floor_def, used))
 	layout.chests = _place_chests(rooms, floor_def, used)
 	layout.spikes = _place_spikes(rooms, floor_def, used)
 	layout.torches = _place_torches(rooms, floor_def, depth)
@@ -328,6 +329,31 @@ func _place_props(rooms: Array, fd: Dictionary, used: Dictionary) -> Array:
 			var t: String = types[ItemGenerator._weighted_index(ws, rng)]
 			var jitter := Vector2(rng.randf_range(-5, 5), rng.randf_range(-4, 4))
 			out.append({"type": t, "pos": _cell_center(c2) + jitter})
+	return out
+
+
+## Bookshelves (books drop when they break) and the biome's secret container (D20).
+func _place_lore_props(rooms: Array, fd: Dictionary, used: Dictionary) -> Array:
+	var out: Array = []
+	var shelves: Array = fd.get("bookshelves_per_room", [0, 1])
+	var normals: Array = []
+	for i in rooms.size():
+		if rooms[i].role != "normal":
+			continue
+		normals.append(i)
+		for k in rng.randi_range(int(shelves[0]), int(shelves[1])):
+			var c := _free_cell(rooms[i].rect, 1, used, true)
+			if c.x >= 0:
+				used[c] = true
+				out.append({"type": "bookshelf", "pos": _cell_center(c)})
+	var sc: Array = fd.get("secret_containers", [0, 0])
+	var kind := str(fd.get("secret_container", "secret_sarcophagus"))
+	for k in mini(rng.randi_range(int(sc[0]), int(sc[1])), normals.size()):
+		var room: Dictionary = rooms[normals.pop_at(rng.randi_range(0, normals.size() - 1))]
+		var c2 := _free_cell(room.rect, 1, used, true)
+		if c2.x >= 0:
+			used[c2] = true
+			out.append({"type": kind, "pos": _cell_center(c2)})
 	return out
 
 

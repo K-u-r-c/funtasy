@@ -11,7 +11,7 @@ signal closed
 signal switch_tab(id: String)
 
 ## The game menu panels, in tab order: [id (= input action), title].
-const MENU_TABS := [["character", "Character"], ["inventory", "Inventory"], ["talents", "Talents"], ["skillbook", "Skill Book"], ["map", "Map"]]
+const MENU_TABS := [["character", "Character"], ["inventory", "Inventory"], ["talents", "Talents"], ["skillbook", "Skill Book"], ["map", "Map"], ["codex", "Codex"]]
 
 var player: Player
 var title_text := ""

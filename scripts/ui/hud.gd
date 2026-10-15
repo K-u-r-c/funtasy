@@ -18,6 +18,8 @@ const SkillBookPanel := preload("res://scripts/ui/skill_book_panel.gd")
 const ShopPanel := preload("res://scripts/ui/shop_panel.gd")
 const PactPanel := preload("res://scripts/ui/pact_panel.gd")
 const ConfirmDialog := preload("res://scripts/ui/confirm_dialog.gd")
+const CodexPanel := preload("res://scripts/ui/codex_panel.gd")
+const LoreReader := preload("res://scripts/ui/lore_reader.gd")
 const PauseMenu := preload("res://scripts/ui/pause_menu.gd")
 const RadialMenu := preload("res://scripts/ui/radial_menu.gd")
 const Minimap := preload("res://scripts/ui/minimap.gd")
@@ -575,6 +577,8 @@ func menu_panel(id: String) -> Control:
 			return MapPanel.new()
 		"skillbook":
 			return SkillBookPanel.new()
+		"codex":
+			return CodexPanel.new()
 	return null
 
 
@@ -616,6 +620,15 @@ func _unhandled_input(ev: InputEvent) -> void:
 		return
 	open_overlay(panel)
 	get_viewport().set_input_as_handled()
+
+
+## The lore reader for a book the local player just read (D19).
+func open_book(book_id: String, note: String) -> void:
+	var r := LoreReader.new()
+	r.book_id = book_id
+	r.note = note
+	r.title_text = str(GameData.lore_books.get(book_id, {}).get("title", "Book"))
+	open_overlay(r)
 
 
 ## Merchants -> local player: open Archibald's shop or Malphas's bargains.

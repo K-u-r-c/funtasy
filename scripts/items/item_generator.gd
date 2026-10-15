@@ -103,6 +103,16 @@ static func describe(item: Dictionary, class_id: String = "", char_level: int = 
 		"backpack":
 			lines.append(["Backpack: %d slots (pick up to equip)" % int(item.capacity), Color(0.85, 0.85, 0.8)])
 			return lines
+		"book":
+			var bk: Dictionary = GameData.lore_books.get(str(item.get("book", "")), {})
+			lines.append([{"standard": "Lore book", "tome": "Tome of Enlightenment", "legendary": "Legendary tome"}.get(str(bk.get("classification", "")), "Book"), Color(0.7, 0.7, 0.7)])
+			lines.append([str(bk.get("origin", "")), Color(0.6, 0.6, 0.65)])
+			if str(bk.get("classification", "")) != "standard":
+				lines.append([str(bk.get("effect_text", "")).replace(" (Permanent)", " for this run"), Color(0.55, 0.9, 0.55)])
+			lines.append(["Read it: Accept / click", Color(0.85, 0.85, 0.8)])
+			return lines
+		"gold", "gold_key":
+			return lines
 	var slot_name: String = item.get("slot", "")
 	var kind_txt := "%s %s" % [rar.name, slot_name.capitalize()]
 	if item.get("kind") == "weapon":

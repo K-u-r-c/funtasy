@@ -25,6 +25,7 @@ InputSettings="*res://autoload/input_settings.gd"
 AudioManager="*res://autoload/audio_manager.gd"
 NetworkManager="*res://autoload/network_manager.gd"
 GameState="*res://autoload/game_state.gd"
+Codex="*res://autoload/codex.gd"
 SceneManager="*res://autoload/scene_manager.gd"
 DevAuto="*res://autoload/dev_auto.gd"
 

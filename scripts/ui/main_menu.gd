@@ -121,6 +121,7 @@ func _build_main_page() -> void:
 	var p := _new_page("main")
 	_btn(p, "Play", _show_page.bind("play"))
 	_btn(p, "Options", open_settings)
+	_btn(p, "Codex", open_codex)
 	_btn(p, "Quit", _quit)
 
 
@@ -213,6 +214,21 @@ func open_settings() -> void:
 		for c in _current.get_children():
 			if c is AnimButton and not c.disabled:
 				c.grab_focus()
+				break)
+
+
+## The permanent library codex (D18), readable outside a run.
+func open_codex() -> void:
+	var c: Control = load("res://scripts/ui/codex_panel.gd").new()
+	c.standalone = true
+	c.menu_tab = ""
+	_overlay = c
+	add_child(c)
+	c.closed.connect(func():
+		_overlay = null
+		for b in _current.get_children():
+			if b is AnimButton and not b.disabled:
+				b.grab_focus()
 				break)
 
 

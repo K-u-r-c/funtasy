@@ -131,3 +131,28 @@ func _merchants(_arg: String) -> void:
 	await da._wait(0.8)
 	await snap("merchant_pacts")
 	hud.close_overlay()
+
+
+## The lore reader on a tome and the codex tab.
+func _lore(_arg: String) -> void:
+	var rng := RandomNumberGenerator.new()
+	for id in ["lore_001", "lore_002", "lore_005", "lore_021"]:
+		p.host_give_item(LootTable.make_book(id, rng))
+	await da._wait(0.3)
+	for i in p.inv.backpack.size():
+		if str(p.inv.backpack[i].get("book", "")) == "lore_001":
+			p.request_read_book.rpc_id(1, i)
+	await da._wait(0.8)
+	await snap("lore_reader")
+	var hud: Node = da.get_tree().get_first_node_in_group("hud")
+	hud.close_overlay()
+	for i in range(p.inv.backpack.size() - 1, -1, -1):
+		if str(p.inv.backpack[i].get("book", "")) == "lore_002":
+			p.request_read_book.rpc_id(1, i)
+	await da._wait(0.6)
+	await snap("lore_tome")
+	hud.close_overlay()
+	hud.open_overlay(hud.menu_panel("codex"))
+	await da._wait(0.6)
+	await snap("lore_codex")
+	hud.close_overlay()

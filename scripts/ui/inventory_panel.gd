@@ -281,6 +281,8 @@ func _accept_backpack(i: int) -> void:
 	var item: Dictionary = player.inv.backpack[i]
 	if item.get("kind") == "consumable":
 		player.request_assign_quick.rpc_id(1, "q", item.base)
+	elif item.get("kind") == "book":
+		player.request_read_book.rpc_id(1, i)
 	else:
 		_try_equip(i, _slots["b:%d" % i])
 
@@ -428,6 +430,9 @@ func _prompts_for(item: Dictionary, key: String = "") -> Array:
 		out.append(["ui_accept", "Clear slot"])
 	elif has and key.begins_with("e:"):
 		out.append(["ui_accept", "Unequip"])
+		out.append(["ui_secondary", "Drop"])
+	elif has and item.get("kind") == "book":
+		out.append(["ui_accept", "Read"])
 		out.append(["ui_secondary", "Drop"])
 	elif has and item.get("kind") == "consumable":
 		out.append(["ui_accept", "Put on Q"])

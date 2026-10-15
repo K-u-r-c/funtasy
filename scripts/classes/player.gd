@@ -735,6 +735,50 @@ func request_reset_talents() -> void:
 	persist()
 
 
+## Owner -> host (reliable): read the book in a backpack slot (D19). Tomes are consumed and give
+## the reader their bonus for the rest of the run; the legendary tome gives a talent point and
+## five stat points. The reader opens only on the reader's screen.
+@rpc("any_peer", "call_local", "reliable")
+func request_read_book(index: int) -> void:
+	if not _from_owner() or index < 0 or index >= inv.backpack.size():
+		return
+	var item: Dictionary = inv.backpack[index]
+	if item.get("kind", "") != "book":
+		return
+	var book: Dictionary = GameData.lore_books.get(str(item.get("book", "")), {})
+	if book.is_empty():
+		return
+	var note := ""
+	var eff: Dictionary = book.get("effect", {})
+	match str(book.classification):
+		"tome":
+			for m in eff.get("mods", []):
+				host_add_run_mod(str(m.stat), float(m.value), str(book.title))
+			note = "You learned: %s" % str(book.effect_text).replace(" (Permanent)", " for this run")
+			inv.take_backpack(index)
+		"legendary":
+			var tp := int(eff.get("talent_points", 0))
+			var sp := int(eff.get("stat_points", 0))
+			bonus_talent_points += tp
+			bonus_stat_points += sp
+			talent_points += tp
+			stat_points += sp
+			note = "+%d talent point and +%d stat points" % [tp, sp]
+			inv.take_backpack(index)
+	_inventory_changed()
+	persist()
+	_open_book.rpc_id(peer_id, str(book.id), note)
+
+
+@rpc("authority", "call_local", "reliable")
+func _open_book(book_id: String, note: String) -> void:
+	Codex.mark_read(book_id)
+	AudioManager.play_sfx("book_open", 0.0)
+	var hud := get_tree().get_first_node_in_group("hud")
+	if hud and hud.has_method("open_book"):
+		hud.open_book(book_id, note)
+
+
 ## Owner -> host (reliable): new Skill Book loadout. Out of combat only (D1).
 @rpc("any_peer", "call_local", "reliable")
 func request_loadout(slots: Array) -> void:

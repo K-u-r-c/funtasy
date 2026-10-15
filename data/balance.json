@@ -159,6 +159,14 @@
 		"floor": 0.2,
 		"max_level": 30
 	},
+	"lore": {
+		"_comment": "Lore books (GDD 7, D20): category roll first, then a book of that category from the floor's biome (+ Ancient Lore anywhere). Unread books weigh x unread_weight.",
+		"category_weights": {"standard": 80, "tome": 18, "legendary": 2},
+		"unread_weight": 3.0,
+		"altar_book_chance": 0.6,
+		"secret_book_chance": 0.4,
+		"rarity": {"standard": 2, "tome": 3, "legendary": 5}
+	},
 	"inventory": {
 		"start_capacity": 12,
 		"max_capacity": 32,
