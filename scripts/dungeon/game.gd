@@ -27,6 +27,7 @@ var _clock_sync_left := 0.0
 var corpses: Dictionary = {}  ## host: corpse id -> {id, def_id, pos, t, creature} (D29)
 var _corpse_counter := 0
 var _aura_left := 0.0
+var party_keys := 0  ## Gold Keys the party carries (D11), replicated by _sync_keys
 
 @onready var dungeon: Dungeon = $Dungeon
 @onready var entities: Node2D = $Entities

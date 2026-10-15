@@ -31,6 +31,9 @@ var _res_bar: StatBar
 var _xp_bar: StatBar
 var _level_label: Label
 var _talent_hint: HBoxContainer
+var _stat_hint: HBoxContainer
+var _gold_label: Label
+var _key_icon: TextureRect
 var _slots: Array = []
 var _quick: Dictionary = {}
 var _status_box: HBoxContainer
@@ -276,6 +279,29 @@ func _build_bottom() -> void:
 	_talent_hint.add_child(InputGlyph.new("talents"))
 	_talent_hint.add_child(UITheme.label("Talent point", UITheme.GOOD, UITheme.FONT_SMALL))
 	xp_row.add_child(_talent_hint)
+	_stat_hint = HBoxContainer.new()
+	_stat_hint.add_theme_constant_override("separation", 3)
+	_stat_hint.visible = false
+	_stat_hint.add_child(InputGlyph.new("character"))
+	_stat_hint.add_child(UITheme.label("Stat points", UITheme.GOOD, UITheme.FONT_SMALL))
+	xp_row.add_child(_stat_hint)
+	_key_icon = TextureRect.new()
+	_key_icon.texture = GameData.texture("items.gold_key")
+	_key_icon.custom_minimum_size = Vector2(14, 14)
+	_key_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_key_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_key_icon.tooltip_text = "Gold Key: opens the Gilded Portal of the merchant chamber"
+	_key_icon.visible = false
+	xp_row.add_child(_key_icon)
+	var coin := TextureRect.new()
+	coin.texture = GameData.texture("items.gold")
+	coin.custom_minimum_size = Vector2(12, 12)
+	coin.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	coin.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	xp_row.add_child(coin)
+	_gold_label = UITheme.label("0", UITheme.GOLD, UITheme.FONT_SMALL)
+	_gold_label.custom_minimum_size = Vector2(34, 0)
+	xp_row.add_child(_gold_label)
 
 
 func _divider() -> Control:
@@ -360,6 +386,10 @@ func _process(_delta: float) -> void:
 		_xp_bar.set_values(float(player.xp) / maxf(1.0, Player.xp_to_next(player.level)))
 		_level_label.text = "Lv %d" % player.level
 		_talent_hint.visible = player.talent_points > 0
+		_stat_hint.visible = player.stat_points > 0
+		_gold_label.text = str(player.gold)
+		var game := get_tree().get_first_node_in_group("game")
+		_key_icon.visible = game != null and int(game.get("party_keys")) > 0
 		_portrait.tint = Color.WHITE if player.life_state == Player.Life.ALIVE else Color(0.45, 0.45, 0.55)
 		for i in _slots.size():
 			var s: SkillSlot = _slots[i]

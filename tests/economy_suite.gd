@@ -21,6 +21,7 @@ func run() -> void:
 	await stat_points()
 	await run_mods()
 	await talents_and_loadout()
+	await gold()
 
 
 func stat_points() -> void:
@@ -100,3 +101,21 @@ func talents_and_loadout() -> void:
 	await da._wait(0.2)
 	da.check(p.skills == swapped, "the loadout can't change in combat")
 	da.check(p.to_character().loadout == swapped, "the loadout is saved with the hero")
+
+
+func gold() -> void:
+	var rng := RandomNumberGenerator.new()
+	var pile := LootTable.gold_pile("chest", 3, rng)
+	da.check(int(pile.get("amount", 0)) > 0 and pile.kind == "gold", "chests drop gold piles (%d)" % int(pile.get("amount", 0)))
+	var before := p.gold
+	g.loot.drop_item(LootTable.make_gold(40, rng), p.global_position + Vector2(10, 0))
+	await da._wait(0.3)
+	var gi: Node = null
+	for it in g.items_root.get_children():
+		if it.item.get("kind", "") == "gold":
+			gi = it
+	da.check(gi != null, "a gold pile lies on the ground")
+	if gi:
+		g.loot.try_pickup(p, gi)
+		await da._wait(0.2)
+		da.check(p.gold == before + 40, "picking up 40 gold alone gives all of it (%d -> %d)" % [before, p.gold])

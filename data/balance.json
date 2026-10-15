@@ -123,6 +123,16 @@
 		"rarity_weights": [60, 26, 10, 3.5, 0.5],
 		"drop_scatter": 22
 	},
+	"gold": {
+		"_comment": "Gold piles (D12): amount ranges per source, x (1 + per_level x (item level - 1)). A pile is split among living party members.",
+		"monster_chance": 0.5,
+		"monster": [2, 6],
+		"elite": [25, 45],
+		"chest": [12, 30],
+		"boss": [60, 120],
+		"altar": [15, 30],
+		"per_level": 0.18
+	},
 	"inventory": {
 		"start_capacity": 12,
 		"max_capacity": 32,

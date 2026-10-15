@@ -48,6 +48,11 @@ func try_pickup(player: Player, g: GroundItem) -> void:
 		return
 	if player.global_position.distance_to(g.global_position) > float(GameData.bal("world.pickup_range")) + 16.0:
 		return
+	if g.item.get("kind", "") == "gold":
+		split_gold(player, int(g.item.get("amount", 0)))
+		game.combat.fx.sound.rpc("coin", g.global_position)
+		g.queue_free()
+		return
 	var err := player.host_give_item(g.item)
 	if not err.is_empty():
 		player._notify.rpc_id(player.peer_id, err)
@@ -59,3 +64,16 @@ func try_pickup(player: Player, g: GroundItem) -> void:
 func clear_floor() -> void:
 	for c in items_root.get_children():
 		c.queue_free()
+
+
+## D12: a gold pile is shared equally by every living party member (the picker gets the rest).
+func split_gold(picker: Player, amount: int) -> void:
+	var living: Array = game.players_root.get_children().filter(func(pl): return pl.life_state == Player.Life.ALIVE)
+	if living.is_empty():
+		living = [picker]
+	var share := amount / living.size()
+	var rest := amount - share * living.size()
+	for pl in living:
+		var got: int = share + (rest if pl == picker else 0)
+		pl.host_add_gold(got)
+		pl._notify.rpc_id(pl.peer_id, "+%d gold" % got)

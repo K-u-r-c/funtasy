@@ -21,6 +21,9 @@ static func roll(source: String, item_level: int, depth: int, party_classes: Arr
 			count = rng.randi_range(int(rb[0]), int(rb[1]))
 			min_tier = int(override.get("min_rarity", GameData.bal("loot.boss_min_rarity")))
 	var out: Array = []
+	var g := gold_pile(source, item_level, rng)
+	if not g.is_empty():
+		out.append(g)
 	var bonus := float(GameData.bal("scaling.rarity_bonus_per_depth")) * (depth - 1)
 	for i in count:
 		var r2 := rng.randf()
@@ -61,3 +64,19 @@ static func _consumable(rng: RandomNumberGenerator) -> Dictionary:
 		weights.append(float(GameData.consumables[id].get("weight", 1)))
 	var id: String = ids[ItemGenerator._weighted_index(weights, rng)]
 	return ItemGenerator.generate_consumable(id, 1 + int(rng.randf() < 0.3), rng)
+
+
+## A gold pile for this source (D12), or {}.
+static func gold_pile(source: String, item_level: int, rng: RandomNumberGenerator) -> Dictionary:
+	var range_: Variant = GameData.bal("gold." + source, null)
+	if not range_ is Array:
+		return {}
+	if source == "monster" and rng.randf() > float(GameData.bal("gold.monster_chance")):
+		return {}
+	var amount := roundi(rng.randi_range(int(range_[0]), int(range_[1])) * (1.0 + float(GameData.bal("gold.per_level")) * (item_level - 1)))
+	return make_gold(amount, rng)
+
+
+static func make_gold(amount: int, rng: RandomNumberGenerator) -> Dictionary:
+	return {"kind": "gold", "base": "gold", "amount": amount, "name": "%d Gold" % amount, "icon": "items.gold",
+		"rarity": 1, "uid": ItemGenerator.new_uid(rng)}
