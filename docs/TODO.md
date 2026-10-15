@@ -10,10 +10,11 @@ screenshot review at 1920x1080 and 3440x1440.
 - [x] **0. Scope and decisions**: CLAUDE.md scope, DECISIONS D1-D38, this roadmap, data schemas
       (damage types, statuses, behaviours, bosses v2, floor types v2, talents v2, legendaries, lore,
       merchants, gold), `GameData` validation (verified: full suite green, no visual change)
-- [ ] **1. Combat foundations**: damage types / resists, status expansion (CC flags, stacking debuffs,
+- [x] **1. Combat foundations**: damage types / resists, status expansion (CC flags, stacking debuffs,
       marks, reactive buffs, procs, transforms, diminishing returns), new effect primitives, ally
       targeting, channel / charge input, dynamic obstacles, corpses, creature types; generic test
-      harness (every skill of a class, every monster)
+      harness (every skill of a class, every monster) (verified: `skills-*`, `primitives`, `monsters`
+      suites, full suite green, combat tour screenshots at 1920x1080 and 3440x1440)
 - [ ] **2. Progression and economy**: stat points, talent tree v2 + Skill Book loadout (save
       migration), gold, Gold Key, elites + altars, merchant chamber, Archibald, Malphas (tithe,
       contracts, pact potions), run mods, lore import / book items / reader / codex
