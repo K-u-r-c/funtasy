@@ -69,7 +69,9 @@ func build(new_layout: Dictionary, def: Dictionary, entity_root: Node2D) -> void
 		var torch: Node2D = TORCH_SCRIPT.new()
 		torch.name = "Torch_%d" % n
 		torch.torch_id = torch.name
-		torch.position = Vector2(t.cell * tile) + Vector2(tile / 2.0, tile - 6.0)
+		# Sorted just in front of the wall cell (its y-sort origin is the cell's bottom edge),
+		# otherwise the wall tile is drawn over the torch; the sprite itself sits up on the wall.
+		torch.position = Vector2(t.cell * tile) + Vector2(tile / 2.0, tile + 2.0)
 		torch.color = Color.from_string(str(floor_def.get("torch_color", "#ff9944")), Color.ORANGE)
 		entities.add_child(torch)
 		torches[torch.torch_id] = torch

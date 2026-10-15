@@ -20,7 +20,7 @@ func _ready() -> void:
 	_base_energy = float(GameData.bal("lighting.wall_torch_energy"))
 	_sprite = Sprite2D.new()
 	_sprite.texture = GameData.texture("props.torch")
-	_sprite.offset = Vector2(0, -14)
+	_sprite.offset = Vector2(0, -22)
 	_sprite.light_mask = LightLayers.SELF_LIT
 	add_child(_sprite)
 	light = PointLight2D.new()
@@ -31,14 +31,14 @@ func _ready() -> void:
 	light.shadow_enabled = true
 	light.shadow_filter = Light2D.SHADOW_FILTER_PCF5
 	light.shadow_filter_smooth = 2.0
-	light.position = Vector2(0, 8)
+	light.position = Vector2(0, 0)
 	LightLayers.register(light, float(GameData.bal("lighting.wall_torch_radius")))
 	add_child(light)
 	_embers = CPUParticles2D.new()
 	_embers.texture = GameData.texture("fx.pixel")
 	_embers.amount = 6
 	_embers.lifetime = 0.9
-	_embers.position = Vector2(0, -22)
+	_embers.position = Vector2(0, -30)
 	_embers.direction = Vector2(0, -1)
 	_embers.spread = 25.0
 	_embers.gravity = Vector2(0, -30)
@@ -64,7 +64,7 @@ func interact_text() -> String:
 
 
 func interact_pos() -> Vector2:
-	return global_position + Vector2(0, 10)
+	return global_position + Vector2(0, 2)
 
 
 func destructible() -> bool:

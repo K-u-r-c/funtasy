@@ -76,15 +76,10 @@ func take_damage(amount: float, ctx: Dictionary) -> void:
 	game.dungeon.destroy_prop.rpc(prop_id)
 	if def.has("explode"):
 		var ex: Dictionary = def.explode
-		# Player-triggered explosions follow the friendly-fire rule; others hurt everyone.
+		# A barrel is a hazard: the blast hurts everyone in range (players included, whoever broke
+		# it). The player who broke it still gets the XP contribution for monsters it hits.
 		var ectx: Dictionary = Combat.instance.env_ctx(float(ex.damage))
-		if int(ctx.get("team", -1)) == Actor.Team.PLAYERS:
-			ectx = ctx.duplicate()
-			ectx.power = float(ex.damage)
-			ectx.damage_mult = 1.0
-			ectx.crit_chance = 0.0
-			ectx.school = "physical"
-			ectx.radius_mult = 1.0
+		ectx.peer = int(ctx.get("peer", 0))
 		var eff := {"type": "aoe", "radius": float(ex.radius), "damage": {"base": 0, "coef": 1.0},
 			"color": ex.get("color", "#ff7722"), "fx": ex.get("fx", "explosion"), "shake": ex.get("shake", 4)}
 		Combat.instance.apply_aoe.call_deferred(eff, ectx, global_position)

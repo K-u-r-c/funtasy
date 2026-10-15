@@ -647,10 +647,7 @@ func _hazard_checks(g: Node, host_p: Player, client_p: Player) -> void:
 		g.dungeon.props["TestBarrel%s" % ff].take_damage(999.0, Combat.instance.make_ctx(host_p, GameData.skill(host_p.skills[0])))
 		await _wait(0.4)
 		check(ghoul.health.hp < hp_g, "player-triggered barrel explosion hurts monsters (FF %s)" % ff)
-		if ff:
-			check(client_p.health.hp < hp_c, "friendly fire ON: explosion hurts an ally")
-		else:
-			check(client_p.health.hp == hp_c, "friendly fire OFF: explosion spares allies")
+		check(client_p.health.hp < hp_c, "an explosive barrel hurts players in range too (FF %s)" % ff)
 		ghoul.queue_free()
 		await _wait(0.2)
 	# A player's projectile vs an ally.
