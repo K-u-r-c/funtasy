@@ -19,6 +19,13 @@ const ANIMS := {
 
 
 func _init() -> void:
+	# `-- --only=audio` only writes sounds that don't exist yet (e.g. newly added UI sounds).
+	if OS.get_cmdline_user_args().has("--only=audio"):
+		DirAccess.make_dir_recursive_absolute(SFX)
+		DirAccess.make_dir_recursive_absolute(MUS)
+		_gen_audio()
+		quit()
+		return
 	for d in [SPR + "characters", SPR + "monsters", SPR + "tiles", SPR + "props", SPR + "items",
 			SPR + "projectiles", SPR + "fx", SPR + "icons", SFX, MUS]:
 		DirAccess.make_dir_recursive_absolute(d)
@@ -875,6 +882,11 @@ func _gen_audio() -> void:
 		"level_up": [0.7, 400.0, 1200.0, "square", 0.0, 0.8],
 		"ui_move": [0.04, 1200.0, 1200.0, "square", 0.0, 3.0],
 		"ui_accept": [0.08, 800.0, 1300.0, "square", 0.0, 2.0],
+		"ui_press": [0.03, 520.0, 380.0, "tri", 0.15, 3.0],
+		"ui_back": [0.07, 900.0, 520.0, "tri", 0.0, 2.0],
+		"ui_open": [0.12, 480.0, 960.0, "sine", 0.0, 1.5],
+		"ui_error": [0.14, 140.0, 95.0, "sine", 0.2, 2.0],
+		"ui_drop": [0.08, 320.0, 190.0, "tri", 0.25, 2.0],
 		"death": [0.8, 300.0, 50.0, "saw", 0.4, 1.0],
 		"revive": [0.6, 300.0, 900.0, "sine", 0.1, 0.8],
 		"spikes": [0.15, 1500.0, 500.0, "saw", 0.8, 3.0],
@@ -884,11 +896,16 @@ func _gen_audio() -> void:
 		"portal": [1.0, 200.0, 600.0, "sine", 0.2, 0.6],
 		"potion": [0.25, 500.0, 300.0, "sine", 0.3, 1.0],
 	}
+	var only_missing := OS.get_cmdline_user_args().has("--only=audio")
 	for k in sfx:
+		if only_missing and FileAccess.file_exists(SFX + k + ".wav"):
+			continue
 		var d: Array = sfx[k]
 		_wav(_synth(d[0], d[1], d[2], d[3], d[4], d[5]), SFX + k + ".wav")
 	# Silent music placeholders (4 s loops) — replace with Suno tracks via data/assets.json.
 	var silence := PackedFloat32Array()
 	silence.resize(22050 * 4)
 	for k in ["menu", "crypt", "boss_bone_lord"]:
+		if only_missing and FileAccess.file_exists(MUS + k + ".wav"):
+			continue
 		_wav(silence, MUS + k + ".wav")

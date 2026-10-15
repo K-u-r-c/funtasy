@@ -14,6 +14,8 @@ func _ready() -> void:
 	get_tree().auto_accept_quit = false
 	layer = 100
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	# One gamepad/keyboard focus bracket for every screen, above all other UI.
+	add_child(FocusBracket.new())
 	_fade = ColorRect.new()
 	_fade.color = Color.BLACK
 	_fade.modulate.a = 0.0

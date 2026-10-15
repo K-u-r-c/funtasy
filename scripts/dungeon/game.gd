@@ -497,7 +497,7 @@ func find_interactable(p: Player) -> Dictionary:
 	var candidates: Array = []  ## [point to aim at, node, kind, text]
 	for g in items_root.get_children():
 		if pos.distance_to(g.global_position) < float(GameData.bal("world.pickup_range")):
-			candidates.append([g.global_position, g, "item", g.interact_text()])
+			candidates.append([g.global_position, g, "item", g.interact_text(p.level)])
 	for o in players_root.get_children():
 		if o != p and o.life_state == Player.Life.DOWNED and pos.distance_to(o.global_position) < float(GameData.bal("world.revive_range")):
 			candidates.append([o.global_position, o, "revive", "Hold to revive %s" % o.display_name])
@@ -533,7 +533,8 @@ func find_interactable(p: Player) -> Dictionary:
 			best = c
 	if best.is_empty():
 		return {}
-	return {"node": best[1], "kind": best[2], "text": "[%s] %s" % [InputSettings.prompt_for("interact"), best[3]]}
+	# The HUD draws the interact button glyph in front of the text.
+	return {"node": best[1], "kind": best[2], "text": best[3]}
 
 
 func _closest_on_rect(pos: Vector2, r: Rect2) -> Vector2:

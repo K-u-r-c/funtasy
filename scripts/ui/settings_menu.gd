@@ -32,27 +32,29 @@ func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	var dim := ColorRect.new()
-	dim.color = Color(0, 0, 0, 0.7)
+	dim.color = Color(0.02, 0.03, 0.05, 0.75)
 	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(dim)
 
 	var center := CenterContainer.new()
 	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(center)
+	var window := GlassWindow.new(true)
+	center.add_child(window)
 	var outer := VBoxContainer.new()
-	outer.custom_minimum_size = Vector2(860, 480)
-	outer.add_theme_constant_override("separation", 8)
-	center.add_child(outer)
+	outer.custom_minimum_size = Vector2(840, 440)
+	outer.add_theme_constant_override("separation", 6)
+	window.add_child(outer)
 	var head := HBoxContainer.new()
 	outer.add_child(head)
-	head.add_child(UITheme.title("Options", 28))
+	head.add_child(UITheme.title("Options", UITheme.FONT_TITLE))
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	head.add_child(spacer)
-	head.add_child(UITheme.label("LB/RB or Q/E: switch tab   B/Esc: back", UITheme.TEXT_DIM, 12))
+	head.add_child(PromptBar.new([["ui_tab_prev", "Prev tab"], ["ui_tab_next", "Next tab"], ["ui_cancel", "Back"]]))
 
 	_tabs = TabContainer.new()
-	_tabs.custom_minimum_size = Vector2(860, 430)
+	_tabs.custom_minimum_size = Vector2(840, 360)
 	_tabs.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	outer.add_child(_tabs)
 	_tabs.add_child(_build_video())
@@ -65,10 +67,14 @@ func _ready() -> void:
 	back.pressed.connect(_close)
 	outer.add_child(back)
 
-	modulate.a = 0.0
-	create_tween().tween_property(self, "modulate:a", 1.0, 0.15)
+	UIFx.pop_in(window)
 	EventBus.bindings_changed.connect(_refresh_bindings)
 	_focus_first.call_deferred()
+
+
+func _bind_hint() -> String:
+	return "Select a binding and press %s, then the new input. %s clears it." % [
+		InputSettings.prompt_for("ui_accept"), InputSettings.prompt_for("ui_secondary")]
 
 
 func _focus_first() -> void:
@@ -231,14 +237,18 @@ func _build_controls() -> Control:
 		InputSettings.reset_to_defaults()
 		_bind_status.text = "All bindings reset to defaults.")
 	top.add_child(reset)
-	_bind_status = UITheme.label("Select a binding and press A/Enter, then the new input. X/RMB clears.", UITheme.TEXT_DIM, 13)
+	_bind_status = UITheme.label(_bind_hint(), UITheme.TEXT_DIM, 13)
+	# The hint names the buttons of the device in use; refresh it when the player switches.
+	EventBus.input_device_changed.connect(func(_g):
+		if _capturing == null and is_instance_valid(_bind_status):
+			_bind_status.text = _bind_hint())
 	_bind_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_bind_status.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	top.add_child(_bind_status)
 
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	scroll.custom_minimum_size = Vector2(0, 330)
+	scroll.custom_minimum_size = Vector2(0, 250)
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll.follow_focus = true
 	page.add_child(scroll)

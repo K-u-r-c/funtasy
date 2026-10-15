@@ -3,6 +3,7 @@
 	"characters": {
 		"frame_size": 64,
 		"feet_offset": 6,
+		"portrait_crop": [16, 8, 32, 32],
 		"anims": {
 			"idle": {"frames": 4, "fps": 5, "loop": true},
 			"walk": {"frames": 6, "fps": 10, "loop": true},
@@ -144,6 +145,12 @@
 		"crypt": "res://assets/audio/music/placeholder/crypt.wav",
 		"boss_bone_lord": "res://assets/audio/music/placeholder/boss_bone_lord.wav"
 	},
+	"ui": {
+		"_comment": "UI art. The font is a 16 px pixel font (use sizes 16/32/48 for crisp glyphs); the ornate frame is a 9-slice drawn over glass windows (margin = slice size in px).",
+		"font": "res://assets/fonts/funtasy_pixel.ttf",
+		"frame_ornate": {"path": "res://assets/ui/frame_ornate.png", "margin": 24},
+		"menu_backdrop": "res://assets/ui/menu_backdrop.png"
+	},
 	"sfx": {
 		"swing": "res://assets/audio/sfx/placeholder/swing.wav",
 		"hit": "res://assets/audio/sfx/placeholder/hit.wav",
@@ -163,6 +170,11 @@
 		"level_up": "res://assets/audio/sfx/placeholder/level_up.wav",
 		"ui_move": "res://assets/audio/sfx/placeholder/ui_move.wav",
 		"ui_accept": "res://assets/audio/sfx/placeholder/ui_accept.wav",
+		"ui_press": "res://assets/audio/sfx/placeholder/ui_press.wav",
+		"ui_back": "res://assets/audio/sfx/placeholder/ui_back.wav",
+		"ui_open": "res://assets/audio/sfx/placeholder/ui_open.wav",
+		"ui_error": "res://assets/audio/sfx/placeholder/ui_error.wav",
+		"ui_drop": "res://assets/audio/sfx/placeholder/ui_drop.wav",
 		"death": "res://assets/audio/sfx/placeholder/death.wav",
 		"revive": "res://assets/audio/sfx/placeholder/revive.wav",
 		"spikes": "res://assets/audio/sfx/placeholder/spikes.wav",

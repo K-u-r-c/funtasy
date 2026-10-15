@@ -77,7 +77,7 @@ func equip_from_backpack(index: int, char_level: int) -> String:
 	if not item.get("kind") in ["weapon", "offhand", "armor", "jewelry"]:
 		return "Can't equip that"
 	if int(item.get("req", 1)) > char_level:
-		return "Requires level %d" % int(item.req)
+		return "Requires level %d (you are level %d)" % [int(item.req), char_level]
 	var targets := _target_slots(item)
 	var displaced: Array = []
 	for s in targets.clear:

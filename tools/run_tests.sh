@@ -61,6 +61,7 @@ if [ "$WHAT" = all ] || [ "$WHAT" = quick ]; then
 	for c in warrior ranger mage priest; do
 		run "classes-$c" --auto=solo --class=$c --name=Solo$c --scenario=classes --quit=60
 	done
+	run ui-layout --auto=solo --class=priest --name=Layout --scenario=ui_layout --quit=90
 	run gamepad-menu --scenario=gamepad_menu --quit=60
 	run gamepad --auto=solo --class=warrior --name=PadTester --scenario=gamepad --quit=60
 	run continue --auto=solo --class=ranger --name=Saver --scenario=continue --quit=60

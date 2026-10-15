@@ -1,25 +1,35 @@
-extends Control
+extends UIModal
 ## Full map overlay (Map action): every discovered cell of the floor, players and the portal.
 
-signal closed
-
-var player: Player
+const Minimap := preload("res://scripts/ui/minimap.gd")
 
 
-func _ready() -> void:
-	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	var dim := ColorRect.new()
-	dim.color = Color(0, 0, 0, 0.75)
-	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	add_child(dim)
-	var title := UITheme.title("Map", 26)
-	title.position = Vector2(40, 16)
-	add_child(title)
-	var hint := UITheme.label("[%s] / B: close" % InputSettings.prompt_for("map"), UITheme.TEXT_DIM, 12)
-	hint.position = Vector2(40, 52)
-	add_child(hint)
-	var mm: Control = preload("res://scripts/ui/minimap.gd").new()
+func _init() -> void:
+	title_text = "Map"
+	menu_tab = "map"
+	prompts = [["map", "Toggle map"], ["ui_cancel", "Close"]]
+
+
+func _build() -> void:
+	var game := get_tree().get_first_node_in_group("game")
+	var depth := int(game.depth) if game and "depth" in game else 0
+	if depth > 0:
+		subtitle.text = "Floor %d  -  %s" % [depth, str(game.floor_def.get("name", ""))]
+	var mm: Control = Minimap.new()
 	mm.full_map = true
-	mm.position = Vector2(40, 72)
-	mm.size = Vector2(880, 450)
-	add_child(mm)
+	mm.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	mm.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	content.add_child(mm)
+	var legend := HBoxContainer.new()
+	legend.add_theme_constant_override("separation", 14)
+	content.add_child(legend)
+	for e in [["You / party", Color("6ee3f0")], ["Portal", Color(0.7, 0.4, 1.0)], ["Door", Color(0.75, 0.5, 0.25)], ["Lava", Color(0.85, 0.3, 0.05)]]:
+		var item := HBoxContainer.new()
+		item.add_theme_constant_override("separation", 4)
+		var sw := ColorRect.new()
+		sw.color = e[1]
+		sw.custom_minimum_size = Vector2(6, 6)
+		sw.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		item.add_child(sw)
+		item.add_child(UITheme.label(e[0], UITheme.TEXT_DIM, UITheme.FONT_SMALL))
+		legend.add_child(item)

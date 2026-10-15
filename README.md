@@ -63,7 +63,8 @@ ends the game for good (its save is deleted). Only the host can change the game 
 | Dodge (i-frames) | Space or Shift | LT |
 | Quick items Q / E (tap: use, hold: radial menu) | Q / E | LB / D-pad Right |
 | Interact / revive (hold): the target under the cursor, or the one you face on a pad | F | D-pad Down |
-| Inventory / Talents / Map | I / T / M | View / D-pad Left / D-pad Up |
+| Character / Inventory / Talents / Map | C / I / T / M | R-Stick click / View / D-pad Left / D-pad Up |
+| Switch menu tab (while a menu is open) | Q / E | LB / RB |
 | Menu | Esc | Menu |
 
 In menus: arrows / D-pad / left stick to move, Enter / A to confirm, Esc / B to go back,
@@ -100,7 +101,9 @@ scripts/ui/      theme, menus, lobby, options, HUD, overlays
 scripts/net/     NetSync (synchronizer helper)
 data/            balance, classes, skills, talents, items, monsters, bosses, floor types, settings, assets
 assets/          placeholder sprites/audio + shaders
-tools/           gen_placeholders.gd, check_scripts.gd, run_tests.sh
+tools/           gen_placeholders.gd, check_scripts.gd, run_tests.sh,
+                 pixellab_import.gd / pixellab_build_char.py (PixelLab art -> sheets),
+                 bake_gear.gd + bake_gear.json (equipment layers baked from the body sheets)
 docs/            DECISIONS.md, TODO.md
 ```
 
@@ -133,7 +136,8 @@ Regenerate placeholders: `godot --headless --path . -s tools/gen_placeholders.gd
 ## Tests
 
 ```sh
-tools/run_tests.sh          # script check, solo class runs, gamepad, rebinding, LAN host+client pairs
+./run_tests.sh              # same as tools/run_tests.sh
+tools/run_tests.sh          # script check, solo class runs, UI layout (1:1..32:9), gamepad, rebinding, LAN pairs
 tools/run_tests.sh quick    # without the LAN pairs
 tools/run_tests.sh lan      # only the 2-instance LAN scenarios
 tools/run_tests.sh steam    # Steam lobby smoke test (Steam client must be running)

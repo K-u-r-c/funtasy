@@ -41,6 +41,7 @@ const AXIS_NAMES := {
 ## action id -> {"kbm": Array[String], "pad": Array[String]}
 var bindings: Dictionary = {}
 var using_gamepad := false
+var last_kind := "mouse"  ## "mouse", "key" or "pad": the device of the last meaningful input
 var deadzone := 0.25
 var aim_deadzone := 0.3
 var hold_threshold := 0.25
@@ -137,18 +138,29 @@ func save() -> void:
 
 ## Converts a captured input event into a binding code, or "" if it can't be bound.
 func code_from_event(ev: InputEvent) -> String:
-	if ev is InputEventKey and ev.pressed and not ev.echo:
+	if ev is InputEventKey and (not ev.pressed or ev.echo):
+		return ""
+	if (ev is InputEventMouseButton or ev is InputEventJoypadButton) and not ev.pressed:
+		return ""
+	if ev is InputEventJoypadMotion and absf(ev.axis_value) <= 0.6:
+		return ""
+	return _encode(ev)
+
+
+## Encodes an event regardless of its pressed state (InputMap events are never "pressed").
+func _encode(ev: InputEvent) -> String:
+	if ev is InputEventKey:
 		var kc: int = ev.physical_keycode if ev.physical_keycode != 0 else ev.keycode
-		return "key:" + OS.get_keycode_string(kc)
-	if ev is InputEventMouseButton and ev.pressed:
+		return "key:" + OS.get_keycode_string(kc) if kc != 0 else ""
+	if ev is InputEventMouseButton:
 		for n in MOUSE_BUTTONS:
 			if MOUSE_BUTTONS[n] == ev.button_index:
 				return "mouse:" + n
-	if ev is InputEventJoypadButton and ev.pressed:
+	if ev is InputEventJoypadButton:
 		for n in PAD_BUTTONS:
 			if PAD_BUTTONS[n] == ev.button_index:
 				return "button:" + n
-	if ev is InputEventJoypadMotion and absf(ev.axis_value) > 0.6:
+	if ev is InputEventJoypadMotion:
 		for n in PAD_AXES:
 			if PAD_AXES[n] == ev.axis:
 				if n == "lt" or n == "rt":
@@ -212,10 +224,50 @@ func code_display(code: String) -> String:
 
 ## First binding for the current device, for on-screen prompts ("[F] Open").
 func prompt_for(action: String) -> String:
-	if not bindings.has(action):
-		return action
-	var list: Array = bindings[action]["pad" if using_gamepad else "kbm"]
-	return code_display(list[0]) if not list.is_empty() else "unbound"
+	var code := glyph_code(action)
+	return code_display(code) if not code.is_empty() else "unbound"
+
+
+## Binding code shown for `action` on the current device ("key:F", "button:a", ...). Works for
+## game actions and for the built-in / extra UI actions (ui_cancel, ui_secondary, ...).
+func glyph_code(action: String, pad: bool = using_gamepad) -> String:
+	if bindings.has(action):
+		var list: Array = bindings[action]["pad" if pad else "kbm"]
+		return str(list[0]) if not list.is_empty() else ""
+	if not InputMap.has_action(action):
+		return ""
+	for ev in InputMap.action_get_events(action):
+		var is_pad: bool = ev is InputEventJoypadButton or ev is InputEventJoypadMotion
+		if is_pad == pad:
+			var code := _encode(ev)
+			if not code.is_empty():
+				return code
+	return ""
+
+
+## Short label for a glyph cap: "Esc", "LMB", "A", "LB", "RT", "Up" ...
+func glyph_text(code: String) -> String:
+	var kind := code.get_slice(":", 0)
+	var value := code.get_slice(":", 1)
+	match kind:
+		"key":
+			return {"Escape": "Esc", "Enter": "Enter", "Space": "Space", "Shift": "Shift",
+				"Ctrl": "Ctrl", "Alt": "Alt", "Tab": "Tab", "BackSpace": "Bksp", "Backspace": "Bksp",
+				"Up": "Up", "Down": "Dn", "Left": "Lt", "Right": "Rt"}.get(value, value)
+		"mouse":
+			return {"left": "LMB", "right": "RMB", "middle": "MMB", "wheel_up": "Whl", "wheel_down": "Whl"}.get(value, "M")
+		"button":
+			return {"a": "A", "b": "B", "x": "X", "y": "Y", "lb": "LB", "rb": "RB", "back": "View",
+				"start": "Menu", "guide": "Home", "ls": "LS", "rs": "RS", "dpad_up": "Up",
+				"dpad_down": "Dn", "dpad_left": "Lt", "dpad_right": "Rt"}.get(value, value)
+		"axis":
+			return {"lt": "LT", "rt": "RT"}.get(value, "LS" if value.begins_with("left") else "RS")
+	return code
+
+
+## True while the UI should show keyboard/gamepad focus (the last input wasn't the mouse).
+func focus_nav_active() -> bool:
+	return using_gamepad or last_kind == "key"
 
 
 # --- Gameplay helpers ----------------------------------------------------------------------
@@ -234,6 +286,12 @@ func stick_aim() -> Vector2:
 func _input(ev: InputEvent) -> void:
 	var pad: bool = ev is InputEventJoypadButton or (ev is InputEventJoypadMotion and absf(ev.axis_value) > 0.4)
 	var kbm: bool = ev is InputEventKey or ev is InputEventMouseButton or (ev is InputEventMouseMotion and ev.relative.length() > 2.0)
+	if pad:
+		last_kind = "pad"
+	elif ev is InputEventKey:
+		last_kind = "key"
+	elif kbm:
+		last_kind = "mouse"
 	if pad and not using_gamepad:
 		using_gamepad = true
 		EventBus.input_device_changed.emit(true)

@@ -152,6 +152,20 @@
 		"zoom": 1.0,
 		"smoothing": 8.0,
 		"shake_decay": 6.0,
-		"aim_lookahead": 40
+		"aim_lookahead": 40,
+		"_comment_view": "The visible world is capped so ultrawide screens zoom in instead of showing past the dungeon; narrow screens keep at least min_view_* world px.",
+		"max_view_width": 1400,
+		"max_view_height": 960,
+		"min_view_width": 720,
+		"min_view_height": 480
+	},
+	"ui": {
+		"_comment": "HUD/menu layout and feel. Sizes are in base-viewport px (960x540 minimum).",
+		"safe_margin": 10,
+		"modal_max_width": 920,
+		"modal_max_height": 520,
+		"bar_trail_delay": 0.3,
+		"bar_trail_time": 0.45,
+		"window_pop_time": 0.25
 	}
 }

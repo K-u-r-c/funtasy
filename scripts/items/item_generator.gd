@@ -83,7 +83,14 @@ static func generate_backpack(depth: int, rng: RandomNumberGenerator) -> Diction
 
 
 ## Human-readable tooltip lines: [text, color].
-static func describe(item: Dictionary, class_id: String = "") -> Array:
+## True when `item` is gear whose required level is above `char_level`.
+static func too_high_level(item: Dictionary, char_level: int) -> bool:
+	return item.get("kind") in ["weapon", "offhand", "armor", "jewelry"] and int(item.get("req", 1)) > char_level
+
+
+## Tooltip lines [[text, color], ...]. With `char_level` > 0 a level requirement above it is
+## shown in red with the character's level.
+static func describe(item: Dictionary, class_id: String = "", char_level: int = 0) -> Array:
 	var lines: Array = []
 	var rar := GameData.rarity(int(item.get("rarity", 1)))
 	lines.append([item.get("name", "?"), Color.from_string(rar.color, Color.WHITE)])
@@ -110,7 +117,10 @@ static func describe(item: Dictionary, class_id: String = "") -> Array:
 		var v := float(item.stats[k])
 		var txt := "+%d%% %s" % [roundi(v * 100.0), names.get(k, k)] if Array(GameData.affixes.percent_stats).has(k) else "+%d %s" % [int(v), names.get(k, k)]
 		lines.append([txt, Color(0.55, 0.9, 0.55)])
-	lines.append(["Requires level %d" % int(item.get("req", 1)), Color(0.75, 0.75, 0.75)])
+	if char_level > 0 and too_high_level(item, char_level):
+		lines.append(["Requires level %d (you are level %d)" % [int(item.get("req", 1)), char_level], Color(0.95, 0.4, 0.35)])
+	else:
+		lines.append(["Requires level %d" % int(item.get("req", 1)), Color(0.75, 0.75, 0.75)])
 	var classes: Array = item.get("classes", [])
 	if not classes.is_empty():
 		var cnames: Array = []

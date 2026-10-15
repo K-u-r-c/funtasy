@@ -30,7 +30,7 @@ Current phase goal: **MVP** — a playable loop from start to finish (menu → l
 - Characters: **64x64 px** sprites, **8 directions** (animations: idle, walk, attack, cast, dash, hit, downed, death, ghost).
 - Perspective: **light 3/4 view**. Y-sorting, collisions at the characters' feet.
 - **Dynamic lighting**: `PointLight2D` / `DirectionalLight2D`, torches, lava light, item glow as real light, shadows (`LightOccluder2D`). Use normal maps where sensible (Pixellab can generate them).
-- Project settings: texture filter **Nearest**, pixel snap on, stretch mode `canvas_items`, aspect `keep` — no pixel blurring.
+- Project settings: texture filter **Nearest**, pixel snap on, stretch mode `canvas_items`, aspect `expand` (1:1 to 32:9, see `docs/DECISIONS.md`) — no pixel blurring.
 - Camera follows the local player.
 
 ## Visibility and fog of war

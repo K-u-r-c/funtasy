@@ -12,6 +12,7 @@ var dir_index := 2
 var _layers: Dictionary = {}  ## layer slot -> AnimatedSprite2D
 var _layer_keys: Dictionary = {}  ## layer slot -> registry key
 var _frame_size := 64
+var _height := 0.0  ## visible body height in px (asset entry "height"), for bars and names above
 var _order: Array = []
 var _one_shot := false
 
@@ -45,6 +46,8 @@ func set_layer(slot: String, key: String, tint: Color = Color.WHITE) -> void:
 		_frame_size = int(entry.get("frame_size", GameData.assets.characters.frame_size))
 		var feet := int(entry.get("feet_offset", GameData.assets.characters.feet_offset))
 		spr.offset = Vector2(0, -_frame_size / 2.0 + feet)
+		if slot == "body" or _height <= 0.0:
+			_height = float(entry.get("height", (_frame_size - feet) * 0.75))
 	_play_layer(spr)
 
 
@@ -66,6 +69,29 @@ func play(new_anim: String, facing: Vector2, force := false) -> void:
 		_sort_layers()
 	for spr in _layers.values():
 		_play_layer(spr, not force and changed_dir)
+
+
+## Height of the drawn body above the feet (data: "height" of the body's asset entry).
+func visual_height() -> float:
+	return _height if _height > 0.0 else 47.0
+
+
+## The front-facing idle frame of every layer, bottom to top, for UI portraits:
+## [[texture, modulate], ...].
+func portrait_layers() -> Array:
+	var out: Array = []
+	var slots: Array = _order.duplicate()
+	for slot in _layers:
+		if not slots.has(slot):
+			slots.append(slot)
+	for slot in slots:
+		if not _layers.has(slot):
+			continue
+		var spr: AnimatedSprite2D = _layers[slot]
+		var an := "idle_2"
+		if spr.sprite_frames and spr.sprite_frames.has_animation(an):
+			out.append([spr.sprite_frames.get_frame_texture(an, 0), spr.modulate])
+	return out
 
 
 func is_playing_one_shot() -> bool:
@@ -118,7 +144,12 @@ static func _frames_for(key: String) -> SpriteFrames:
 	var size := int(entry.get("frame_size", GameData.assets.characters.frame_size))
 	var anims: Dictionary = GameData.assets.characters.anims.duplicate(true)
 	if entry.has("anims"):
-		anims.merge(entry.anims, true)
+		# Per-field override: an entry may change frames/fps and keep the shared "loop".
+		for a in entry.anims:
+			if anims.has(a):
+				anims[a].merge(entry.anims[a], true)
+			else:
+				anims[a] = entry.anims[a]
 	var sf := SpriteFrames.new()
 	sf.remove_animation("default")
 	for a in anims:

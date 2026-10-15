@@ -14,26 +14,56 @@ var _switching := false
 var _overlay: Control
 
 
+const SHINE := preload("res://assets/shaders/title_shine.gdshader")
+
+var _pages_box: VBoxContainer
+
+
 func _ready() -> void:
 	var bg := Control.new()
 	bg.set_script(preload("res://scripts/ui/menu_background.gd"))
 	add_child(bg)
 
-	var title := UITheme.title("FUNTASY", 64)
-	title.position = Vector2(80, 60)
-	add_child(title)
-	var tagline := UITheme.label("A dark fantasy co-op dungeon crawler", UITheme.TEXT_DIM, 18)
-	tagline.position = Vector2(86, 140)
-	add_child(tagline)
+	# Everything sits in containers inside a safe-area margin, pinned to the left edge; the
+	# backdrop fills the rest of any aspect ratio.
+	var safe := MarginContainer.new()
+	safe.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	var m := int(GameData.bal("ui.safe_margin", 10))
+	safe.add_theme_constant_override("margin_left", m + 40)
+	safe.add_theme_constant_override("margin_right", m + 40)
+	safe.add_theme_constant_override("margin_top", m + 24)
+	safe.add_theme_constant_override("margin_bottom", m + 8)
+	add_child(safe)
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override("separation", 6)
+	safe.add_child(col)
+
+	var title := UITheme.title("FUNTASY", UITheme.FONT_LOGO)
+	var mat := ShaderMaterial.new()
+	mat.shader = SHINE
+	title.material = mat
+	col.add_child(title)
+	var tagline := UITheme.label("A dark fantasy co-op dungeon crawler", UITheme.TEXT_DIM, UITheme.FONT_BODY)
+	col.add_child(tagline)
+	col.add_child(_spacer())
+
+	var panel := GlassWindow.new(false)
+	panel.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	col.add_child(panel)
+	_pages_box = VBoxContainer.new()
+	panel.add_child(_pages_box)
+	col.add_child(_spacer())
 
 	_status = UITheme.label("", UITheme.DANGER)
-	_status.position = Vector2(80, 490)
-	add_child(_status)
-
-	var hint := UITheme.label("", UITheme.TEXT_DIM, 12)
+	col.add_child(_status)
+	var foot := HBoxContainer.new()
+	foot.add_theme_constant_override("separation", 16)
+	col.add_child(foot)
+	var hint := UITheme.label("", UITheme.TEXT_DIM, UITheme.FONT_SMALL)
 	hint.text = "v0.1 MVP  -  Steam: %s" % ("ready" if NetworkManager.steam_ready else NetworkManager.steam_status)
-	hint.position = Vector2(80, 515)
-	add_child(hint)
+	hint.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	foot.add_child(hint)
+	foot.add_child(PromptBar.new([["ui_accept", "Select"], ["ui_cancel", "Back"]]))
 
 	_build_main_page()
 	_build_play_page()
@@ -51,11 +81,18 @@ func _ready() -> void:
 	AudioManager.play_music("menu")
 
 
+func _spacer() -> Control:
+	var s := Control.new()
+	s.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	return s
+
+
 func _unhandled_input(ev: InputEvent) -> void:
 	if _overlay != null:
 		return
 	if ev.is_action_pressed("ui_cancel") and _current != _pages["main"]:
 		get_viewport().set_input_as_handled()
+		AudioManager.play_sfx("ui_back", 0.03)
 		_show_page("play" if _current in [_pages["lan"], _pages["browser"]] else "main")
 
 
@@ -64,10 +101,9 @@ func _unhandled_input(ev: InputEvent) -> void:
 
 func _new_page(page_name: String) -> VBoxContainer:
 	var page := VBoxContainer.new()
-	page.position = Vector2(80, 200)
-	page.add_theme_constant_override("separation", 8)
+	page.add_theme_constant_override("separation", 6)
 	page.visible = false
-	add_child(page)
+	_pages_box.add_child(page)
 	_pages[page_name] = page
 	return page
 
@@ -101,7 +137,7 @@ func _build_play_page() -> void:
 
 func _build_browser_page() -> void:
 	var p := _new_page("browser")
-	p.add_child(UITheme.label("Steam lobbies (test app 480)", UITheme.ACCENT))
+	p.add_child(UITheme.label("Steam lobbies (test app 480)", UITheme.ACCENT, UITheme.FONT_SMALL))
 	_lobby_list = VBoxContainer.new()
 	_lobby_list.add_theme_constant_override("separation", 4)
 	p.add_child(_lobby_list)
@@ -111,12 +147,12 @@ func _build_browser_page() -> void:
 
 func _build_lan_page() -> void:
 	var p := _new_page("lan")
-	p.add_child(UITheme.label("Host address", UITheme.ACCENT))
+	p.add_child(UITheme.label("Host address", UITheme.ACCENT, UITheme.FONT_SMALL))
 	_ip_edit = LineEdit.new()
 	_ip_edit.text = "127.0.0.1"
 	_ip_edit.custom_minimum_size = Vector2(240, 32)
 	p.add_child(_ip_edit)
-	p.add_child(UITheme.label("Port", UITheme.ACCENT))
+	p.add_child(UITheme.label("Port", UITheme.ACCENT, UITheme.FONT_SMALL))
 	_port_edit = LineEdit.new()
 	_port_edit.text = str(NetworkManager.DEFAULT_PORT)
 	_port_edit.custom_minimum_size = Vector2(240, 32)

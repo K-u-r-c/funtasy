@@ -15,6 +15,7 @@ var wanted_players := 2
 var quit_after := 0.0
 var shot := ""
 var shot_at := 0.0
+var window_size := Vector2i.ZERO  ## --window=WxH: resize the window (layout checks per aspect)
 var fails := 0
 var passes := 0
 
@@ -44,6 +45,10 @@ func _ready() -> void:
 			shot = v
 		elif a.begins_with("--shot-at="):
 			shot_at = float(v)
+		elif a.begins_with("--window="):
+			window_size = Vector2i(int(v.get_slice("x", 0)), int(v.get_slice("x", 1)))
+	if window_size != Vector2i.ZERO:
+		_apply_window_size.call_deferred()
 	if mode.is_empty() and scenario.is_empty():
 		set_process(false)
 		return
@@ -56,6 +61,15 @@ func _ready() -> void:
 			get_viewport().get_texture().get_image().save_png(shot)
 			log_line("screenshot saved to %s" % shot))
 	_run.call_deferred()
+
+
+func _apply_window_size() -> void:
+	await get_tree().process_frame
+	var w := get_window()
+	w.mode = Window.MODE_WINDOWED
+	w.size = window_size
+	await get_tree().process_frame
+	log_line("window %s -> viewport %s" % [w.size, get_viewport().get_visible_rect().size])
 
 
 func log_line(msg: String) -> void:
@@ -179,6 +193,8 @@ func _run() -> void:
 				await _continue_lan_scenario()
 			"darkness":
 				await _darkness_scenario()
+			"ui_layout":
+				await _ui_layout_scenario()
 			"host_leave":
 				await _wait(8.0)
 				log_line("host ends the session from the pause menu")
@@ -1221,6 +1237,231 @@ func _gamepad_scenario() -> void:
 	check(not hud.has_overlay(), "B closes the pause menu")
 
 
+## HUD and overlay layout across window shapes from 1:1 to 32:9. Works headless: the root
+## window size drives the stretched (aspect "expand") viewport. Every pinned HUD block and every
+## modal window must stay on screen inside the safe margin, HUD blocks must not overlap, modals
+## must be centered and capped in width, and the camera must never show more world than the
+## dungeon or the camera.max_view_* caps.
+func _ui_layout_scenario() -> void:
+	var hud: Node = get_tree().get_first_node_in_group("hud")
+	var g := _game()
+	var win := get_window()
+	var original := win.size
+	var margin := float(GameData.bal("ui.safe_margin"))
+	hud.preview_full = true
+	for s in [Vector2i(720, 720), Vector2i(960, 540), Vector2i(1280, 960), Vector2i(1920, 1080), Vector2i(2560, 1080), Vector2i(3840, 1080)]:
+		win.size = s
+		hud._last_message = ""
+		hud.show_message("The boss is defeated! A portal opens...", Color.WHITE)
+		await _wait(0.3)
+		var vp := get_viewport().get_visible_rect()
+		var tag := "%dx%d (view %dx%d)" % [s.x, s.y, vp.size.x, vp.size.y]
+		var safe := vp.grow(-margin + 0.5)
+		var blocks: Array = []
+		for c in hud._layer.get_children():
+			if c.visible and c.size.x > 1.0 and c.size.y > 1.0:
+				blocks.append(c)
+		var inside := true
+		var overlap := false
+		for i in blocks.size():
+			var r: Rect2 = blocks[i].get_global_rect()
+			if not safe.encloses(r):
+				inside = false
+				log_line("outside the safe area: %s %s" % [blocks[i].get_class(), r])
+			for j in range(i + 1, blocks.size()):
+				if r.intersects(blocks[j].get_global_rect()):
+					overlap = true
+					log_line("HUD overlap: %s %s / %s" % [blocks[i].get_class(), r, blocks[j].get_global_rect()])
+		check(blocks.size() == 4 and hud._boss_panel.visible and hud._center_panel.visible and inside, "HUD blocks (%d) inside the safe area at %s" % [blocks.size(), tag])
+		check(not overlap, "HUD blocks don't overlap at %s" % tag)
+		var corner: Rect2 = hud._layer.get_child(0).get_global_rect()
+		check(corner.position.is_equal_approx(Vector2(margin, margin)), "player frame pinned to the top-left safe corner at %s" % tag)
+		var seen: Vector2 = g.camera.visible_world_size()
+		var bounds: Rect2 = g.camera._bounds
+		check(seen.x <= float(GameData.bal("camera.max_view_width")) + 1.0 and seen.y <= float(GameData.bal("camera.max_view_height")) + 1.0
+				and seen.x <= bounds.size.x + 1.0 and seen.y <= bounds.size.y + 1.0,
+				"camera shows %dx%d world px at %s (no void past the dungeon)" % [seen.x, seen.y, tag])
+		for panel_script in [hud.CharacterPanel, hud.InventoryPanel, hud.TalentPanel, hud.MapPanel, hud.PauseMenu]:
+			hud.open_overlay(panel_script.new())
+			await _wait(0.4)
+			var w: Control = hud._overlay.window
+			var wr := w.get_global_rect()
+			var cap: Vector2 = hud._overlay.max_size if hud._overlay.max_size != Vector2.ZERO \
+					else Vector2(float(GameData.bal("ui.modal_max_width")), float(GameData.bal("ui.modal_max_height")))
+			var centered := absf(wr.get_center().x - vp.get_center().x) <= 1.0 and absf(wr.get_center().y - vp.get_center().y) <= 1.0
+			var name_ := str(panel_script.resource_path.get_file().get_basename())
+			check(vp.encloses(wr) and centered and wr.size.x <= cap.x + 1.0 and wr.size.y <= cap.y + 1.0,
+					"%s window %dx%d centered on screen, within its max size at %s" % [name_, wr.size.x, wr.size.y, tag])
+			if panel_script != hud.MapPanel:
+				var f := get_viewport().gui_get_focus_owner()
+				check(f != null and hud._overlay.is_ancestor_of(f), "%s has gamepad focus at %s" % [name_, tag])
+		hud.close_overlay()
+		# Options is a dialog of its own (also opened from the main menu).
+		var opts: Control = preload("res://scripts/ui/settings_menu.gd").new()
+		hud._root.add_child(opts)
+		await _wait(0.4)
+		var ow: Rect2 = opts.get_child(1).get_child(0).get_global_rect()
+		check(vp.encloses(ow) and absf(ow.get_center().x - vp.get_center().x) <= 1.0,
+				"options window %dx%d centered on screen at %s" % [ow.size.x, ow.size.y, tag])
+		opts.queue_free()
+		await _wait(0.1)
+	hud.preview_full = false
+	# Game menu tabs: C opens Character, the tab actions cycle through the panels, the panel's
+	# own key closes it. Every panel has the same window size and shows its title.
+	_action("character")
+	await _wait(0.4)
+	check(hud._overlay != null and hud._overlay.get_script() == hud.CharacterPanel, "C opens the character panel")
+	var order: Array = []
+	var sizes: Array = []
+	for i in UIModal.MENU_TABS.size():
+		order.append(str(hud._overlay.title_text))
+		sizes.append(hud._overlay.window.size)
+		_action("ui_tab_next")
+		await _wait(0.35)
+	check(order == ["Character", "Inventory", "Talents", "Map"] and hud._overlay.get_script() == hud.CharacterPanel,
+			"tab next cycles %s and wraps around" % [order])
+	check(sizes.all(func(z): return z == sizes[0]), "all game menu panels share one window size %s" % [sizes])
+	_action("ui_tab_prev")
+	await _wait(0.35)
+	check(hud._overlay.get_script() == hud.MapPanel, "tab prev goes back to the map")
+	_action("inventory")
+	await _wait(0.35)
+	check(hud._overlay.get_script() == hud.InventoryPanel, "a panel's key switches to it while another panel is open")
+	_action("inventory")
+	await _wait(0.35)
+	check(hud._overlay == null, "the open panel's own key closes it")
+	hud.open_overlay(hud.CharacterPanel.new())
+	await _wait(0.4)
+	var cp: Node = hud._overlay
+	var p0 := _local()
+	check(cp._skill_rows.size() == p0.skills.size() and cp._skill_rows.all(func(r): return not str(r._desc.text).is_empty()),
+			"character panel lists all %d skills with descriptions" % p0.skills.size())
+	check(cp._stats_grid.get_child_count() >= 30, "character panel shows the stats (%d cells)" % cp._stats_grid.get_child_count())
+	hud.close_overlay()
+	# Gamepad focus graph of the inventory: every slot reachable from the first backpack slot
+	# with the d-pad, and no neighbor leads out of the window.
+	hud.open_overlay(hud.InventoryPanel.new())
+	await _wait(0.5)
+	var inv_panel: Node = hud._overlay
+	var all_slots: Array = inv_panel._slots.values()
+	var res := _focus_graph(inv_panel, inv_panel._slots["b:0"], all_slots)
+	check(res.missing.is_empty() and res.leaks == 0, "inventory d-pad graph reaches all %d slots, stays in the window (missing %d, leaks %d)" % [all_slots.size(), res.missing.size(), res.leaks])
+	hud.open_overlay(hud.TalentPanel.new())
+	await _wait(0.5)
+	var tp: Node = hud._overlay
+	var nodes: Array = tp._buttons.values().map(func(x): return x[0])
+	nodes.append(tp._reset)
+	res = _focus_graph(tp, nodes[0], nodes)
+	check(res.missing.is_empty() and res.leaks == 0, "talent d-pad graph reaches all %d nodes + reset, stays in the window (missing %d, leaks %d)" % [nodes.size() - 1, res.missing.size(), res.leaks])
+	hud.close_overlay()
+	# Mouse drag and drop in the inventory, with real mouse events.
+	win.size = Vector2i(1920, 1080)
+	await _wait(0.3)
+	var p := _local()
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 3
+	var helm := ItemGenerator.generate_equipment("plate_helm", 1, 3, rng)
+	helm.req = 1
+	p.host_give_item(helm)
+	await _wait(0.3)
+	hud.open_overlay(hud.InventoryPanel.new())
+	await _wait(0.5)
+	var panel: Node = hud._overlay
+	await _mouse_drag(panel._slots["b:%d" % (p.inv.backpack.size() - 1)], panel._slots["e:head"])
+	await _wait(0.4)
+	check(str(p.inv.equipment.get("head", {}).get("uid", "")) == str(helm.uid), "mouse drag from the backpack onto the head slot equips the helm")
+	var on_ground: int = g.items_root.get_child_count()
+	await _mouse_drag(panel._slots["e:head"], null)
+	await _wait(0.4)
+	check(p.inv.equipment.get("head", {}).is_empty() and g.items_root.get_child_count() == on_ground + 1,
+			"dragging an item out of the window drops it on the ground")
+	# Gear above the character's level: marked in the backpack, refused with an explanation.
+	var heavy := ItemGenerator.generate_equipment("plate_chest", 1, 2, rng)
+	heavy.req = p.level + 5
+	p.host_give_item(heavy)
+	await _wait(0.4)
+	var hi := p.inv.backpack.size() - 1
+	var hslot: ItemSlot = panel._slots["b:%d" % hi]
+	check(hslot.locked, "too-high-level gear is marked in the backpack")
+	panel._accept_backpack(hi)
+	await _wait(0.4)
+	check(p.inv.equipment.get("chest", {}).is_empty() and str(panel._notice.text).contains("requires level %d" % heavy.req),
+			"equipping it is refused with a message: %s" % panel._notice.text)
+	panel._notice.text = ""
+	await _mouse_drag(hslot, panel._slots["e:chest"])
+	await _wait(0.4)
+	check(p.inv.equipment.get("chest", {}).is_empty() and str(panel._notice.text).contains("requires level"),
+			"dragging it onto the chest slot is refused with a message")
+	var desc := ItemGenerator.describe(heavy, p.class_id, p.level)
+	check(desc.any(func(l): return str(l[0]).contains("you are level %d" % p.level)), "item card says the required and current level")
+	hud.close_overlay()
+	win.size = original
+	await _wait(0.2)
+
+
+func _action(a: String) -> void:
+	var ev := InputEventAction.new()
+	ev.action = a
+	ev.pressed = true
+	Input.parse_input_event(ev)
+	var up := InputEventAction.new()
+	up.action = a
+	up.pressed = false
+	Input.parse_input_event(up)
+
+
+## Walks the d-pad focus graph from `start`: which of `expected` can't be reached, and how many
+## neighbors lead outside `root`.
+func _focus_graph(root: Node, start: Control, expected: Array) -> Dictionary:
+	var seen := {}
+	var queue: Array = [start]
+	var leaks := 0
+	while not queue.is_empty():
+		var c: Control = queue.pop_front()
+		if seen.has(c):
+			continue
+		seen[c] = true
+		for side in [SIDE_LEFT, SIDE_RIGHT, SIDE_TOP, SIDE_BOTTOM]:
+			var n: Control = c.find_valid_focus_neighbor(side)
+			if n == null:
+				continue
+			if not root.is_ancestor_of(n):
+				leaks += 1
+			elif not seen.has(n):
+				queue.append(n)
+	return {"missing": expected.filter(func(x): return not seen.has(x)), "leaks": leaks}
+
+
+## Presses the left mouse button on `from`, drags and releases over `to` (null = the left edge of
+## the screen, outside any window).
+func _mouse_drag(from: Control, to: Control) -> void:
+	var xf := get_viewport().get_final_transform()
+	var a: Vector2 = xf * (from.get_global_transform_with_canvas() * (from.size / 2.0))
+	var b: Vector2 = xf * (to.get_global_transform_with_canvas() * (to.size / 2.0)) if to else xf * Vector2(12, get_viewport().get_visible_rect().size.y / 2.0)
+	var ev := InputEventMouseButton.new()
+	ev.button_index = MOUSE_BUTTON_LEFT
+	ev.pressed = true
+	ev.position = a
+	ev.global_position = a
+	Input.parse_input_event(ev)
+	await get_tree().process_frame
+	for i in 9:
+		var m := InputEventMouseMotion.new()
+		m.position = a.lerp(b, (i + 1) / 9.0)
+		m.global_position = m.position
+		m.relative = (b - a) / 9.0
+		m.button_mask = MOUSE_BUTTON_MASK_LEFT
+		Input.parse_input_event(m)
+		await get_tree().process_frame
+	var up := InputEventMouseButton.new()
+	up.button_index = MOUSE_BUTTON_LEFT
+	up.pressed = false
+	up.position = b
+	up.global_position = b
+	Input.parse_input_event(up)
+	await get_tree().process_frame
+
+
 func _snap(dir: String, name_: String) -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
@@ -1264,6 +1505,12 @@ func _shots_flow() -> void:
 		await _wait(0.1)
 	for b in ["greatsword", "crossbow", "arcane_wand", "robe"]:
 		p.host_give_item(ItemGenerator.generate_equipment(b, 2, rng.randi_range(2, 5), rng))
+	var heavy := ItemGenerator.generate_equipment("greataxe", 9, 4, rng)
+	heavy.req = 9
+	p.host_give_item(heavy)
+	var heavy2 := ItemGenerator.generate_equipment("plate_helm", 9, 3, rng)
+	heavy2.req = 9
+	g.loot.drop_item(heavy2, p.global_position + Vector2(-50, 10))
 	p.host_give_item(ItemGenerator.generate_consumable("potion_health", 3, rng))
 	p.host_give_item(ItemGenerator.generate_consumable("potion_mana", 2, rng))
 	for b in ["sword", "bow", "necklace"]:
@@ -1279,11 +1526,28 @@ func _shots_flow() -> void:
 	hud.open_overlay(hud.TalentPanel.new())
 	await _wait(0.5)
 	await _snap(dir, "06_talents")
+	hud.open_overlay(hud.CharacterPanel.new())
+	await _wait(0.5)
+	await _snap(dir, "06b_character")
 	hud.close_overlay()
 	hud.open_radial("q")
 	await _wait(0.3)
 	await _snap(dir, "07_radial")
 	hud.close_radial()
+	# Gamepad look: glyphs switch to pad buttons, the focus bracket follows the focused slot.
+	_joy_button(JOY_BUTTON_DPAD_DOWN, true)
+	_joy_button(JOY_BUTTON_DPAD_DOWN, false)
+	hud.open_overlay(hud.InventoryPanel.new())
+	await _wait(0.6)
+	await _snap(dir, "07b_inventory_gamepad")
+	hud.open_overlay(hud.PauseMenu.new())
+	await _wait(0.6)
+	await _snap(dir, "07c_pause_gamepad")
+	hud.close_overlay()
+	await _snap(dir, "07d_hud_gamepad")
+	var mouse := InputEventMouseMotion.new()
+	mouse.relative = Vector2(10, 0)
+	Input.parse_input_event(mouse)
 	# Walk into the nearest monster room and fight a bit.
 	var target := _nearest_enemy(p.global_position)
 	if target:

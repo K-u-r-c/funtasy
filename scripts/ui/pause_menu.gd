@@ -1,45 +1,50 @@
-extends Control
+extends UIModal
 ## In-game menu. The game keeps running underneath (it's online co-op).
-
-signal closed
 
 const SETTINGS_MENU := preload("res://scripts/ui/settings_menu.gd")
 
-var player: Player
 var _box: VBoxContainer
+var _options_btn: Button
 
 
-func _ready() -> void:
-	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	var dim := ColorRect.new()
-	dim.color = Color(0, 0, 0, 0.6)
-	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	add_child(dim)
-	var center := CenterContainer.new()
-	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	add_child(center)
+func _init() -> void:
+	max_size = Vector2(360, 520)
+	prompts = [["ui_accept", "Select"], ["ui_cancel", "Resume"]]
+
+
+func _build() -> void:
+	var t := UITheme.title("Paused", UITheme.FONT_TITLE)
+	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	t.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header.add_child(t)
+	var sub := UITheme.label("The game keeps running for your party", UITheme.TEXT_DIM, UITheme.FONT_SMALL)
+	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	content.add_child(sub)
 	_box = VBoxContainer.new()
-	_box.add_theme_constant_override("separation", 8)
-	center.add_child(_box)
-	_box.add_child(UITheme.title("Paused", 30))
-	_box.add_child(UITheme.label("(the game keeps running for your party)", UITheme.TEXT_DIM, 12))
-	_add("Resume", func(): closed.emit())
-	_add("Options", _open_settings)
+	_box.add_theme_constant_override("separation", 6)
+	content.add_child(_box)
+	var resume := _add("Resume", func(): closed.emit())
+	_options_btn = _add("Options", _open_settings)
 	_add("Leave to main menu" if not multiplayer.is_server() else "End session (host)", _leave)
-	_box.get_child(2).grab_focus.call_deferred()
+	var delay := 0.05
+	for b in _box.get_children():
+		b.play_intro(delay)
+		delay += 0.04
+	resume.grab_focus.call_deferred()
 
 
-func _add(text: String, cb: Callable) -> void:
+func _add(text: String, cb: Callable) -> AnimButton:
 	var b := AnimButton.new()
 	b.text = text
 	b.pressed.connect(cb)
 	_box.add_child(b)
+	return b
 
 
 func _open_settings() -> void:
 	var s: Control = SETTINGS_MENU.new()
 	add_child(s)
-	s.closed.connect(func(): _box.get_child(3).grab_focus())
+	s.closed.connect(func(): _options_btn.grab_focus())
 
 
 func _leave() -> void:

@@ -1,133 +1,278 @@
-extends Control
-## Inventory overlay: equipment slots, backpack grid, character stats and item details.
-## Mouse or gamepad: Accept = equip / unequip (consumables: assign to Q),
-## Secondary (RMB / X) = drop on the ground (that's how items are traded),
-## Tertiary (R / Y) = assign a consumable to E.
+extends UIModal
+## Inventory overlay: paper doll (equipment around a live portrait), backpack grid, Q/E quick
+## slots, character stats and an item card with a comparison against the equipped item.
+## Mouse: click = equip / unequip (potions: put on Q), drag and drop between the paper doll,
+## the backpack and the quick slots, drag outside the window = drop on the ground, RMB = drop.
+## Gamepad: A = equip / unequip, X = drop, Y = put a potion on E. Everything goes through the
+## same host-validated intents.
 
-signal closed
+const COLS := 6
+const SLOT_PX := 40
+const LEFT_SLOTS := ["head", "chest", "legs", "boots"]
+const RIGHT_SLOTS := ["necklace", "ring_1", "ring_2", "gloves"]
+const HAND_SLOTS := ["main_hand", "off_hand"]
 
-var player: Player
-var _equip_grid: GridContainer
+var _slots: Dictionary = {}  ## key ("e:slot" / "b:index" / "q:q") -> ItemSlot
 var _bag_grid: GridContainer
-var _info: VBoxContainer
-var _stats: Label
+var _equip_root: HBoxContainer
+var _hands: HBoxContainer
+var _quick_row: HBoxContainer
+var _card: VBoxContainer
+var _stats: GridContainer
+var _offclass: Label
 var _cap_label: Label
+var _dragging := false
+var _portrait: CharacterPortrait
 var _focus_key := ""
-var _buttons: Dictionary = {}  ## key ("e:slot" / "b:index") -> Button
+var _shown_key := ""
 var _last_stats: Dictionary = {}
+var _last_level := -1
 
 
-func _ready() -> void:
-	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	var dim := ColorRect.new()
-	dim.color = Color(0, 0, 0, 0.7)
-	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	add_child(dim)
-	var root := HBoxContainer.new()
-	root.position = Vector2(24, 20)
-	root.size = Vector2(912, 500)
-	root.add_theme_constant_override("separation", 12)
-	add_child(root)
+func _init() -> void:
+	title_text = "Inventory"
+	menu_tab = "inventory"
 
-	var left := PanelContainer.new()
-	left.custom_minimum_size = Vector2(250, 490)
-	root.add_child(left)
-	var lv := VBoxContainer.new()
-	left.add_child(lv)
-	lv.add_child(UITheme.label("Equipment", UITheme.ACCENT, 18))
-	_equip_grid = GridContainer.new()
-	_equip_grid.columns = 2
-	_equip_grid.add_theme_constant_override("h_separation", 6)
-	_equip_grid.add_theme_constant_override("v_separation", 4)
-	lv.add_child(_equip_grid)
-	lv.add_child(UITheme.label("Stats", UITheme.ACCENT, 16))
-	_stats = UITheme.label("", UITheme.TEXT, 12)
-	lv.add_child(_stats)
 
-	var mid := PanelContainer.new()
-	mid.custom_minimum_size = Vector2(330, 490)
-	root.add_child(mid)
-	var mv := VBoxContainer.new()
-	mid.add_child(mv)
-	var mh := HBoxContainer.new()
-	mv.add_child(mh)
-	mh.add_child(UITheme.label("Backpack", UITheme.ACCENT, 18))
-	_cap_label = UITheme.label("", UITheme.TEXT_DIM, 13)
-	mh.add_child(_cap_label)
+func _build() -> void:
+	_cap_label = subtitle
+
+	var body := HBoxContainer.new()
+	body.add_theme_constant_override("separation", 12)
+	content.add_child(body)
+
+	# Paper doll + stats
+	var left := VBoxContainer.new()
+	left.add_theme_constant_override("separation", 6)
+	body.add_child(left)
+	left.add_child(_section("Equipment"))
+	_equip_root = HBoxContainer.new()
+	_equip_root.add_theme_constant_override("separation", 6)
+	left.add_child(_equip_root)
+	var lcol := _slot_column(LEFT_SLOTS)
+	_equip_root.add_child(lcol)
+	var mid := VBoxContainer.new()
+	mid.add_theme_constant_override("separation", 6)
+	_equip_root.add_child(mid)
+	_portrait = CharacterPortrait.new(false, 2)
+	_portrait.actor = player
+	_portrait.frame_color = UITheme.EDGE
+	mid.add_child(_portrait)
+	_hands = HBoxContainer.new()
+	_hands.alignment = BoxContainer.ALIGNMENT_CENTER
+	_hands.add_theme_constant_override("separation", 6)
+	mid.add_child(_hands)
+	for s in HAND_SLOTS:
+		_hands.add_child(_make_equip_slot(s))
+	_equip_root.add_child(_slot_column(RIGHT_SLOTS))
+	left.add_child(_section("Attributes"))
+	_stats = GridContainer.new()
+	_stats.columns = 4
+	_stats.add_theme_constant_override("h_separation", 8)
+	_stats.add_theme_constant_override("v_separation", 1)
+	left.add_child(_stats)
+	_offclass = UITheme.label("", UITheme.DANGER, UITheme.FONT_SMALL)
+	left.add_child(_offclass)
+
+	# Backpack + quick slots
+	var bag := VBoxContainer.new()
+	bag.add_theme_constant_override("separation", 6)
+	body.add_child(bag)
+	bag.add_child(_section("Backpack"))
+	var scroll := ScrollContainer.new()
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.custom_minimum_size = Vector2(COLS * (SLOT_PX + 4) + 4, 4 * (SLOT_PX + 4))
+	scroll.follow_focus = true
+	bag.add_child(scroll)
 	_bag_grid = GridContainer.new()
-	_bag_grid.columns = 6
+	_bag_grid.columns = COLS
 	_bag_grid.add_theme_constant_override("h_separation", 4)
 	_bag_grid.add_theme_constant_override("v_separation", 4)
-	mv.add_child(_bag_grid)
-	var help := UITheme.label("", UITheme.TEXT_DIM, 11)
-	help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	help.custom_minimum_size = Vector2(310, 0)
-	help.text = "A/Enter/Click: equip, unequip, or put a potion on Q\nX/RMB: drop on the ground (give it to a teammate)\nY/R: put a potion on E\nB/Esc/I: close"
-	mv.add_child(help)
+	scroll.add_child(_bag_grid)
+	bag.add_child(_section("Quick slots"))
+	_quick_row = HBoxContainer.new()
+	_quick_row.add_theme_constant_override("separation", 8)
+	bag.add_child(_quick_row)
+	for k in ["q", "e"]:
+		var box := HBoxContainer.new()
+		box.add_theme_constant_override("separation", 4)
+		box.add_child(InputGlyph.new("quick_" + k))
+		var qs := ItemSlot.new(SLOT_PX)
+		qs.slot_key = "q:" + k
+		qs.placeholder = k.to_upper()
+		qs.draggable = false
+		qs.accepts = func(d: Dictionary) -> bool: return d.item.get("kind") == "consumable"
+		qs.item_dropped.connect(func(d: Dictionary): player.request_assign_quick.rpc_id(1, k, d.item.base))
+		qs.pressed.connect(func(): player.request_assign_quick.rpc_id(1, k, "__clear__"))
+		qs.focus_entered.connect(_on_focus.bind(qs))
+		qs.mouse_entered.connect(_show_card.bind(qs))
+		_slots[qs.slot_key] = qs
+		box.add_child(qs)
+		_quick_row.add_child(box)
 
-	var right := PanelContainer.new()
-	right.custom_minimum_size = Vector2(300, 490)
-	root.add_child(right)
-	_info = VBoxContainer.new()
-	right.add_child(_info)
+	# Item card
+	var card_panel := PanelContainer.new()
+	card_panel.theme_type_variation = &"GlassInset"
+	card_panel.custom_minimum_size = Vector2(250, 0)
+	card_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	body.add_child(card_panel)
+	_card = VBoxContainer.new()
+	_card.add_theme_constant_override("separation", 3)
+	card_panel.add_child(_card)
 
+	# Anything dragged out of the window and released over the backdrop is dropped on the ground.
+	dim.set_drag_forwarding(Callable(), _can_drop_ground, _drop_ground)
+
+	prompts = _prompts_for({})
 	EventBus.local_inventory_changed.connect(_rebuild)
 	_rebuild()
+
+
+func _section(text: String) -> Label:
+	var l := UITheme.label(text, UITheme.GOLD, UITheme.FONT_BODY)
+	return l
+
+
+func _slot_column(slots: Array) -> VBoxContainer:
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override("separation", 4)
+	for s in slots:
+		col.add_child(_make_equip_slot(s))
+	return col
+
+
+func _make_equip_slot(slot: String) -> ItemSlot:
+	var b := ItemSlot.new(SLOT_PX)
+	b.slot_key = "e:" + slot
+	b.placeholder = {"head": "Head", "chest": "Chest", "legs": "Legs", "boots": "Feet", "gloves": "Hands",
+		"main_hand": "Main", "off_hand": "Off", "ring_1": "Ring", "ring_2": "Ring", "necklace": "Neck"}.get(slot, "")
+	b.tooltip_text = Inventory.SLOT_NAMES[slot]
+	b.accepts = func(d: Dictionary) -> bool: return str(d.from).begins_with("b:") and _fits(d.item, slot)
+	b.item_dropped.connect(func(d: Dictionary): _try_equip(int(str(d.from).get_slice(":", 1)), b))
+	b.pressed.connect(func(): player.request_unequip.rpc_id(1, slot))
+	_wire(b)
+	_slots[b.slot_key] = b
+	return b
+
+
+func _wire(b: ItemSlot) -> void:
+	b.focus_entered.connect(_on_focus.bind(b))
+	b.mouse_entered.connect(_show_card.bind(b))
+	b.gui_input.connect(_slot_input.bind(b))
+
+
+func _fits(item: Dictionary, slot: String) -> bool:
+	match str(item.get("slot", "")):
+		"weapon":
+			return slot in HAND_SLOTS
+		"offhand":
+			return slot == "off_hand"
+		"ring":
+			return slot in ["ring_1", "ring_2"]
+	return str(item.get("slot", "")) == slot
 
 
 func _process(_delta: float) -> void:
 	if player and is_instance_valid(player) and player.stats.final != _last_stats:
 		_last_stats = player.stats.final.duplicate()
 		_refresh_stats()
+	var dragging := get_viewport().gui_is_dragging()
+	if dragging and not _dragging:
+		notice("Release outside the window to drop it on the ground", UITheme.CYAN)
+	_dragging = dragging
+	if player and is_instance_valid(player) and player.level != _last_level:
+		# Level-ups unlock gear: refresh the lock marks and the card.
+		_last_level = player.level
+		_rebuild()
+
+
+# --- Contents --------------------------------------------------------------------------------
 
 
 func _rebuild() -> void:
 	if player == null or not is_instance_valid(player):
 		return
 	var inv: Inventory = player.inv
-	_buttons.clear()
-	for c in _equip_grid.get_children():
-		c.queue_free()
-	for c in _bag_grid.get_children():
-		c.queue_free()
 	for slot in Inventory.SLOTS:
+		var b: ItemSlot = _slots["e:" + slot]
 		var item: Dictionary = inv.equipment.get(slot, {})
+		b.ghost_icon = null
 		if slot == "off_hand" and item.is_empty() and int(inv.equipment.get("main_hand", {}).get("hands", 1)) == 2:
-			item = {"name": "(two-handed weapon)", "rarity": 1}
-		var b := _item_button(item, Inventory.SLOT_NAMES[slot], Vector2(116, 40))
-		b.pressed.connect(func(): player.request_unequip.rpc_id(1, slot))
-		_bind(b, "e:" + slot, item, false, slot)
-		_equip_grid.add_child(b)
+			b.ghost_icon = GameData.texture(str(inv.equipment.main_hand.icon))
+		b.set_item(item)
+	# Backpack slots are recreated only when the capacity changes.
+	if _bag_grid.get_child_count() != inv.capacity:
+		for c in _bag_grid.get_children():
+			_slots.erase(c.slot_key)
+			c.queue_free()
+		for i in inv.capacity:
+			var b2 := ItemSlot.new(SLOT_PX)
+			b2.slot_key = "b:%d" % i
+			var idx := i
+			b2.accepts = func(d: Dictionary) -> bool: return str(d.from).begins_with("e:")
+			b2.item_dropped.connect(func(d: Dictionary): player.request_unequip.rpc_id(1, str(d.from).get_slice(":", 1)))
+			b2.pressed.connect(func(): _accept_backpack(idx))
+			_wire(b2)
+			_slots[b2.slot_key] = b2
+			_bag_grid.add_child(b2)
 	for i in inv.capacity:
-		var item2: Dictionary = inv.backpack[i] if i < inv.backpack.size() else {}
-		var b2 := _item_button(item2, "", Vector2(48, 48))
-		var idx := i
-		b2.pressed.connect(func(): _accept_backpack(idx))
-		_bind(b2, "b:%d" % i, item2, true, str(i))
-		_bag_grid.add_child(b2)
-	_cap_label.text = "  %d / %d" % [inv.backpack.size(), inv.capacity]
+		var bag_item: Dictionary = inv.backpack[i] if i < inv.backpack.size() else {}
+		_slots["b:%d" % i].set_item(bag_item)
+		_slots["b:%d" % i].locked = ItemGenerator.too_high_level(bag_item, player.level)
+	for k in ["q", "e"]:
+		var base_id: String = inv.quick.get(k, "")
+		var qi: Dictionary = {}
+		if not base_id.is_empty():
+			qi = {"uid": "quick", "kind": "consumable", "base": base_id, "rarity": 1,
+				"icon": GameData.consumables[base_id].icon, "count": inv.count_of(base_id),
+				"name": GameData.consumables[base_id].name}
+		_slots["q:" + k].set_item(qi)
+	_cap_label.text = "Backpack %d / %d" % [inv.backpack.size(), inv.capacity]
 	_wire_focus()
 	_refresh_stats()
-	var target: Button = _buttons.get(_focus_key, _buttons.get("b:0"))
-	if target:
+	var target: ItemSlot = _slots.get(_focus_key, _slots.get("b:0"))
+	if target and not target.has_focus():
 		target.grab_focus.call_deferred()
+	elif target:
+		_show_card(target)
 
 
-func _bind(b: Button, key: String, item: Dictionary, from_bag: bool, id: String) -> void:
-	_buttons[key] = b
-	b.focus_entered.connect(func():
-		_focus_key = key
-		_show_info(item))
-	b.mouse_entered.connect(func(): _show_info(item))
-	b.gui_input.connect(func(ev: InputEvent):
-		if item.is_empty() or not item.has("uid"):
-			return
-		if ev.is_action_pressed("ui_secondary"):
-			player.request_drop.rpc_id(1, from_bag, id)
-			accept_event()
-		elif ev.is_action_pressed("ui_tertiary") and item.get("kind") == "consumable":
-			player.request_assign_quick.rpc_id(1, "e", item.base)
-			accept_event())
+## Explicit d-pad chains: left column <-> right column (across the portrait) <-> backpack
+## <-> quick slots; hands sit under the columns. Edges stop instead of wrapping.
+func _wire_focus() -> void:
+	var l: Array = LEFT_SLOTS.map(func(k): return _slots["e:" + k])
+	var r: Array = RIGHT_SLOTS.map(func(k): return _slots["e:" + k])
+	var h: Array = HAND_SLOTS.map(func(k): return _slots["e:" + k])
+	var bag: Array = _bag_grid.get_children()
+	var q: ItemSlot = _slots["q:q"]
+	var e: ItemSlot = _slots["q:e"]
+	var rows := ceili(bag.size() / float(COLS))
+	for i in l.size():
+		_link(l[i], l[i], r[i], l[maxi(i - 1, 0)], l[i + 1] if i + 1 < l.size() else h[0])
+		var bag_row: Control = bag[mini(i, rows - 1) * COLS] if not bag.is_empty() else q
+		_link(r[i], l[i], bag_row, r[maxi(i - 1, 0)], r[i + 1] if i + 1 < r.size() else h[1])
+	_link(h[0], h[0], h[1], l[-1], h[0])
+	_link(h[1], h[0], q, r[-1], h[1])
+	for i in bag.size():
+		var row := i / COLS
+		var col := i % COLS
+		var left: Control = bag[i - 1] if col > 0 else r[mini(row, r.size() - 1)]
+		var right: Control = bag[i + 1] if col < COLS - 1 and i + 1 < bag.size() else bag[i]
+		var up: Control = bag[i - COLS] if row > 0 else bag[i]
+		var down: Control = bag[i + COLS] if i + COLS < bag.size() else (q if col < COLS / 2 else e)
+		_link(bag[i], left, right, up, down)
+	var last_row := (rows - 1) * COLS
+	_link(q, h[1], e, bag[last_row] if not bag.is_empty() else r[-1], q)
+	_link(e, q, e, bag[mini(last_row + COLS / 2, bag.size() - 1)] if not bag.is_empty() else r[-1], e)
+
+
+func _link(c: Control, left: Control, right: Control, up: Control, down: Control) -> void:
+	c.focus_neighbor_left = c.get_path_to(left)
+	c.focus_neighbor_right = c.get_path_to(right)
+	c.focus_neighbor_top = c.get_path_to(up)
+	c.focus_neighbor_bottom = c.get_path_to(down)
+	c.focus_next = c.get_path_to(right if right != c else down)
+	c.focus_previous = c.get_path_to(left if left != c else up)
 
 
 func _accept_backpack(i: int) -> void:
@@ -137,73 +282,165 @@ func _accept_backpack(i: int) -> void:
 	if item.get("kind") == "consumable":
 		player.request_assign_quick.rpc_id(1, "q", item.base)
 	else:
-		player.request_equip.rpc_id(1, i)
+		_try_equip(i, _slots["b:%d" % i])
 
 
-func _item_button(item: Dictionary, caption: String, min_size: Vector2) -> Button:
-	var b := Button.new()
-	b.custom_minimum_size = min_size
-	b.focus_mode = Control.FOCUS_ALL
-	b.clip_text = true
-	var border := Color(0.25, 0.2, 0.18)
-	if not item.is_empty():
-		border = Color.from_string(GameData.rarity(int(item.get("rarity", 1))).color, Color.WHITE)
-	var sb := UITheme.box(Color(0.08, 0.07, 0.09), border.darkened(0.3), 2, 3, 2)
-	b.add_theme_stylebox_override("normal", sb)
-	var sbh := UITheme.box(Color(0.16, 0.12, 0.12), border, 2, 3, 2)
-	b.add_theme_stylebox_override("hover", sbh)
-	b.add_theme_stylebox_override("focus", UITheme.box(Color(0, 0, 0, 0), UITheme.ACCENT, 3, 3, 2))
-	if item.has("icon"):
-		b.icon = GameData.texture(str(item.icon))
-		b.expand_icon = true
-	b.text = caption if item.is_empty() or not item.has("icon") else ""
-	if caption != "" and item.has("icon"):
-		b.text = ""
-		b.tooltip_text = caption
-	if item.get("kind") == "consumable":
-		b.text = "x%d" % int(item.count)
-		b.alignment = HORIZONTAL_ALIGNMENT_RIGHT
-		b.vertical_icon_alignment = VERTICAL_ALIGNMENT_CENTER
-	b.add_theme_font_size_override("font_size", 11)
-	return b
-
-
-func _wire_focus() -> void:
-	# Let the gamepad cross from the equipment column to the backpack and back.
-	var eq: Array = _equip_grid.get_children()
-	var bag: Array = _bag_grid.get_children()
-	if eq.is_empty() or bag.is_empty():
+## Equips backpack[i], or explains right away why the character can't wear it (the host
+## checks again either way).
+func _try_equip(i: int, from: ItemSlot) -> void:
+	var item: Dictionary = player.inv.backpack[i] if i < player.inv.backpack.size() else {}
+	if ItemGenerator.too_high_level(item, player.level):
+		AudioManager.play_sfx("ui_error", 0.0)
+		UIFx.flash(from, 0.6)
+		notice("%s requires level %d - you are level %d" % [item.get("name", "This item"), int(item.req), player.level])
 		return
-	for i in range(1, eq.size(), 2):
-		var target: Control = bag[mini((i / 2) * 6, bag.size() - 1)]
-		eq[i].focus_neighbor_right = eq[i].get_path_to(target)
-	for r in range(0, bag.size(), 6):
-		var row := r / 6
-		var e: Control = eq[mini(row * 2 + 1, eq.size() - 1)]
-		bag[r].focus_neighbor_left = bag[r].get_path_to(e)
+	player.request_equip.rpc_id(1, i)
 
 
-func _show_info(item: Dictionary) -> void:
-	for c in _info.get_children():
+func _slot_input(ev: InputEvent, b: ItemSlot) -> void:
+	if not b.has_item() or b.slot_key.begins_with("q:"):
+		return
+	var from_bag := b.slot_key.begins_with("b:")
+	if ev.is_action_pressed("ui_secondary"):
+		AudioManager.play_sfx("ui_drop", 0.05)
+		player.request_drop.rpc_id(1, from_bag, b.slot_key.get_slice(":", 1))
+		accept_event()
+	elif ev.is_action_pressed("ui_tertiary") and b.item.get("kind") == "consumable":
+		player.request_assign_quick.rpc_id(1, "e", b.item.base)
+		accept_event()
+
+
+func _can_drop_ground(_at: Vector2, data: Variant) -> bool:
+	return data is Dictionary and data.get("type") == ItemSlot.DRAG_TYPE and not str(data.get("from")).begins_with("q:")
+
+
+func _drop_ground(_at: Vector2, data: Variant) -> void:
+	var from := str(data.from)
+	AudioManager.play_sfx("ui_drop", 0.05)
+	player.request_drop.rpc_id(1, from.begins_with("b:"), from.get_slice(":", 1))
+
+
+# --- Item card + prompts ---------------------------------------------------------------------
+
+
+func _on_focus(b: ItemSlot) -> void:
+	_focus_key = b.slot_key
+	_show_card(b)
+
+
+func _show_card(b: ItemSlot) -> void:
+	_shown_key = b.slot_key
+	footer.set_prompts(_prompts_for(b.item, b.slot_key))
+	for c in _card.get_children():
 		c.queue_free()
-	if item.is_empty() or not item.has("uid"):
-		_info.add_child(UITheme.label("Empty slot", UITheme.TEXT_DIM))
+	if not b.has_item():
+		_card.add_child(UITheme.label("Empty slot", UITheme.TEXT_DIM))
+		var hint := "Drag an item here or pick one from the backpack." if b.slot_key.begins_with("e:") \
+				else ("Drag a potion here to bind it." if b.slot_key.begins_with("q:") else "")
+		if not hint.is_empty():
+			_card.add_child(_wrap(UITheme.label(hint, UITheme.TEXT_DIM, UITheme.FONT_SMALL)))
 		return
-	for line in ItemGenerator.describe(item, player.class_id):
-		var l := UITheme.label(str(line[0]), line[1], 18 if _info.get_child_count() == 0 else 13)
-		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		l.custom_minimum_size = Vector2(280, 0)
-		_info.add_child(l)
-	if item.get("kind") in ["weapon", "offhand", "armor", "jewelry"]:
+	var item: Dictionary = b.item
+	if b.slot_key.begins_with("q:"):
+		item = {"name": item.name, "kind": "consumable", "base": item.base, "count": item.count, "rarity": 1}
+	var lines := ItemGenerator.describe(item, player.class_id, player.level)
+	var head := HBoxContainer.new()
+	head.add_theme_constant_override("separation", 6)
+	var icon := ItemSlot.new(SLOT_PX)
+	icon.focus_mode = Control.FOCUS_NONE
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	icon.draggable = false
+	icon.item = b.item
+	icon.locked = b.locked
+	head.add_child(icon)
+	var names := VBoxContainer.new()
+	names.add_theme_constant_override("separation", 0)
+	names.add_child(_wrap(UITheme.label(str(lines[0][0]), lines[0][1], UITheme.FONT_BODY)))
+	if lines.size() > 1:
+		names.add_child(_wrap(UITheme.label(str(lines[1][0]), UITheme.TEXT_DIM, UITheme.FONT_SMALL)))
+	names.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	head.add_child(names)
+	_card.add_child(head)
+	if ItemGenerator.too_high_level(item, player.level):
+		var warn := PanelContainer.new()
+		warn.add_theme_stylebox_override("panel", UITheme.glass(Color("3a0c0cd8"), UITheme.DANGER, 1, 6))
+		var wl := _wrap(UITheme.label("Level too low to equip: needs level %d (you are %d)" % [int(item.get("req", 1)), player.level], Color("ffb3a8"), UITheme.FONT_SMALL))
+		warn.add_child(wl)
+		_card.add_child(warn)
+	_card.add_child(HSeparator.new())
+	for i in range(2, lines.size()):
+		var c: Color = lines[i][1]
+		_card.add_child(_wrap(UITheme.label(str(lines[i][0]), c, UITheme.FONT_SMALL)))
+	if item.get("kind") in ["weapon", "offhand", "armor", "jewelry"] and b.slot_key.begins_with("b:"):
 		var eq := _equipped_for(item)
-		if not eq.is_empty() and eq.uid != item.uid:
-			_info.add_child(UITheme.label("", UITheme.TEXT_DIM, 6))
-			_info.add_child(UITheme.label("Currently equipped:", UITheme.TEXT_DIM, 12))
-			for line in ItemGenerator.describe(eq, player.class_id):
-				var l2 := UITheme.label(str(line[0]), Color(line[1]).darkened(0.25), 12)
-				l2.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-				l2.custom_minimum_size = Vector2(280, 0)
-				_info.add_child(l2)
+		_card.add_child(HSeparator.new())
+		if eq.is_empty():
+			_card.add_child(UITheme.label("Nothing equipped there", UITheme.TEXT_DIM, UITheme.FONT_SMALL))
+		else:
+			_card.add_child(_wrap(UITheme.label("vs %s" % eq.get("name", "?"), UITheme.rarity_color(int(eq.get("rarity", 1))), UITheme.FONT_SMALL)))
+			for d in _diff(item, eq):
+				_card.add_child(UITheme.label(d[0], d[1], UITheme.FONT_SMALL))
+
+
+func _wrap(l: Label) -> Label:
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	l.custom_minimum_size = Vector2(150, 0)
+	l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	return l
+
+
+## Stat changes if `item` replaced `eq`: [[text, color], ...] (green = gain, red = loss).
+func _diff(item: Dictionary, eq: Dictionary) -> Array:
+	var out: Array = []
+	var names: Dictionary = GameData.affixes.stat_names
+	var pct: Array = GameData.affixes.percent_stats
+	var keys: Array = ["dps", "armor"]
+	for k in item.get("stats", {}):
+		if not keys.has(k):
+			keys.append(k)
+	for k in eq.get("stats", {}):
+		if not keys.has(k):
+			keys.append(k)
+	for k in keys:
+		var a := float(item.get(k, item.get("stats", {}).get(k, 0.0)))
+		var b := float(eq.get(k, eq.get("stats", {}).get(k, 0.0)))
+		var d := a - b
+		if absf(d) < 0.001:
+			continue
+		var label: String = names.get(k, k)
+		var txt := ""
+		if pct.has(k):
+			txt = "%+d%% %s" % [roundi(d * 100.0), label]
+		elif k == "dps":
+			txt = "%+.1f %s" % [d, label]
+		else:
+			txt = "%+d %s" % [roundi(d), label]
+		out.append([txt, UITheme.GOOD if d > 0.0 else UITheme.DANGER])
+	if out.is_empty():
+		out.append(["No stat change", UITheme.TEXT_DIM])
+	return out
+
+
+func _prompts_for(item: Dictionary, key: String = "") -> Array:
+	var out: Array = []
+	var has := not item.is_empty() and item.has("uid")
+	if key.begins_with("q:"):
+		out.append(["ui_accept", "Clear slot"])
+	elif has and key.begins_with("e:"):
+		out.append(["ui_accept", "Unequip"])
+		out.append(["ui_secondary", "Drop"])
+	elif has and item.get("kind") == "consumable":
+		out.append(["ui_accept", "Put on Q"])
+		out.append(["ui_tertiary", "Put on E"])
+		out.append(["ui_secondary", "Drop"])
+	elif has and ItemGenerator.too_high_level(item, player.level):
+		out.append(["ui_accept", "Equip (needs level %d)" % int(item.get("req", 1))])
+		out.append(["ui_secondary", "Drop"])
+	elif has:
+		out.append(["ui_accept", "Equip"])
+		out.append(["ui_secondary", "Drop"])
+	out.append(["ui_cancel", "Close"])
+	return out
 
 
 func _equipped_for(item: Dictionary) -> Dictionary:
@@ -221,15 +458,22 @@ func _refresh_stats() -> void:
 	var s: Dictionary = player.stats.final
 	if s.is_empty():
 		return
-	var lines := [
-		"Level %d %s" % [player.level, player.class_def.name],
-		"Health %d   %s %d" % [s.get("max_hp", 0), str(player.class_def.resource).capitalize(), s.get("max_resource", 0)],
-		"Strength %d   Stamina %d" % [s.get("strength", 0), s.get("stamina", 0)],
-		"Agility %d   Intellect %d" % [s.get("agility", 0), s.get("intellect", 0)],
-		"Armor %d   Weapon DPS %.1f" % [s.get("armor", 0), s.get("weapon_dps", 0)],
-		"Crit %d%%  Crit dmg +%d%%" % [roundi(float(s.get("crit_chance", 0)) * 100), roundi(float(s.get("crit_damage", 0)) * 100)],
-		"Haste %d%%  Dodge %d%%  Leech %d%%" % [roundi(float(s.get("haste", 0)) * 100), roundi(float(s.get("dodge", 0)) * 100), roundi(float(s.get("leech", 0)) * 100)],
+	for c in _stats.get_children():
+		c.queue_free()
+	var rows := [
+		["Health", "%d" % s.get("max_hp", 0)], [str(player.class_def.resource).capitalize(), "%d" % s.get("max_resource", 0)],
+		["Strength", "%d" % s.get("strength", 0)], ["Stamina", "%d" % s.get("stamina", 0)],
+		["Agility", "%d" % s.get("agility", 0)], ["Intellect", "%d" % s.get("intellect", 0)],
+		["Armor", "%d" % s.get("armor", 0)], ["DPS", "%.1f" % s.get("weapon_dps", 0)],
+		["Crit", "%d%%" % roundi(float(s.get("crit_chance", 0)) * 100)], ["Crit dmg", "+%d%%" % roundi(float(s.get("crit_damage", 0)) * 100)],
+		["Haste", "%d%%" % roundi(float(s.get("haste", 0)) * 100)], ["Dodge", "%d%%" % roundi(float(s.get("dodge", 0)) * 100)],
+		["Leech", "%d%%" % roundi(float(s.get("leech", 0)) * 100)], ["Level", "%d" % player.level],
 	]
-	if bool(s.get("offclass", false)):
-		lines.append("OFF-CLASS WEAPON: -%d%% damage, slower cooldowns" % roundi((1.0 - float(GameData.bal("off_class.damage_mult"))) * 100))
-	_stats.text = "\n".join(lines)
+	for r in rows:
+		_stats.add_child(UITheme.label(r[0], UITheme.TEXT_DIM, UITheme.FONT_SMALL))
+		var v := UITheme.label(r[1], UITheme.TEXT, UITheme.FONT_SMALL)
+		v.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		v.custom_minimum_size = Vector2(34, 0)
+		_stats.add_child(v)
+	_offclass.text = "Off-class weapon: -%d%% damage, slower cooldowns" % roundi((1.0 - float(GameData.bal("off_class.damage_mult"))) * 100) \
+			if bool(s.get("offclass", false)) else ""

@@ -6,7 +6,7 @@ var _font: Font
 
 
 func _ready() -> void:
-	_font = ThemeDB.fallback_font
+	_font = UITheme.font()
 
 
 func _process(_delta: float) -> void:
@@ -21,17 +21,17 @@ func _draw() -> void:
 	for e in game.enemies_root.get_children():
 		if not e.visible or not is_instance_valid(e) or e.is_boss:
 			continue
-		var top: Vector2 = e.global_position + Vector2(0, -54)
+		var top: Vector2 = e.global_position + Vector2(0, -e.sprite.visual_height() - 7.0)
 		if e.aggro or e.health.hp < e.health.max_hp:
 			_bar(top, 28.0, e.health.fraction(), Color(0.85, 0.2, 0.18))
 		_cast(e, top + Vector2(0, -6), now)
 	for p in game.players_root.get_children():
-		var head: Vector2 = p.global_position + Vector2(0, -58)
+		var head: Vector2 = p.global_position + Vector2(0, -p.sprite.visual_height() - 11.0)
 		if p.life_state == Player.Life.GHOST:
 			continue
 		if not p.is_local():
 			var cdef: Dictionary = p.class_def
-			_text(head + Vector2(0, -8), p.display_name, Color.from_string(str(cdef.get("color", "#ffffff")), Color.WHITE), 11)
+			_text(head + Vector2(0, -8), p.display_name, Color.from_string(str(cdef.get("color", "#ffffff")), Color.WHITE), 12)
 			_bar(head, 30.0, p.health.fraction(), Color(0.3, 0.85, 0.35))
 		if p.life_state == Player.Life.DOWNED:
 			_text(p.global_position + Vector2(0, -36), "DOWNED %d" % ceili(p.downed_left), Color(1, 0.4, 0.35), 12)
@@ -43,7 +43,9 @@ func _draw() -> void:
 		for g in game.items_root.get_children():
 			if g.global_position.distance_to(lp.global_position) < 110.0:
 				var rar := GameData.rarity(int(g.item.get("rarity", 1)))
-				_text(g.global_position + Vector2(0, -30), str(g.item.get("name", "")), Color.from_string(rar.color, Color.WHITE), 10)
+				_text(g.global_position + Vector2(0, -30), str(g.item.get("name", "")), Color.from_string(rar.color, Color.WHITE), 12)
+				if ItemGenerator.too_high_level(g.item, lp.level):
+					_text(g.global_position + Vector2(0, -20), "Requires level %d" % int(g.item.req), Color(1.0, 0.4, 0.35), 12)
 
 
 func _bar(center: Vector2, width: float, frac: float, color: Color) -> void:

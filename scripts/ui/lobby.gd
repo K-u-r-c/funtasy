@@ -24,6 +24,8 @@ var _status: Label
 var _selected_class := "warrior"
 var _setting_controls: Dictionary = {}
 
+const LOBBY_MAX_WIDTH := 1100
+
 
 func _ready() -> void:
 	var bg := Control.new()
@@ -35,6 +37,13 @@ func _ready() -> void:
 	for side in ["left", "right", "top", "bottom"]:
 		root.add_theme_constant_override("margin_" + side, 24)
 	add_child(root)
+	# Ultrawide: keep the lobby a centered column instead of stretching it across the screen.
+	var fit := func():
+		var side := maxi(24, int((get_viewport_rect().size.x - LOBBY_MAX_WIDTH) / 2.0))
+		root.add_theme_constant_override("margin_left", side)
+		root.add_theme_constant_override("margin_right", side)
+	get_viewport().size_changed.connect(fit)
+	fit.call()
 	var col := VBoxContainer.new()
 	col.add_theme_constant_override("separation", 10)
 	root.add_child(col)
