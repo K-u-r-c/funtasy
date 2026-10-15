@@ -103,7 +103,8 @@ data/            balance, classes, skills, talents, items, monsters, bosses, flo
 assets/          placeholder sprites/audio + shaders
 tools/           gen_placeholders.gd, check_scripts.gd, run_tests.sh,
                  pixellab_import.gd / pixellab_build_char.py (PixelLab art -> sheets),
-                 bake_gear.gd + bake_gear.json (equipment layers baked from the body sheets)
+                 build_hero.py + hero_<gender>[_sources].json (hero body + worn gear:
+                 gear_cut.gd, body_regions.gd, bake_gear.gd), build_monster.py
 docs/            DECISIONS.md, TODO.md
 ```
 
@@ -119,9 +120,13 @@ All assets are referenced by key in **`data/assets.json`**; nothing else needs t
   order **E, SE, S, SW, W, NW, N, NE**, one column per frame, 64x64 frames (monsters may use other
   sizes via `frame_size`). Frame counts and FPS are set in `characters.anims` (override per set
   with an `anims` key). Add `"normal": "res://.../normals/"` with the same sheet layout to light
-  the set with normal maps. Equipment layers (`head_*`, `chest_*`, `weapon_*`, ...) use the same
-  layout and are drawn on top of `body_human`; they are tinted by the item color, so light/grey
-  art works best.
+  the set with normal maps. Heroes have one body per gender (`characters.genders`: `body_male`,
+  ...) and equipment layers per gender (`m_head_helm`, `m_chest_robe`, `m_weapon_sword`, ...;
+  key = gender prefix + the item's `appearance`) with the same layout. Worn pieces with
+  `"hide": true` also ship hide masks (`<layer>/hide/<anim>.png`): the body pixels they cover,
+  which the body shader drops so no skin shows under gear. Rebuild hero art with
+  `python3 tools/build_hero.py tools/hero_male_sources.json <work dir>` (see
+  `docs/DECISIONS.md` "Character art pipeline"); verify with the `art-check` test.
 - **Tiles**: one atlas per floor type (`tiles.crypt`), cell coordinates listed in the registry.
 - **Props, items, projectiles, icons, FX**: single PNGs (sheets for animated ones: `frames`).
 - **Music / SFX** (Suno): drop `.ogg`/`.wav` files in `assets/audio/` and point `music.*` /

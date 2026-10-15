@@ -30,7 +30,7 @@ manual run noted here.
       trail, radial cooldown shader, rarity pulse shader, live portraits, paper-doll inventory with drag and drop,
       talent tree with links, live gamepad/keyboard glyph prompts, animated focus bracket, spring pop-ins, UI sounds
 - [x] Unified game menu (Character / Inventory / Talents / Map tabs, shared title header) and the Character
-      panel (hero, stats, skills with descriptions) on C / R-stick click (verified: `ui-layout` test)
+      panel (hero, stats, skills) on C / R-stick click (verified: `ui-layout` test)
 - [x] Final pixel art from PixelLab replaces every sprite placeholder: crypt tiles, walls, lava, props, doors,
       portal, item and skill icons, projectiles, slash/explosion/AoE effects, 3 monsters + boss, the player body
       with 9 animations and 20 baked equipment layers (sound is still placeholder)
@@ -47,6 +47,18 @@ manual run noted here.
 - [x] Real boss kill by two players with their skills (the harness teleports them to the boss and keeps them
       invulnerable so the test doesn't depend on balance), then portal -> floor 2
 - [x] Gamepad drives menus end to end (main menu -> options rebinding -> lobby -> run -> overlays), simulated events
+- [x] Character art rework: ~43 px heroes (64 px cells), male and female bodies, worn gear cut from PixelLab
+      outfit transfers (plate and cloth sets) with hide masks so no body shows under gear (verified: `art-check`
+      test, 0 body pixels in every frame), every animation drawn (cast/dash/hit too), held weapons in the hand in
+      every frame (verified: `art-check`), drawn ghost (breathing idle), downed in worn gear, monsters and
+      boss rescaled
+- [x] Gender choice in the lobby with an animated, turnable preview (gamepad + mouse), saved with the hero
+      (old saves default to male), replicated to every peer (verified: `gamepad-menu`, `continue`, `continue-lan`)
+- [x] Lobby redesign: numbered steps, big preview, prominent "Confirm hero" with ready state (verified: `gamepad-menu`)
+- [x] Ground spell effects (Consecration, traps, AoE rings) draw under enemies and heroes
+- [x] Smooth, gentle mouse camera lean without feedback from the camera's own movement (verified: `ui-layout`)
+- [x] Character panel: compact skill list, hover / focus tooltips with damage, healing, DoT, area, cooldown,
+      cost, cast time and talent changes computed by the host formulas (verified: `ui-layout`)
 
 ## Not verified / open
 
