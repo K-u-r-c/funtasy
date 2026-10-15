@@ -5,6 +5,7 @@ extends Node
 ## No gameplay state lives here.
 
 const HEIGHT := Vector2(0, -16)  ## projectiles and impacts are drawn at chest height
+const GROUND_Z := -8  ## ground effects (zones, traps, AoE rings, telegraphs): above the floor, under every actor
 
 var world: Node2D  ## y-sorted world layer for sprites
 var world_ui: CanvasLayer  ## follows the camera, not darkened by the ambient light
@@ -92,7 +93,7 @@ func ring(pos: Vector2, r: float, color_html: String, fx_key: String) -> void:
 	s.texture = _tex("fx.ring")
 	s.position = pos
 	s.modulate = Color(c.r * 1.4, c.g * 1.4, c.b * 1.4, 0.9)
-	s.z_index = 3
+	s.z_index = GROUND_Z
 	var base := r / 64.0
 	s.scale = Vector2(base, base * 0.75) * 0.5
 	world.add_child(s)
@@ -131,7 +132,7 @@ func telegraph(pos: Vector2, r: float, color_html: String, delay: float) -> void
 	s.position = pos
 	s.scale = Vector2(r / 64.0, r / 64.0 * 0.75)
 	s.modulate = Color(c.r * 1.5, c.g * 1.2, c.b, 0.25)
-	s.z_index = 1
+	s.z_index = GROUND_Z
 	world.add_child(s)
 	var t := s.create_tween()
 	t.tween_property(s, "modulate:a", 0.85, delay).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
@@ -153,7 +154,7 @@ func zone(id: int, pos: Vector2, r: float, color_html: String, duration: float, 
 	var c := Color.from_string(color_html, Color.WHITE)
 	var n := Node2D.new()
 	n.position = pos
-	n.z_index = 1
+	n.z_index = GROUND_Z
 	if sprite_key.is_empty():
 		var s := Sprite2D.new()
 		s.texture = _tex("fx.ring")
