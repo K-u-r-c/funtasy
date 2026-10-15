@@ -41,7 +41,9 @@ manual run noted here.
       them (`funtasy.exe --headless -- --auto=solo --scenario=classes --quit=60` works on any platform).
 - [ ] macOS export is unsigned (codesign/notarization off): Gatekeeper needs right-click -> Open.
 - [ ] Steam with two real accounts (automated test covers lobby creation/listing and the Steam peer only).
-- [ ] Physical gamepad: tested with simulated joypad events only.
+- [x] Physical gamepad: Xbox Series controller over Bluetooth (Linux) works in game (confirmed by the user).
+      `tools/pad_test.gd` walks through every control; `data/joy_mappings.txt` can override SDL mappings
+      for pads with an unusual layout (the entry for this pad is commented out: not needed).
 - [ ] Final art (Pixellab) and music (Suno): replace placeholders via `data/assets.json`.
 - [ ] Balance pass: numbers in `data/balance.json` are first guesses.
 - [ ] Confirm the wipe rules (currently: lose equipped items + backpack, keep level/talents).

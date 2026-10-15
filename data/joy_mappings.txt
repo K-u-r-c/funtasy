@@ -1,0 +1,7 @@
+# Extra SDL gamepad mappings loaded at startup by InputSettings (one per line, '#' = comment).
+# Overrides the built-in database for controllers that report a different layout.
+# Format: https://github.com/mdqinc/SDL_GameControllerDB
+#
+# Xbox Series X|S controller over Bluetooth, firmware 5.x, Linux hid-microsoft driver:
+# buttons 304-318 + KEY_RECORD, sticks X/Y and Z/RZ, triggers GAS (right) / BRAKE (left).
+# 050018dc5e040000130b000021050000,Xbox Series X Controller,a:b0,b:b1,x:b3,y:b4,back:b10,start:b11,guide:b12,leftshoulder:b6,rightshoulder:b7,leftstick:b13,rightstick:b14,misc1:b15,dpup:h0.1,dpdown:h0.4,dpleft:h0.8,dpright:h0.2,leftx:a0,lefty:a1,rightx:a2,righty:a3,lefttrigger:a5,righttrigger:a4,platform:Linux,

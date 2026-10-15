@@ -56,6 +56,7 @@ func _ready() -> void:
 	hold_threshold = float(d.get("hold_threshold", hold_threshold))
 	kbm_slots = int(d.get("kbm_slots", kbm_slots))
 	pad_slots = int(d.get("pad_slots", pad_slots))
+	_load_joy_mappings()
 	_register_ui_extras()
 	bindings = default_bindings()
 	_load_overrides()
@@ -269,6 +270,19 @@ func _apply_all() -> void:
 				if ev:
 					InputMap.action_add_event(action, ev)
 	EventBus.bindings_changed.emit()
+
+
+## Extra SDL controller mappings from data/joy_mappings.txt (fixes pads whose layout differs from
+## the engine's built-in database).
+func _load_joy_mappings() -> void:
+	var path := "res://data/joy_mappings.txt"
+	if not FileAccess.file_exists(path):
+		return
+	for line in FileAccess.get_file_as_string(path).split("\n"):
+		line = line.strip_edges()
+		if line.is_empty() or line.begins_with("#"):
+			continue
+		Input.add_joy_mapping(line, true)
 
 
 func _register_ui_extras() -> void:
