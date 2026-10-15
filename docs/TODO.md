@@ -40,7 +40,7 @@ manual run noted here.
 - [ ] Windows and macOS builds export fine but could not be *run* here (Linux dev machine, no Wine). Smoke-test
       them (`funtasy.exe --headless -- --auto=solo --scenario=classes --quit=60` works on any platform).
 - [ ] macOS export is unsigned (codesign/notarization off): Gatekeeper needs right-click -> Open.
-- [ ] Steam with two real accounts (automated test covers lobby creation/listing and the Steam peer only).
+- [x] Steam with two real accounts: a client joins through the test lobby (confirmed by the user).
 - [x] Physical gamepad: Xbox Series controller over Bluetooth (Linux) works in game (confirmed by the user).
       `tools/pad_test.gd` walks through every control; `data/joy_mappings.txt` can override SDL mappings
       for pads with an unusual layout (the entry for this pad is commented out: not needed).
