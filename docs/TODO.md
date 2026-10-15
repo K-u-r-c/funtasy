@@ -26,6 +26,17 @@ manual run noted here.
       that can be taken (120 s) or broken, spells that light up the dark (`darkness` LAN test)
 - [x] Audio manager with crossfaded floor/boss music and pooled SFX (placeholder files)
 - [x] HUD, minimap, map, inventory, talents, pause, options; gamepad navigation (verified in-game overlays)
+- [x] "Obsidian Glass" UI overhaul: pixel font + gilded frames (PixelLab), HP/resource/shield bars with damage
+      trail, radial cooldown shader, rarity pulse shader, live portraits, paper-doll inventory with drag and drop,
+      talent tree with links, live gamepad/keyboard glyph prompts, animated focus bracket, spring pop-ins, UI sounds
+- [x] Unified game menu (Character / Inventory / Talents / Map tabs, shared title header) and the Character
+      panel (hero, stats, skills with descriptions) on C / R-stick click (verified: `ui-layout` test)
+- [x] Final pixel art from PixelLab replaces every sprite placeholder: crypt tiles, walls, lava, props, doors,
+      portal, item and skill icons, projectiles, slash/explosion/AoE effects, 3 monsters + boss, the player body
+      with 9 animations and 20 baked equipment layers (sound is still placeholder)
+- [x] Any aspect ratio from 1:1 to 32:9: stretch aspect `expand`, edge-pinned HUD in a safe margin, centered
+      capped modals, camera view clamp (verified: `ui-layout` test at 720x720 .. 3840x1080; screenshots at
+      720x720, 960x540, 1920x1080, 2560x1080 and a 32:9 window)
 - [x] Export presets (Windows/Linux/macOS): all three export with the official 4.7.2 templates; the Linux
       release build runs headless (class test) and windowed with no errors
 - [x] Steam: lobby creation, tagged lobby listing and SteamMultiplayerPeer hosting (automated, `run_tests.sh steam`)

@@ -86,6 +86,16 @@ func _refresh() -> void:
 			else:
 				s.modulate = Color(0.6, 0.6, 0.6, 0.5)
 			_sprites.add_child(s)
+	elif not is_open:
+		# One door spanning the whole opening (art for 2 and 3 cells; other widths are scaled).
+		var wide: bool = cells.size() >= 3 and GameData.assets.props.has("door_closed_wide")
+		var dt := GameData.texture("props.door_closed_wide") if wide else tex
+		var s3 := Sprite2D.new()
+		s3.light_mask = LightLayers.SELF_LIT
+		s3.texture = dt
+		s3.offset = Vector2(0, -dt.get_height() / 2.0)
+		s3.scale.x = world_rect.size.x / float(dt.get_width())
+		_sprites.add_child(s3)
 	else:
 		for i in cells.size():
 			var s2 := Sprite2D.new()

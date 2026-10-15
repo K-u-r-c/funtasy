@@ -1,0 +1,553 @@
+{
+	"_comment": "Config for tools/bake_gear.gd: equipment layers baked from the PixelLab base body (assets/sprites/pixellab/characters/body_human). Bands are fractions of the standing body height from the top (0) to the feet (1). Ramps go dark to light; light, low-saturation ramps leave room for the per-item tint.",
+	"body_dir": "res://assets/sprites/pixellab/characters/body_human",
+	"out_root": "res://assets/sprites/pixellab/characters",
+	"cell": 92,
+	"body_height": 65,
+	"anims": [
+		"idle",
+		"walk",
+		"attack",
+		"cast",
+		"dash",
+		"hit",
+		"downed",
+		"death",
+		"ghost"
+	],
+	"skip": [
+		"downed",
+		"death",
+		"ghost"
+	],
+	"palette": {
+		"skin": [
+			"#f5bfac",
+			"#ecb5a3",
+			"#db9d8a",
+			"#dfa897",
+			"#d09381",
+			"#c58a76",
+			"#ba7f6c",
+			"#a36f5d"
+		],
+		"shirt": [
+			"#e9e8e6",
+			"#aeacac",
+			"#cec9cd",
+			"#707b85"
+		],
+		"trousers": [
+			"#9d8070",
+			"#9e8677",
+			"#a78777",
+			"#8b695d",
+			"#755145",
+			"#60443c"
+		],
+		"hair": [
+			"#704639",
+			"#694136",
+			"#462a21",
+			"#3d2620",
+			"#50332a",
+			"#5b382e"
+		],
+		"outline": [
+			"#0b0909",
+			"#0f100f",
+			"#17100e",
+			"#110b08",
+			"#080503",
+			"#010100",
+			"#1f1a1a",
+			"#040408",
+			"#281c16"
+		],
+		"eyes": [
+			"#224b72",
+			"#386aa6"
+		]
+	},
+	"hand_band": [
+		0.4,
+		0.66
+	],
+	"hand_vectors": {
+		"main": [
+			[
+				1,
+				0
+			],
+			[
+				0.2,
+				1
+			],
+			[
+				-1,
+				0.2
+			],
+			[
+				-1,
+				0.2
+			],
+			[
+				-1,
+				0
+			],
+			[
+				-0.4,
+				-1
+			],
+			[
+				1,
+				-0.2
+			],
+			[
+				1,
+				-0.2
+			]
+		],
+		"off": [
+			[
+				0.6,
+				0.4
+			],
+			[
+				1,
+				0.2
+			],
+			[
+				1,
+				0.2
+			],
+			[
+				0.2,
+				1
+			],
+			[
+				-0.6,
+				0.4
+			],
+			[
+				-1,
+				0
+			],
+			[
+				-1,
+				-0.2
+			],
+			[
+				0.4,
+				-1
+			]
+		]
+	},
+	"held_angles": [
+		0,
+		10,
+		-50,
+		-35,
+		0,
+		-10,
+		20,
+		10
+	],
+	"held_mirror": [
+		false,
+		false,
+		true,
+		true,
+		true,
+		true,
+		false,
+		false
+	],
+	"layers": {
+		"chest_armor": {
+			"type": "recolor",
+			"ramp": [
+				"#14171d",
+				"#2b313c",
+				"#46505f",
+				"#67748a",
+				"#8e9bb0",
+				"#c4cedb"
+			],
+			"gain": 0.95,
+			"bias": -0.18,
+			"rules": [
+				{
+					"class": "shirt",
+					"band": [
+						0.15,
+						0.62
+					]
+				},
+				{
+					"class": "skin",
+					"band": [
+						0.28,
+						0.48
+					],
+					"same_row": "shirt",
+					"not_near_face": 6
+				}
+			]
+		},
+		"chest_robe": {
+			"type": "recolor",
+			"ramp": [
+				"#2a2530",
+				"#4a4352",
+				"#706779",
+				"#9a91a3",
+				"#c8c0cf",
+				"#ece6f0"
+			],
+			"gain": 1.25,
+			"rules": [
+				{
+					"class": "shirt",
+					"band": [
+						0.15,
+						0.7
+					]
+				},
+				{
+					"class": "skin",
+					"band": [
+						0.28,
+						0.46
+					],
+					"same_row": "shirt",
+					"not_near_face": 6
+				},
+				{
+					"class": "trousers",
+					"band": [
+						0.45,
+						0.97
+					]
+				},
+				{
+					"class": "skin",
+					"band": [
+						0.66,
+						0.95
+					]
+				}
+			]
+		},
+		"legs_armor": {
+			"type": "recolor",
+			"ramp": [
+				"#14171d",
+				"#2b313c",
+				"#46505f",
+				"#67748a",
+				"#8e9bb0",
+				"#c4cedb"
+			],
+			"gain": 1.3,
+			"rules": [
+				{
+					"class": "trousers",
+					"band": [
+						0.45,
+						0.9
+					]
+				}
+			]
+		},
+		"boots_armor": {
+			"type": "recolor",
+			"ramp": [
+				"#1d140e",
+				"#3a2617",
+				"#5c3d24",
+				"#7e5634",
+				"#a07147"
+			],
+			"gain": 1.0,
+			"rules": [
+				{
+					"class": "skin",
+					"band": [
+						0.84,
+						1.01
+					]
+				},
+				{
+					"class": "trousers",
+					"band": [
+						0.86,
+						1.01
+					]
+				}
+			]
+		},
+		"gloves_armor": {
+			"type": "recolor",
+			"ramp": [
+				"#1d140e",
+				"#3a2617",
+				"#5c3d24",
+				"#7e5634",
+				"#a07147"
+			],
+			"gain": 1.0,
+			"rules": [
+				{
+					"class": "skin",
+					"band": [
+						0.46,
+						0.66
+					]
+				}
+			]
+		},
+		"weapon_sword": {
+			"type": "held",
+			"picture": "res://assets/sprites/pixellab/items/sword.png",
+			"grip": [
+				0.22,
+				0.78
+			],
+			"scale": 0.8,
+			"hand": "main",
+			"swing": [
+				-60,
+				80
+			]
+		},
+		"weapon_greatsword": {
+			"type": "held",
+			"picture": "res://assets/sprites/pixellab/items/greatsword.png",
+			"grip": [
+				0.22,
+				0.78
+			],
+			"scale": 1.0,
+			"hand": "main",
+			"swing": [
+				-60,
+				80
+			]
+		},
+		"weapon_axe": {
+			"type": "held",
+			"picture": "res://assets/sprites/pixellab/items/axe.png",
+			"grip": [
+				0.22,
+				0.78
+			],
+			"scale": 0.8,
+			"hand": "main",
+			"swing": [
+				-60,
+				80
+			]
+		},
+		"weapon_greataxe": {
+			"type": "held",
+			"picture": "res://assets/sprites/pixellab/items/greataxe.png",
+			"grip": [
+				0.22,
+				0.78
+			],
+			"scale": 1.0,
+			"hand": "main",
+			"swing": [
+				-60,
+				80
+			]
+		},
+		"weapon_mace": {
+			"type": "held",
+			"picture": "res://assets/sprites/pixellab/items/mace.png",
+			"grip": [
+				0.22,
+				0.78
+			],
+			"scale": 0.8,
+			"hand": "main",
+			"swing": [
+				-60,
+				80
+			]
+		},
+		"weapon_warhammer": {
+			"type": "held",
+			"picture": "res://assets/sprites/pixellab/items/warhammer.png",
+			"grip": [
+				0.22,
+				0.78
+			],
+			"scale": 1.0,
+			"hand": "main",
+			"swing": [
+				-60,
+				80
+			]
+		},
+		"weapon_bow": {
+			"type": "held",
+			"picture": "res://assets/sprites/pixellab/items/bow.png",
+			"grip": [
+				0.5,
+				0.5
+			],
+			"scale": 0.85,
+			"hand": "main",
+			"swing": [
+				0,
+				0
+			]
+		},
+		"weapon_crossbow": {
+			"type": "held",
+			"picture": "res://assets/sprites/pixellab/items/crossbow.png",
+			"grip": [
+				0.5,
+				0.6
+			],
+			"scale": 0.8,
+			"hand": "main",
+			"swing": [
+				0,
+				0
+			]
+		},
+		"weapon_sling": {
+			"type": "held",
+			"picture": "res://assets/sprites/pixellab/items/sling.png",
+			"grip": [
+				0.4,
+				0.3
+			],
+			"scale": 0.7,
+			"hand": "main",
+			"swing": [
+				-40,
+				60
+			]
+		},
+		"weapon_wand": {
+			"type": "held",
+			"picture": "res://assets/sprites/pixellab/items/wand.png",
+			"grip": [
+				0.22,
+				0.78
+			],
+			"scale": 0.7,
+			"hand": "main",
+			"swing": [
+				-30,
+				40
+			]
+		},
+		"weapon_staff": {
+			"type": "held",
+			"picture": "res://assets/sprites/pixellab/items/staff.png",
+			"grip": [
+				0.4,
+				0.6
+			],
+			"scale": 1.0,
+			"hand": "main",
+			"swing": [
+				-20,
+				30
+			]
+		},
+		"offhand_shield": {
+			"type": "held",
+			"picture": "res://assets/sprites/pixellab/items/shield.png",
+			"grip": [
+				0.5,
+				0.5
+			],
+			"scale": 0.6,
+			"hand": "off",
+			"swing": [
+				0,
+				0
+			],
+			"angles": [
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0
+			]
+		},
+		"offhand_trinket": {
+			"type": "held",
+			"picture": "res://assets/sprites/pixellab/items/trinket.png",
+			"grip": [
+				0.5,
+				0.5
+			],
+			"scale": 0.45,
+			"hand": "off",
+			"swing": [
+				0,
+				0
+			],
+			"angles": [
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0
+			]
+		},
+		"head_helm": {
+			"type": "attach",
+			"sprites": [
+				"res://assets/sprites/pixellab/gear_src/helm/0.png",
+				"res://assets/sprites/pixellab/gear_src/helm/1.png",
+				"res://assets/sprites/pixellab/gear_src/helm/2.png",
+				"res://assets/sprites/pixellab/gear_src/helm/3.png",
+				"res://assets/sprites/pixellab/gear_src/helm/4.png",
+				"res://assets/sprites/pixellab/gear_src/helm/5.png",
+				"res://assets/sprites/pixellab/gear_src/helm/6.png",
+				"res://assets/sprites/pixellab/gear_src/helm/7.png"
+			],
+			"offset": [
+				0,
+				-1
+			],
+			"head_band": 0.2
+		},
+		"head_hood": {
+			"type": "attach",
+			"sprites": [
+				"res://assets/sprites/pixellab/gear_src/hood/0.png",
+				"res://assets/sprites/pixellab/gear_src/hood/1.png",
+				"res://assets/sprites/pixellab/gear_src/hood/2.png",
+				"res://assets/sprites/pixellab/gear_src/hood/3.png",
+				"res://assets/sprites/pixellab/gear_src/hood/4.png",
+				"res://assets/sprites/pixellab/gear_src/hood/5.png",
+				"res://assets/sprites/pixellab/gear_src/hood/6.png",
+				"res://assets/sprites/pixellab/gear_src/hood/7.png"
+			],
+			"offset": [
+				0,
+				-1
+			],
+			"head_band": 0.2,
+			"gain": 2.6
+		}
+	},
+	"bare": [
+		"ghost"
+	]
+}

@@ -1,1 +1,1 @@
-{"id": "holy_wand", "name": "Holy Wand", "kind": "weapon", "slot": "weapon", "hands": 1, "classes": ["priest"], "icon": "items.wand", "appearance": "weapon_wand", "tint": "#f5e6a0", "dps": [4, 6], "dps_per_level": 0.7}
+{"id": "holy_wand", "name": "Holy Wand", "kind": "weapon", "slot": "weapon", "hands": 1, "classes": ["priest"], "icon": "items.holy_wand", "appearance": "weapon_wand", "tint": "#f5e6a0", "dps": [4, 6], "dps_per_level": 0.7}
