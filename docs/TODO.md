@@ -1,7 +1,43 @@
 # TODO
 
-Status of the MVP (see `CLAUDE.md` for scope). Verified = covered by `tools/run_tests.sh` or a
-manual run noted here.
+Status of the game (see `CLAUDE.md` for scope). Verified = covered by `tools/run_tests.sh` or a
+manual run noted here. The MVP is done (below); the full GDD follows the roadmap of
+`.design/IMPLEMENTATION_PLAN.md` section 7. Every phase ends with `./run_tests.sh all` green and a
+screenshot review at 1920x1080 and 3440x1440.
+
+## Full GDD roadmap
+
+- [ ] **0. Scope and decisions**: CLAUDE.md scope, DECISIONS D1-D38, this roadmap, data schemas
+      (damage types, statuses, behaviours, bosses v2, floor types v2, talents v2, legendaries, lore,
+      merchants, gold), `GameData` validation
+- [ ] **1. Combat foundations**: damage types / resists, status expansion (CC flags, stacking debuffs,
+      marks, reactive buffs, procs, transforms, diminishing returns), new effect primitives, ally
+      targeting, channel / charge input, dynamic obstacles, corpses, creature types; generic test
+      harness (every skill of a class, every monster)
+- [ ] **2. Progression and economy**: stat points, talent tree v2 + Skill Book loadout (save
+      migration), gold, Gold Key, elites + altars, merchant chamber, Archibald, Malphas (tithe,
+      contracts, pact potions), run mods, lore import / book items / reader / codex
+- [ ] **3. Classes**: 120 skills, 4 talent trees with keystones, icons, VFX, SFX keys, tooltips
+- [ ] **4. Crypt complete**: 4 new + 3 extended monsters, Morvath + Vespera, hazards (pressure
+      plates, pendulums), props, mechanics (unlit regen, urn miasma), lore drops.
+      **Visual checkpoint with the user before art for other biomes.**
+- [ ] **5. Sewers** (tileset, props, hazards, mechanics, 7 monsters, Murk Amalgam + Krazik, lore, music keys)
+- [ ] **6. Foundry** (... Ignis + Vulkania ...)
+- [ ] **7. Archives** (... Malazar + Memory Devourer ...)
+- [ ] **8. Kurgan** (... Cernunnos + Isolde ...)
+- [ ] **9. Legendaries**: 108 items + affix hooks + icons + drop rules + tooltips
+- [ ] **10. Integration**: balance pass, audio keys + Suno prompt list, README / DECISIONS / TODO,
+      full test suite, LAN + Steam smoke test, final screenshot tours
+
+## PixelLab ledger
+
+Start of the GDD goal (2026-10-15): **used 1081 / 2000, remaining 919**, resets 2026-11-14.
+Goal cap: 2500 generations, and never more than the remaining allowance. Spend = difference of the
+`used` counter before and after a batch.
+
+| Date | Batch | Used before | Used after | Spend | Total spend |
+| --- | --- | --- | --- | --- | --- |
+| 2026-10-15 | (start) | 1081 | 1081 | 0 | 0 |
 
 ## Done (MVP)
 
