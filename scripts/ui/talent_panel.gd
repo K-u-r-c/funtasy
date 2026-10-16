@@ -193,14 +193,14 @@ func _refresh() -> void:
 		var node: Dictionary = _buttons[id][1]
 		b.rank = player.node_rank(node)
 		b.unlocked = _unlocked(node)
-		b.can_learn = b.unlocked and not node.get("starter", false) and b.rank < int(node.get("max_rank", 1)) and player.talent_points > 0
+		b.can_learn = b.unlocked and not player.is_free_node(node) and b.rank < int(node.get("max_rank", 1)) and player.talent_points > 0
 		b.queue_redraw()
 	if _buttons.has(_focused):
 		_show(_buttons[_focused][1])
 
 
 func _unlocked(node: Dictionary) -> bool:
-	if node.get("starter", false):
+	if player.is_free_node(node):
 		return true
 	if player.branch_points(str(node.get("branch", ""))) < int(node.get("tier", 0)) * int(_tree.get("tier_points", 2)):
 		return false
@@ -217,7 +217,7 @@ func _show(node: Dictionary) -> void:
 	var kind := str(node.get("type", "passive"))
 	_card.add_child(UITheme.label(_node_name(node), UITheme.GOLD, UITheme.FONT_BODY))
 	var tag: String = {"skill": "Skill", "passive": "Passive talent", "keystone": "Keystone"}.get(kind, kind.capitalize())
-	if node.get("starter", false):
+	if player.is_free_node(node):
 		tag += " - known from the start"
 	else:
 		tag += " - rank %d / %d" % [rank, int(node.get("max_rank", 1))]
@@ -232,7 +232,7 @@ func _show(node: Dictionary) -> void:
 	d.custom_minimum_size = Vector2(210, 0)
 	_card.add_child(d)
 	var need := int(node.get("tier", 0)) * int(_tree.get("tier_points", 2))
-	if need > 0 and not node.get("starter", false):
+	if need > 0 and not player.is_free_node(node):
 		var ok := _unlocked(node)
 		var rl := UITheme.label("Requires %d points in this branch" % need, UITheme.GOOD if ok else UITheme.DANGER, UITheme.FONT_SMALL)
 		rl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

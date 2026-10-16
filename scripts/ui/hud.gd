@@ -343,10 +343,10 @@ func _rebuild_skill_icons() -> void:
 		return
 	for i in _slots.size():
 		var s: SkillSlot = _slots[i]
-		var sk := GameData.skill(player.skills[i])
-		s.icon = GameData.texture("icons." + str(sk.get("icon", "attack")))
+		var sk: Dictionary = GameData.skills.get(str(player.skills[i]), {})  # {} = empty slot
+		s.icon = GameData.texture("icons." + str(sk.icon)) if sk.has("icon") else null
 		s.action = Player.SLOT_ACTIONS[i]
-		s.tooltip = "%s\n%s" % [sk.name, sk.get("description", "")]
+		s.tooltip = "%s\n%s" % [sk.name, sk.get("description", "")] if not sk.is_empty() else "Empty slot - learn skills in the Talents tab"
 		s.cost = float(sk.get("cost", 0))
 		s.queue_redraw()
 	for k in _quick:
@@ -401,7 +401,8 @@ func _process(_delta: float) -> void:
 			var cd: Array = player.local_cd.get(i, [0.0, 1.0])
 			s.set_cooldown(clampf(float(cd[0]) / maxf(float(cd[1]), 0.01), 0.0, 1.0) if player.local_cd.has(i) else 0.0,
 					float(cd[0]) if player.local_cd.has(i) else 0.0)
-			var cost := player.stats.cost_for(GameData.skill(player.skills[i]))
+			var slot_sk: Dictionary = GameData.skills.get(str(player.skills[i]), {})
+			var cost := player.stats.cost_for(slot_sk) if not slot_sk.is_empty() else 0.0
 			s.unaffordable = cost > 0.0 and player.resource.value + 0.01 < cost
 		for k in _quick:
 			_quick[k].set_cooldown(clampf(player.item_cd_left / maxf(player.item_cd_total, 0.01), 0.0, 1.0), player.item_cd_left)

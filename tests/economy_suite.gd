@@ -62,10 +62,10 @@ func run_mods() -> void:
 
 
 func talents_and_loadout() -> void:
-	# Talent tree v2: starters are free, tiers open per branch.
+	# Talent tree v2: the two starters are free, tiers open per branch.
 	var tree := p.talent_tree()
 	da.check(tree.get("branches", []).size() == 3, "talent tree has 3 branches")
-	da.check(p.unlocked_skills().size() >= 6, "starter skills are unlocked (%d)" % p.unlocked_skills().size())
+	da.check(p.unlocked_skills().size() == 2, "the primary and the basic skill are unlocked (%d)" % p.unlocked_skills().size())
 	p.add_xp(Player.xp_to_next(p.level))
 	p.add_xp(Player.xp_to_next(p.level))
 	await da._wait(0.3)

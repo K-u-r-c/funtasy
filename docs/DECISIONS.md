@@ -307,3 +307,14 @@ spent **Crypt first** (phase 4, then the visual checkpoint), and every asset the
 stays a placeholder (recolours / scaled reuse of existing monsters, drawn shapes, workbench art) with its
 key in `data/assets.json`, so the user can swap files later without code changes. The ledger is in
 `docs/TODO.md`.
+
+## Playtest fixes (GitHub issues #1-#14)
+
+### #1 Simple start
+
+| Topic | Decision |
+| --- | --- |
+| Starting kit | A new hero knows only the primary attack and ONE basic skill (class data `skills`): Cleave, Power Shot, Fireball, Flash Heal. Slots 2-5 start empty (`""`); a loadout may hold empty slots, never in slot 0. |
+| Other tier-0 skills | The old free starters (Shield Slam, Taunting Shout, Deadly Charge, Battle Cry, Multishot, Viper Arrow, both traps, Frost Nova, Chain Lightning, Blink, Meteor Strike, Power Word: Shield, Consecration, Rebuke, Prayer of Healing) are ordinary tier-0 skill nodes: one talent point each, learned in the tree and slotted in the Skill Book. Talent data marks them `legacy_starter`. |
+| Old saves | A character saved without `"kit"` is a hero from before the simple start (`Player.legacy_kit`, replicated): its `legacy_starter` nodes stay free and unlocked, so its saved loadout is kept. New heroes are saved with `"kit": 2` (`GameState.KIT_VERSION`). |
+| Easy first floors | `balance.json` `scaling.early_depths` scales monster and boss HP / damage on depths 1-3 (0.65 / 0.5, 0.75 / 0.4, 0.9 / 0.7). The balance probe's fresh-hero pass (`BalanceSuite.run_fresh`) checks a brand-new level 1 hero, primary attack only, against every monster and boss of the floor 1-2 pools: each normal monster dies within `probe.fresh_ttk_max` (8 s) and needs at least `probe.fresh_ttd_min` (16 s) to kill the hero alone; each boss dies within 150 s and needs at least 6 s. |

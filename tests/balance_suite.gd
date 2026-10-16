@@ -66,6 +66,48 @@ func run(depths: Array = [1, 2, 3, 4, 5, 8, 12, 16, 20]) -> void:
 	da.check(bad.is_empty(), "%s: every monster and boss inside the pacing bands (outside: %s)" % [p.class_id, bad])
 
 
+## Simple start (#1): a brand-new level 1 hero (the new-character kit and gear, no points)
+## against every monster of the floor pools of the first depths, primary attack only. Bands in
+## balance.json "probe" (fresh_*): each monster dies quickly and needs long to kill the hero.
+func run_fresh(depths: Array = [1, 2]) -> void:
+	g = da._game()
+	p = da._local()
+	await da._wait(1.0)
+	for e in g.enemies_root.get_children():
+		e.queue_free()
+	await da._wait(0.3)
+	var probe: Dictionary = GameData.bal("probe", {})
+	var spot: Vector2 = g.nearest_floor(g.layout.start + Vector2(70, 0))
+	var fresh := GameState.new_character("Fresh", p.class_id)
+	var keep_eq: Dictionary = p.inv.equipment
+	var keep_depth: int = g.depth
+	p.level = 1
+	p.allocated = {}
+	p.inv.equipment = fresh.equipment.duplicate(true)
+	p.recompute_stats()
+	var bad: Array = []
+	print("[balance] fresh class depth biome monster | level hp | hero_hit ttk_s | mon_hit ttd_s")
+	for d in depths:
+		g.depth = int(d)
+		var biome: String = g.floor_type_for(int(d))
+		for entry in GameData.floor_types[biome].monsters:
+			if int(entry.get("min_depth", 1)) > int(d):
+				continue
+			var row := await _measure(str(entry.id), spot, false)
+			if row.is_empty():
+				continue
+			if row.ttk > float(probe.get("fresh_ttk_max", 6.0)) or row.ttd < float(probe.get("fresh_ttd_min", 10.0)):
+				bad.append("%s@%d ttk %.1f ttd %.1f" % [entry.id, d, row.ttk, row.ttd])
+		for bid in GameData.floor_types[biome].get("bosses", []):
+			var brow := await _measure(str(bid), spot, true)
+			if not brow.is_empty() and (brow.ttk > float(probe.get("fresh_boss_ttk_max", 150.0)) or brow.ttd < float(probe.get("fresh_boss_ttd_min", 6.0))):
+				bad.append("%s@%d ttk %.1f ttd %.1f" % [bid, d, brow.ttk, brow.ttd])
+	da.check(bad.is_empty(), "%s: a new level 1 hero beats every floor 1-2 monster and boss comfortably (outside: %s)" % [p.class_id, bad])
+	g.depth = keep_depth
+	p.inv.equipment = keep_eq
+	p.recompute_stats()
+
+
 ## Rare (tier 3) gear of item level = depth and level = depth with all points in the main stat.
 func _gear_up(level: int) -> void:
 	p.level = level

@@ -226,6 +226,7 @@ func _run() -> void:
 			"legendaries":
 				await LegendarySuite.new(self).run_legendaries(class_id)
 			"balance":
+				await BalanceSuite.new(self).run_fresh()
 				await BalanceSuite.new(self).run()
 			"biomes":
 				await BiomeSuite.new(self).run(biome)
@@ -498,7 +499,8 @@ func _full_scenario() -> void:
 	for k in used:
 		if str(k).begins_with(client_p.name + ":"):
 			client_uses += 1
-	check(client_uses >= 4, "client used %d different skills through host validation" % client_uses)
+	var client_bar := client_p.skills.filter(func(x): return not str(x).is_empty()).size()
+	check(client_uses >= client_bar, "client used %d different skills through host validation (%d on the bar)" % [client_uses, client_bar])
 	check(client_p.cooldowns.size() > 0 or client_uses > 0, "host tracks client cooldowns")
 	check(not is_instance_valid(target) or target.health.hp < target.health.max_hp, "client damaged the monster (host authority)")
 	if client_p.xp + client_p.level * 100000 <= xp_before and not (is_instance_valid(target) and target.is_alive()):
@@ -588,6 +590,10 @@ func _full_scenario() -> void:
 			break
 	host_p.host_teleport(g.nearest_floor(door.interact_pos() + Vector2(0, 40)))
 	await _wait(0.4)
+	# A monster that wandered into the doorway meanwhile would keep it open: move it off.
+	for e in g.enemies_root.get_children():
+		if door.world_rect.grow(24).has_point(e.global_position):
+			e.host_teleport(g.layout.start)
 	var was_open: bool = door.is_open
 	g.host_interact(host_p, door)
 	await _wait(0.4)
@@ -1323,12 +1329,13 @@ func _wipe_scenario() -> void:
 	await _wait(0.5)
 
 
-## Solo: every class uses all 5 skills (switches class by restarting the run is out of scope,
-## so this runs with the class given by --class).
+## Solo: a new hero starts with the primary attack and one basic skill, and uses every skill on
+## its bar (switches class by restarting the run is out of scope, so this runs with --class).
 func _classes_scenario() -> void:
 	var g := _game()
 	var p := _local()
 	await _wait(1.0)
+	_starting_kit_checks(p)
 	# Only skill use is checked here: a lucky monster pack must not wipe the solo hero.
 	p.iframe_left = 9999.0
 	var target := _nearest_enemy(p.global_position)
@@ -1343,6 +1350,8 @@ func _classes_scenario() -> void:
 	var used := Combat.instance.get_meta("uses", {}) as Dictionary
 	for i in 6:
 		var sid: String = p.skills[i]
+		if sid.is_empty():
+			continue
 		check(used.has("%s:%s" % [p.name, sid]), "%s used %s" % [p.class_id, sid])
 	log_line("resource %s before=%.1f after=%.1f max=%.1f" % [p.resource.kind, res_before, p.resource.value, p.resource.max_value])
 	if p.resource.kind == "fury":
@@ -1350,6 +1359,37 @@ func _classes_scenario() -> void:
 	else:
 		check(p.resource.max_value > 0.0, "mana pool exists")
 	await _wait(0.5)
+
+
+## Simple start (#1): primary + the one basic skill, four empty slots, only those two unlocked;
+## a hero saved before the simple start keeps the old starters and its full bar.
+func _starting_kit_checks(p: Player) -> void:
+	var cdef: Dictionary = GameData.classes[p.class_id]
+	var on_bar := p.skills.filter(func(x): return not str(x).is_empty())
+	check(p.skills.size() == 6 and str(p.skills[0]) == str(cdef.primary_attack) and on_bar.size() == 2
+			and str(p.skills[1]) == str(cdef.skills[0]), "new %s starts with the primary + one skill: %s" % [p.class_id, p.skills])
+	check(p.unlocked_skills().size() == 2, "only the primary and the basic skill are known (%s)" % [p.unlocked_skills()])
+	check(int(p.to_character().get("kit", 0)) == GameState.KIT_VERSION, "a new hero is saved with the simple-start kit")
+	var old_lo: Array = [cdef.primary_attack]
+	for nd in p.talent_tree().get("nodes", []):
+		if nd.get("legacy_starter", false) or (nd.get("starter", false) and str(nd.skill) != str(cdef.primary_attack)):
+			old_lo.append(str(nd.skill))
+	old_lo = old_lo.slice(0, 6)
+	var saved := p.to_character()
+	saved.erase("kit")
+	saved.loadout = old_lo
+	var had_ch := GameState.characters.has(p.peer_id)
+	var keep_ch: Dictionary = GameState.characters.get(p.peer_id, {})
+	GameState.characters[p.peer_id] = saved
+	p._host_init()
+	check(p.legacy_kit and p.skills == old_lo and p.talent_points == 0, "an old save keeps its full loadout for free (%s)" % [p.skills])
+	check(not p.to_character().has("kit"), "an old save stays an old save")
+	if had_ch:
+		GameState.characters[p.peer_id] = keep_ch
+	else:
+		GameState.characters.erase(p.peer_id)
+	p._host_init()
+	check(not p.legacy_kit and p.skills == p.default_loadout(), "back to the new hero")
 
 
 func _gamepad_scenario() -> void:
@@ -1638,6 +1678,8 @@ func _skill_tooltip_checks(hud: Node, win: Window) -> void:
 		check(not tip.visible, "no skill tooltip before hovering at %dx%d" % [s.x, s.y])
 		var all_in := true
 		for row in cp._skill_rows:
+			if str(p0.skills[row.slot]).is_empty():
+				continue  # an empty slot has no tooltip
 			await _mouse_move(row)
 			await _wait(0.1)
 			var vp := get_viewport().get_visible_rect()
@@ -1661,7 +1703,7 @@ func _skill_tooltip_checks(hud: Node, win: Window) -> void:
 	# Values: the damage row is what Combat computes for the host, and follows stats and talents.
 	var slot := -1
 	for i in p0.skills.size():
-		if _first_damage(GameData.skill(p0.skills[i])) != {}:
+		if not str(p0.skills[i]).is_empty() and _first_damage(GameData.skill(p0.skills[i])) != {}:
 			slot = i
 			if i > 0:
 				break

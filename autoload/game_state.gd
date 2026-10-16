@@ -33,6 +33,11 @@ func _ready() -> void:
 	NetworkManager.session_closed.connect(_on_session_closed)
 
 
+## Starting kit of a new hero: 2 = the simple start (primary attack + one basic skill). Saves
+## without "kit" are older heroes, whose old tier-0 starter skills stay free (Player.legacy_kit).
+const KIT_VERSION := 2
+
+
 static func new_character(char_name: String, class_id: String, gender: String = "") -> Dictionary:
 	return {
 		"name": char_name, "class_id": class_id, "gender": CharacterSprite.valid_gender(gender), "level": 1, "xp": 0,
@@ -40,6 +45,7 @@ static func new_character(char_name: String, class_id: String, gender: String = 
 		"backpack_capacity": int(GameData.bal("inventory.start_capacity", 12)),
 		"quick": {"q": "", "e": ""},
 		"allocated": {}, "run_mods": [], "gold": 0, "bonus_stat_points": 0, "bonus_talent_points": 0, "loadout": [],
+		"kit": KIT_VERSION,
 	}
 
 

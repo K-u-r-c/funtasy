@@ -10,6 +10,6 @@
 	"base_stats": {"strength": 5, "stamina": 9, "agility": 13, "intellect": 6},
 	"per_level": {"strength": 0.2, "stamina": 0.7, "agility": 1.1, "intellect": 0.3},
 	"primary_attack": "ranger_shot",
-	"skills": ["ranger_power_shot", "ranger_multishot", "ranger_snare_trap", "ranger_poison_arrow", "ranger_explosive_trap"],
+	"skills": ["ranger_power_shot"],
 	"preview_gear": ["hood", "plate_chest", "greaves", "boots", "gloves", "bow"]
 }

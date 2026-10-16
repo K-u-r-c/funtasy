@@ -225,6 +225,11 @@ func spawn_monster(def_id: String, pos: Vector2, boss: bool, extra: Dictionary =
 	hp_mult *= 1.0 + float(GameData.bal("scaling.boss_hp_per_extra_player" if boss else "scaling.hp_per_extra_player")) * (n - 1)
 	var dmg_mult := (1.0 + float(GameData.bal("scaling.damage_per_level")) * (lvl - 1)) * diff
 	dmg_mult *= 1.0 + float(GameData.bal("scaling.damage_per_extra_player")) * (n - 1)
+	# The first floors are easier (a simple start, #1): one {hp, damage} factor per depth.
+	var early: Array = GameData.bal("scaling.early_depths", [])
+	if depth >= 1 and depth <= early.size():
+		hp_mult *= float(early[depth - 1].get("hp", 1.0))
+		dmg_mult *= float(early[depth - 1].get("damage", 1.0))
 	if not extra.get("elite", []).is_empty():
 		hp_mult *= float(GameData.bal("elite.hp_mult"))
 		dmg_mult *= float(GameData.bal("elite.damage_mult"))

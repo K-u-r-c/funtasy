@@ -67,6 +67,8 @@ func _init() -> void:
 
 
 func show_for(p: Player, p_slot: int, anchor: Control) -> void:
+	if not GameData.skills.has(str(p.skills[p_slot])):
+		return
 	show_skill(p, str(p.skills[p_slot]), anchor, p_slot)
 
 

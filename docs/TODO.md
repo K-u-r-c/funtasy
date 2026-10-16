@@ -48,6 +48,11 @@ screenshot review at 1920x1080 and 3440x1440.
       Steam smoke test (init, lobby, tag, host peer), final screenshot tours of every biome and boss at
       1920x1080 and 3440x1440 and the legendary item cards
 
+## Playtest issues (GitHub #1-#14)
+
+- [x] #1 Simple start: primary + one basic skill, empty slots, easier floors 1-3 (`classes-*`,
+      `balance-*` fresh-hero pass, `economy`, `economy-lan`, `ui-layout`, `full-wm`)
+
 ## PixelLab ledger
 
 Start of the GDD goal (2026-10-15): **used 1081 / 2000, remaining 919**, resets 2026-11-14.

@@ -270,9 +270,12 @@ class SkillRow:
 		focus_entered.connect(func(): AudioManager.play_sfx("ui_move", 0.0))
 
 	func refresh(p: Player) -> void:
-		var sk := GameData.skill(p.skills[slot])
-		_icon.texture = GameData.texture("icons." + str(sk.get("icon", "attack")))
-		_name.text = str(sk.get("name", "?")) if slot > 0 else "%s  (primary)" % sk.get("name", "?")
+		var sk: Dictionary = GameData.skills.get(str(p.skills[slot]), {})
+		_icon.texture = GameData.texture("icons." + str(sk.get("icon", "attack"))) if not sk.is_empty() else null
+		if sk.is_empty():
+			_name.text = "Empty slot"
+		else:
+			_name.text = str(sk.get("name", "?")) if slot > 0 else "%s  (primary)" % sk.get("name", "?")
 		_glyph.action = Player.SLOT_ACTIONS[slot]
 
 

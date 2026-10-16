@@ -34,6 +34,7 @@ var run_mods: Array = []  ## run-permanent modifiers [{stat, value, source}] (D1
 var gold := 0
 var bonus_stat_points := 0  ## from the legendary tome
 var bonus_talent_points := 0
+var legacy_kit := false  ## a hero saved before the simple start: the old tier-0 starter skills stay free
 var talents: Dictionary = {}:
 	set(v):
 		talents = v
@@ -104,7 +105,7 @@ func setup(data: Dictionary) -> void:
 		"Health:hp", "Health:max_hp", "Health:absorb", "Resource:value", "Resource:max_value", "Resource:kind",
 		"Status:shown", "Stats:final", ".:life_state", ".:downed_left", ".:revive_progress", ".:level",
 		".:xp", ".:talent_points", ".:talents", ".:appearance", ".:torch_sync",
-		".:stat_points", ".:allocated", ".:run_mods", ".:gold", ".:skills",
+		".:stat_points", ".:allocated", ".:run_mods", ".:gold", ".:skills", ".:legacy_kit",
 	], [], 0.1)
 	var owner_sync := NetSync.make(self, "OwnerSync", [], [".:net_pos", ".:facing", ".:aim_pos"], 0.05)
 	owner_sync.set_multiplayer_authority(peer_id)
@@ -151,6 +152,7 @@ func base_anim(moving: bool) -> String:
 
 func _host_init() -> void:
 	var ch: Dictionary = GameState.characters.get(peer_id, GameState.new_character(display_name, class_id))
+	legacy_kit = not ch.has("kit")
 	level = int(ch.get("level", 1))
 	xp = int(ch.get("xp", 0))
 	talents = ch.get("talents", {}).duplicate()
@@ -160,7 +162,7 @@ func _host_init() -> void:
 	var t2 := {}
 	for k in talents:
 		var nd := talent_node(str(k))
-		if not nd.is_empty() and not nd.get("starter", false):
+		if not nd.is_empty() and not is_free_node(nd):
 			t2[k] = mini(int(talents[k]), int(nd.get("max_rank", 1)))
 	talents = t2
 	allocated = ch.get("allocated", {}).duplicate()
@@ -218,17 +220,23 @@ func talent_node(id: String) -> Dictionary:
 	return {}
 
 
-## Points spent in a branch (starter nodes are free and don't count).
+## Points spent in a branch (free nodes don't count).
 func branch_points(branch: String) -> int:
 	var n := 0
 	for nd in talent_tree().get("nodes", []):
-		if nd.get("branch", "") == branch and not nd.get("starter", false):
+		if nd.get("branch", "") == branch and not is_free_node(nd):
 			n += int(talents.get(nd.id, 0))
 	return n
 
 
+## Starter nodes (the primary attack and the one basic skill) are free; heroes saved before the
+## simple start also keep the old tier-0 starters (`legacy_starter`) for free.
+func is_free_node(nd: Dictionary) -> bool:
+	return nd.get("starter", false) or (legacy_kit and nd.get("legacy_starter", false))
+
+
 func node_rank(nd: Dictionary) -> int:
-	return 1 if nd.get("starter", false) else int(talents.get(nd.id, 0))
+	return 1 if is_free_node(nd) else int(talents.get(nd.id, 0))
 
 
 ## Skills this hero may slot / that work as passives: starters + learned skill nodes.
@@ -240,13 +248,17 @@ func unlocked_skills() -> Array:
 	return out
 
 
+## The primary attack, the class's starting skills (data `skills`), then empty slots.
 func default_loadout() -> Array:
 	var out: Array = [class_def.primary_attack]
 	out.append_array(class_def.skills)
-	return out
+	while out.size() < SLOT_ACTIONS.size():
+		out.append("")
+	return out.slice(0, SLOT_ACTIONS.size())
 
 
-## "" when `lo` is a valid loadout: 6 distinct unlocked active skills, a primary_ok skill first.
+## "" when `lo` is a valid loadout: a primary_ok skill first, then distinct unlocked active
+## skills or empty slots ("").
 func loadout_error(lo: Array) -> String:
 	if lo.size() != SLOT_ACTIONS.size():
 		return "A loadout has %d slots" % SLOT_ACTIONS.size()
@@ -254,6 +266,8 @@ func loadout_error(lo: Array) -> String:
 	var seen := {}
 	for i in lo.size():
 		var sid := str(lo[i])
+		if sid.is_empty() and i > 0:
+			continue
 		var sk: Dictionary = GameData.skills.get(sid, {})
 		if sk.is_empty() or not unlocked.has(sid):
 			return "%s is not unlocked" % sk.get("name", sid)
@@ -324,10 +338,13 @@ func creature_type() -> String:
 
 func to_character() -> Dictionary:
 	var d := inv.to_dict()
-	return {"name": display_name, "class_id": class_id, "gender": gender, "level": level, "xp": xp, "talents": talents.duplicate(), "loadout": skills.duplicate(),
+	var out := {"name": display_name, "class_id": class_id, "gender": gender, "level": level, "xp": xp, "talents": talents.duplicate(), "loadout": skills.duplicate(),
 		"equipment": d.equipment, "backpack": d.backpack, "backpack_capacity": d.capacity, "quick": d.quick,
 		"allocated": allocated.duplicate(), "run_mods": run_mods.duplicate(true), "gold": gold,
 		"bonus_stat_points": bonus_stat_points, "bonus_talent_points": bonus_talent_points}
+	if not legacy_kit:
+		out.kit = GameState.KIT_VERSION
+	return out
 
 
 ## Host: store the authoritative character in the saved game.
@@ -455,7 +472,8 @@ func _owner_tick(delta: float) -> void:
 	# Attack + skills (holding repeats as soon as the cooldown allows). Channelled and
 	# charge-up skills also report the release.
 	for slot in SLOT_ACTIONS.size():
-		if Input.is_action_pressed(SLOT_ACTIONS[slot]) and not local_cd.has(slot) and not _pending.has(slot):
+		if Input.is_action_pressed(SLOT_ACTIONS[slot]) and not local_cd.has(slot) and not _pending.has(slot) \
+				and slot < skills.size() and not str(skills[slot]).is_empty():
 			_pending[slot] = 0.3
 			request_skill.rpc_id(1, slot, aim_pos)
 		if Input.is_action_just_released(SLOT_ACTIONS[slot]) and slot < skills.size() and _is_hold_skill(str(skills[slot])):
@@ -579,7 +597,7 @@ func _from_owner() -> bool:
 
 @rpc("any_peer", "call_local", "reliable")
 func request_skill(slot: int, aim: Vector2) -> void:
-	if not _from_owner() or slot < 0 or slot >= skills.size():
+	if not _from_owner() or slot < 0 or slot >= skills.size() or str(skills[slot]).is_empty():
 		return
 	if life_state != Life.ALIVE:
 		_skill_result.rpc_id(peer_id, slot, 0.0, false, "")
@@ -595,7 +613,7 @@ func request_skill(slot: int, aim: Vector2) -> void:
 ## Owner -> host (reliable): the button of a channelled / charge-up skill was released.
 @rpc("any_peer", "call_local", "reliable")
 func request_skill_release(slot: int, aim: Vector2) -> void:
-	if not _from_owner() or slot < 0 or slot >= skills.size():
+	if not _from_owner() or slot < 0 or slot >= skills.size() or str(skills[slot]).is_empty():
 		return
 	aim_pos = aim
 	var sid := str(skills[slot])
@@ -718,7 +736,7 @@ func request_learn_talent(node_id: String) -> void:
 	if not _from_owner():
 		return
 	var nd := talent_node(node_id)
-	if nd.is_empty() or nd.get("starter", false):
+	if nd.is_empty() or is_free_node(nd):
 		return
 	var rank := int(talents.get(node_id, 0))
 	if rank >= int(nd.get("max_rank", 1)):
