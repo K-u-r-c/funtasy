@@ -12,6 +12,7 @@ var _ip_edit: LineEdit
 var _port_edit: LineEdit
 var _switching := false
 var _overlay: Control
+var _version: Label
 
 
 const SHINE := preload("res://assets/shaders/title_shine.gdshader")
@@ -43,8 +44,6 @@ func _ready() -> void:
 	mat.shader = SHINE
 	title.material = mat
 	col.add_child(title)
-	var tagline := UITheme.label("A dark fantasy co-op dungeon crawler", UITheme.TEXT_DIM, UITheme.FONT_BODY)
-	col.add_child(tagline)
 	col.add_child(_spacer())
 
 	var panel := GlassWindow.new(false)
@@ -59,10 +58,9 @@ func _ready() -> void:
 	var foot := HBoxContainer.new()
 	foot.add_theme_constant_override("separation", 16)
 	col.add_child(foot)
-	var hint := UITheme.label("", UITheme.TEXT_DIM, UITheme.FONT_SMALL)
-	hint.text = "v0.1 MVP  -  Steam: %s" % ("ready" if NetworkManager.steam_ready else NetworkManager.steam_status)
-	hint.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	foot.add_child(hint)
+	_version = UITheme.label("v%s" % str(ProjectSettings.get_setting("application/config/version", "0.1")), UITheme.TEXT_DIM, UITheme.FONT_SMALL)
+	_version.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	foot.add_child(_version)
 	foot.add_child(PromptBar.new([["ui_accept", "Select"], ["ui_cancel", "Back"]]))
 
 	_build_main_page()
@@ -121,7 +119,6 @@ func _build_main_page() -> void:
 	var p := _new_page("main")
 	_btn(p, "Play", _show_page.bind("play"))
 	_btn(p, "Options", open_settings)
-	_btn(p, "Codex", open_codex)
 	_btn(p, "Quit", _quit)
 
 
@@ -214,21 +211,6 @@ func open_settings() -> void:
 		for c in _current.get_children():
 			if c is AnimButton and not c.disabled:
 				c.grab_focus()
-				break)
-
-
-## The permanent library codex (D18), readable outside a run.
-func open_codex() -> void:
-	var c: Control = load("res://scripts/ui/codex_panel.gd").new()
-	c.standalone = true
-	c.menu_tab = ""
-	_overlay = c
-	add_child(c)
-	c.closed.connect(func():
-		_overlay = null
-		for b in _current.get_children():
-			if b is AnimButton and not b.disabled:
-				b.grab_focus()
 				break)
 
 

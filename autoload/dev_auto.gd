@@ -2529,6 +2529,24 @@ func _gamepad_menu_flow() -> void:
 	await _wait(1.0)
 	var focus := get_viewport().gui_get_focus_owner()
 	check(focus is Button and focus.text == "Play", "main menu focuses Play for the gamepad")
+	# Main menu cleanup (#13): no tagline, no Steam status, "v0.1", no Codex button.
+	var mm: Node = get_tree().current_scene
+	var texts: Array = []
+	var stack: Array = [mm]
+	while not stack.is_empty():
+		var n: Node = stack.pop_back()
+		if n is Label or n is Button:
+			texts.append(str(n.text))
+		stack.append_array(n.get_children())
+	var main_btns: Array = mm._pages["main"].get_children().map(func(b): return str(b.text))
+	check(main_btns == ["Play", "Options", "Quit"], "main menu buttons: %s" % [main_btns])
+	check(not texts.any(func(x): return x.contains("dungeon crawler") or x.contains("Steam:") or x.contains("MVP")) and str(mm._version.text) == "v0.1",
+			"main menu shows no tagline or Steam status, the version reads %s" % mm._version.text)
+	await _press(JOY_BUTTON_DPAD_DOWN)
+	await _press(JOY_BUTTON_DPAD_DOWN)
+	check(get_viewport().gui_get_focus_owner() is Button and get_viewport().gui_get_focus_owner().text == "Quit", "the D-pad walks Play -> Options -> Quit")
+	await _press(JOY_BUTTON_DPAD_UP)
+	await _press(JOY_BUTTON_DPAD_UP)
 	# Options -> Controls tab (RB) -> rebind a gamepad slot by pressing a pad button.
 	await _press(JOY_BUTTON_DPAD_DOWN)
 	await _press(JOY_BUTTON_A)

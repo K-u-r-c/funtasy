@@ -427,3 +427,10 @@ and against nothing when it goes into the empty left hand. The header reads "vs 
 | Burst it down | `Boss.burst_bar` (replicated: progress, seconds left) drives a green bar under the boss bar on every screen: "You are held / X is held - Burst it down! 3.4 s". The burst needed is now 300 (x the boss's HP multiplier). |
 | Time limit | At most 4 s (`duration` 4 in data, capped at 4 in code). The hero is released when the time is up (taking the `fail` damage), when the party bursts the boss, when the hero falls, when the phase ends and when the boss dies (its mechanics stop). |
 | Arena guard | Every 0.25 s the host checks a floor boss (and the Amalgam's twins, `role` boss_part) against the boss room it spawned in (one tile of slack) and walkable ground; outside, it is put back in the middle of the room. Bosses spawned elsewhere (tests, previews) are not guarded. Krazik needed no change (his mechanics never move him out of the room). |
+
+### #13 Main menu
+
+The title screen shows only the logo, Play / Options / Quit and the version, read from
+`application/config/version` in `project.godot` ("v0.1"). The tagline, the Steam status line and the
+Codex button are gone; the Codex stays a tab of the in-game menu (the Steam buttons on the Play page
+are still disabled when Steam isn't running).

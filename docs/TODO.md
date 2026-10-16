@@ -74,6 +74,8 @@ screenshot review at 1920x1080 and 3440x1440.
       2H; `economy`, `ui-layout`)
 - [x] #12 Amalgam grab: held state (status, look, Burst it down bar), 4 s max, released on death; boss
       arena guard (`boss-amalgam` LAN pair, `bosses`, `boss-krazik`)
+- [x] #13 Main menu cleanup: no tagline / Steam status / Codex button, "v0.1" (`gamepad-menu`,
+      `ui-layout`, screenshot)
 
 ## PixelLab ledger
 
