@@ -44,8 +44,10 @@ screenshot review at 1920x1080 and 3440x1440.
 - [x] **9. Legendaries**: 108 items + affix hooks + icons + drop rules + tooltips (verified: `legendaries-warrior/
       ranger/mage/priest` suites prove every affix, `primitives`, `skills-*`, `economy`, `ui-layout`, legendary
       tour screenshots at 1920x1080 and 3440x1440). Icons: 7 Pixen sheets of 16 cut by `tools/cut_icon_sheet.py`.
-- [ ] **10. Integration**: balance pass, audio keys + Suno prompt list, README / DECISIONS / TODO,
-      full test suite, LAN + Steam smoke test, final screenshot tours
+- [x] **10. Integration**: balance pass (`balance-<class>` suites, blood pool fix), audio keys + Suno prompt
+      list (`docs/SUNO_PROMPTS.md`), README / DECISIONS / TODO, full test suite, LAN pairs for every boss +
+      Steam smoke test (init, lobby, tag, host peer), final screenshot tours of every biome and boss at
+      1920x1080 and 3440x1440 and the legendary item cards
 
 ## PixelLab ledger
 
@@ -125,8 +127,17 @@ Goal cap: 2500 generations, and never more than the remaining allowance. Spend =
 - [x] Physical gamepad: Xbox Series controller over Bluetooth (Linux) works in game (confirmed by the user).
       `tools/pad_test.gd` walks through every control; `data/joy_mappings.txt` can override SDL mappings
       for pads with an unusual layout (the entry for this pad is commented out: not needed).
-- [ ] Final art (Pixellab) and music (Suno): replace placeholders via `data/assets.json`.
-- [ ] Balance pass: numbers in `data/balance.json` are first guesses.
+- [ ] **Art for the Sewers, Foundry, Archives and Kurgan** (tilesets, 28 monsters, 8 bosses, biome props):
+      placeholders until the user answers the phase-4 visual checkpoint (look, scale, method). PixelLab
+      left at the end of the goal: 771 of 2000 (reset 2026-11-14).
+- [ ] **Music and SFX** (user, Suno): 17 music and 93 SFX keys, file paths and prompts in
+      `docs/SUNO_PROMPTS.md`; drop the files in and run `python3 tools/register_audio.py`.
+- [ ] Optional worn art: new armour sets beyond the plate / cloth layers (legendaries reuse them).
+- [x] Balance pass: measured by the `balance-<class>` suites against data pacing bands (see DECISIONS
+      "Balance pass").
+- [x] Steam smoke test after the GDD work: Steam init, lobby creation, game tag listing and the Steam peer
+      as host (`tools/run_tests.sh steam`, 2026-10-16). A second-account join was confirmed earlier; recheck
+      it on two machines when convenient.
 
 ## Known limitations
 

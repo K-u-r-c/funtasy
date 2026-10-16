@@ -189,8 +189,14 @@ func check_live_floor() -> void:
 		_ready_hero()
 		p.host_teleport(pp.global_position + Vector2(0, 24))
 		var hp4 := p.health.hp
-		pp.set_meta("pulse_left", 0.05)
-		await da._wait(0.5)
+		# Up to three pulses: a single splash can be dodged or blocked.
+		for i in 3:
+			pp.set_meta("pulse_left", 0.05)
+			await da._wait(0.5)
+			if p.health.hp < hp4:
+				break
+		if p.health.hp >= hp4:
+			print("[test] pulse miss: %s at %s, hero at %s (%.0f px), hp %d" % [pp.def.get("id", "?"), pp.global_position, p.global_position, p.global_position.distance_to(pp.global_position), p.health.hp])
 		da.check(p.health.hp < hp4, "a pulsing prop (cauldron, dread totem) hits the hero")
 	var gate := -1
 	for di in g.dungeon.doors.size():
