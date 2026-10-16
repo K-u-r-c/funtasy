@@ -19,6 +19,7 @@ var _gender_buttons: Dictionary = {}
 var _class_desc: Label
 var _preview: HeroPreview
 var _gear_toggle: Button
+var _turn_buttons: Dictionary = {}  ## -1 / 1 -> the "turn left" / "turn right" arrow
 var _confirm: AnimButton
 var _hero_summary: Label
 var _ready_label: Label
@@ -214,8 +215,9 @@ func _build_preview_panel() -> Control:
 		tb.text = "<" if step < 0 else ">"
 		tb.tooltip_text = "Turn left" if step < 0 else "Turn right"
 		tb.custom_minimum_size = Vector2(36, 28)
-		tb.pressed.connect(func(): _preview.rotate_by(step))
+		tb.pressed.connect(func(): _preview.turn(step))
 		turn.add_child(tb)
+		_turn_buttons[step] = tb
 		if step < 0:
 			_gear_toggle = Button.new()
 			_gear_toggle.toggle_mode = true

@@ -38,7 +38,18 @@ func set_look(p_gender: String, p_look: Dictionary) -> void:
 
 func rotate_by(step: int) -> void:
 	dir_index = wrapi(dir_index + step, 0, DIRS)
-	sprite.play("idle", Vector2.RIGHT.rotated(dir_index * PI / 4.0))
+	sprite.play("idle", facing())
+
+
+## Where the preview faces (direction index 0 = east, counting clockwise on screen).
+func facing() -> Vector2:
+	return Vector2.RIGHT.rotated(dir_index * PI / 4.0)
+
+
+## Turns the hero toward the screen's right (`side` 1) or left (-1), one eighth at a time (#14):
+## from facing the camera, turning right shows the hero looking right.
+func turn(side: int) -> void:
+	rotate_by(-side)
 
 
 func _rebuild() -> void:

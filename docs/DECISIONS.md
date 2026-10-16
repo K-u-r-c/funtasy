@@ -434,3 +434,9 @@ The title screen shows only the logo, Play / Options / Quit and the version, rea
 `application/config/version` in `project.godot` ("v0.1"). The tagline, the Steam status line and the
 Codex button are gone; the Codex stays a tab of the in-game menu (the Steam buttons on the Play page
 are still disabled when Steam isn't running).
+
+### #14 Preview arrows
+
+The character preview's arrows turn the hero toward the screen side they point at: from facing the
+camera, ">" shows the hero looking right and "<" looking left (`HeroPreview.turn`; the direction index
+counts clockwise on screen, so turning right steps it back). The gamepad menu test presses both arrows.

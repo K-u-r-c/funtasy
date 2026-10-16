@@ -2600,6 +2600,16 @@ func _gamepad_menu_flow() -> void:
 	var d0: int = lobby._preview.dir_index
 	lobby._preview.rotate_by(1)
 	check(lobby._preview.dir_index == wrapi(d0 + 1, 0, 8) and lobby._preview.sprite.dir_index == lobby._preview.dir_index, "lobby preview turns")
+	# The arrows (#14): from facing the camera, "<" turns the hero to look left, ">" to look right.
+	for side in [-1, 1]:
+		lobby._preview.dir_index = 2
+		lobby._preview.rotate_by(0)
+		lobby._turn_buttons[side].pressed.emit()
+		var f: Vector2 = lobby._preview.facing()
+		check(signf(f.x) == float(side) and lobby._preview.sprite.dir_index == lobby._preview.dir_index,
+				"the %s arrow turns the preview %s (facing %s)" % [lobby._turn_buttons[side].text, "left" if side < 0 else "right", f])
+	lobby._preview.dir_index = d0
+	lobby._preview.rotate_by(1)
 	var reached := false
 	for i in 10:
 		focus = get_viewport().gui_get_focus_owner()

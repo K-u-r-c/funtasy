@@ -76,6 +76,7 @@ screenshot review at 1920x1080 and 3440x1440.
       arena guard (`boss-amalgam` LAN pair, `bosses`, `boss-krazik`)
 - [x] #13 Main menu cleanup: no tagline / Steam status / Codex button, "v0.1" (`gamepad-menu`,
       `ui-layout`, screenshot)
+- [x] #14 Character preview arrows turn the way they point (`gamepad-menu`)
 
 ## PixelLab ledger
 
