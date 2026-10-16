@@ -161,6 +161,51 @@
 			"args": [
 				"--faces-left"
 			]
+		},
+		"barrow_abomination": {
+			"zip": "2e6815d6-9a63-4f5f-b1d2-47dd7595fa03",
+			"cell": 64
+		},
+		"barrow_hag": {
+			"zip": "6f30da4c-db10-40f8-be65-2db3ced6a840",
+			"cell": 64,
+			"attack_template": "fireball"
+		},
+		"bramble_warden": {
+			"zip": "18b2d141-17e8-43b6-9e0e-2b98622098e2",
+			"cell": 64,
+			"attack_template": "throw-object"
+		},
+		"brier_thrall": {
+			"zip": "f36d5b1f-94ec-478b-afa7-c558bccd7739",
+			"cell": 64
+		},
+		"rotwood_treant": {
+			"zip": "8e7947b7-6745-4204-ab0a-ebdfdd2ff116",
+			"cell": 64
+		},
+		"cernunnos": {
+			"zip": "ec685100-b9de-44d2-ac4f-a903af184af4",
+			"cell": 112
+		},
+		"isolde": {
+			"zip": "9b98e32b-2b2e-4d2e-8e78-8cf9a76571d7",
+			"cell": 112,
+			"attack_template": "fireball"
+		},
+		"isolde_spider": {
+			"blob": "eb009f03-cc1f-4cda-a9f9-20cc3b7a3205",
+			"cell": 112,
+			"args": [
+				"--faces-left"
+			]
+		},
+		"will_o_blight": {
+			"blob": "fccb0255-8a0a-4701-9233-c6c50598d4ba",
+			"cell": 48,
+			"args": [
+				"--fly"
+			]
 		}
 	},
 	"props": {
@@ -200,6 +245,15 @@
 		"silence_rune": "fd38ecbf-a8c4-4f12-a637-b37d64a0d1d2",
 		"void_rift": "24205955-59dc-4d25-8c03-635a0d3ca288",
 		"ink_puddle": "427cd04b-1cff-421b-8002-368a607e2384",
-		"gargoyle_statue": "archive_gargoyle south rotation, greyscale"
+		"gargoyle_statue": "archive_gargoyle south rotation, greyscale",
+		"barrow_coffer": "6a7561ad-ef68-49eb-acdc-0b4bcf0e60f2",
+		"barrow_coffer_open": "c5670540-6bcc-4ccc-9c84-6a8912deddc5",
+		"bone_cairn": "5d165c7f-cc39-41ac-aff6-3fcaa1811f15",
+		"dead_tree": "ceaf8025-e838-4ba9-9d5c-310f0e10bd90",
+		"dolmen": "33a7b2d7-e1b8-404d-a54f-40f83fddade7",
+		"dread_totem": "fff4362e-19f3-4c48-81df-9a9873f35dab",
+		"thorn_bush": "b79868f6-63d2-4db9-a409-fe98072dfcc9",
+		"weeping_root": "13350e0c-aa11-42fc-b462-0775e4b3e347",
+		"root_snare": "149b9f93-05b6-44b8-adb2-6c8da21e2fb6"
 	}
 }

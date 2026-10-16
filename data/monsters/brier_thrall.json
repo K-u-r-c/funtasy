@@ -32,6 +32,5 @@
 		}
 	],
 	"collision_radius": 9,
-	"xp": 13,
-	"tint": "#6a8a4a"
+	"xp": 13
 }
