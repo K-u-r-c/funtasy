@@ -970,6 +970,8 @@ func _tank_scenario() -> void:
 		for e in pack:
 			if not is_instance_valid(e) or not e.is_alive() or e.target == null:
 				continue
+			if e.target != tank and e.target != dps:
+				continue  # decoys (the Mage's Blink image) pull aggro on purpose for a moment
 			samples += 1
 			if e.target == tank:
 				on_tank += 1

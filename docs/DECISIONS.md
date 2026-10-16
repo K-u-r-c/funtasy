@@ -155,6 +155,17 @@ proposal left a choice open, the chosen option is stated, and any change to a pr
 | Contracts and pacts | Each player can sign each of the floor's two contracts once; pact potions cost their stats at purchase (not when drunk) and stack in the backpack one per slot. Archibald buys everything except gold, keys and pact potions; books sell by category. | `merchants.gd`, `balance.merchant` |
 | Elite altar loot | An altar gives a book (60%) or one Uncommon+ item, plus gold; once per altar. Secret sarcophagi give 1-2 Uncommon+ items, a book 40% of the time and gold. | `loot_table.gd`, `balance.lore` |
 
+### Class skills (phase 3) - deviations and readings of the GDD
+
+| Topic | Decision |
+| --- | --- |
+| Primary attacks (D2) | The primaries keep the MVP economy: **no cost**, a small resource restore on hit (Fury Strike +10 Fury), cooldowns 0.55-1.0 s. The GDD's 10-15 mana primaries would drain a level-1 mana pool in ~13 s. |
+| Numbers | "X% weapon damage" = coefficient X/100 on the school's power (weapon DPS + stat x 0.6), plus a small base. Cooldowns, costs, ranges and durations are the GDD's, except the primaries above. |
+| Skill-level readings | Intimidating Roar makes every enemy in range flee (the "minions cower" nuance is dropped). Feral Ferocity stacks on any melee hit. Rallying Cry heals about the health it adds. Elemental Cataclysm refunds 30 Mana instead of making the spell free. Eclipse doubles spell damage after 3 Light charges. Lightwell heals allies below half health who stand in it (no click). Hammer of the Righteous' shockwave reaches 72 px. Shadow Word: Death recoil = 5% of your maximum health. Bone Harpoon reels you only to bosses. |
+| Passives and triggers | Active skills can carry trigger procs (Overpower after a dodge / parry, Victory Rush after an XP kill, Aimed Shot's crit refund); they work once the skill is learned, slotted or not. |
+| Icons | 120 skill / keystone icons come from 8 PixelLab Pixen icon sheets (4x4 icons of 32 px each, 1 generation per sheet), cut by `tools/cut_icon_sheet.py`. Passive talent nodes show their initials. |
+| Skill VFX | New skills use the shared effect visuals (rings, beams, chains, zones, projectiles). Bespoke animated effects (vfx_workbench) are a later polish item. |
+
 ### Skill groups per talent branch (D1)
 
 Tier in brackets. **Bold** = starter (free) skill.

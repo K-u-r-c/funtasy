@@ -19,7 +19,9 @@ screenshot review at 1920x1080 and 3440x1440.
       migration), gold, Gold Key, elites + altars, merchant chamber, Archibald, Malphas (tithe,
       contracts, pact potions), run mods, lore import / book items / reader / codex (verified: `economy`,
       `economy-lan`, `lore`, `ui-layout` suites, full suite green, screenshots of menus, merchants, lore)
-- [ ] **3. Classes**: 120 skills, 4 talent trees with keystones, icons, VFX, SFX keys, tooltips
+- [x] **3. Classes**: 120 skills, 4 talent trees with keystones, icons, VFX, SFX keys, tooltips
+      (verified: `skills-warrior/ranger/mage/priest`, `skills-lan` suites, full suite green, screenshots
+      of skills, talents, Skill Book)
 - [ ] **4. Crypt complete**: 4 new + 3 extended monsters, Morvath + Vespera, hazards (pressure
       plates, pendulums), props, mechanics (unlit regen, urn miasma), lore drops.
       **Visual checkpoint with the user before art for other biomes.**
