@@ -1533,7 +1533,7 @@ func _ui_layout_scenario() -> void:
 				panel.book_id = "lore_001"
 				panel.title_text = "Diary of the Last Gravedigger"
 			elif panel_script == hud.ConfirmDialog:
-				panel.title_text = "The Demon Altarpiece"
+				panel.title_text = "Malphas the Soul Broker"
 				panel.body_text = "Crossing the threshold costs a blood tithe."
 			hud.open_overlay(panel)
 			await _wait(0.4)

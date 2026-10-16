@@ -1,5 +1,6 @@
 {
-	"_comment": "Merchant chamber (GDD 5). Archibald's stock rules; Malphas's tithe options and contract pool. Prices in balance.merchant.",
+	"_comment": "Merchant room (GDD 5, #6): one merchant per floor, a seeded pick weighted by floor_pick. Archibald's stock rules; Malphas's tithe options and contract pool. Prices in balance.merchant.",
+	"floor_pick": {"archibald": 1, "malphas": 1},
 	"archibald": {
 		"name": "Archibald the Gilded",
 		"equipment": 3,

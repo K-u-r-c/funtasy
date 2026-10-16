@@ -28,6 +28,7 @@ var corpses: Dictionary = {}  ## host: corpse id -> {id, def_id, pos, t, creatur
 var _corpse_counter := 0
 var _aura_left := 0.0
 var party_keys := 0  ## Gold Keys the party carries (D11), replicated by _sync_keys
+var merchant_id := ""  ## every peer: this floor's merchant (archibald / malphas, #6)
 var _dyn_counter := 0
 var boss_id := ""  ## this floor's boss, picked from the floor type's list by the floor seed
 var floor_mechanics: Array = []  ## host: FloorMechanic modules of the floor type
@@ -132,14 +133,14 @@ func start_floor(new_depth: int) -> void:
 	# A Gold Key belongs to its floor (D11): an unused one doesn't carry over.
 	if party_keys > 0:
 		add_party_key(-party_keys)
-	_build_floor.rpc(new_depth, floor_seed, ft_id, pick_boss(GameData.floor_types[ft_id], floor_seed))
+	_build_floor.rpc(new_depth, floor_seed, ft_id, pick_boss(GameData.floor_types[ft_id], floor_seed), pick_merchant(floor_seed))
 	# Host-only: the spawn list depends on party size, so it is generated with that multiplier.
 	var n := players_root.get_child_count() if players_root.get_child_count() > 0 else GameState.roster.size()
 	var count_mult := 1.0 + float(GameData.bal("scaling.count_per_extra_player")) * (maxi(n, 1) - 1)
-	var host_layout := DungeonGenerator.new().generate(floor_seed, floor_def, count_mult, new_depth)
+	var host_layout := DungeonGenerator.new().generate(floor_seed, floor_def, count_mult, new_depth, merchant_id)
 	_place_players()
 	merchants.host_new_floor(floor_seed, monster_level())
-	var elites := _pick_elites(host_layout, floor_seed)
+	var elites := _pick_elites(host_layout, floor_seed, merchant_id == "archibald")
 	for gi in host_layout.spawns.size():
 		var group: Dictionary = host_layout.spawns[gi]
 		for mi in group.monsters.size():
@@ -182,8 +183,9 @@ func _place_players() -> void:
 
 
 ## Host: D10 / D11 - 1-3 spawn groups get an elite (1-2 modifiers); with the floor's 50% roll
-## (seeded) one elite carries the Gold Key. Returns {Vector2i(group, monster): spawn extra}.
-func _pick_elites(host_layout: Dictionary, floor_seed: int) -> Dictionary:
+## (seeded) one elite carries the Gold Key - only on floors whose merchant is Archibald (#6).
+## Returns {Vector2i(group, monster): spawn extra}.
+func _pick_elites(host_layout: Dictionary, floor_seed: int, key_floor: bool = true) -> Dictionary:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = floor_seed + 101
 	var groups: Array = []
@@ -205,7 +207,7 @@ func _pick_elites(host_layout: Dictionary, floor_seed: int) -> Dictionary:
 			if not picked.has(m):
 				picked.append(m)
 		out[Vector2i(gi2, mi)] = {"elite": picked}
-	if not out.is_empty() and rng.randf() < float(GameData.bal("elite.key_chance")):
+	if not out.is_empty() and rng.randf() < float(GameData.bal("elite.key_chance")) and key_floor:
 		var keys: Array = out.keys()
 		out[keys[rng.randi_range(0, keys.size() - 1)]].key = true
 	return out
@@ -535,12 +537,13 @@ func _on_peer_disconnected(id: int) -> void:
 
 
 @rpc("authority", "call_local", "reliable")
-func _build_floor(new_depth: int, floor_seed: int, ft_id: String, floor_boss: String) -> void:
+func _build_floor(new_depth: int, floor_seed: int, ft_id: String, floor_boss: String, floor_merchant: String) -> void:
 	depth = new_depth
 	floor_time = 0.0
 	floor_def = GameData.floor_types[ft_id]
 	boss_id = floor_boss
-	layout = DungeonGenerator.new().generate(floor_seed, floor_def, 1.0, new_depth)
+	merchant_id = floor_merchant
+	layout = DungeonGenerator.new().generate(floor_seed, floor_def, 1.0, new_depth, floor_merchant)
 	dungeon.build(layout, floor_def, entities)
 	visibility.reset_floor()
 	# Ground fog (Kurgan) shrinks carried torches too.
@@ -596,6 +599,15 @@ static func floor_type_for(new_depth: int) -> String:
 
 ## Host: the floor's boss, a seeded pick from the floor type's list ("force_boss" meta on
 ## GameState pins one for tests and screenshots).
+## Host: the floor's one merchant (#6), a seeded pick ("force_merchant" meta on GameState pins
+## one for tests and screenshots).
+static func pick_merchant(floor_seed: int) -> String:
+	var forced := str(GameState.get_meta("force_merchant", ""))
+	if forced != "" and GameData.merchants.get("floor_pick", {}).has(forced):
+		return forced
+	return DungeonGenerator.pick_merchant(floor_seed)
+
+
 static func pick_boss(ft: Dictionary, floor_seed: int) -> String:
 	var pool: Array = ft.get("bosses", [ft.get("boss", "")])
 	var forced := str(GameState.get_meta("force_boss", ""))

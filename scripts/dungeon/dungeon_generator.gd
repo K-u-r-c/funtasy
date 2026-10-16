@@ -35,7 +35,8 @@ var gen: Dictionary = {}  ## the floor type's architecture profile
 
 
 ## `depth` makes deeper floors darker (fewer lit rooms), so every peer must pass the same value.
-func generate(seed_value: int, floor_def: Dictionary, count_mult: float = 1.0, depth: int = 1) -> Dictionary:
+## `merchant` is the floor's one merchant (Game.pick_merchant); "" = the seeded pick.
+func generate(seed_value: int, floor_def: Dictionary, count_mult: float = 1.0, depth: int = 1, merchant: String = "") -> Dictionary:
 	rng.seed = seed_value
 	tile = int(GameData.bal("world.tile_size"))
 	var grid: Array = floor_def.grid
@@ -48,8 +49,7 @@ func generate(seed_value: int, floor_def: Dictionary, count_mult: float = 1.0, d
 	gen = floor_def.get("generator", {})
 	var rooms := _place_rooms(floor_def)
 	_connect_rooms(rooms)
-	_pick_merchant_room(rooms)
-	var doors := _find_doors(rooms)
+	var doors := _pick_merchant_room(rooms)
 	layout.rooms = rooms
 	layout.doors = doors
 	var door_zone := {}
@@ -89,7 +89,7 @@ func generate(seed_value: int, floor_def: Dictionary, count_mult: float = 1.0, d
 	var boss_room: Dictionary = rooms[1]
 	var start_room: Dictionary = rooms[0]
 	layout.boss_room = 1
-	layout.merchant = _merchant_layout(rooms, used)
+	layout.merchant = _merchant_layout(rooms, used, merchant if not merchant.is_empty() else pick_merchant(seed_value))
 	layout.start = _cell_center(start_room.rect.get_center())
 	layout.boss_pos = _cell_center(boss_room.rect.get_center() - Vector2i(0, 2))
 	layout.portal_pos = _cell_center(boss_room.rect.get_center() + Vector2i(0, 2))
@@ -122,7 +122,8 @@ func _cell_center(c: Vector2i) -> Vector2:
 
 func _place_rooms(fd: Dictionary) -> Array:
 	var spec: Dictionary = fd.rooms
-	var target := rng.randi_range(int(spec.count[0]), int(spec.count[1]))
+	# One extra room for the merchant (#6), so the fighting rooms keep their count.
+	var target := rng.randi_range(int(spec.count[0]), int(spec.count[1])) + 1
 	var rooms: Array = []
 	var rects: Array = []
 	# Boss room first (largest), then the rest; the start room is the one farthest from it.
@@ -227,35 +228,57 @@ func _carve_line(a: Vector2i, b: Vector2i) -> void:
 		p += step
 
 
-## Every floor has a secure merchant chamber: the normal room closest to a medium size
-## (seeded like everything else). It gets no monsters, hazards or loose props.
-func _pick_merchant_room(rooms: Array) -> void:
-	var best := -1
-	var best_score := INF
+## Every floor has one merchant room: the extra normal room closest to a medium size (seeded
+## like everything else), entered through an ordinary door. It gets no monsters, hazards or
+## loose props, and monsters never path into it.
+## Returns the floor's doors (found with the merchant room marked, so its doors are
+## monster-proof); a candidate room without a door is skipped.
+func _pick_merchant_room(rooms: Array) -> Array:
+	var cands: Array = []
 	for i in range(2, rooms.size()):
 		var r: Rect2i = rooms[i].rect
 		var score := absf(r.size.x - 11) + absf(r.size.y - 9) + rng.randf() * 2.0
-		if r.size.x >= 9 and r.size.y >= 8 and score < best_score:
-			best_score = score
-			best = i
-	if best < 0 and rooms.size() > 2:
-		best = 2
-	if best >= 0:
-		rooms[best].role = "merchant"
+		if r.size.x < 9 or r.size.y < 8:
+			score += 100.0
+		cands.append([score, i])
+	cands.sort_custom(func(a, b): return a[0] < b[0])
+	for cand in cands:
+		var i: int = cand[1]
+		rooms[i].role = "merchant"
+		var doors := _find_doors(rooms)
+		var room_rect: Rect2i = rooms[i].rect.grow(1)
+		if doors.any(func(d): return Rect2i(d.rect).intersects(room_rect)):
+			return doors
+		rooms[i].role = "normal"
+	return _find_doors(rooms)
 
 
-## Places the merchant chamber's pieces: Archibald behind the Gilded Portal (left), Malphas
-## behind the Demon Altarpiece (right). Returns {} when the floor has no merchant room.
-func _merchant_layout(rooms: Array, used: Dictionary) -> Dictionary:
+## The floor's one merchant (#6): a seeded pick weighted by merchants.json "floor_pick", from its
+## own random stream so the layout itself doesn't depend on it.
+static func pick_merchant(seed_value: int) -> String:
+	var weights: Dictionary = GameData.merchants.get("floor_pick", {"archibald": 1, "malphas": 1})
+	var ids: Array = weights.keys()
+	ids.sort()
+	var total := 0.0
+	for id in ids:
+		total += float(weights[id])
+	var r := RandomNumberGenerator.new()
+	r.seed = seed_value + 313
+	var roll := r.randf() * total
+	for id in ids:
+		roll -= float(weights[id])
+		if roll < 0.0:
+			return str(id)
+	return str(ids[-1])
+
+
+## The merchant stands in the middle of its room: {room, npc, pos}. {} when there is no room.
+func _merchant_layout(rooms: Array, used: Dictionary, npc: String) -> Dictionary:
 	for i in rooms.size():
 		if rooms[i].role != "merchant":
 			continue
 		var r: Rect2i = rooms[i].rect
-		var c := r.get_center()
-		var dx := maxi(2, r.size.x / 2 - 2)
-		var out := {"room": i,
-			"archibald": _cell_center(c + Vector2i(-dx, -1)), "portal": _cell_center(c + Vector2i(-dx, 1)),
-			"malphas": _cell_center(c + Vector2i(dx, -1)), "altar": _cell_center(c + Vector2i(dx, 1))}
+		var out := {"room": i, "npc": npc, "pos": _cell_center(r.get_center() + Vector2i(0, -1))}
 		for x in range(r.position.x, r.end.x):
 			for y in range(r.position.y, r.end.y):
 				used[Vector2i(x, y)] = true
@@ -604,19 +627,31 @@ func _cave_rooms(rooms: Array, door_zone: Dictionary) -> void:
 		if room.role != "normal" or rng.randf() > chance:
 			continue
 		var r: Rect2i = room.rect
+		# Corridors that meet the room through a wide opening (not a door) stay open too: the
+		# cells where they enter, one step in, and their side neighbours.
+		var keep := door_zone.duplicate()
+		for x0 in range(r.position.x, r.end.x):
+			for y0 in range(r.position.y, r.end.y):
+				var e := Vector2i(x0, y0)
+				for o in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+					if not r.has_point(e + o) and get_cell(e + o) == CELL_FLOOR:
+						for dx0 in range(-1, 2):
+							for dy0 in range(-1, 2):
+								keep[e + Vector2i(dx0, dy0)] = true
+								keep[e - o + Vector2i(dx0, dy0)] = true
 		var rim := func(c: Vector2i) -> bool:
 			return c.x < r.position.x + 2 or c.y < r.position.y + 2 or c.x >= r.end.x - 2 or c.y >= r.end.y - 2
 		for x in range(r.position.x, r.end.x):
 			for y in range(r.position.y, r.end.y):
 				var c := Vector2i(x, y)
-				if rim.call(c) and not door_zone.has(c) and get_cell(c) == CELL_FLOOR and rng.randf() < 0.45:
+				if rim.call(c) and not keep.has(c) and get_cell(c) == CELL_FLOOR and rng.randf() < 0.45:
 					_set_cell(c, CELL_WALL)
 		for pass_i in 2:
 			var changes := {}
 			for x in range(r.position.x, r.end.x):
 				for y in range(r.position.y, r.end.y):
 					var c2 := Vector2i(x, y)
-					if not rim.call(c2) or door_zone.has(c2):
+					if not rim.call(c2) or keep.has(c2):
 						continue
 					var walls := 0
 					for dx in range(-1, 2):
@@ -642,7 +677,7 @@ func _cave_rooms(rooms: Array, door_zone: Dictionary) -> void:
 		for x in range(r.position.x, r.end.x):
 			for y in range(r.position.y, r.end.y):
 				var c5 := Vector2i(x, y)
-				if not seen.has(c5) and get_cell(c5) != CELL_WALL and not door_zone.has(c5):
+				if not seen.has(c5) and get_cell(c5) != CELL_WALL and not keep.has(c5):
 					_set_cell(c5, CELL_WALL)
 		room.cave = true
 

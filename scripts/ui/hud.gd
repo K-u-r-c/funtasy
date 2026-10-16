@@ -295,7 +295,7 @@ func _build_bottom() -> void:
 	_key_icon.custom_minimum_size = Vector2(14, 14)
 	_key_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_key_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	_key_icon.tooltip_text = "Gold Key: opens the Gilded Portal of the merchant chamber"
+	_key_icon.tooltip_text = "Gold Key: Archibald trades for it"
 	_key_icon.visible = false
 	xp_row.add_child(_key_icon)
 	var coin := TextureRect.new()
@@ -644,7 +644,7 @@ func open_merchant(kind: String) -> void:
 ## Malphas asks the local player for the blood tithe (D13).
 func ask_tithe(text: String) -> void:
 	var d := ConfirmDialog.new()
-	d.title_text = "The Demon Altarpiece"
+	d.title_text = "Malphas the Soul Broker"
 	d.body_text = text
 	d.yes_text = "Pay the tithe"
 	d.no_text = "Turn away"

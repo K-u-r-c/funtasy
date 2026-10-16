@@ -164,8 +164,10 @@ func elites_and_key() -> void:
 
 
 func merchants() -> void:
+	await merchant_rules()
+	await _force_merchant("archibald")
 	var m: Dictionary = g.layout.get("merchant", {})
-	da.check(not m.is_empty(), "the floor has a merchant chamber")
+	da.check(not m.is_empty() and str(m.npc) == "archibald", "the floor has a merchant room (%s)" % m.get("npc", "none"))
 	if m.is_empty():
 		return
 	var room: Rect2i = g.layout.rooms[int(m.room)].rect
@@ -173,28 +175,27 @@ func merchants() -> void:
 	for e in g.enemies_root.get_children():
 		if room.has_point(g.dungeon.cell_of(e.global_position)) and not e.is_elite() and e.def_id != "ghoul":
 			spawned_inside = true
-	da.check(not spawned_inside, "no monsters spawn in the merchant chamber")
-	da.check(g.dungeon.is_safe(g.dungeon.cell_center(room.get_center())) and g.dungeon.astar.is_point_solid(room.get_center()), "monsters can't path into the merchant chamber")
-	var probe: Enemy = g.spawn_monster("ghoul", g.nearest_floor(m.portal + Vector2(0, 30)), false)
+	da.check(not spawned_inside, "no monsters spawn in the merchant room")
+	da.check(g.dungeon.is_safe(g.dungeon.cell_center(room.get_center())) and g.dungeon.astar.is_point_solid(room.get_center()), "monsters can't path into the merchant room")
+	var probe: Enemy = g.spawn_monster("ghoul", g.nearest_floor(m.pos + Vector2(0, 60)), false)
 	await da._wait(0.3)
-	p.host_teleport(m.archibald + Vector2(0, 16))
+	p.host_teleport(m.pos + Vector2(0, 16))
 	await da._wait(0.2)
-	da.check(not probe._valid_target(p), "monsters don't target a hero inside the merchant chamber")
+	da.check(not probe._valid_target(p), "monsters don't target a hero inside the merchant room")
 	probe.queue_free()
 	var mer: Merchants = g.merchants
-	da.check(mer.stock.size() >= 5 and mer.contracts.size() == 2, "Archibald has stock (%d) and Malphas 2 contracts" % mer.stock.size())
-	var portal: Node = g.dungeon.props["Merchant_Portal"]
-	var arch: Node = g.dungeon.props["Merchant_Archibald"]
-	p.host_teleport(m.portal + Vector2(0, 20))
-	await da._wait(0.3)
+	da.check(mer.stock.size() >= 5, "Archibald has stock (%d)" % mer.stock.size())
+	var arch: Node = g.dungeon.props["Merchant"]
 	g.add_party_key(-g.party_keys)
-	g.host_interact(p, portal)
+	g.host_interact(p, arch)
 	await da._wait(0.2)
-	da.check(not mer.portal_open, "the Gilded Portal stays shut without a Gold Key")
+	da.check(not mer.shop_open, "Archibald doesn't trade without the Gold Key")
 	g.add_party_key(1)
-	g.host_interact(p, portal)
+	g.host_interact(p, arch)
 	await da._wait(0.3)
-	da.check(mer.portal_open and g.party_keys == 0, "the Gold Key opens the Gilded Portal and is used up")
+	da.check(mer.shop_open and g.party_keys == 0, "Archibald takes the Gold Key and trades")
+	var hud: Node = da.get_tree().get_first_node_in_group("hud")
+	hud.close_overlay()
 	# Buying: the stock is shared, gold is checked.
 	p.host_add_gold(5000)
 	var gold0 := p.gold
@@ -210,20 +211,33 @@ func merchants() -> void:
 	mer.request_sell.rpc_id(1, idx)
 	await da._wait(0.3)
 	da.check(p.gold == gold0 - price + sp and sp > 0, "selling pays %d gold" % sp)
+	var mods_a := p.run_mods.size()
+	mer.request_tithe.rpc_id(1, true)
+	await da._wait(0.2)
+	da.check(p.run_mods.size() == mods_a, "no tithe on a floor without Malphas")
 	# Malphas: the tithe once per floor, then contracts and pacts.
-	var altar: Node = g.dungeon.props["Merchant_Altar"]
-	p.host_teleport(m.altar + Vector2(0, 20))
+	await _force_merchant("malphas")
+	m = g.layout.merchant
+	da.check(str(m.npc) == "malphas" and mer.contracts.size() == 2, "Malphas has the merchant room and 2 contracts")
+	var mal: Node = g.dungeon.props["Merchant"]
+	p.host_teleport(m.pos + Vector2(0, 16))
 	await da._wait(0.3)
 	var mods0 := p.run_mods.size()
-	g.host_interact(p, altar)
+	g.host_interact(p, mal)
 	await da._wait(0.2)
-	da.check(p.run_mods.size() == mods0, "kneeling only asks for the tithe")
+	da.check(p.run_mods.size() == mods0, "talking to Malphas only asks for the tithe")
+	hud.close_overlay()
 	mer.request_tithe.rpc_id(1, true)
 	await da._wait(0.3)
 	da.check(p.run_mods.size() == mods0 + 1 and str(p.run_mods[-1].source) == "Demonic tithe", "the tithe takes a stat for the run")
+	hud.close_overlay()
 	mer.request_tithe.rpc_id(1, true)
 	await da._wait(0.2)
 	da.check(p.run_mods.size() == mods0 + 1, "the tithe is paid once per floor")
+	var gold1 := p.gold
+	mer.request_buy.rpc_id(1, 1)
+	await da._wait(0.2)
+	da.check(p.gold == gold1, "Archibald's stock can't be bought on a Malphas floor")
 	mer.request_contract.rpc_id(1, 0)
 	await da._wait(0.3)
 	da.check(p.run_mods.size() == mods0 + 3, "a contract swaps two stats for the run")
@@ -253,6 +267,52 @@ func merchants() -> void:
 
 
 
+## One merchant per floor (#6), over many seeds: exactly one merchant (both appear), in its own
+## room behind an ordinary door, no portal or altarpiece, and the Gold Key only on Archibald floors.
+func merchant_rules() -> void:
+	var seen := {}
+	var bad := ""
+	var keys := {"archibald": 0, "malphas": 0}
+	var fd: Dictionary = g.floor_def
+	for i in 24:
+		var seed_value := 4242 + i * 7919
+		var npc: String = g.pick_merchant(seed_value)
+		var lay: Dictionary = DungeonGenerator.new().generate(seed_value, fd, 1.0, 1, npc)
+		var m: Dictionary = lay.get("merchant", {})
+		if m.is_empty() or str(m.npc) != npc or not GameData.merchants.get("floor_pick", {}).has(npc):
+			bad = "seed %d: merchant %s" % [seed_value, m]
+			continue
+		seen[npc] = true
+		var room: Rect2i = lay.rooms[int(m.room)].rect
+		if lay.rooms[int(m.room)].role != "merchant" or lay.rooms.filter(func(r): return r.role == "merchant").size() != 1:
+			bad = "seed %d: no single merchant room" % seed_value
+		var doors: Array = lay.doors.filter(func(d): return Rect2i(d.rect).intersects(room.grow(1)))
+		if doors.is_empty() or doors.any(func(d): return d.get("floodgate", false)):
+			bad = "seed %d: the merchant room has no ordinary door" % seed_value
+		if lay.props.any(func(pr): return str(pr.type) in ["gilded_portal", "demon_altar", "archibald", "malphas"]):
+			bad = "seed %d: a portal / altarpiece / second merchant in the props" % seed_value
+		var elites: Dictionary = g._pick_elites(lay, seed_value, npc == "archibald")
+		for k in elites:
+			if elites[k].get("key", false):
+				keys[npc] += 1
+	da.check(bad.is_empty(), "every floor has exactly one merchant in its own room%s" % ("" if bad.is_empty() else ": " + bad))
+	da.check(seen.has("archibald") and seen.has("malphas"), "both merchants appear across seeds (%s)" % [seen.keys()])
+	da.check(keys.malphas == 0 and keys.archibald > 0, "the Gold Key drops only on Archibald floors (%s)" % [keys])
+	var live: Array = g.dungeon.props.keys().filter(func(k): return str(k).begins_with("Merchant"))
+	da.check(live == ["Merchant"] and not g.dungeon.props.has("Merchant_Portal") and not g.dungeon.props.has("Merchant_Altar"),
+			"the live floor has one merchant and no portal or altarpiece (%s)" % [live])
+
+
+## Host: rebuilds the current floor with `npc` as its merchant (test hook "force_merchant").
+func _force_merchant(npc: String) -> void:
+	GameState.set_meta("force_merchant", npc)
+	g.start_floor(g.depth)
+	GameState.remove_meta("force_merchant")
+	await da._wait(1.5)
+	p = da._local()
+	p.iframe_left = 9999.0
+
+
 # =========================================================================================
 # LAN pair (host + client): split gold, shared stock, client intents, the reader is local
 # =========================================================================================
@@ -278,13 +338,19 @@ func run_lan() -> void:
 	da.check(p.gold == hg + 21 and c.gold == cg + 20, "41 gold split host +%d / client +%d" % [p.gold - hg, c.gold - cg])
 	NetworkManager.to_clients("DevAuto", "client_cmd", ["eco_check_gold", c.gold])
 	await da._wait(0.5)
-	# The merchant chamber: the client buys from the shared stock.
+	# One merchant per floor (#6): the client sees the host's pick; on an Archibald floor the client
+	# buys from the shared stock.
+	await _force_merchant("archibald")
+	for pl in g.players_root.get_children():
+		pl.iframe_left = 9999.0
 	var m: Dictionary = g.layout.merchant
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["eco_check_merchant", "archibald"])
 	g.add_party_key(1)
-	p.host_teleport(m.portal + Vector2(0, 18))
-	c.host_teleport(m.archibald + Vector2(14, 16))
+	p.host_teleport(m.pos + Vector2(-14, 18))
+	c.host_teleport(m.pos + Vector2(14, 16))
 	await da._wait(0.5)
-	g.host_interact(p, g.dungeon.props["Merchant_Portal"])
+	g.host_interact(p, g.dungeon.props["Merchant"])
+	da.get_tree().get_first_node_in_group("hud").close_overlay()
 	c.host_add_gold(1000)
 	await da._wait(0.4)
 	var price := int(g.merchants.stock[0].price)
@@ -294,8 +360,13 @@ func run_lan() -> void:
 	da.check(int(g.merchants.stock[0].left) == 0 and c.gold == cg2 - price, "the client bought stock line 0 for %d gold" % price)
 	NetworkManager.to_clients("DevAuto", "client_cmd", ["eco_check_stock", 0])
 	await da._wait(0.4)
-	# The client pays the tithe and signs a contract.
-	c.host_teleport(m.altar + Vector2(0, 18))
+	# On a Malphas floor the client pays the tithe.
+	await _force_merchant("malphas")
+	for pl in g.players_root.get_children():
+		pl.iframe_left = 9999.0
+	m = g.layout.merchant
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["eco_check_merchant", "malphas"])
+	c.host_teleport(m.pos + Vector2(0, 18))
 	await da._wait(0.4)
 	var mods := c.run_mods.size()
 	NetworkManager.to_clients("DevAuto", "client_cmd", ["eco_tithe", null])
@@ -344,7 +415,12 @@ func client_cmd(cmd: String, arg: Variant) -> void:
 		"eco_buy":
 			g.merchants.request_buy.rpc_id(1, int(arg))
 		"eco_check_stock":
-			da.check(int(g.merchants.stock[int(arg)].left) == 0 and g.merchants.portal_open, "the client sees the shared stock line sold out")
+			da.check(int(g.merchants.stock[int(arg)].left) == 0 and g.merchants.shop_open, "the client sees the shared stock line sold out")
+		"eco_check_merchant":
+			await da._wait(1.0)
+			var mp: Node = g.dungeon.props.get("Merchant")
+			da.check(str(g.merchant_id) == str(arg) and str(g.layout.merchant.npc) == str(arg) and mp != null and str(mp.type) == str(arg)
+					and not g.dungeon.props.has("Merchant_Portal"), "the client sees the same single merchant (%s)" % arg)
 		"eco_tithe":
 			g.merchants.request_tithe.rpc_id(1, true)
 			await da._wait(0.5)

@@ -175,7 +175,7 @@ Difficulty (HP, damage, enemy count, loot quality) depends on: **number of playe
 - **Procedurally generated**, **infinite**, deterministic from a **seed** (the host sends the seed).
 - A floor = rooms with doors + corridors, destructible props, hazards (explosive barrels, lava, spikes), monsters, chests; **a boss at the end of the floor** + extra good loot, then the transition to the next floor.
 - **Floor types** and **bosses** are **data-driven** (a separate resource per biome/type) so adding new ones requires no code changes. **5 biomes** (Crypt, Sewers, Foundry, Archives, Kurgan), each with its own architecture, lighting, environment mechanic, hazards, props, **7 monsters** and **2 bosses** (a seeded pick per floor).
-- Every floor has a secure **merchant chamber** (Archibald the Gilded behind the Gilded Portal, Malphas the Soul Broker behind the Demon Altarpiece).
+- Every floor has one secure **merchant room** with one seeded merchant: Archibald the Gilded (trades for the floor's Gold Key) or Malphas the Soul Broker (blood tithe).
 
 ## Audio
 

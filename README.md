@@ -87,7 +87,7 @@ on the ground (that's how you give items to teammates), R / Y = put a potion on 
   Foundry, the Shrouded Archives and the Blighted Kurgan, each with its own architecture, hazards,
   environment mechanics, 7 monsters and 2 bosses (one is picked per floor from the seed).
 - **Merchant chamber** on every floor: Archibald sells (prices in gold, shared stock), Malphas takes
-  a tithe of your power for contracts and pact potions; a Gold Key opens the gilded portal.
+  a tithe of your power for contracts and pact potions; a Gold Key makes Archibald trade. Each floor has one of them, in its own room.
 - **Elites** carry modifiers and guard altars; **legendaries** (orange) have unique affixes.
 - **Lore**: books drop in the dungeon; reading one adds it to the permanent Codex (all heroes).
 - **Death**: at 0 HP you are downed for 10 s; a teammate holds Interact next to you to revive.

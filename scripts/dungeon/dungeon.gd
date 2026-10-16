@@ -34,7 +34,7 @@ var anomalies: Array = []  ## Archives: world rects where skill costs fluctuate
 var proximity_props: Array = []  ## host: props that go off when a hero comes close (gas pockets)
 var lights: Array = []  ## torch / lava lights, culled by distance in Visibility
 var obstacles: Dictionary = {}  ## dynamic terrain id -> {node, cells}
-var safe_rect := Rect2i()  ## the merchant chamber (cells): monsters never path into it or target anyone inside
+var safe_rect := Rect2i()  ## the merchant room (cells): monsters never path into it or target anyone inside
 var discovered := PackedByteArray()  ## local fog-of-war memory (per peer)
 
 var floor_layer: TileMapLayer
@@ -70,7 +70,7 @@ func build(new_layout: Dictionary, def: Dictionary, entity_root: Node2D) -> void
 		if p.has("gate"):
 			props["Prop_%d" % n].set_meta("gate", int(p.gate))
 		n += 1
-	# The merchant chamber's fixed pieces (the same names on every peer).
+	# The floor's merchant (the same name on every peer).
 	var m: Dictionary = layout.get("merchant", {})
 	safe_rect = Rect2i()
 	if not m.is_empty():
@@ -78,10 +78,7 @@ func build(new_layout: Dictionary, def: Dictionary, entity_root: Node2D) -> void
 		for x in range(safe_rect.position.x, safe_rect.end.x):
 			for y in range(safe_rect.position.y, safe_rect.end.y):
 				astar.set_point_solid(Vector2i(x, y), true)
-		_add_prop("Merchant_Archibald", "archibald", m.archibald)
-		_add_prop("Merchant_Portal", "gilded_portal", m.portal)
-		_add_prop("Merchant_Malphas", "malphas", m.malphas)
-		_add_prop("Merchant_Altar", "demon_altar", m.altar)
+		_add_prop("Merchant", str(m.npc), m.pos)
 	n = 0
 	for cpos in layout.chests:
 		_add_prop("Chest_%d" % n, "chest", cpos)
@@ -339,7 +336,7 @@ func cell_center(c: Vector2i) -> Vector2:
 	return Vector2(c * tile) + Vector2(tile, tile) / 2.0
 
 
-## Inside the merchant chamber (secure ground).
+## Inside the merchant room (secure ground).
 func is_safe(pos: Vector2) -> bool:
 	return safe_rect.size != Vector2i.ZERO and safe_rect.has_point(cell_of(pos))
 

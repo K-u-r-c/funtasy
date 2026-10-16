@@ -52,7 +52,7 @@ func try_pickup(player: Player, g: GroundItem) -> void:
 		return
 	if g.item.get("kind", "") == "gold_key":
 		game.add_party_key(1)
-		game.broadcast_message.rpc("%s found a Gold Key - the Gilded Portal can be opened" % player.display_name, "#f0c850")
+		game.broadcast_message.rpc("%s found a Gold Key - Archibald will trade" % player.display_name, "#f0c850")
 		game.combat.fx.sound.rpc("key_unlock", g.global_position)
 		g.queue_free()
 		return

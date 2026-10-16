@@ -1,14 +1,15 @@
 class_name Merchants
 extends Node
-## The merchant chamber of every floor (GDD 5): Archibald the Gilded behind the Gilded Portal
-## (needs the party's Gold Key, D11) and Malphas the Soul Broker behind the Demon Altarpiece
-## (a blood tithe once per player per floor, D13). Host-authoritative: the stock, the open portal
-## and the contracts are replicated to everyone; every purchase is a host-validated intent.
+## The merchant of every floor (GDD 5, #6): one seeded pick per floor (Game.merchant_id) in its
+## own room - Archibald the Gilded (trades once the party hands him the floor's Gold Key, D11) or
+## Malphas the Soul Broker (a blood tithe once per player per floor, D13). Host-authoritative:
+## the stock, the open shop and the contracts are replicated to everyone; every purchase is a
+## host-validated intent.
 ##
 ## RPCs (all on this node, the same path on every peer):
 ## - request_buy(index) / request_sell(backpack index) / request_tithe(accept) /
 ##   request_contract(index) / request_pact(id): owner -> host, reliable.
-## - _sync(stock, contracts, portal_open), _open_ui(kind), _ask_tithe(text), _notice(text):
+## - _sync(stock, contracts, shop_open), _open_ui(kind), _ask_tithe(text), _notice(text):
 ##   host -> peers, reliable.
 
 signal changed
@@ -16,7 +17,7 @@ signal changed
 var game: Node
 var stock: Array = []  ## every peer: [{item, price, left}]
 var contracts: Array = []  ## every peer: indices into merchants.malphas.contracts
-var portal_open := false
+var shop_open := false  ## Archibald took this floor's Gold Key and trades
 var _tithe: Dictionary = {}  ## host: peer -> {"stat", "value"} rolled, "paid": bool
 var _signed: Dictionary = {}  ## host: peer -> [contract slots signed this floor]
 var rng := RandomNumberGenerator.new()
@@ -31,7 +32,7 @@ func host_new_floor(floor_seed: int, item_level: int) -> void:
 	rng.seed = floor_seed + 777
 	_tithe.clear()
 	_signed.clear()
-	portal_open = false
+	shop_open = false
 	var a: Dictionary = GameData.merchants.get("archibald", {})
 	var st: Array = []
 	var rar: Array = a.get("rarity", [2, 3])
@@ -50,7 +51,7 @@ func host_new_floor(floor_seed: int, item_level: int) -> void:
 	for i in mini(int(GameData.merchants.get("malphas", {}).get("contracts_per_floor", 2)), idx.size()):
 		picked.append(idx.pop_at(rng.randi_range(0, idx.size() - 1)))
 	contracts = picked
-	_sync.rpc(stock, contracts, portal_open)
+	_sync.rpc(stock, contracts, shop_open)
 
 
 static func item_value(item: Dictionary) -> int:
@@ -79,29 +80,23 @@ static func sell_price(item: Dictionary) -> int:
 	return maxi(each, 0)
 
 
-## Host: a player interacted with a merchant chamber piece.
+## Host: a player talked to the floor's merchant.
 func host_interact(p: Player, node: Node) -> void:
 	var d: Dictionary = node.def
-	match str(d.get("gate", d.get("npc", ""))):
-		"gilded":
-			if portal_open:
-				_notice.rpc_id(p.peer_id, "The Gilded Portal is open: trade with Archibald")
-			elif game.party_keys > 0:
-				game.add_party_key(-1)
-				portal_open = true
-				game.dungeon.open_chest.rpc(node.prop_id)
-				game.combat.fx.sound.rpc("key_unlock", node.global_position)
-				game.broadcast_message.rpc("%s opens the Gilded Portal with the Gold Key" % p.display_name, "#f0c850")
-				_sync.rpc(stock, contracts, portal_open)
-			else:
-				_notice.rpc_id(p.peer_id, "The Gilded Portal needs a Gold Key (elites may carry one)")
+	match str(d.get("npc", "")):
 		"archibald":
-			if portal_open:
+			if not shop_open and game.party_keys > 0:
+				game.add_party_key(-1)
+				shop_open = true
+				game.combat.fx.sound.rpc("key_unlock", node.global_position)
+				game.broadcast_message.rpc("%s hands Archibald the Gold Key" % p.display_name, "#f0c850")
+				_sync.rpc(stock, contracts, shop_open)
+			if shop_open:
 				game.combat.fx.sound.rpc("merchant_chime", node.global_position)
 				_open_ui.rpc_id(p.peer_id, "archibald")
 			else:
-				_notice.rpc_id(p.peer_id, "Archibald waits behind the locked Gilded Portal")
-		"demonic", "malphas":
+				_notice.rpc_id(p.peer_id, "Archibald trades only for the Gold Key (an elite on this floor may carry it)")
+		"malphas":
 			if _paid(p):
 				_open_ui.rpc_id(p.peer_id, "malphas")
 			else:
@@ -125,10 +120,14 @@ func _player_near(peer: int) -> Player:
 	if p == null or p.life_state != Player.Life.ALIVE or game.layout.get("merchant", {}).is_empty():
 		return null
 	var m: Dictionary = game.layout.merchant
-	var r := float(GameData.bal("merchant.interact_range"))
-	if p.global_position.distance_to(m.archibald) > r and p.global_position.distance_to(m.malphas) > r:
+	if p.global_position.distance_to(m.pos) > float(GameData.bal("merchant.interact_range")):
 		return null
 	return p
+
+
+## Host: the floor's merchant is `npc`.
+func _is(npc: String) -> bool:
+	return str(game.layout.get("merchant", {}).get("npc", "")) == npc
 
 
 static func stat_name(k: String) -> String:
@@ -155,7 +154,7 @@ func request_buy(index: int) -> void:
 		return
 	var peer := multiplayer.get_remote_sender_id()
 	var p := _player_near(peer)
-	if p == null or not portal_open or index < 0 or index >= stock.size():
+	if p == null or not _is("archibald") or not shop_open or index < 0 or index >= stock.size():
 		return
 	var e: Dictionary = stock[index]
 	if int(e.left) <= 0:
@@ -173,7 +172,7 @@ func request_buy(index: int) -> void:
 	p.host_add_gold(-int(e.price))
 	e.left = int(e.left) - 1
 	game.combat.fx.sound.rpc("coin", p.global_position)
-	_sync.rpc(stock, contracts, portal_open)
+	_sync.rpc(stock, contracts, shop_open)
 	_notice.rpc_id(peer, "Bought %s for %d gold" % [item.get("name", "item"), int(e.price)])
 
 
@@ -183,7 +182,7 @@ func request_sell(backpack_index: int) -> void:
 		return
 	var peer := multiplayer.get_remote_sender_id()
 	var p := _player_near(peer)
-	if p == null or not portal_open:
+	if p == null or not _is("archibald") or not shop_open:
 		return
 	if backpack_index < 0 or backpack_index >= p.inv.backpack.size():
 		return
@@ -208,7 +207,7 @@ func request_tithe(accept: bool) -> void:
 		return
 	var peer := multiplayer.get_remote_sender_id()
 	var p := _player_near(peer)
-	if p == null or not accept or _paid(p):
+	if p == null or not _is("malphas") or not accept or _paid(p):
 		return
 	var t := _tithe_for(p)
 	t.paid = true
@@ -268,7 +267,7 @@ func request_pact(pact_id: String) -> void:
 func _sync(new_stock: Array, new_contracts: Array, open: bool) -> void:
 	stock = new_stock
 	contracts = new_contracts
-	portal_open = open
+	shop_open = open
 	changed.emit()
 
 
