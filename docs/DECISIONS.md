@@ -390,3 +390,12 @@ uses an additive material (the additive ones are particles, the portal and item 
 | Item level | Drops, chests, altars, gold and Archibald's stock use `Game.item_level()` (the monster level, capped at 30), so items follow the same curve. |
 | Upgrade drops | `loot.upgrade_chance` 0.03: an equipment drop comes `loot.upgrade_levels` [2, 3] levels above the item level (never past the cap) and `loot.upgrade_rarity` 1 tier higher (at most Relic); the required level comes with it, so it is an item to grow into. The economy suite checks the rate over 20 000 seeded rolls and on chest loot. |
 | Pacing bands | The probe now puts the hero at the progression curve's mid-floor level in rare gear of the floor's item level and measures only the monsters that can spawn there, on depths 1-10, 12, 16, 20 (tier 3 first appears on 6-10). The one-hit floor (`normal_ttk_min`) applies from `normal_ttk_min_from_depth` 4: on the eased floors 1-3 trash may die to one hit. Vespera's HP 880 -> 1150 and the ash imp's 32 -> 38 keep them in the bands. All four classes pass. |
+
+### #9 The priest strikes in melee
+
+| Topic | Decision |
+| --- | --- |
+| Primary | The priest's primary attack is Holy Strike (`priest_holy_strike`): a melee arc like Fury Strike (48 px, 100 degrees, up to 3 enemies, 1 + 1.0x, holy damage, 0.7 s, 3 mana on hit). It is a melee hit (melee procs, reflection) but its power comes from Intellect: a skill's `power_school` picks the power stat when it differs from its school. |
+| Known from the start | A class's primary attack is always known (`Player.unlocked_skills`), so Holy Strike needs no talent node; the priest's tree keeps its 30 skills. |
+| Smite | Smite stays a tier-0 Dark Inquisitor skill node, now learned for one point (`legacy_starter`: free for priests saved before, so their loadouts with Smite as the primary keep working). It is still `primary_ok`. |
+| Doors | A hero's melee swing (any class) bursts a closed door in its arc open, so a melee primary meets props, barrels and doors alike; rusted floodgates stay shut and monsters' swings don't open doors. |

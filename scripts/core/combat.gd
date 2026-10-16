@@ -260,7 +260,7 @@ static func skill_numbers(st: Stats, level: int, skill: Dictionary) -> Dictionar
 	return {
 		"skill": sid, "school": school, "element": element,
 		"damage_type": GameData.damage_type_of(skill),
-		"power": st.power_for(school),
+		"power": st.power_for(str(skill.get("power_school", school))),
 		"damage_mult": dmg_mult,
 		"heal_mult": st.get_stat("healing_mult", 1.0) * (1.0 + st.skill_mod(sid, "heal_mult")),
 		"crit_chance": st.get_stat("crit_chance") + st.skill_mod(sid, "crit_add"),

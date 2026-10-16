@@ -66,6 +66,8 @@ screenshot review at 1920x1080 and 3440x1440.
 - [x] #8 Balance: kill XP curve (2-3 levels per floor, solo and 4 players), monster tiers gated by
       depth, easier floors 1-3, item level from one function, 3% upgrade drops (`balance-*` progression
       and pacing probes, `biomes`, `economy`)
+- [x] #9 Priest primary is the melee Holy Strike (Intellect-powered); melee swings burst doors open;
+      Smite learnable (`classes-*`, `skills-priest`, `ui-layout`, `skills-lan`, `full-pr`)
 
 ## PixelLab ledger
 

@@ -454,6 +454,15 @@ func _melee(eff: Dictionary, ctx: Dictionary, origin: Vector2, dir: Vector2) -> 
 			var tp: Vector2 = p.global_position - origin
 			if tp.length() < 10.0 or absf(dir.angle_to(tp)) <= half_arc:
 				p.take_damage(value_of_spec(eff.get("damage", {}), ctx), ctx)
+		# A hero's swing bursts a closed door in its arc open (#9); rusted floodgates hold.
+		if ctx.team == Actor.Team.PLAYERS and ctx.caster is Player:
+			for d in game.dungeon.doors:
+				if d.is_open or d.floodgate:
+					continue
+				var dc: Vector2 = d.world_rect.get_center()
+				var near: Vector2 = Vector2(clampf(origin.x, d.world_rect.position.x, d.world_rect.end.x), clampf(origin.y, d.world_rect.position.y, d.world_rect.end.y))
+				if near.distance_to(origin) <= reach and (near.distance_to(origin) < 10.0 or absf(dir.angle_to(dc - origin)) <= half_arc):
+					d.host_set_open(true)
 	fx.melee.rpc(origin, dir, reach, rad_to_deg(half_arc * 2.0), str(eff.get("fx", "slash")))
 
 

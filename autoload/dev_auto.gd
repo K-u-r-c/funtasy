@@ -1384,6 +1384,7 @@ func _classes_scenario() -> void:
 	var p := _local()
 	await _wait(1.0)
 	_starting_kit_checks(p)
+	await _primary_env_checks(g, p)
 	# Only skill use is checked here: a lucky monster pack must not wipe the solo hero.
 	p.iframe_left = 9999.0
 	var target := _nearest_enemy(p.global_position)
@@ -1407,6 +1408,55 @@ func _classes_scenario() -> void:
 	else:
 		check(p.resource.max_value > 0.0, "mana pool exists")
 	await _wait(0.5)
+
+
+## A melee primary (warrior, priest since #9) hits the monster in front, breaks a prop in its
+## arc and bursts a closed door open.
+func _primary_env_checks(g: Node, p: Player) -> void:
+	var sid := str(p.class_def.primary_attack)
+	var sk := GameData.skill(sid)
+	if not Array(sk.effects).any(func(e): return str(e.type) == "melee"):
+		return
+	var c: Vector2 = g.layout.start
+	for e in g.enemies_root.get_children():
+		if e.global_position.distance_to(c) < 260.0:
+			e.queue_free()
+	p.iframe_left = 9999.0
+	p.host_teleport(c)
+	await _wait(0.3)
+	var mon: Enemy = g.spawn_monster("ghoul", g.nearest_floor(c + Vector2(30, 0)), false)
+	g.dungeon._add_prop("TestPrimaryCrate", "crate", c + Vector2(26, 16))
+	await _wait(0.3)
+	mon.set_physics_process(false)
+	mon.behaviors = []
+	var hp0 := mon.health.hp
+	var crate: Node = g.dungeon.props["TestPrimaryCrate"]
+	for i in 8:
+		p.cooldowns.erase(sid)
+		Combat.instance.try_use_skill(p, sid, c + Vector2(40, 8), {"primary": true})
+		await _wait(0.25)
+	check(not is_instance_valid(mon) or mon.health.hp < hp0 or not mon.is_alive(), "%s: the primary attack (%s) damages a monster" % [p.class_id, sk.name])
+	check(not is_instance_valid(crate) or not crate.destructible(), "%s: the primary attack breaks a crate" % p.class_id)
+	if is_instance_valid(mon):
+		mon.queue_free()
+	var door: Node = null
+	for d in g.dungeon.doors:
+		if not d.vertical and not d.floodgate:
+			door = d
+			break
+	if door == null:
+		return
+	door.host_set_open(false)
+	await _wait(0.2)
+	var stand: Vector2 = g.nearest_floor(Vector2(door.world_rect.get_center().x, door.world_rect.end.y + 16.0))
+	p.host_teleport(stand)
+	await _wait(0.2)
+	p.cooldowns.erase(sid)
+	Combat.instance.try_use_skill(p, sid, door.world_rect.get_center(), {"primary": true})
+	await _wait(0.4)
+	check(door.is_open, "%s: the primary attack bursts a closed door open (%s)" % [p.class_id, door.name])
+	p.host_teleport(c)
+	await _wait(0.2)
 
 
 ## Simple start (#1): primary + the one basic skill, four empty slots, only those two unlocked;
@@ -1645,7 +1695,8 @@ func _ui_layout_scenario() -> void:
 	hud.open_overlay(hud.SkillBookPanel.new())
 	await _wait(0.5)
 	var sbp: Node = hud._overlay
-	check(sbp._skill_buttons.size() == 30, "Skill Book lists all 30 unlocked skills (%d)" % sbp._skill_buttons.size())
+	var book_n := lp.unlocked_skills().size()
+	check(sbp._skill_buttons.size() == book_n and book_n >= 30, "Skill Book lists all %d unlocked skills (%d)" % [book_n, sbp._skill_buttons.size()])
 	var sbw: Rect2 = sbp.window.get_global_rect()
 	check(get_viewport().get_visible_rect().encloses(sbw), "the full Skill Book fits on screen")
 	var sb_nodes: Array = sbp._slot_buttons + sbp._skill_buttons.values()
@@ -1769,7 +1820,8 @@ func _skill_tooltip_checks(hud: Node, win: Window) -> void:
 	check(str(shown.call()).begins_with("%d " % base_value) and _tip_text(tip2).contains("%d (crit" % base_value),
 			"%s tooltip shows %d damage (host formula), cooldown %.1fs" % [sk.name, base_value, p0.stats.cooldown_for(sk)])
 	check(_tip_text(tip2).contains("%.1fs" % p0.stats.cooldown_for(sk)), "tooltip shows the effective cooldown")
-	var school_power := "power_" + ("spell" if str(sk.get("school")) == "spell" else str(sk.get("school")))
+	var power_school := str(sk.get("power_school", sk.get("school")))
+	var school_power := "power_" + ("spell" if power_school == "spell" else power_school)
 	p0.stats.final[school_power] = float(p0.stats.final.get(school_power, 0.0)) + 100.0
 	await _wait(0.1)
 	var boosted: int = expect.call()

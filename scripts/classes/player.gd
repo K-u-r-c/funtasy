@@ -239,11 +239,12 @@ func node_rank(nd: Dictionary) -> int:
 	return 1 if is_free_node(nd) else int(talents.get(nd.id, 0))
 
 
-## Skills this hero may slot / that work as passives: starters + learned skill nodes.
+## Skills this hero may slot / that work as passives: the class's primary attack (always known,
+## #9), starters + learned skill nodes.
 func unlocked_skills() -> Array:
-	var out: Array = []
+	var out: Array = [str(class_def.get("primary_attack", ""))]
 	for nd in talent_tree().get("nodes", []):
-		if nd.get("type", "") == "skill" and node_rank(nd) > 0:
+		if nd.get("type", "") == "skill" and node_rank(nd) > 0 and not out.has(str(nd.skill)):
 			out.append(str(nd.skill))
 	return out
 

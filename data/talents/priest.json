@@ -7,7 +7,7 @@
 		{"id": "dark_inquisitor", "name": "Dark Inquisitor", "description": "Smite, shadow and penance."}
 	],
 	"nodes": [
-		{"id": "p_s_smite", "branch": "dark_inquisitor", "tier": 0, "type": "skill", "skill": "priest_smite", "max_rank": 1, "starter": true},
+		{"id": "p_s_smite", "branch": "dark_inquisitor", "tier": 0, "type": "skill", "skill": "priest_smite", "max_rank": 1, "legacy_starter": true},
 		{"id": "p_s_heal", "branch": "divine_shepherd", "tier": 0, "type": "skill", "skill": "priest_heal", "max_rank": 1, "starter": true},
 		{"id": "p_s_renew", "branch": "divine_shepherd", "tier": 1, "type": "skill", "skill": "priest_renew", "max_rank": 1},
 		{"id": "p_s_holy_shield", "branch": "divine_shepherd", "tier": 0, "type": "skill", "skill": "priest_holy_shield", "max_rank": 1, "legacy_starter": true},

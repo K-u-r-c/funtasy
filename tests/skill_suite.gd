@@ -33,7 +33,12 @@ func run_class(class_id: String) -> void:
 	ids.sort()
 	await _prepare()
 	_class_run = true
-	da.check(ids.size() == 30, "%s has %d skills in data" % [class_id, ids.size()])
+	# 30 talent-tree skills (GDD 3); a class primary outside the tree (the priest's Holy Strike, #9)
+	# comes on top.
+	var tree_ids: Array = p.talent_tree().get("nodes", []).filter(func(nd): return nd.get("type", "") == "skill").map(func(nd): return str(nd.skill))
+	var extra: Array = ids.filter(func(x): return not tree_ids.has(x))
+	da.check(tree_ids.size() == 30 and (extra.is_empty() or extra == [str(GameData.classes[class_id].primary_attack)]),
+			"%s has 30 tree skills (%d) plus at most its primary (%s)" % [class_id, tree_ids.size(), extra])
 	_unlock_all_skills()
 	for sid in ids:
 		await cast_and_check(str(sid))
