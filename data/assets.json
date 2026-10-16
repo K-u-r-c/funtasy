@@ -212,6 +212,16 @@
 		"portal": {"path": "res://assets/sprites/pixellab/props/portal.png", "frames": 4, "fps": 8}
 	},
 	"items": {
+		"pact_thorns": "res://assets/sprites/pixellab/icons/pact/pact_thorns.png",
+		"pact_leech_oil": "res://assets/sprites/pixellab/icons/pact/pact_leech_oil.png",
+		"pact_magma": "res://assets/sprites/pixellab/icons/pact/pact_magma.png",
+		"pact_serum": "res://assets/sprites/pixellab/icons/pact/pact_serum.png",
+		"pact_hellfire": "res://assets/sprites/pixellab/icons/pact/pact_hellfire.png",
+		"pact_phantasmal": "res://assets/sprites/pixellab/icons/pact/pact_phantasmal.png",
+		"pact_astral": "res://assets/sprites/pixellab/icons/pact/pact_astral.png",
+		"pact_void_eye": "res://assets/sprites/pixellab/icons/pact/pact_void_eye.png",
+		"pact_butcher": "res://assets/sprites/pixellab/icons/pact/pact_butcher.png",
+		"pact_colossus": "res://assets/sprites/pixellab/icons/pact/pact_colossus.png",
 		"quiver": "res://assets/sprites/pixellab/icons/legendary/quiver.png",
 		"torch_bundle": "res://assets/sprites/pixellab/items/gdd/torch_bundle.png",
 		"gold_key": "res://assets/sprites/pixellab/items/gdd/gold_key.png",
