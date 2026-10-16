@@ -567,12 +567,25 @@ func _full_scenario() -> void:
 	host_p.iframe_left = 30.0
 	await _interaction_choice_checks(g, host_p)
 	# --- 3. Doors -----------------------------------------------------------------------------
+	# A plain door the host can reach, with nobody standing in its doorway (an open door
+	# never closes on someone).
 	var door: Node = g.dungeon.doors[0]
+	var reach := float(GameData.bal("world.interact_range")) + 20.0
+	for dr in g.dungeon.doors:
+		if dr.floodgate or dr.monster_proof:
+			continue
+		var stand: Vector2 = g.nearest_floor(dr.interact_pos() + Vector2(0, 40))
+		var blocked := Combat.instance.all_actors().any(func(a): return dr.world_rect.grow(4).has_point(a.global_position))
+		if stand.distance_to(dr.interact_pos()) <= reach and not blocked:
+			door = dr
+			break
 	host_p.host_teleport(g.nearest_floor(door.interact_pos() + Vector2(0, 40)))
 	await _wait(0.4)
 	var was_open: bool = door.is_open
 	g.host_interact(host_p, door)
 	await _wait(0.4)
+	if door.is_open == was_open:
+		print("[auto:host] door %s not toggled: hero %.0f px from it, open %s" % [door.name, host_p.global_position.distance_to(door.interact_pos()), was_open])
 	check(door.is_open != was_open, "host toggled a door")
 	NetworkManager.to_clients("DevAuto", "client_cmd", ["check_door", [door.name, door.is_open]])
 	await _wait(0.5)

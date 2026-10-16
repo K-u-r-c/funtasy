@@ -31,7 +31,8 @@
 			"id": "kamikaze",
 			"trigger": 26,
 			"fuse": 3.0,
-			"skill": "tick_burst"
+			"skill": "tick_burst",
+			"test_wait": 5.5
 		}
 	],
 	"collision_radius": 4,

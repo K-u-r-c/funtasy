@@ -139,6 +139,11 @@ Goal cap: 2500 generations, and never more than the remaining allowance. Spend =
       as host (`tools/run_tests.sh steam`, 2026-10-16). A second-account join was confirmed earlier; recheck
       it on two machines when convenient.
 
+- [x] Test hardening after the GDD runs (2026-10-16): the LAN door check picks a reachable door with an empty
+      doorway (an open door never closes on someone standing in it), the blood tick's 3 s fuse gets a 5.5 s
+      test window, the foundry splash check allows three pulses (one can be dodged), and the warded-dummy
+      resist check prints both numbers if it ever misses (not reproduced in 8 reruns).
+
 ## Known limitations
 
 - Movement is client-predicted; the host only clamps speed (no full reconciliation).
