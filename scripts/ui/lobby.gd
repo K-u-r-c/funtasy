@@ -223,7 +223,7 @@ func _build_preview_panel() -> Control:
 			_gear_toggle.toggle_mode = true
 			_gear_toggle.button_pressed = true
 			_gear_toggle.text = "Class gear"
-			_gear_toggle.tooltip_text = "Heroes start without equipment; this shows the class in typical gear."
+			_gear_toggle.tooltip_text = "Heroes start with only a basic class weapon; this shows the class in typical gear."
 			_gear_toggle.custom_minimum_size = Vector2(0, 28)
 			_gear_toggle.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			_gear_toggle.toggled.connect(func(_on): _update_preview())
