@@ -335,3 +335,11 @@ effect (Banshee's Mournful Shriek) snuffs wall torches only, and Vespera's Vermi
 status, monster skill, boss or floor mechanic touches `torch_left`; wall torches can still be broken
 (projectiles, the shriek) or taken. Tests: the monster suite (a shrieked hero keeps the torch), the
 Vespera mechanic check (the swarm leaves the torch burning) and the `test_extinguish` primitive.
+
+### #4 Burrowing and hidden monsters
+
+| Topic | Decision |
+| --- | --- |
+| Carrion Crawler (`burrow`) | While it hunts a target it stays underground for at most `under` 2.5 s per dive (the clock includes the `warn` 0.6 s surfacing telegraph; a crawler with no target lies dormant and its clock waits). It moves at its walk speed (`speed_mult` 1.0, capped at 1), surfaces next to its target or when the time is up after a ground marker (the same `windup_marker` as #2), bursts out, and stays up for `surface` 5 s (never below 4) before the next dive. |
+| Gutter Stalker / Bramble Warden (`submerged_stealth`) | The same rules for their stealth statuses: at most `under` 2.5 s hidden while hunting, a `warn` 0.6 s marker before they surface (in reach of their target or when the time is up), then their first ability - still a critical strike from stealth - and at least `surface` 4 s above before they can hide again (plus the old `rest` 6 s with no hero within 120 px). While hidden and hunting they neither attack nor switch targets; a hit reveals them at once. |
+| Vulkania | Her magma dive is a boss phase mechanic (she stays in place, geysers telegraph), not a burrowing behaviour, and is unchanged. |

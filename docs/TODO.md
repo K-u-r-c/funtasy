@@ -56,6 +56,8 @@ screenshot review at 1920x1080 and 3440x1440.
       damage (`monsters`, `bosses`, `full-wm` client check, `boss-cernunnos`)
 - [x] #3 The carried torch only burns out (shriek / vermin swarm keep it; `monsters`, `bosses`,
       `primitives`, `darkness`, `boss-vespera`)
+- [x] #4 Burrowers / hidden monsters: 2.5 s per dive, walk speed, surfacing telegraph, 4 s+ above
+      (`monsters`, `biomes-sewers`, `biomes-kurgan`)
 
 ## PixelLab ledger
 

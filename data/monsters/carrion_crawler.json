@@ -28,9 +28,12 @@
 	"behaviors": [
 		{
 			"id": "burrow",
-			"surface": 6.0,
-			"speed_mult": 1.6,
-			"burst": "crawler_burst"
+			"under": 2.5,
+			"warn": 0.6,
+			"surface": 5.0,
+			"speed_mult": 1.0,
+			"burst": "crawler_burst",
+			"test_wait": 12
 		}
 	],
 	"behavior_visuals": {

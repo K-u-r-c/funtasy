@@ -29,7 +29,11 @@
 		{
 			"id": "submerged_stealth",
 			"status": "camouflaged",
-			"rest": 6.0
+			"under": 2.5,
+			"warn": 0.6,
+			"surface": 4.0,
+			"rest": 6.0,
+			"test_wait": 8
 		}
 	],
 	"collision_radius": 8,
