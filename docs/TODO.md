@@ -22,9 +22,11 @@ screenshot review at 1920x1080 and 3440x1440.
 - [x] **3. Classes**: 120 skills, 4 talent trees with keystones, icons, VFX, SFX keys, tooltips
       (verified: `skills-warrior/ranger/mage/priest`, `skills-lan` suites, full suite green, screenshots
       of skills, talents, Skill Book)
-- [ ] **4. Crypt complete**: 4 new + 3 extended monsters, Morvath + Vespera, hazards (pressure
-      plates, pendulums), props, mechanics (unlit regen, urn miasma), lore drops.
-      **Visual checkpoint with the user before art for other biomes.**
+- [x] **4. Crypt complete**: 4 new + 3 extended monsters, Morvath + Vespera, hazards (pressure
+      plates, pendulums), props, mechanics (unlit regen, urn miasma), lore drops (verified: `monsters`,
+      `bosses`, `biomes`, `boss` + `boss-vespera` LAN pairs, full suite green, biome tour screenshots at
+      1920x1080 and 3440x1440). **Visual checkpoint asked of the user on 2026-10-16; art for other
+      biomes waits for the answer (placeholders meanwhile).**
 - [ ] **5. Sewers** (tileset, props, hazards, mechanics, 7 monsters, Murk Amalgam + Krazik, lore, music keys)
 - [ ] **6. Foundry** (... Ignis + Vulkania ...)
 - [ ] **7. Archives** (... Malazar + Memory Devourer ...)
