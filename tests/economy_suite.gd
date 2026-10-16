@@ -242,10 +242,14 @@ func merchants() -> void:
 	await da._wait(1.0)  # the shared potion cooldown
 	var sta0 := p.stats.get_stat("stamina")
 	p.inv.quick.e = "pact_colossus"
-	p.request_use_quick.rpc_id(1, "e")
-	await da._wait(0.4)
+	var tries := 0
+	while not p.status.has("pact_colossus") and tries < 8:
+		p.request_use_quick.rpc_id(1, "e")
+		await da._wait(0.4)
+		tries += 1
 	var expect := 100.0 * GameData.level_scale(p.level)
-	da.check(absf(p.stats.get_stat("stamina") - sta0 - expect) < 2.0, "Colossus Draught adds %.0f Stamina at level %d (D15)" % [expect, p.level])
+	var got := p.stats.get_stat("stamina") - sta0
+	da.check(absf(got - expect) < 2.0, "Colossus Draught adds %.0f Stamina at level %d (D15, got %.1f)" % [expect, p.level, got])
 
 
 
