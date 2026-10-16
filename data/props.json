@@ -18,6 +18,6 @@
 	"rotted_banner": {"name": "Rotted Banner", "sprite": "props.rotted_banner", "hp": 6, "size": [16, 6], "blocks_sight": true, "debris": true, "sfx": "break"},
 	"bone_pile": {"name": "Bone Pile", "sprite": "props.bone_pile", "hp": 10, "size": [18, 8], "blocks_sight": false, "debris": true, "sfx": "bone_collapse", "drop_chance": 0.05},
 	"crusader_remains": {"name": "Crusader Remains", "sprite": "props.crusader_remains", "hp": 12, "size": [24, 8], "blocks_sight": false, "debris": true, "sfx": "break", "drop_chance": 0.2},
-	"bone_spears": {"name": "Bone Spears", "sprite": "props.bone_spears", "hp": 22, "size": [10, 6], "blocks_sight": false, "debris": true, "sfx": "bone_collapse", "no_loot": true},
+	"bone_spears": {"name": "Bone Spears", "sprite": "props.bone_spears", "hp": 22, "size": [10, 6], "blocks_sight": false, "debris": true, "sfx": "bone_collapse", "no_loot": true, "players_only": true},
 	"consecrated_shrine": {"name": "Consecrated Shrine", "sprite": "props.consecrated_shrine", "sprite_open": "props.consecrated_shrine_lit", "hp": 0, "size": [24, 10], "blocks_sight": false, "interactable": true, "verb": "Light", "loot": "none", "light_open": "#fff0a0"}
 }

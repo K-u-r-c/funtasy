@@ -166,6 +166,24 @@ proposal left a choice open, the chosen option is stated, and any change to a pr
 | Icons | 120 skill / keystone icons come from 8 PixelLab Pixen icon sheets (4x4 icons of 32 px each, 1 generation per sheet), cut by `tools/cut_icon_sheet.py`. Passive talent nodes show their initials. |
 | Skill VFX | New skills use the shared effect visuals (rings, beams, chains, zones, projectiles). Bespoke animated effects (vfx_workbench) are a later polish item. |
 
+### The Crypt (phase 4) - readings of the GDD
+
+| Topic | Decision |
+| --- | --- |
+| Architecture | Profile `labyrinth_vaults` (`generator` block of the floor type): corridors bend through a jittered midpoint, 4 extra loops, 40% of normal rooms are pillared halls (a pillar every 3 cells). Corridors stay 2 cells wide: doors need 2-3 cell openings and the 48 px monsters must pass. |
+| Hazards | The Crypt has no lava pools and no cyclic floor spikes (MVP hazards; lava moves to the Foundry); explosive barrels stay as a rare prop. Pressure plates: 0-2 per normal room, only players trigger them, 0.35 s click, spikes on the 3x3 cells around (`spikes_damage` 14), 4 s re-arm. Pendulum scythes: 2-4 per floor on straight corridor stretches, swing from the shared floor clock (deterministic on every peer), 18 damage + a shove, one hit per 0.8 s. |
+| Chilling Breath (D36) | "Unlit" = outside every gameplay light (wall / carried torches, lava, spell lights, lit shrines) except the hero's own faint vision glow, which exists on one machine only. Checked twice a second; halves Mana / Fury regeneration and generation. |
+| Grave urns | 15% to release a 56 px miasma cloud: 4% of max HP per second for 4 s, nature damage, hurts monsters too (D37). |
+| Skeletal Footman | Collapses into a bone pile at 0 HP and stands up after 4 s with 30% HP; only area damage (AoE, zones, explosions) breaks a pile, and a killing blow from an area attack leaves no pile. |
+| Crypt Ghoul | Pounces on the furthest player within 280 px every 9 s (0.6 s stun); devours a corpse within 150 px (1.2 s channel): +50% HP and Feeding Frenzy (+40% haste). |
+| Tomb Cultist | Every 8 s, a 2 s chant raises a fallen footman / archer within 150 px at 50% HP (interrupted by any CC). |
+| Dread Wight / Banshee | The door-shield takes 70% less damage in a 120 degree front arc (not DoTs). The Banshee takes 50% less physical damage; its shriek (200 px) silences for 2.5 s and snuffs wall torches for good and carried torches. |
+| Carrion Crawler | Burrowed it is an untargetable mound moving 1.6x faster; under its target it bursts out (area damage + 2 stacks of Paralyzing Venom), fights for 6 s, burrows again. |
+| Morvath | P1: Crushing Stomp (3 expanding rings), Ossuary Cage every 16 s (4 bone spear props, 22 HP each; the victim is rooted; after 6 s an execution deals 60% of max HP as true damage). P2: a bone shield of 25% max HP + 3% per skeleton corpse in the arena, sarcophagus lids under every player every 8 s (1.5 s red telegraph, the lid stays as cover for 8 s), Bone Whirlwind every 14 s for 4 s (reflects projectiles, pulls players in). His summon raises Skeletal Footmen. |
+| Vespera | P1: Black Anointing every 12 s (5 s brand, 80 px, damage x (1 + allies inside)), Vermin Swarm every 15 s (3 s blind, carried torches out). P2 below 40%: every 40 s she flies for 20 s (melee can't reach her) while Chant of the Damned ramps on the party; two consecrated shrines rise at the arena's east and west edges, lighting both grounds her with a 3 s stun. |
+| Boss pick | The host picks the floor's boss from the floor type's `bosses` list with the floor seed and sends the id with the floor build (tests pin one with `--boss=<id>`). Boss music comes from the boss's `music` key. |
+| Art method | Monsters: PixelLab v3 characters (48 px; Vespera 72 px), template animations on 5 drawn directions, W / NW / SW mirrored (`tools/build_monster.py`). Props: `create_map_object` (1 generation each), trimmed; lit / open variants (shrine, Gilded Portal) are recoloured copies, not generations. |
+
 ### Skill groups per talent branch (D1)
 
 Tier in brackets. **Bold** = starter (free) skill.

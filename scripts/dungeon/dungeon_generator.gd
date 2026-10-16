@@ -426,11 +426,20 @@ func _place_plates(rooms: Array, fd: Dictionary, used: Dictionary) -> Array:
 			continue
 		for i in rng.randi_range(int(fd.plates_per_room[0]), int(fd.plates_per_room[1])):
 			var c := _free_cell(room.rect, 2, used, false)
-			if c.x >= 0:
-				for dx in range(-1, 2):
-					for dy in range(-1, 2):
-						used[c + Vector2i(dx, dy)] = true
-				out.append({"cell": c})
+			if c.x < 0:
+				continue
+			# The spikes rise on the 3x3 cells around the plate: keep them clear of props.
+			var clear := true
+			for dx in range(-1, 2):
+				for dy in range(-1, 2):
+					if used.has(c + Vector2i(dx, dy)) or get_cell(c + Vector2i(dx, dy)) != CELL_FLOOR:
+						clear = false
+			if not clear:
+				continue
+			for dx in range(-1, 2):
+				for dy in range(-1, 2):
+					used[c + Vector2i(dx, dy)] = true
+			out.append({"cell": c})
 	return out
 
 

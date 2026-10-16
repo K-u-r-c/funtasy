@@ -488,13 +488,17 @@ func _update_boss() -> void:
 	var b := get_tree().get_first_node_in_group("boss")
 	if preview_full and b:
 		_boss_panel.visible = true
-		_boss_name.text = "%s  - Enraged!" % b.display_name
+		_boss_name.text = "%s  - Phase 2" % b.display_name
 		_boss_bar.set_values(0.5, 0.0, "50%")
 	elif b and is_instance_valid(b) and b.aggro:
 		if not _boss_panel.visible:
 			_boss_panel.visible = true
 			UIFx.pop_in(_boss_panel, false)
-		_boss_name.text = "%s%s" % [b.display_name, "  - Enraged!" if b.phase > 0 else ""]
+		var phases: Array = b.def.get("phases", [])
+		var title := ""
+		if b.phase > 0 and b.phase < phases.size():
+			title = "  - " + str(phases[b.phase].get("title", "Phase %d" % (b.phase + 1)))
+		_boss_name.text = b.display_name + title
 		_boss_bar.set_values(b.health.fraction(), 0.0, "%d%%" % ceili(b.health.fraction() * 100.0))
 	else:
 		_boss_panel.visible = false
@@ -819,6 +823,8 @@ class StatusChip:
 	var _left := 0.0
 	var _max := 0.0
 	var _stacks := 1
+	var _icon: Texture2D
+	var _icon_key := ""
 
 	func _init() -> void:
 		custom_minimum_size = Vector2(22, 22)
@@ -845,7 +851,11 @@ class StatusChip:
 		var f := UITheme.font()
 		var icon_key := "status_icons." + _id
 		if GameData.asset_exists(icon_key):
-			draw_texture_rect(GameData.texture(icon_key), Rect2(2, 2, r.size.x - 4, r.size.y - 5), false)
+			# Held in a member: a texture freed right after _draw would render as a white quad.
+			if _icon_key != icon_key:
+				_icon_key = icon_key
+				_icon = GameData.texture(icon_key)
+			draw_texture_rect(_icon, Rect2(2, 2, r.size.x - 4, r.size.y - 5), false)
 		else:
 			var name_: String = str(def.get("name", _id))
 			var t := name_.substr(0, 2)

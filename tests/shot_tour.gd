@@ -192,3 +192,121 @@ func _skills(_arg: String) -> void:
 		await da._wait(0.6)
 		await snap("skills_%s_%s" % [p.class_id, tab])
 	hud.close_overlay()
+
+
+## A biome (default: the current floor): a furnished room, its hazards, every monster of the
+## biome in a frozen line-up (with their behaviour looks) and both bosses in each phase.
+func _biome(_arg: String) -> void:
+	p.iframe_left = 9999.0
+	var fid := str(g.floor_def.id)
+	# The most furnished normal room.
+	var best := -1
+	var best_n := -1
+	for i in g.layout.rooms.size():
+		var room: Dictionary = g.layout.rooms[i]
+		if room.role != "normal":
+			continue
+		var rect := Rect2(Vector2(room.rect.position * g.dungeon.tile), Vector2(room.rect.size * g.dungeon.tile))
+		var n := 0
+		for pr in g.layout.props:
+			if rect.has_point(pr.pos):
+				n += 1
+		if n > best_n:
+			best_n = n
+			best = i
+	for e in g.enemies_root.get_children():
+		e.queue_free()
+	if best >= 0:
+		p.host_teleport(g.nearest_floor(g.dungeon.cell_center(Vector2i(g.layout.rooms[best].rect.get_center()))))
+		await da._wait(1.2)
+		await snap("%s_room" % fid)
+	if not g.dungeon.pendulums.is_empty():
+		var pend: Node2D = g.dungeon.pendulums[0]
+		p.host_teleport(g.nearest_floor(pend.global_position + Vector2(0, 70)))
+		await da._wait(1.0)
+		await snap("%s_pendulum" % fid)
+	if not g.dungeon.plates.is_empty():
+		var plate: Node2D = g.dungeon.plates[0]
+		p.host_teleport(plate.global_position + Vector2(0, -4))
+		await da._wait(0.55)
+		await snap("%s_plate" % fid)
+	# Monster line-up in the start room, frozen so the shot is calm.
+	var start: Vector2 = g.layout.start
+	p.host_teleport(start + Vector2(0, 60))
+	var ids: Array = []
+	for m in g.floor_def.monsters:
+		ids.append(str(m.id))
+	var row: Array = []
+	for i in ids.size():
+		var e: Enemy = g.spawn_monster(ids[i], g.nearest_floor(start + Vector2(-165 + 55 * i, -20)), false)
+		if e:
+			e.set_physics_process(false)
+			e.facing = Vector2.DOWN
+			row.append(e)
+	await da._wait(1.0)
+	p.status.clear_all()
+	await snap("%s_monsters" % fid)
+	# Behaviour looks: the footman's bone pile, the crawler's mound...
+	for e in row:
+		var vis: Dictionary = e.def.get("behavior_visuals", {})
+		if not vis.is_empty():
+			e.behavior_state = str(vis.keys()[0])
+	await da._wait(0.4)
+	await snap("%s_monster_states" % fid)
+	for e in row:
+		e.queue_free()
+	await da._wait(0.3)
+	# Bosses: each phase with its mechanics running.
+	for bid in g.floor_def.get("bosses", []):
+		await _boss_shots(str(bid))
+
+
+func _boss_shots(bid: String) -> void:
+	for e in g.enemies_root.get_children():
+		e.queue_free()
+	Combat.instance.clear_floor()
+	await da._wait(0.4)
+	var bpos: Vector2 = g.layout.boss_pos
+	p.host_teleport(g.nearest_floor(bpos + Vector2(0, 90)))
+	var boss: Enemy = g.spawn_monster(bid, bpos, true)
+	await da._wait(0.3)
+	boss.add_threat(p, 10.0)
+	await da._wait(2.0)
+	await snap("boss_%s_p1" % bid)
+	for i in boss.def.phases.size():
+		if i > 0:
+			boss.health.absorb = 0.0
+			boss.health.hp = boss.health.max_hp * maxf(float(boss.def.phases[i - 1].hp_above) - 0.03, 0.02)
+			var t := 0.0
+			while boss.phase < i and t < 6.0:
+				await da._wait(0.2)
+				t += 0.2
+			await da._wait(1.0)
+			await snap("boss_%s_p%d" % [bid, i + 1])
+		for m in boss.mechanics.duplicate():
+			p.iframe_left = 9999.0
+			m.trigger()
+			await da._wait(1.0)
+			await snap("boss_%s_p%d_%s" % [bid, i + 1, m.params.get("id", "mech")])
+			await da._wait(0.5)
+	boss.queue_free()
+	await da._wait(0.3)
+
+
+## Every status icon on the hero's buff bar, a dozen at a time.
+func _statuses(_arg: String) -> void:
+	p.iframe_left = 9999.0
+	var ids: Array = GameData.status_effects.keys().filter(func(k): return not str(k).begins_with("test_") and not str(k).begins_with("_"))
+	ids.sort()
+	var ctx := Combat.instance.env_ctx(0.0)
+	var page := 0
+	while page * 12 < ids.size():
+		p.status.clear_all()
+		for id in ids.slice(page * 12, page * 12 + 12):
+			p.status.effects.append({"id": id, "def": GameData.status_effects[id], "remaining": 30.0, "tick_left": 99.0,
+				"magnitude": 0.0, "stacks": 1, "source": ctx, "src_node": null, "charges": 0, "recorded": 0.0})
+		p.status._publish()
+		await da._wait(0.4)
+		await snap("statuses_%02d" % page)
+		page += 1
+	p.status.clear_all()

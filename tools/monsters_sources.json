@@ -816,6 +816,415 @@
 					"south": "0f13bc68-9f41-41c9-8610-0f6b9886a46d"
 				}
 			}
+		},
+		"banshee": {
+			"character": "c55c38ef-33e8-4a5e-a763-8b457f72fb3e",
+			"cell": 64,
+			"canvas": 48,
+			"out": "res://assets/sprites/pixellab/monsters/banshee",
+			"mirror": {
+				"west": "east",
+				"north-west": "north-east",
+				"south-west": "south-east"
+			},
+			"anims": {
+				"idle": {
+					"src": "idle",
+					"pick": [
+						0,
+						1,
+						2,
+						3
+					],
+					"fps": 5
+				},
+				"walk": {
+					"src": "walk",
+					"pick": [
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7
+					],
+					"fps": 12
+				},
+				"attack": {
+					"src": "cast",
+					"pick": [
+						0,
+						1,
+						2,
+						3,
+						4,
+						5
+					],
+					"fps": 10
+				},
+				"cast": {
+					"src": "cast",
+					"pick": [
+						0,
+						1,
+						2,
+						3,
+						4,
+						5
+					],
+					"fps": 12
+				},
+				"dash": {
+					"src": "walk",
+					"pick": [
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7
+					],
+					"fps": 16
+				},
+				"hit": {
+					"src": "idle",
+					"pick": [
+						0,
+						1
+					],
+					"fps": 10
+				},
+				"downed": {
+					"src": "death",
+					"pick": [
+						6,
+						6
+					],
+					"fps": 2
+				},
+				"death": {
+					"src": "death",
+					"pick": [
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6
+					],
+					"fps": 10
+				}
+			},
+			"groups": {
+				"death": {
+					"north-east": "057ab43a-b2ab-4445-9128-7819db169569",
+					"north": "5328e132-7030-4ad3-b2d4-bb7fa32979f1",
+					"east": "26442f4c-a167-4f20-bacf-9e62639fdc28",
+					"south": "92cf9c30-e40d-47bc-90bf-64083cdcb9a7",
+					"south-east": "34980de6-b747-48a6-81a8-0e496c6667b7"
+				},
+				"cast": {
+					"north-east": "1a3b1492-9109-4c20-8bf0-9c458f10da2a",
+					"north": "337d0459-56d8-4d5f-80e8-31383309acbb",
+					"east": "4cecdae9-7288-4fdc-9991-04fe09a67edf",
+					"south-east": "a1f54c6a-6192-4c84-bc50-34e859025896",
+					"south": "c662ab17-437c-4719-9e0f-a36918fa2f74"
+				},
+				"walk": {
+					"east": "8e4c76b3-8afa-40dd-964b-6f040de062ce",
+					"north-east": "9ef666e6-df17-4134-9e36-0a1792514286",
+					"south": "6b43a467-d3c8-4fd5-bd41-aef18b1d73a9",
+					"north": "811221a5-5afa-4f96-83fc-042fbf69a6d7",
+					"south-east": "8d9f458c-8c90-49ca-a3eb-c3797eedf0e0"
+				},
+				"idle": {
+					"north-east": "dd5560fe-0fb8-48c9-b544-5063bd7d9a57",
+					"north": "3651276d-228c-464c-847f-480c3b1c9d54",
+					"east": "fd554e91-eb9e-46f9-a200-af92a8fe2c9d",
+					"south": "376cce81-cf45-406a-89a0-0f1711df9687",
+					"south-east": "23a8147e-e124-4cb5-ad0b-676446f0cc32"
+				}
+			}
+		},
+		"vespera": {
+			"character": "7f5eaea6-a5b5-492d-aeb2-de305e46b354",
+			"cell": 96,
+			"canvas": 72,
+			"out": "res://assets/sprites/pixellab/monsters/vespera",
+			"mirror": {
+				"west": "east",
+				"north-west": "north-east",
+				"south-west": "south-east"
+			},
+			"anims": {
+				"idle": {
+					"src": "idle",
+					"pick": [
+						0,
+						1,
+						2,
+						3
+					],
+					"fps": 5
+				},
+				"walk": {
+					"src": "walk",
+					"pick": [
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7
+					],
+					"fps": 12
+				},
+				"attack": {
+					"src": "attack",
+					"pick": [
+						0,
+						1,
+						2,
+						3,
+						4,
+						5
+					],
+					"fps": 12
+				},
+				"cast": {
+					"src": "cast",
+					"pick": [
+						0,
+						1,
+						2,
+						3,
+						4,
+						5
+					],
+					"fps": 12
+				},
+				"dash": {
+					"src": "walk",
+					"pick": [
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7
+					],
+					"fps": 16
+				},
+				"hit": {
+					"src": "idle",
+					"pick": [
+						0,
+						1
+					],
+					"fps": 10
+				},
+				"downed": {
+					"src": "death",
+					"pick": [
+						6,
+						6
+					],
+					"fps": 2
+				},
+				"death": {
+					"src": "death",
+					"pick": [
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6
+					],
+					"fps": 10
+				}
+			},
+			"groups": {
+				"death": {
+					"north": "ead7b3b9-b088-4a17-ac07-554043f049f9",
+					"north-east": "cba96711-6047-49e0-89b2-d9aecf06b4a7",
+					"south-east": "5a7739d7-e81f-42a5-adba-0805c488c8f9",
+					"east": "5b75397b-c029-4891-a477-ae02926e884b",
+					"south": "8ec3114e-24cf-4b6c-a5c3-ffc1e96b34f7"
+				},
+				"cast": {
+					"north": "18b299ca-5150-455a-909a-ee2d45bfdacd",
+					"north-east": "053dd2cc-6beb-4bba-961f-5ae41f299e86",
+					"east": "cd9c7545-0e59-4b27-b33c-0077a57d9269",
+					"south-east": "fafa6d5c-27fa-4795-9fa6-d9aa177540ca",
+					"south": "7d4bf742-f3e6-444c-91ae-dfcedf81b796"
+				},
+				"attack": {
+					"south": "942b21b9-fbff-4ec2-a31e-40863eecb686",
+					"north": "472b1f7a-e4e3-4861-b2b3-3c15eeb1d000",
+					"east": "bd60dd76-c5b5-43e6-96f4-324dd862e58b",
+					"south-east": "db576398-2a62-4adc-8675-94ae5fe42649",
+					"north-east": "1c89f7ce-83ab-4477-94fc-a17a5109deed"
+				},
+				"walk": {
+					"east": "1320c7d7-5a68-470c-b261-c483a5a7774b",
+					"north-east": "b6aa935b-d878-4622-b567-4c2eeeef98e9",
+					"north": "bfe78ebd-e650-417c-9870-07fed78196dd",
+					"south": "a5ee7165-42f0-4a1d-82d6-268b4cad2877",
+					"south-east": "84b22da2-60b7-4d75-8a06-ce4beb2e95c2"
+				},
+				"idle": {
+					"south": "e4da2bf4-9555-45bc-b610-00e8444b495f",
+					"east": "b82b3fe5-8cf8-4cef-a589-80e9110f7d5d",
+					"north": "372ba58d-70d8-4bf5-99b8-d422ca0a8a9c",
+					"south-east": "4b308742-6d2f-4636-8f99-8086d9418443",
+					"north-east": "3fe2da58-9a4e-46e8-8b0f-3cf5600502f4"
+				}
+			}
+		},
+		"carrion_crawler": {
+			"character": "9929e3a6-f9f0-4835-857f-54dc50a68ef6",
+			"cell": 64,
+			"canvas": 48,
+			"out": "res://assets/sprites/pixellab/monsters/carrion_crawler",
+			"mirror": {
+				"west": "east",
+				"north-west": "north-east",
+				"south-west": "south-east"
+			},
+			"anims": {
+				"idle": {
+					"src": "idle",
+					"pick": [
+						0,
+						1,
+						2,
+						3
+					],
+					"fps": 5
+				},
+				"walk": {
+					"src": "walk",
+					"pick": [
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7
+					],
+					"fps": 12
+				},
+				"attack": {
+					"src": "attack",
+					"pick": [
+						0,
+						1,
+						2,
+						3,
+						4,
+						5
+					],
+					"fps": 14
+				},
+				"cast": {
+					"src": "attack",
+					"pick": [
+						0,
+						1,
+						2,
+						3,
+						4,
+						5
+					],
+					"fps": 12
+				},
+				"dash": {
+					"src": "walk",
+					"pick": [
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7
+					],
+					"fps": 16
+				},
+				"hit": {
+					"src": "idle",
+					"pick": [
+						0,
+						1
+					],
+					"fps": 10
+				},
+				"downed": {
+					"src": "death",
+					"pick": [
+						6,
+						6
+					],
+					"fps": 2
+				},
+				"death": {
+					"src": "death",
+					"pick": [
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6
+					],
+					"fps": 10
+				}
+			},
+			"groups": {
+				"death": {
+					"east": "ecaa0db5-3edf-42cd-a748-146ea2b4dbf9",
+					"north-east": "41c81532-d8e4-4919-a3a9-c21cccace975",
+					"north": "235ed329-c81a-43e7-970c-7c3c319df342",
+					"south-east": "1e21af83-4210-4c00-a0ab-6c88a28c28b8",
+					"south": "1ee1d4c0-8b86-434c-ac69-830b57ba84df"
+				},
+				"attack": {
+					"south-east": "54d00ee4-5f13-4096-847a-987ae6ab2a1d",
+					"north-east": "47ed8243-2157-4ac7-821f-0e99f6efc768",
+					"north": "d25b899e-d516-4a67-8a16-6f49b9515981",
+					"east": "6cbec584-7f5c-41a3-9215-0588a88a58c3",
+					"south": "e9bf99ef-6fc4-4b93-8a4b-b253d67e0e41"
+				},
+				"walk": {
+					"north": "83f09ebd-d606-42aa-aefd-aa0f976dd19d",
+					"north-east": "84266b32-bd60-4817-89b2-4713c055eb95",
+					"east": "645c5d48-3649-4f35-8c81-f99c5d7abcb5",
+					"south-east": "8dcb223e-e715-49e5-8447-c6d3b9a9d8df",
+					"south": "85afe048-b53d-4df7-987c-f8b1cbe16f40"
+				},
+				"idle": {
+					"north": "46ecdf31-9fe6-430e-b168-864a289ad590",
+					"north-east": "23972759-11d5-4400-b0c6-05612c15a2be",
+					"south-east": "949e71b4-26ae-4feb-b302-26972e94fde7",
+					"south": "7146abc8-229d-4434-ba8a-ac3550919b4b",
+					"east": "1502a319-24ec-47eb-99a3-a24430f86116"
+				}
+			}
 		}
 	}
 }

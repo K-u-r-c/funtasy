@@ -70,6 +70,9 @@ func interact_pos() -> Vector2:
 func take_damage(amount: float, ctx: Dictionary) -> void:
 	if not multiplayer.is_server() or not destructible() or amount <= 0.0:
 		return
+	# Boss-made cages and the like: only the heroes can break them.
+	if def.get("players_only", false) and int(ctx.get("team", Actor.Team.PLAYERS)) != Actor.Team.PLAYERS:
+		return
 	hp -= amount
 	if hp > 0.0:
 		return

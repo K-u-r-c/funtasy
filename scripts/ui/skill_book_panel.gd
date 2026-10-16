@@ -162,6 +162,7 @@ class SlotButton:
 	var slot := 0
 	var skill := ""
 	var picked := false
+	var _icon: Texture2D
 	var _glyph: InputGlyph
 
 	func _init() -> void:
@@ -182,7 +183,9 @@ class SlotButton:
 		draw_style_box(UITheme.cached_glass(Color("0a0e17f2"), edge, 2 if has_focus() else 1, 0), r)
 		var sk: Dictionary = GameData.skills.get(skill, {})
 		if not sk.is_empty():
-			draw_texture_rect(GameData.texture("icons." + str(sk.get("icon", "attack"))), Rect2((r.size.x - 32) / 2.0, 14, 32, 32), false)
+			# Held in a member: a texture freed right after _draw would render as a white quad.
+			_icon = GameData.texture("icons." + str(sk.get("icon", "attack")))
+			draw_texture_rect(_icon, Rect2((r.size.x - 32) / 2.0, 14, 32, 32), false)
 		var f := UITheme.font()
 		var label := "Primary" if slot == 0 else "Slot %d" % slot
 		var tw := f.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, UITheme.FONT_SMALL).x

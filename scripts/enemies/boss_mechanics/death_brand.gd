@@ -5,6 +5,7 @@ extends BossMechanic
 
 var victim: Player = null
 var _t := -1.0
+var _pulse := 0.0
 
 
 func trigger() -> void:
@@ -23,6 +24,11 @@ func physics(delta: float) -> void:
 		return
 	_t -= delta
 	if _t > 0.0:
+		# The blast radius pulses around the branded hero so the party can spread out.
+		_pulse -= delta
+		if _pulse <= 0.0 and is_instance_valid(victim):
+			_pulse = 0.5
+			Combat.instance.fx.ring.rpc(victim.global_position, float(p("radius", 80)), "#a020a0", "")
 		return
 	_t = -1.0
 	if not is_instance_valid(victim) or not victim.is_targetable():

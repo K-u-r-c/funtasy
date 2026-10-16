@@ -89,10 +89,10 @@
 		1,
 		3
 	],
-	"lava_room_chance": 0.3,
+	"lava_room_chance": 0.0,
 	"spikes_per_room": [
 		0,
-		3
+		0
 	],
 	"bookshelves_per_room": [
 		0,

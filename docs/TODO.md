@@ -43,6 +43,7 @@ Goal cap: 2500 generations, and never more than the remaining allowance. Spend =
 | --- | --- | --- | --- | --- | --- |
 | 2026-10-15 | (start) | 1081 | 1081 | 0 | 0 |
 | 2026-10-16 | Skill icon sheets: 8 Pixen 128x128 sheets of 16 icons (96 skills, 24 keystones, 6 items, 2 statuses), cut by `tools/cut_icon_sheet.py` | 1081 | 1089 | 8 | 8 |
+| 2026-10-16 | Crypt: 4 monsters (v3 48 px) + Vespera (v3 72 px) with template / v3 animations on 5 directions, 15 crypt props, 9 shared merchant-chamber / altar / lore props (map objects; lit / open / used variants recoloured, no generation) | 1089 | 1222 | 133 | 141 |
 
 ## Done (MVP)
 

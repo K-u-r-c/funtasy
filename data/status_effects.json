@@ -148,7 +148,7 @@
 	"ghoul_frenzy": {"name": "Feeding Frenzy", "kind": "stat", "stats": {"haste": 0.4, "damage_mult": 1.1}, "color": "#c02020", "cleanse": "enrage", "visual": {"tint": "#ffa0a0"}},
 	"caged": {"name": "Caged", "kind": "cc", "flags": ["rooted"], "color": "#e8e0c8", "debuff": true},
 	"death_brand": {"name": "Black Anointing", "kind": "mark", "color": "#a020a0", "debuff": true, "visual": {"tint": "#d080ff"}},
-	"airborne": {"name": "Airborne", "kind": "stat", "flags": ["knockback_immune", "cc_immune"], "color": "#e0d0ff", "visual": {"scale": 1.15, "alpha": 0.85}},
+	"airborne": {"name": "Airborne", "kind": "stat", "flags": ["knockback_immune", "cc_immune"], "color": "#e0d0ff", "visual": {"scale": 1.08, "alpha": 0.95, "lift": 22}},
 	"chant_of_the_damned": {"name": "Chant of the Damned", "kind": "dot", "tick": 1.0, "ramp": 0.15, "damage_type": "shadow", "color": "#8040c0", "debuff": true},
 	"bone_whirlwind": {"name": "Bone Whirlwind", "kind": "stat", "flags": ["reflect_projectiles", "knockback_immune"], "color": "#e8e0c8"},
 	"unlit_chill": {"name": "Chilling Breath", "kind": "stat", "stats": {"resource_regen_mult": 0.5, "resource_gen_mult": 0.5}, "color": "#506080", "debuff": true}

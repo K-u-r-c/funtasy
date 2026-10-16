@@ -240,6 +240,10 @@ func update_visuals(delta: float) -> void:
 	sprite.modulate = tint
 	var sc := float(vis.scale) * visual_scale()
 	sprite.scale = sprite.scale.lerp(Vector2(sc, sc), minf(1.0, delta * 8.0))
+	# "lift": flying actors hover above their shadow (with a slow bob).
+	var lift := float(vis.lift)
+	var bob := sin(Time.get_ticks_msec() / 300.0) * 2.0 if lift > 0.0 else 0.0
+	sprite.position.y = lerpf(sprite.position.y, -lift + bob, minf(1.0, delta * 6.0))
 
 
 ## Base sprite scale (elites and buffed monsters are drawn bigger).

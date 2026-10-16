@@ -323,11 +323,12 @@ func procs() -> Array:
 
 ## Visual modifiers (scale, tint, alpha) from statuses, readable on every peer.
 func visual() -> Dictionary:
-	var out := {"scale": 1.0, "tint": Color.WHITE, "alpha": 1.0}
+	var out := {"scale": 1.0, "tint": Color.WHITE, "alpha": 1.0, "lift": 0.0}
 	for s in shown:
 		var def: Dictionary = GameData.status_effects.get(s[0], {})
 		var v: Dictionary = def.get("visual", {})
 		out.scale *= float(v.get("scale", 1.0))
+		out.lift = maxf(out.lift, float(v.get("lift", 0.0)))
 		out.alpha = minf(out.alpha, float(v.get("alpha", 1.0)))
 		if v.has("tint"):
 			out.tint = out.tint.lerp(Color.from_string(str(v.tint), Color.WHITE), 0.5)
