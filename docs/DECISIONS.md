@@ -325,5 +325,13 @@ key in `data/assets.json`, so the user can swap files later without code changes
 | --- | --- |
 | Wind-up | A skill's `windup` (s, data) is a cast time that haste cannot shorten. Pounce, Blazing Leap, Shield Charge 1.0 s, Stone Dive 1.1 s, Echoed Charge 0.9 s; Cernunnos's Antler Stampede `windup` 1.2 s (boss data). During it the monster stands still under a cast bar. |
 | Ground marker | `CombatFx.windup_marker` (reliable RPC, so every peer draws it): a leap marks its landing circle (radius of its landing blast), a charge its whole path, both computed from the aim locked at the start of the wind-up, which is where the move goes. |
-| Grace | `ai.lunge_grace` (1.5 s): a monster refuses leaps and charges until that long after it noticed a hero (`Enemy.aggro_age`); the ghoul retries on its next think, the gargoyle wakes without diving and dives through its normal AI once the grace is over. |
+| Grace | `ai.lunge_grace` (1.5 s): a monster refuses leaps and charges until that long after it first noticed a hero (`Enemy.aggro_age`); the ghoul retries on its next think, the gargoyle wakes without diving and dives through its normal AI once the grace is over. |
 | Damage | Landing / path damage lowered (Pounce 2 + 0.9x, Blazing Leap 2 + 0.85x, Stone Dive 2 + 1.0x, Shield Charge 2 + 0.7x). The monster suite checks that even a crit at monster level 1, without the floor-1 easing, stays below the lowest fresh level 1 hero's health. |
+
+### #3 The carried torch
+
+Only its burn-out time (`lighting.carried_torch_duration`) ends a hero's carried torch. The `extinguish`
+effect (Banshee's Mournful Shriek) snuffs wall torches only, and Vespera's Vermin Swarm only blinds. No
+status, monster skill, boss or floor mechanic touches `torch_left`; wall torches can still be broken
+(projectiles, the shriek) or taken. Tests: the monster suite (a shrieked hero keeps the torch), the
+Vespera mechanic check (the swarm leaves the torch burning) and the `test_extinguish` primitive.

@@ -504,8 +504,8 @@ func _expect(ex: String, b: Dictionary, a: Dictionary, target: Enemy, proj_id: i
 			return float(p.cooldowns.get(arg, 0.0)) < 29.0
 		"spawned_status":
 			return _spawned_seen.has(arg)
-		"torch_out":
-			return p.torch_left <= 0.0
+		"torch_kept":
+			return p.torch_left > 0.0
 		"target_absorb_gone":
 			return target.health.absorb <= 0.0
 		"caster_moved":

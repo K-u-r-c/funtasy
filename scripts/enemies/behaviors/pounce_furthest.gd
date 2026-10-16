@@ -30,6 +30,8 @@ func on_think(game: Node) -> bool:
 
 func test_trigger(suite: RefCounted) -> void:
 	_left = 0.0
+	enemy.casting = {}
+	enemy.cooldowns.erase("ghoul_pounce")
 	# A spot ~150 px away the ghoul can see (pillars and walls block the pounce).
 	var spot: Vector2 = suite.g.nearest_floor(enemy.global_position + Vector2(150, 0))
 	for dir in [Vector2.RIGHT, Vector2.LEFT, Vector2.DOWN, Vector2.UP, Vector2(1, 1).normalized(), Vector2(-1, 1).normalized()]:
@@ -41,6 +43,10 @@ func test_trigger(suite: RefCounted) -> void:
 	await suite.da._wait(0.1)
 
 
-func test_check(_suite: RefCounted) -> String:
+func test_check(suite: RefCounted) -> String:
 	var uses: Dictionary = Combat.instance.get_meta("uses", {})
-	return "" if uses.has("%s:ghoul_pounce" % enemy.name) else "no pounce"
+	if uses.has("%s:ghoul_pounce" % enemy.name):
+		return ""
+	var hero: Vector2 = suite.p.global_position
+	return "no pounce (%.0f px, los %s, casting %s, aggro %.1f s, next in %.1f s, cc %s)" % [hero.distance_to(enemy.global_position),
+		Combat.instance.has_los(enemy.global_position, hero), enemy.casting.get("skill", "-"), enemy.aggro_age(), _left, not enemy.can_act()]

@@ -54,6 +54,8 @@ screenshot review at 1920x1080 and 3440x1440.
       `balance-*` fresh-hero pass, `economy`, `economy-lan`, `ui-layout`, `full-wm`)
 - [x] #2 Telegraphed monster leaps / charges: wind-up + cast bar + ground marker, 1.5 s grace, lower
       damage (`monsters`, `bosses`, `full-wm` client check, `boss-cernunnos`)
+- [x] #3 The carried torch only burns out (shriek / vermin swarm keep it; `monsters`, `bosses`,
+      `primitives`, `darkness`, `boss-vespera`)
 
 ## PixelLab ledger
 

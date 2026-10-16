@@ -127,7 +127,7 @@
 		"test": {"then": "fatal", "expect": ["self_status:test_undying", "self_alive"]},
 		"effects": [{"type": "status", "target": "self", "status": "test_undying", "duration": 3}]},
 	{"id": "test_extinguish", "name": "Test Extinguish", "school": "spell", "cooldown": 1, "cost": 0,
-		"test": {"expect": ["torch_out"], "setup": {"self_torch": 30}},
+		"test": {"expect": ["torch_kept"], "setup": {"self_torch": 30}},
 		"effects": [{"type": "extinguish", "radius": 200}]},
 	{"id": "test_break_absorb", "name": "Test Break Absorb", "school": "melee", "cooldown": 1, "cost": 0,
 		"test": {"expect": ["target_absorb_gone"], "setup": {"target_absorb": 50}},

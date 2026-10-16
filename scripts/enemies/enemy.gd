@@ -23,7 +23,7 @@ var _strafe := 1.0
 var _abilities: Array = []
 var _preferred: Array = [0, 40]
 var _aggro_radius := 220.0
-var _aggro_since := -1.0  ## host: when this monster last noticed a hero (seconds)
+var _aggro_since := -1.0  ## host: when this monster first noticed a hero (seconds)
 var lifetime := -1.0  ## host: summoned minions and decoys expire
 var elite: Array = []  ## elite modifier ids (D10), from the spawn data on every peer
 var key_carrier := false  ## host: drops the floor's Gold Key (D11)
@@ -289,16 +289,17 @@ func on_damaged(attacker: Actor, amount: float) -> void:
 
 func _become_aggro() -> void:
 	aggro = true
-	_aggro_since = Time.get_ticks_msec() / 1000.0
+	if _aggro_since < 0.0:
+		_aggro_since = Time.get_ticks_msec() / 1000.0
 	if is_boss:
 		var game := get_tree().get_first_node_in_group("game")
 		if game:
 			game.on_boss_engaged(self)
 
 
-## Seconds since this monster noticed a hero (0 while it hasn't).
+## Seconds since this monster first noticed a hero (0 while it hasn't).
 func aggro_age() -> float:
-	return Time.get_ticks_msec() / 1000.0 - _aggro_since if aggro and _aggro_since >= 0.0 else 0.0
+	return Time.get_ticks_msec() / 1000.0 - _aggro_since if _aggro_since >= 0.0 else 0.0
 
 
 func _alert_nearby(attacker: Actor) -> void:

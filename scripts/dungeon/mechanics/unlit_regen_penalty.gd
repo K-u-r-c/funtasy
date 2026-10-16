@@ -23,7 +23,7 @@ var _phase := 0
 
 
 func test_trigger(suite: RefCounted) -> void:
-	# Somewhere dark first.
+	# Somewhere dark first (test harness only: the hero puts the torch away).
 	var pl: Player = suite.p
 	pl.torch_left = 0.0
 	pl.torch_sync = 0

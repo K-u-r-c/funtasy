@@ -36,6 +36,33 @@ func run(biome: String = "") -> void:
 		await check_monster(str(id))
 	da.check(n > 0, "monster suite ran %d monsters" % n)
 	await check_lunges(biome)
+	if biome.is_empty() or biome == "crypt":
+		await check_shriek_keeps_torch()
+
+
+## The banshee's shriek silences the hero and snuffs wall torches, but the carried torch only
+## ever burns out (#3).
+func check_shriek_keeps_torch() -> void:
+	_keep_hero()
+	p.host_teleport(start)
+	p.torch_left = 60.0
+	var e: Enemy = g.spawn_monster("banshee", g.nearest_floor(start + Vector2(90, 0)), false)
+	await da._wait(0.3)
+	e.behaviors = []
+	e.add_threat(p, 10.0)
+	p.iframe_left = 0.0  # the shriek must really land
+	p.set_meta("test_seen_status", [])
+	# Its own AI may already have shrieked ("Not ready" / "Busy"); either way the hero is hit.
+	var err := Combat.instance.try_use_skill(e, "banshee_shriek", p.global_position)
+	await da._wait(float(GameData.skill("banshee_shriek").get("cast_time", 0.0)) + 0.4)
+	var hit: bool = p.status.has("silence") or Array(p.get_meta("test_seen_status", [])).has("silence")
+	da.check(hit and p.torch_left > 50.0 and p.torch_sync > 0,
+			"a hero hit by the banshee's shriek keeps the carried torch (%s, silenced %s, %.0f s left)" % [err, hit, p.torch_left])
+	if is_instance_valid(e):
+		e.queue_free()
+	p.remove_meta("test_seen_status")
+	_keep_hero()
+	await da._wait(0.2)
 
 
 ## Leaps and charges (#2): refused in the grace after spotting a hero, then a wind-up of at

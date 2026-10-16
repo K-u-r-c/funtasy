@@ -211,16 +211,13 @@ func run_effect(eff: Dictionary, ctx: Dictionary, origin: Vector2, aim: Vector2)
 					t.health.absorb = 0.0
 					fx.number.rpc(t.global_position, "Ward shattered", "info")
 		"extinguish":
-			# Snuffs wall torches and carried torches within `radius` (Banshee's shriek).
+			# Snuffs the wall torches within `radius` (Banshee's shriek). A hero's carried torch
+			# only ever burns out (#3).
 			var er := float(eff.get("radius", 200))
 			if game:
 				for t in game.dungeon.torches.values():
 					if is_instance_valid(t) and t.is_lit() and t.global_position.distance_to(origin) <= er:
 						game.dungeon.set_torch_state.rpc(t.torch_id, t.State.BROKEN)
-				for pl in game.players_root.get_children():
-					if pl.torch_left > 0.0 and pl.global_position.distance_to(origin) <= er:
-						pl.torch_left = 0.0
-						pl.torch_sync = 0
 		"destroy_projectiles":
 			destroy_projectiles_in(ctx, origin, dir, float(eff.get("range", 120)), float(eff.get("arc", 360)))
 		"terrain":
