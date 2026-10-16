@@ -872,15 +872,21 @@ func _floor2_props_check(g: Node, host_p: Player) -> void:
 		check(not g.dungeon.props.has(tid), "floor 2 prop %s destroyed on the host" % tid)
 		NetworkManager.to_clients("DevAuto", "client_cmd", ["check_prop_gone", tid])
 	if chest:
-		host_p.host_teleport(chest.global_position + Vector2(0, 20))
+		host_p.host_teleport(g.nearest_floor(chest.global_position + Vector2(0, 20)))
 		await _wait(0.6)
-		var before: int = g.items_root.get_child_count()
+		# Only drops next to the chest count: monsters dying elsewhere drop loot too.
+		var near_chest := func() -> int:
+			return g.items_root.get_children().filter(func(it: Node): return it.global_position.distance_to(chest.global_position) < 100.0).size()
+		var before: int = near_chest.call()
 		g.host_interact(host_p, chest)
 		await _wait(0.4)
-		var after_first: int = g.items_root.get_child_count()
+		var after_first: int = near_chest.call()
 		g.host_interact(host_p, chest)
 		await _wait(0.4)
-		check(chest.opened and after_first > before and g.items_root.get_child_count() == after_first, "floor 2 chest opens once (no bottomless chest)")
+		var after_second: int = near_chest.call()
+		check(chest.opened and after_first > before and after_second == after_first,
+			"floor 2 chest opens once (no bottomless chest; opened %s, items %d -> %d -> %d, %.0f px away)" % [chest.opened, before, after_first, after_second,
+			host_p.global_position.distance_to(chest.global_position)])
 		NetworkManager.to_clients("DevAuto", "client_cmd", ["check_chest_open", chest.prop_id])
 	else:
 		log_line("no chest on floor 2, chest check skipped")
@@ -1267,6 +1273,11 @@ func _dark_pair(g: Node) -> Array:
 					continue
 				var rad := float(l.get_meta("radius", 0.0)) + 40.0
 				if l.global_position.distance_to(a) < rad or l.global_position.distance_to(b) < rad:
+					dark = false
+					break
+			# A door on the line can be closed later (by a monster) and block the reveal checks.
+			for door in d.doors:
+				if Geometry2D.get_closest_point_to_segment(door.global_position, a, b).distance_to(door.global_position) < 40.0:
 					dark = false
 					break
 			# The same physics ray Visibility uses (props block it, the grid check doesn't see them).
