@@ -29,6 +29,5 @@
 		"dodge": 0.0
 	},
 	"collision_radius": 6,
-	"xp": 2,
-	"tint": "#a0ff70"
+	"xp": 2
 }

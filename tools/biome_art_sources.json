@@ -1,0 +1,87 @@
+{
+	"_comment": "PixelLab sources of the biome art (2026-10-16). zip = tools/build_monster_zip.py CHARACTER OUT WORK CELL (v3 48 px, template walk / attack / death on 5 directions); blob = tools/build_blob.py on a map object download (https://api.pixellab.ai/mcp/map-objects/<id>/download); tiles = create_tiles_pro ids cut into assets/sprites/pixellab/tiles/<biome>_tiles.png.",
+	"tiles": {
+		"sewers": "879898e0-7aa2-430b-aa1e-f4fe1f1f1de7",
+		"foundry": "3e83ea21-2cf5-46ea-9859-bd14c32a140a",
+		"archives": "3d50fb11-e855-43e4-9c97-072efc4c9b7b",
+		"kurgan": "baf93418-915d-4451-b382-178038c4a3c9"
+	},
+	"monsters": {
+		"plague_ratman": {
+			"zip": "80988dc5-708e-4606-8ca5-f37836a86803",
+			"cell": 64
+		},
+		"flesh_stitcher": {
+			"zip": "bca096cb-050c-4b28-9f16-c71278f2092d",
+			"cell": 64
+		},
+		"gutter_stalker": {
+			"zip": "d1932ad1-dbf2-48b1-a494-1f9eff35a6ce",
+			"cell": 64
+		},
+		"sludge_lobber": {
+			"zip": "52e21f6b-70c1-4e13-a9aa-ebf925fd895e",
+			"cell": 64
+		},
+		"bloated_drowner": {
+			"zip": "f58c06d6-cd8e-4015-b3cf-5329b46855f5",
+			"cell": 64
+		},
+		"acid_slime": {
+			"blob": "f146bd6e-df28-45eb-ad6b-d84aa1ebe138",
+			"cell": 64
+		},
+		"abyssal_leech": {
+			"blob": "e623bf99-9ba7-4e5d-bc05-a2bc1e84bd00",
+			"cell": 64,
+			"args": [
+				"--faces-left"
+			]
+		},
+		"plague_rat": {
+			"blob": "94b44ec5-4c1d-4d95-a514-ce7bc179cdcc",
+			"cell": 48,
+			"args": [
+				"--faces-left"
+			]
+		},
+		"murk_amalgam": {
+			"blob": "37be4a3c-65b7-4df1-b8ed-352fb8632550",
+			"cell": 136,
+			"args": [
+				"--scale=85"
+			]
+		},
+		"krazik": {
+			"blob": "5b2e1bd5-6704-4322-aa8b-617169ab6333",
+			"cell": 112,
+			"args": [
+				"--faces-left"
+			]
+		},
+		"krazik_foot": {
+			"same_as": "plague_ratman"
+		}
+	},
+	"props": {
+		"sewer_strongbox": "c0c799b6-3736-415d-90b6-fa25cf854b57",
+		"gas_pocket": "d9bcddc4-03a0-4656-a151-67e96f1e64e0",
+		"fungal_bloom": "16fde01c-8ea0-4d4a-9540-dc85a6d81796",
+		"sewer_strongbox_open": "692b65db-8f57-4a98-8e44-de4bb7e2a536",
+		"sewer_pipe": "068eda49-01b4-4e72-a799-97b29e642c74",
+		"vermin_carcass": "2badf093-407b-4eda-a39f-fb6e9d23a846",
+		"sewer_barrel": "d26e7221-25aa-4f49-9337-39b38d080e8a",
+		"sewer_platform": "7a4b1c42-6cb2-4dfa-8562-4c617bfa7a50",
+		"exhaust_valve": "31981c93-5b4e-49c4-8bc8-0cdb160fc317",
+		"rusty_lever": "1f396d86-3f83-4347-845d-822cf0ee6d1d",
+		"rusty_lever_on": "rusty_lever flipped vertically",
+		"floodgate": "814eacbe-b2ee-4c93-9e07-deabe9af0274",
+		"acid_spout": "0817bdf7-be89-482b-9b66-e6c843340fb7",
+		"anvil": "524a455b-00ac-4d04-9270-bd1862ce3d2a",
+		"blast_furnace": "d9e45258-797e-4592-a629-d09ab4eae3db",
+		"boiling_cauldron": "11d17757-15d9-4318-9f2a-1a1e08d7a63c",
+		"hanging_chains": "b82610a9-9651-46e0-a500-2bcc3e171b1f",
+		"ore_cart": "b3fce6e1-bd99-4469-a982-2890b38e9e93",
+		"slag_heap": "34237e3b-a4c6-423f-a609-f2e4e0315afd"
+	}
+}

@@ -7,7 +7,7 @@
 	"sprite": "monsters.plague_rat",
 	"corpse": "none",
 	"no_corpse": true,
-	"scale": 0.45,
+	"scale": 0.85,
 	"spawn_only": true,
 	"ai": {
 		"type": "melee",
@@ -29,6 +29,5 @@
 		"dodge": 0.1
 	},
 	"collision_radius": 4,
-	"xp": 0,
-	"tint": "#c0b0a0"
+	"xp": 0
 }

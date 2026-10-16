@@ -100,7 +100,7 @@ func _apply_phase_look() -> void:
 		return
 	var p: Dictionary = def.phases[phase]
 	if p.has("sprite"):
-		sprite.set_layer("body", str(p.sprite), Color.from_string(str(def.get("tint", "#ffffff")), Color.WHITE))
+		sprite.set_layer("body", str(p.sprite), Color.from_string(str(p.get("tint", def.get("tint", "#ffffff"))), Color.WHITE))
 		def = def.merged({"sprite": p.sprite, "scale": float(p.get("scale", def.get("scale", 1.0)))}, true)
 
 

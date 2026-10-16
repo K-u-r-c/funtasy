@@ -67,7 +67,8 @@
 			],
 			"title": "Unmounted",
 			"sprite": "monsters.krazik_foot",
-			"scale": 0.8,
+			"scale": 1.25,
+			"tint": "#e0ffc0",
 			"on_enter": [
 				"krazik_frenzy"
 			],
