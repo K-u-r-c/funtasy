@@ -38,7 +38,9 @@ screenshot review at 1920x1080 and 3440x1440.
       silence runes, animated books, 7 monsters, Malazar + the Memory Devourer, Tome Prison side arena)
       (verified: `biomes-archives`, `monsters`, `bosses`, `boss-malazar` + `boss-devourer` LAN pairs, archives
       tour screenshots). **Art: placeholders.**
-- [ ] **8. Kurgan** (... Cernunnos + Isolde ...)
+- [x] **8. Kurgan** (caverns, blood pools, sprouting thorns, root snares, dread totems, ground fog, 7 monsters,
+      Cernunnos + Isolde) (verified: `biomes-kurgan`, `monsters`, `bosses`, `boss-cernunnos` + `boss-isolde` LAN
+      pairs, kurgan tour screenshots). **Art: placeholders.**
 - [ ] **9. Legendaries**: 108 items + affix hooks + icons + drop rules + tooltips
 - [ ] **10. Integration**: balance pass, audio keys + Suno prompt list, README / DECISIONS / TODO,
       full test suite, LAN + Steam smoke test, final screenshot tours

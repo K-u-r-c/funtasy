@@ -41,6 +41,8 @@ func check_layouts(fid: String) -> void:
 	var arenas := 0
 	var anomalies := 0
 	var rifts := 0
+	var snares := 0
+	var caves := 0
 	var kinds := {}
 	var gates := 0
 	var gate_bad := ""
@@ -71,6 +73,8 @@ func check_layouts(fid: String) -> void:
 		arenas += 1 if lay.has("side_arena") else 0
 		anomalies += lay.get("anomalies", []).size()
 		rifts += lay.get("rifts", []).size() + lay.get("runes", []).size()
+		snares += lay.get("snares", []).size()
+		caves += lay.rooms.filter(func(rm): return rm.get("cave", false)).size()
 		var cells: PackedByteArray = lay.cells
 		for v in cells:
 			kinds[v] = true
@@ -102,6 +106,10 @@ func check_layouts(fid: String) -> void:
 		da.check(anomalies > 0, "%s layouts have spatial anomaly rooms (%d)" % [fid, anomalies])
 	if fd.has("void_rifts"):
 		da.check(rifts > 0, "%s layouts have void rifts and silence runes (%d)" % [fid, rifts])
+	if gen.has("cave_room_chance"):
+		da.check(caves > 0, "%s layouts carve organic caverns (%d rooms)" % [fid, caves])
+	if fd.has("root_snares"):
+		da.check(snares > 0, "%s layouts hide root snares (%d)" % [fid, snares])
 	if gen.has("grates_per_room"):
 		da.check(kinds.has(DungeonGenerator.CELL_GRATE), "%s layouts have collapsing grates" % fid)
 	var picked := {}
@@ -164,6 +172,11 @@ func check_live_floor() -> void:
 		p.host_teleport(rune)
 		await da._wait(0.4)
 		da.check(p.status.has("silence") or p.status.has_flag("silenced"), "a silence rune silences the hero")
+	if not g.layout.get("snares", []).is_empty():
+		_ready_hero()
+		p.host_teleport(g.layout.snares[0])
+		await da._wait(0.4)
+		da.check(p.status.has("root") or p.status.has("bleed"), "a root snare grabs the hero")
 	if not g.dungeon.grates.is_empty():
 		var gr: Node2D = g.dungeon.grates[0]
 		_ready_hero()
@@ -178,7 +191,7 @@ func check_live_floor() -> void:
 		var hp4 := p.health.hp
 		pp.set_meta("pulse_left", 0.05)
 		await da._wait(0.5)
-		da.check(p.health.hp < hp4, "a boiling cauldron splashes the hero")
+		da.check(p.health.hp < hp4, "a pulsing prop (cauldron, dread totem) hits the hero")
 	var gate := -1
 	for di in g.dungeon.doors.size():
 		if g.dungeon.doors[di].floodgate:

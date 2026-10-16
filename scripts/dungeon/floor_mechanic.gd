@@ -21,6 +21,11 @@ func physics(_delta: float) -> void:
 	pass
 
 
+## Host: a monster died (Kurgan blood pools).
+func on_enemy_killed(_e: Node) -> void:
+	pass
+
+
 ## A prop broke (grave urns, bookshelves...).
 func on_prop_broken(_prop: Node) -> void:
 	pass

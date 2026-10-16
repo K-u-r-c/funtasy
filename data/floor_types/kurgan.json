@@ -1,0 +1,132 @@
+{
+	"id": "kurgan",
+	"order": 5,
+	"name": "The Blighted Kurgan",
+	"tiles": "tiles.kurgan",
+	"music": "kurgan",
+	"bosses": [
+		"cernunnos",
+		"isolde"
+	],
+	"ambient_color": "#101520",
+	"torch_color": "#9fb0ff",
+	"lava_color": "#9fb0ff",
+	"torch_radius_mult": 0.65,
+	"grid": [
+		96,
+		72
+	],
+	"rooms": {
+		"count": [
+			9,
+			12
+		],
+		"min_size": [
+			10,
+			9
+		],
+		"max_size": [
+			17,
+			13
+		],
+		"boss_size": [
+			19,
+			15
+		]
+	},
+	"generator": {
+		"profile": "caverns",
+		"winding": true,
+		"extra_edges": 3,
+		"cave_room_chance": 0.7
+	},
+	"monsters": [
+		{
+			"id": "barrow_bloodhound",
+			"weight": 4
+		},
+		{
+			"id": "brier_thrall",
+			"weight": 4
+		},
+		{
+			"id": "barrow_hag",
+			"weight": 2
+		},
+		{
+			"id": "rotwood_treant",
+			"weight": 1
+		},
+		{
+			"id": "barrow_abomination",
+			"weight": 2
+		},
+		{
+			"id": "will_o_blight",
+			"weight": 2
+		},
+		{
+			"id": "bramble_warden",
+			"weight": 2
+		}
+	],
+	"enemies_per_room": [
+		2,
+		4
+	],
+	"props_per_room": [
+		4,
+		8
+	],
+	"prop_weights": {
+		"dead_tree": 4,
+		"thorn_bush": 4,
+		"weeping_root": 3,
+		"bone_cairn": 3,
+		"dread_totem": 1,
+		"crate": 1
+	},
+	"torches_per_room": [
+		1,
+		2
+	],
+	"chests": [
+		1,
+		3
+	],
+	"lava_room_chance": 0.0,
+	"spikes_per_room": [
+		0,
+		0
+	],
+	"bookshelves_per_room": [
+		0,
+		0
+	],
+	"secret_containers": [
+		1,
+		2
+	],
+	"secret_container": "barrow_coffer",
+	"lore_origin": "kurgan",
+	"root_snares": [
+		4,
+		8
+	],
+	"floor_mechanics": [
+		{
+			"id": "blood_pools",
+			"duration": 20,
+			"radius": 36,
+			"regen": 0.03,
+			"burn": 0.05,
+			"test_wait": 3
+		},
+		{
+			"id": "sprouting_thorns",
+			"every": 8,
+			"lifetime": 6,
+			"test_wait": 2
+		}
+	]
+}

@@ -1,0 +1,41 @@
+{
+	"id": "rotwood_treant",
+	"creature_type": "elemental",
+	"biome": "kurgan",
+	"name": "Rotwood Treant",
+	"role": "behemoth",
+	"sprite": "monsters.rotwood_treant",
+	"corpse": "none",
+	"no_corpse": true,
+	"ai": {
+		"type": "melee",
+		"aggro_radius": 240,
+		"preferred_range": [
+			0,
+			44
+		],
+		"abilities": [
+			"treant_slam",
+			"treant_stakes"
+		]
+	},
+	"base_stats": {
+		"hp": 170,
+		"damage": 10,
+		"armor": 50,
+		"move_speed": 44,
+		"crit_chance": 0.02,
+		"dodge": 0.0,
+		"fire_resist": -0.3
+	},
+	"behaviors": [
+		{
+			"id": "permanent_status",
+			"status": "rooted_giant"
+		}
+	],
+	"collision_radius": 14,
+	"xp": 28,
+	"tint": "#5a4a3a",
+	"scale": 1.3
+}

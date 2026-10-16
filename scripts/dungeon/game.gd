@@ -286,6 +286,8 @@ func on_enemy_killed(e: Enemy) -> void:
 	if e.team != Actor.Team.MONSTERS:
 		_enemy_death_fx.rpc(str(e.def.sprite), e.global_position, e.facing, -1)
 		return
+	for fm in floor_mechanics:
+		fm.on_enemy_killed(e)
 	_corpse_counter += 1
 	var cid := _corpse_counter
 	if not e.is_boss and not e.def.get("no_corpse", false):
@@ -527,6 +529,10 @@ func _build_floor(new_depth: int, floor_seed: int, ft_id: String, floor_boss: St
 	layout = DungeonGenerator.new().generate(floor_seed, floor_def, 1.0, new_depth)
 	dungeon.build(layout, floor_def, entities)
 	visibility.reset_floor()
+	# Ground fog (Kurgan) shrinks carried torches too.
+	for p in players_root.get_children():
+		if p.get("_torch_light"):
+			LightLayers.register(p._torch_light, float(GameData.bal("lighting.carried_torch_radius")) * float(floor_def.get("torch_radius_mult", 1.0)))
 	camera.set_bounds(dungeon.world_rect().grow(64))
 	# Darkness deepens with every floor.
 	var base := Color.from_string(str(floor_def.get("ambient_color", "#07060a")), Color(0.03, 0.02, 0.04))
@@ -666,6 +672,10 @@ func _spawn_floor_hazards(lay: Dictionary) -> void:
 		combat.add_zone({"type": "zone", "radius": 56, "duration": 99999.0, "tick": 0.5, "damage": {"base": 3, "coef": 0}, "damage_type": "shadow",
 			"color": "#5a20a0", "sprite": "void_rift",
 			"tick_effects": [{"type": "pull", "at": "self", "radius": 110, "force": 70}]}, c, pos)
+	for pos in lay.get("snares", []):
+		combat.add_zone({"type": "trap", "trigger_radius": 16, "duration": 99999.0, "color": "#6a4a1a", "sprite": "root_snare",
+			"effects": [{"type": "status", "target": "event_target", "status": "root", "duration": 2.0},
+				{"type": "status", "target": "event_target", "status": "bleed", "duration": 4.0, "magnitude": {"base": 2, "coef": 0}}]}, env, pos)
 	for pos in lay.get("runes", []):
 		combat.add_zone({"type": "trap", "trigger_radius": 16, "duration": 99999.0, "color": "#a0a0ff", "sprite": "silence_rune",
 			"effects": [{"type": "status", "target": "event_target", "status": "silence", "duration": 3.0},
@@ -684,8 +694,12 @@ func _pulse_prop(pr: Node, delta: float) -> void:
 		return
 	pr.set_meta("pulse_left", float(pd.get("every", 6.0)))
 	var ctx := combat.env_ctx(float(pd.get("damage", 10)))
-	combat.apply_aoe({"type": "aoe", "radius": float(pd.get("radius", 56)), "damage": {"base": 0, "coef": 1.0}, "damage_type": str(pd.get("damage_type", "fire")),
-		"color": str(pd.get("color", "#ff9a3a"))}, ctx, pr.global_position)
+	var eff := {"type": "aoe", "radius": float(pd.get("radius", 56)), "damage": {"base": 0, "coef": 1.0}, "damage_type": str(pd.get("damage_type", "fire")),
+		"color": str(pd.get("color", "#ff9a3a"))}
+	if pd.has("status"):
+		# Dread totems: a fear wave instead of a scald.
+		eff.on_hit = [{"type": "status", "status": str(pd.status), "duration": float(pd.get("status_time", 2.0))}]
+	combat.apply_aoe(eff, ctx, pr.global_position)
 	combat.fx.sound.rpc("cauldron", pr.global_position)
 
 

@@ -1,0 +1,33 @@
+{
+	"id": "barrow_abomination",
+	"creature_type": "undead",
+	"biome": "kurgan",
+	"name": "Barrow Abomination",
+	"role": "brawler",
+	"sprite": "monsters.barrow_abomination",
+	"corpse": "flesh",
+	"ai": {
+		"type": "melee",
+		"aggro_radius": 260,
+		"preferred_range": [
+			0,
+			34
+		],
+		"abilities": [
+			"abomination_grapple",
+			"abomination_maw"
+		]
+	},
+	"base_stats": {
+		"hp": 110,
+		"damage": 9,
+		"armor": 24,
+		"move_speed": 60,
+		"crit_chance": 0.04,
+		"dodge": 0.0
+	},
+	"collision_radius": 12,
+	"xp": 22,
+	"tint": "#8a6a5a",
+	"scale": 1.15
+}

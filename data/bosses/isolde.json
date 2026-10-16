@@ -1,0 +1,79 @@
+{
+	"id": "isolde",
+	"creature_type": "aberration",
+	"biome": "kurgan",
+	"name": "Lady Isolde the Carrion Queen",
+	"sprite": "monsters.isolde",
+	"music": "boss_isolde",
+	"corpse": "none",
+	"base_stats": {
+		"hp": 1150,
+		"damage": 12,
+		"armor": 30,
+		"move_speed": 70,
+		"crit_chance": 0.05,
+		"dodge": 0.05
+	},
+	"collision_radius": 16,
+	"xp": 380,
+	"aggro_radius": 400,
+	"tint": "#ffb0b0",
+	"phases": [
+		{
+			"hp_above": 0.4,
+			"abilities": [
+				"isolde_tears",
+				"isolde_rend"
+			],
+			"preferred_range": [
+				0,
+				50
+			],
+			"mechanics": [
+				{
+					"id": "blood_bond",
+					"every": 18,
+					"first": 8,
+					"duration": 10,
+					"max_dist": 150,
+					"snap": 0.9,
+					"test_wait": 2
+				},
+				{
+					"id": "brood_nursery",
+					"every": 14,
+					"first": 4,
+					"count": 4,
+					"monster": "blood_tick",
+					"test_wait": 2
+				}
+			]
+		},
+		{
+			"hp_above": 0.0,
+			"abilities": [
+				"isolde_rend",
+				"isolde_tears"
+			],
+			"preferred_range": [
+				0,
+				40
+			],
+			"title": "Carrion Queen",
+			"sprite": "monsters.isolde_spider",
+			"scale": 1.25,
+			"on_enter": [
+				"isolde_feast"
+			],
+			"message": "The cocoon tears open - Isolde's true form feasts!",
+			"mechanics": []
+		}
+	],
+	"loot": {
+		"drops": [
+			4,
+			5
+		],
+		"min_rarity": 3
+	}
+}

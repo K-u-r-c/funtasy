@@ -32,7 +32,10 @@ func _ready() -> void:
 	light.shadow_filter = Light2D.SHADOW_FILTER_PCF5
 	light.shadow_filter_smooth = 2.0
 	light.position = Vector2(0, 0)
-	LightLayers.register(light, float(GameData.bal("lighting.wall_torch_radius")))
+	# Ground fog (Kurgan) eats part of every torch's light.
+	var game := get_tree().get_first_node_in_group("game")
+	var fog := float(game.floor_def.get("torch_radius_mult", 1.0)) if game else 1.0
+	LightLayers.register(light, float(GameData.bal("lighting.wall_torch_radius")) * fog)
 	add_child(light)
 	_embers = CPUParticles2D.new()
 	_embers.texture = GameData.texture("fx.pixel")

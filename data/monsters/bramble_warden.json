@@ -1,0 +1,38 @@
+{
+	"id": "bramble_warden",
+	"creature_type": "humanoid",
+	"biome": "kurgan",
+	"name": "Bramble Warden",
+	"role": "sniper",
+	"sprite": "monsters.bramble_warden",
+	"corpse": "flesh",
+	"ai": {
+		"type": "ranged",
+		"aggro_radius": 340,
+		"preferred_range": [
+			200,
+			320
+		],
+		"abilities": [
+			"warden_javelin"
+		]
+	},
+	"base_stats": {
+		"hp": 42,
+		"damage": 8,
+		"armor": 8,
+		"move_speed": 74,
+		"crit_chance": 0.08,
+		"dodge": 0.06
+	},
+	"behaviors": [
+		{
+			"id": "submerged_stealth",
+			"status": "camouflaged",
+			"rest": 6.0
+		}
+	],
+	"collision_radius": 8,
+	"xp": 15,
+	"tint": "#6a7a4a"
+}

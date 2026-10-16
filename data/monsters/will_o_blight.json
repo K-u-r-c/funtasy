@@ -1,0 +1,38 @@
+{
+	"id": "will_o_blight",
+	"creature_type": "elemental",
+	"biome": "kurgan",
+	"name": "Will-o'-the-Blight",
+	"role": "wisp",
+	"sprite": "monsters.will_o_blight",
+	"corpse": "none",
+	"no_corpse": true,
+	"ai": {
+		"type": "melee",
+		"aggro_radius": 280,
+		"preferred_range": [
+			0,
+			40
+		],
+		"abilities": []
+	},
+	"base_stats": {
+		"hp": 30,
+		"damage": 6,
+		"armor": 0,
+		"move_speed": 96,
+		"crit_chance": 0.0,
+		"dodge": 0.2
+	},
+	"behaviors": [
+		{
+			"id": "mana_detonate",
+			"reach": 60,
+			"every": 8
+		}
+	],
+	"collision_radius": 7,
+	"xp": 12,
+	"tint": "#a0ff80",
+	"scale": 0.7
+}

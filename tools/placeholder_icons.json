@@ -1133,5 +1133,79 @@
 	"sfx.rune": {
 		"like": "sfx.cast",
 		"prompt": "a silence rune flaring with a muffled chime"
+	},
+	"props.dead_tree": {
+		"color": "#2a2a2e",
+		"text": "Tr",
+		"shape": "bar",
+		"size": 40
+	},
+	"props.thorn_bush": {
+		"color": "#3a5a2a",
+		"text": "Th",
+		"shape": "circle",
+		"size": 28
+	},
+	"props.weeping_root": {
+		"color": "#5a1a1a",
+		"text": "Rt",
+		"shape": "bar",
+		"size": 26
+	},
+	"props.bone_cairn": {
+		"color": "#d8d0b8",
+		"text": "Bc",
+		"shape": "circle",
+		"size": 24
+	},
+	"props.dolmen": {
+		"color": "#6a6a70",
+		"text": "Do",
+		"shape": "square",
+		"size": 40
+	},
+	"props.dread_totem": {
+		"color": "#404060",
+		"text": "To",
+		"shape": "diamond",
+		"size": 30
+	},
+	"props.barrow_coffer": {
+		"color": "#4a3a2a",
+		"text": "Cf",
+		"shape": "square",
+		"size": 28
+	},
+	"props.barrow_coffer_open": {
+		"color": "#7a6a4a",
+		"text": "Op",
+		"shape": "square",
+		"size": 28
+	},
+	"props.root_snare": {
+		"color": "#4a3a1a",
+		"text": "",
+		"shape": "diamond",
+		"size": 20
+	},
+	"music.kurgan": {
+		"like": "music.crypt",
+		"prompt": "Dark fantasy dungeon ambience, cursed barrow woods at night: low wind, creaking petrified trees, distant crows, droning hurdy-gurdy, sparse frame drum, 70 bpm, pagan dread, loopable, instrumental"
+	},
+	"music.boss_cernunnos": {
+		"like": "music.boss_bone_lord",
+		"prompt": "Dark fantasy boss battle, blighted stag god: thunderous frame drums, throat singing, horns, wild strings, 140 bpm, primal fury, loopable, instrumental"
+	},
+	"music.boss_isolde": {
+		"like": "music.boss_bone_lord",
+		"prompt": "Dark fantasy boss battle, carrion spider queen: skittering string ostinatos, weeping soprano, heartbeat percussion, 132 bpm, horror, loopable, instrumental"
+	},
+	"sfx.thorns": {
+		"like": "sfx.break",
+		"prompt": "living thorn vines bursting out of the earth"
+	},
+	"sfx.totem": {
+		"like": "sfx.roar",
+		"prompt": "a dread totem pulsing with a low terrifying hum"
 	}
 }

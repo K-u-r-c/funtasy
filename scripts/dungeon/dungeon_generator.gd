@@ -63,6 +63,7 @@ func generate(seed_value: int, floor_def: Dictionary, count_mult: float = 1.0, d
 	_place_canals(rooms, door_zone)
 	_place_platforms(rooms, doors, door_zone)
 	_round_rooms(rooms, doors, door_zone)
+	_cave_rooms(rooms, door_zone)
 	var used := door_zone.duplicate()
 	layout.props = _place_props(rooms, floor_def, used)
 	layout.props.append_array(_place_lore_props(rooms, floor_def, used))
@@ -76,6 +77,7 @@ func generate(seed_value: int, floor_def: Dictionary, count_mult: float = 1.0, d
 	layout.anomalies = _place_anomalies(rooms)
 	layout.rifts = _scatter(rooms, used, floor_def.get("void_rifts", [0, 0]))
 	layout.runes = _scatter(rooms, used, floor_def.get("silence_runes", [0, 0]))
+	layout.snares = _scatter(rooms, used, floor_def.get("root_snares", [0, 0]))
 	for d in doors:
 		if not d.get("monster_proof", false) and not d.get("floodgate", false) and rng.randf() < float(gen.get("bookshelf_door_chance", 0.0)):
 			d.style = "bookshelf"
@@ -590,6 +592,60 @@ func _round_rooms(rooms: Array, doors: Array, door_zone: Dictionary) -> void:
 				if dx * dx + dy * dy > 1.0 and not keep.has(cell) and not door_zone.has(cell) and get_cell(cell) == CELL_FLOOR:
 					_set_cell(cell, CELL_WALL)
 		room.round = true
+
+
+## Caverns (Kurgan): the walls of some rooms are eaten into organic shapes - a 2-cell rim is
+## randomly walled, smoothed by two cellular-automata passes, and pockets cut off from the room's
+## centre are filled in. Door zones and the room's core never change, so every room stays reachable.
+func _cave_rooms(rooms: Array, door_zone: Dictionary) -> void:
+	var chance := float(gen.get("cave_room_chance", 0.0))
+	if chance <= 0.0:
+		return
+	for room in rooms:
+		if room.role != "normal" or rng.randf() > chance:
+			continue
+		var r: Rect2i = room.rect
+		var rim := func(c: Vector2i) -> bool:
+			return c.x < r.position.x + 2 or c.y < r.position.y + 2 or c.x >= r.end.x - 2 or c.y >= r.end.y - 2
+		for x in range(r.position.x, r.end.x):
+			for y in range(r.position.y, r.end.y):
+				var c := Vector2i(x, y)
+				if rim.call(c) and not door_zone.has(c) and get_cell(c) == CELL_FLOOR and rng.randf() < 0.45:
+					_set_cell(c, CELL_WALL)
+		for pass_i in 2:
+			var changes := {}
+			for x in range(r.position.x, r.end.x):
+				for y in range(r.position.y, r.end.y):
+					var c2 := Vector2i(x, y)
+					if not rim.call(c2) or door_zone.has(c2):
+						continue
+					var walls := 0
+					for dx in range(-1, 2):
+						for dy in range(-1, 2):
+							if (dx != 0 or dy != 0) and get_cell(c2 + Vector2i(dx, dy)) == CELL_WALL:
+								walls += 1
+					if walls >= 5:
+						changes[c2] = CELL_WALL
+					elif walls <= 2:
+						changes[c2] = CELL_FLOOR
+			for c3 in changes:
+				_set_cell(c3, changes[c3])
+		# Fill pockets the centre can't reach.
+		var seen := {r.get_center(): true}
+		var queue: Array = [r.get_center()]
+		while not queue.is_empty():
+			var c4: Vector2i = queue.pop_back()
+			for o in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+				var n: Vector2i = c4 + o
+				if r.has_point(n) and not seen.has(n) and get_cell(n) != CELL_WALL:
+					seen[n] = true
+					queue.append(n)
+		for x in range(r.position.x, r.end.x):
+			for y in range(r.position.y, r.end.y):
+				var c5 := Vector2i(x, y)
+				if not seen.has(c5) and get_cell(c5) != CELL_WALL and not door_zone.has(c5):
+					_set_cell(c5, CELL_WALL)
+		room.cave = true
 
 
 ## Library mazes (Archives): rows of bookshelves (they block sight) with aisles in some rooms.

@@ -176,5 +176,11 @@
 	"tome_prison": {"name": "Tome Prison", "kind": "stat", "flags": ["monochrome"], "color": "#e0e0e0"},
 	"out_of_reach": {"name": "Beyond Reality", "kind": "stat", "flags": ["untargetable", "invulnerable"], "color": "#e0e0e0", "visual": {"alpha": 0.3}},
 	"weakened_archivist": {"name": "Weakened", "kind": "stat", "stats": {"damage_taken_mult": 1.5}, "color": "#ffffff", "debuff": true},
-	"chronostasis": {"name": "Chronostasis", "kind": "stat", "stats": {"move_speed_mult": 0.3, "haste": -0.7}, "flags": ["slow_projectiles"], "color": "#80c0ff", "debuff": true, "cleanse": "movement"}
+	"chronostasis": {"name": "Chronostasis", "kind": "stat", "stats": {"move_speed_mult": 0.3, "haste": -0.7}, "flags": ["slow_projectiles"], "color": "#80c0ff", "debuff": true, "cleanse": "movement"},
+	"frenzied_hunt": {"name": "Frenzied Hunt", "kind": "stat", "stats": {"move_speed_mult": 2.0}, "color": "#ff4040", "visual": {"tint": "#ff9090"}},
+	"wither_hex": {"name": "Wither Hex", "kind": "stat", "color": "#8a4a8a", "debuff": true, "cleanse": "magic"},
+	"rooted_giant": {"name": "Rooted Giant", "kind": "stat", "flags": ["knockback_immune"], "color": "#5a4a3a"},
+	"camouflaged": {"name": "Camouflaged", "kind": "stat", "flags": ["stealthed"], "color": "#4a6a3a"},
+	"crippled": {"name": "Crippled", "kind": "stat", "stats": {"move_speed_mult": 0.6}, "color": "#8a6a3a", "debuff": true, "cleanse": "movement"},
+	"feast_frenzy": {"name": "Frenzy of the Feast", "kind": "stat", "stats": {"leech": 1.0, "haste": 0.25, "damage_mult": 1.15}, "flags": ["cc_immune"], "color": "#ff2030", "visual": {"tint": "#ff8080"}}
 }

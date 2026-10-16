@@ -1,0 +1,40 @@
+{
+	"id": "barrow_hag",
+	"creature_type": "humanoid",
+	"biome": "kurgan",
+	"name": "Barrow Hag",
+	"role": "witch",
+	"sprite": "monsters.barrow_hag",
+	"corpse": "flesh",
+	"ai": {
+		"type": "caster",
+		"aggro_radius": 280,
+		"preferred_range": [
+			150,
+			260
+		],
+		"abilities": [
+			"hag_bolt"
+		]
+	},
+	"base_stats": {
+		"hp": 44,
+		"damage": 7,
+		"armor": 4,
+		"move_speed": 70,
+		"crit_chance": 0.05,
+		"dodge": 0.05
+	},
+	"behaviors": [
+		{
+			"id": "barrier_hex",
+			"every": 12,
+			"duration": 6,
+			"pct": 0.05,
+			"radius": 220
+		}
+	],
+	"collision_radius": 8,
+	"xp": 15,
+	"tint": "#8a6a8a"
+}

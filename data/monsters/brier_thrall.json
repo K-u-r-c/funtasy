@@ -1,0 +1,37 @@
+{
+	"id": "brier_thrall",
+	"creature_type": "undead",
+	"biome": "kurgan",
+	"name": "Brier-Choked Thrall",
+	"role": "zombie",
+	"sprite": "monsters.brier_thrall",
+	"corpse": "flesh",
+	"ai": {
+		"type": "melee",
+		"aggro_radius": 220,
+		"preferred_range": [
+			0,
+			30
+		],
+		"abilities": [
+			"thrall_claw"
+		]
+	},
+	"base_stats": {
+		"hp": 60,
+		"damage": 7,
+		"armor": 10,
+		"move_speed": 56,
+		"crit_chance": 0.03,
+		"dodge": 0.0
+	},
+	"behaviors": [
+		{
+			"id": "death_burst",
+			"skill": "thrall_thorn_burst"
+		}
+	],
+	"collision_radius": 9,
+	"xp": 13,
+	"tint": "#6a8a4a"
+}

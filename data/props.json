@@ -44,5 +44,12 @@
 	"orrery": {"name": "Celestial Orrery", "sprite": "props.orrery", "hp": 0, "size": [40, 16], "blocks_sight": false, "light": "#c0a0ff", "light_radius": 110},
 	"locked_lectern": {"name": "Locked Lectern", "sprite": "props.locked_lectern", "sprite_open": "props.locked_lectern_open", "hp": 0, "size": [20, 10], "blocks_sight": false, "interactable": true, "verb": "Unlock", "loot": "secret"},
 	"authorial_seal": {"name": "Authorial Seal", "sprite": "props.authorial_seal", "hp": 60, "size": [18, 8], "blocks_sight": false, "debris": true, "sfx": "break", "players_only": true, "no_loot": true, "light": "#ffffff"},
-	"temporal_prism": {"name": "Temporal Prism", "sprite": "props.temporal_prism", "hp": 40, "size": [16, 8], "blocks_sight": false, "debris": true, "sfx": "break", "players_only": true, "no_loot": true, "light": "#c0e0ff"}
+	"temporal_prism": {"name": "Temporal Prism", "sprite": "props.temporal_prism", "hp": 40, "size": [16, 8], "blocks_sight": false, "debris": true, "sfx": "break", "players_only": true, "no_loot": true, "light": "#c0e0ff"},
+	"dead_tree": {"name": "Petrified Tree", "sprite": "props.dead_tree", "hp": 50, "size": [20, 10], "blocks_sight": true, "debris": true, "sfx": "break"},
+	"thorn_bush": {"name": "Thorn Bush", "sprite": "props.thorn_bush", "hp": 14, "size": [22, 8], "blocks_sight": true, "debris": true, "sfx": "break"},
+	"weeping_root": {"name": "Weeping Root", "sprite": "props.weeping_root", "hp": 18, "size": [20, 8], "blocks_sight": false, "debris": true, "sfx": "break", "drop_chance": 0.1},
+	"bone_cairn": {"name": "Bone Cairn", "sprite": "props.bone_cairn", "hp": 20, "size": [18, 8], "blocks_sight": false, "debris": true, "sfx": "bone_collapse", "drop_chance": 0.1},
+	"dolmen": {"name": "Stone Dolmen", "sprite": "props.dolmen", "hp": 200, "size": [30, 12], "blocks_sight": true, "debris": true, "sfx": "break", "players_only": true},
+	"dread_totem": {"name": "Dread Totem", "sprite": "props.dread_totem", "hp": 30, "size": [14, 8], "blocks_sight": false, "debris": true, "sfx": "break", "pulse": {"every": 12.0, "radius": 120, "damage": 1, "damage_type": "shadow", "color": "#404060", "status": "fear", "status_time": 2.0}},
+	"barrow_coffer": {"name": "Barrow Coffer", "sprite": "props.barrow_coffer", "sprite_open": "props.barrow_coffer_open", "hp": 0, "size": [26, 12], "blocks_sight": false, "interactable": true, "verb": "Open", "loot": "secret"}
 }

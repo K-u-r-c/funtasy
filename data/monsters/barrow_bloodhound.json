@@ -1,0 +1,39 @@
+{
+	"id": "barrow_bloodhound",
+	"creature_type": "beast",
+	"biome": "kurgan",
+	"name": "Bloodhound of the Barrow",
+	"role": "tracker",
+	"sprite": "monsters.barrow_bloodhound",
+	"corpse": "flesh",
+	"ai": {
+		"type": "melee",
+		"aggro_radius": 300,
+		"preferred_range": [
+			0,
+			28
+		],
+		"abilities": [
+			"bloodhound_maul"
+		]
+	},
+	"base_stats": {
+		"hp": 50,
+		"damage": 7,
+		"armor": 10,
+		"move_speed": 100,
+		"crit_chance": 0.06,
+		"dodge": 0.06
+	},
+	"behaviors": [
+		{
+			"id": "bleed_tracker",
+			"range": 360,
+			"low": 0.4,
+			"status": "frenzied_hunt"
+		}
+	],
+	"collision_radius": 9,
+	"xp": 14,
+	"tint": "#a04040"
+}

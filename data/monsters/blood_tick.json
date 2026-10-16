@@ -1,0 +1,40 @@
+{
+	"id": "blood_tick",
+	"creature_type": "beast",
+	"biome": "kurgan",
+	"name": "Blood Tick",
+	"role": "swarm",
+	"sprite": "monsters.blood_tick",
+	"corpse": "none",
+	"no_corpse": true,
+	"spawn_only": true,
+	"scale": 0.45,
+	"ai": {
+		"type": "melee",
+		"aggro_radius": 400,
+		"preferred_range": [
+			0,
+			12
+		],
+		"abilities": []
+	},
+	"base_stats": {
+		"hp": 8,
+		"damage": 4,
+		"armor": 0,
+		"move_speed": 120,
+		"crit_chance": 0.0,
+		"dodge": 0.1
+	},
+	"behaviors": [
+		{
+			"id": "kamikaze",
+			"trigger": 26,
+			"fuse": 3.0,
+			"skill": "tick_burst"
+		}
+	],
+	"collision_radius": 4,
+	"xp": 0,
+	"tint": "#c02020"
+}
