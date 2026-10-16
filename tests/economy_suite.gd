@@ -316,6 +316,20 @@ func run_lan() -> void:
 	await da._wait(1.0)
 	da.check(int(c.allocated.get("intellect", 0)) == 1, "the client spent a stat point through the host")
 	da.check(str(c.skills[1]) == str(c.default_loadout()[2]) and str(c.skills[2]) == str(c.default_loadout()[1]), "the client's loadout swap went through")
+	# A legendary on the client's hero: equipped through the real request, its proc runs on the host.
+	var lg := ItemGenerator.make_legendary("stormweaver_grips", c.level, g.loot.rng)
+	c.host_give_item(lg)
+	await da._wait(0.4)
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["eco_legendary", str(lg.name)])
+	await da._wait(1.0)
+	da.check(str(c.inv.equipment.get("gloves", {}).get("legendary", "")) == "stormweaver_grips", "the client equipped a legendary through the host")
+	c.cooldowns.erase("mage_lightning")
+	c.resource.value = c.resource.max_value
+	var cast_err := Combat.instance.try_use_skill(c, "mage_lightning", c.global_position + Vector2(80, 0))
+	await da._wait(0.3)
+	da.check(cast_err.is_empty() and c.status.has("storm_weave"), "the client's legendary proc fires on the host (Stormweaver Grips)%s" % ("" if cast_err.is_empty() else ": " + cast_err))
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["eco_legendary_status", "storm_weave"])
+	await da._wait(0.6)
 	NetworkManager.to_clients("DevAuto", "client_cmd", ["done", null])
 	await da._wait(1.0)
 
@@ -345,6 +359,17 @@ func client_cmd(cmd: String, arg: Variant) -> void:
 			var hud2: Node = da.get_tree().get_first_node_in_group("hud")
 			da.check(Codex.is_read(str(arg)) and hud2._overlay != null and str(hud2._overlay.get("book_id")) == str(arg), "the client reads the book in its own reader")
 			hud2.close_overlay()
+		"eco_legendary":
+			for i in p.inv.backpack.size():
+				if str(p.inv.backpack[i].get("name", "")) == str(arg):
+					var tip := ItemGenerator.describe(p.inv.backpack[i], p.class_id, p.level)
+					var affix := str(GameData.legendaries["stormweaver_grips"].affix)
+					da.check(tip.any(func(l): return str(l[0]) == affix), "the client's item card shows the legendary affix")
+					p.request_equip.rpc_id(1, i)
+					break
+		"eco_legendary_status":
+			da.check(p.status.has(str(arg)) and str(p.inv.equipment.get("gloves", {}).get("legendary", "")) == "stormweaver_grips",
+				"the client sees its legendary worn and its proc status")
 		"eco_progress":
 			p.request_spend_stat.rpc_id(1, "intellect", 1)
 			var lo: Array = p.skills.duplicate()
