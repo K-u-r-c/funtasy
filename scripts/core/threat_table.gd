@@ -54,6 +54,7 @@ func clear() -> void:
 	last_seen.clear()
 	current = null
 	_taunt_by = null
+	_hold_left = 0.0
 
 
 ## Picks the target. `valid` filters out dead/ghost/untargetable actors.

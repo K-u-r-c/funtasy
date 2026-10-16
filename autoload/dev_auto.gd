@@ -634,6 +634,10 @@ func _full_scenario() -> void:
 	await _wait(0.3)
 	check(client_p.inv.quick.get("q", "") == "potion_health" or client_p.inv.quick.get("e", "") == "potion_health", "potion auto-assigned to a quick slot")
 	client_p.inv.quick["q"] = "potion_health"
+	# Nothing else may touch the client's health while the potion is checked (DoTs from the
+	# hazard steps, a stray monster).
+	client_p.status.clear_all()
+	client_p.iframe_left = 3.0
 	client_p.health.hp = client_p.health.max_hp * 0.3
 	NetworkManager.to_clients("DevAuto", "client_cmd", ["use_q", null])
 	await _wait(0.6)
