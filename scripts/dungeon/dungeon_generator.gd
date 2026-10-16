@@ -32,12 +32,14 @@ var h := 0
 var tile := 32
 var cells := PackedByteArray()
 var gen: Dictionary = {}  ## the floor type's architecture profile
+var _depth := 1
 
 
 ## `depth` makes deeper floors darker (fewer lit rooms), so every peer must pass the same value.
 ## `merchant` is the floor's one merchant (Game.pick_merchant); "" = the seeded pick.
 func generate(seed_value: int, floor_def: Dictionary, count_mult: float = 1.0, depth: int = 1, merchant: String = "") -> Dictionary:
 	rng.seed = seed_value
+	_depth = depth
 	tile = int(GameData.bal("world.tile_size"))
 	var grid: Array = floor_def.grid
 	w = int(grid[0])
@@ -255,6 +257,22 @@ func _pick_merchant_room(rooms: Array) -> Array:
 
 ## The floor's one merchant (#6): a seeded pick weighted by merchants.json "floor_pick", from its
 ## own random stream so the layout itself doesn't depend on it.
+## Monster tiers (#8): the strongest tier that may spawn on `at_depth` (balance.json
+## scaling.tier_depths lists the first depth of tiers 1, 2, 3...).
+static func tier_allowed(at_depth: int) -> int:
+	var firsts: Array = GameData.bal("scaling.tier_depths", [1])
+	var t := 1
+	for i in firsts.size():
+		if at_depth >= int(firsts[i]):
+			t = i + 1
+	return t
+
+
+## Can monster `id` spawn in a floor's packs on `at_depth`? (Its data "tier", default 1.)
+static func spawnable(id: String, at_depth: int) -> bool:
+	return int(GameData.monsters.get(id, {}).get("tier", 1)) <= tier_allowed(at_depth)
+
+
 static func pick_merchant(seed_value: int) -> String:
 	var weights: Dictionary = GameData.merchants.get("floor_pick", {"archibald": 1, "malphas": 1})
 	var ids: Array = weights.keys()
@@ -904,8 +922,13 @@ func _place_spawns(rooms: Array, fd: Dictionary, used: Dictionary, count_mult: f
 	var ids: Array = []
 	var ws: Array = []
 	for m in fd.monsters:
-		ids.append(m.id)
-		ws.append(float(m.weight))
+		if spawnable(str(m.id), _depth):
+			ids.append(m.id)
+			ws.append(float(m.weight))
+	if ids.is_empty():
+		for m in fd.monsters:
+			ids.append(m.id)
+			ws.append(float(m.weight))
 	for i in rooms.size():
 		if rooms[i].role != "normal":
 			continue

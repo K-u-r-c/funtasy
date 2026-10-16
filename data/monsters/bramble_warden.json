@@ -4,6 +4,7 @@
 	"biome": "kurgan",
 	"name": "Bramble Warden",
 	"role": "sniper",
+	"tier": 2,
 	"sprite": "monsters.bramble_warden",
 	"corpse": "flesh",
 	"ai": {

@@ -4,6 +4,7 @@
 	"biome": "kurgan",
 	"name": "Bloodhound of the Barrow",
 	"role": "tracker",
+	"tier": 1,
 	"sprite": "monsters.barrow_bloodhound",
 	"corpse": "flesh",
 	"ai": {

@@ -4,6 +4,7 @@
 	"biome": "archives",
 	"name": "Void Weaver",
 	"role": "illusionist",
+	"tier": 2,
 	"sprite": "monsters.void_weaver",
 	"corpse": "flesh",
 	"ai": {

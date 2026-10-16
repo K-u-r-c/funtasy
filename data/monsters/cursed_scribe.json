@@ -4,6 +4,7 @@
 	"biome": "archives",
 	"name": "Cursed Scribe",
 	"role": "hexer",
+	"tier": 1,
 	"sprite": "monsters.cursed_scribe",
 	"corpse": "flesh",
 	"ai": {

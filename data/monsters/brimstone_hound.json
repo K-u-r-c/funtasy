@@ -4,6 +4,7 @@
 	"biome": "foundry",
 	"name": "Brimstone Hound",
 	"role": "flanker",
+	"tier": 1,
 	"sprite": "monsters.brimstone_hound",
 	"corpse": "flesh",
 	"ai": {

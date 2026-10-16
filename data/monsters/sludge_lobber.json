@@ -4,6 +4,7 @@
 	"biome": "sewers",
 	"name": "Sludge Lobber",
 	"role": "artillery",
+	"tier": 2,
 	"sprite": "monsters.sludge_lobber",
 	"corpse": "flesh",
 	"ai": {

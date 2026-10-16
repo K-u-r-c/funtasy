@@ -54,8 +54,20 @@ static func roll(source: String, item_level: int, depth: int, party_classes: Arr
 		else:
 			var base_id := pick_base(party_classes, rng)
 			var tier := ItemGenerator.roll_rarity(rng, bonus, min_tier)
-			out.append(ItemGenerator.generate_equipment(base_id, item_level, tier, rng))
+			var up := upgrade_roll(item_level, tier, rng)
+			out.append(ItemGenerator.generate_equipment(base_id, int(up[0]), int(up[1]), rng))
 	return out
+
+
+## A rare upgrade (#8): with loot.upgrade_chance an item comes `loot.upgrade_levels` levels above
+## the current item level (the hero grows into it) and one rarity tier higher. Returns
+## [item level, rarity].
+static func upgrade_roll(item_level: int, tier: int, rng: RandomNumberGenerator) -> Array:
+	if rng.randf() >= float(GameData.bal("loot.upgrade_chance", 0.0)):
+		return [item_level, tier]
+	var lv: Array = GameData.bal("loot.upgrade_levels", [2, 3])
+	var cap := int(GameData.bal("progression.max_level"))
+	return [mini(item_level + rng.randi_range(int(lv[0]), int(lv[1])), cap), mini(tier + int(GameData.bal("loot.upgrade_rarity", 1)), 5)]
 
 
 static func roll_legendary(party_classes: Array, item_level: int, rng: RandomNumberGenerator) -> Dictionary:

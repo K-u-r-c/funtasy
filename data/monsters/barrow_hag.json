@@ -4,6 +4,7 @@
 	"biome": "kurgan",
 	"name": "Barrow Hag",
 	"role": "witch",
+	"tier": 2,
 	"sprite": "monsters.barrow_hag",
 	"corpse": "flesh",
 	"ai": {

@@ -4,6 +4,7 @@
 	"biome": "crypt",
 	"name": "Banshee of the Crypt",
 	"role": "controller",
+	"tier": 2,
 	"sprite": "monsters.banshee",
 	"corpse": "none",
 	"no_corpse": true,

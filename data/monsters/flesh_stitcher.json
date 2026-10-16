@@ -4,6 +4,7 @@
 	"biome": "sewers",
 	"name": "Heretic Flesh-Stitcher",
 	"role": "support",
+	"tier": 2,
 	"sprite": "monsters.flesh_stitcher",
 	"corpse": "flesh",
 	"ai": {

@@ -4,6 +4,7 @@
 	"biome": "foundry",
 	"name": "Ash Imp",
 	"role": "harasser",
+	"tier": 1,
 	"sprite": "monsters.ash_imp",
 	"corpse": "none",
 	"no_corpse": true,
@@ -19,7 +20,7 @@
 		]
 	},
 	"base_stats": {
-		"hp": 32,
+		"hp": 38,
 		"damage": 7,
 		"armor": 4,
 		"move_speed": 92,

@@ -225,6 +225,8 @@ func _run() -> void:
 				await BossSuite.new(self).run(biome)
 			"legendaries":
 				await LegendarySuite.new(self).run_legendaries(class_id)
+			"progression":
+				BalanceSuite.new(self).run_progression()
 			"balance":
 				await BalanceSuite.new(self).run_fresh()
 				await BalanceSuite.new(self).run()
@@ -840,9 +842,11 @@ func _hazard_checks(g: Node, host_p: Player, client_p: Player) -> void:
 		var hp_g := ghoul.health.hp
 		g.dungeon.props["TestBarrel%s" % ff].take_damage(999.0, Combat.instance.make_ctx(host_p, GameData.skill(host_p.skills[0])))
 		await _wait(0.4)
-		check(ghoul.health.hp < hp_g, "player-triggered barrel explosion hurts monsters (FF %s)" % ff)
+		# The weaker floor-1 ghoul (#8) may die to the blast: that hurt it too.
+		check(not is_instance_valid(ghoul) or ghoul.health.hp < hp_g or not ghoul.is_alive(), "player-triggered barrel explosion hurts monsters (FF %s)" % ff)
 		check(client_p.health.hp < hp_c, "an explosive barrel hurts players in range too (FF %s)" % ff)
-		ghoul.queue_free()
+		if is_instance_valid(ghoul):
+			ghoul.queue_free()
 		await _wait(0.2)
 	# A player's projectile vs an ally.
 	host_p.host_teleport(c + Vector2(-70, -40))

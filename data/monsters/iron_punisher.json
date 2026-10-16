@@ -4,6 +4,7 @@
 	"biome": "foundry",
 	"name": "Iron Punisher",
 	"role": "behemoth",
+	"tier": 3,
 	"sprite": "monsters.iron_punisher",
 	"corpse": "none",
 	"no_corpse": true,

@@ -4,6 +4,7 @@
 	"biome": "archives",
 	"name": "Tomebound Mimic",
 	"role": "ambush",
+	"tier": 2,
 	"sprite": "monsters.tomebound_mimic",
 	"corpse": "none",
 	"no_corpse": true,

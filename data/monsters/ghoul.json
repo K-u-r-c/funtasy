@@ -3,6 +3,7 @@
 	"creature_type": "undead",
 	"name": "Ghoul",
 	"role": "melee",
+	"tier": 1,
 	"sprite": "monsters.ghoul",
 	"ai": {
 		"type": "melee",

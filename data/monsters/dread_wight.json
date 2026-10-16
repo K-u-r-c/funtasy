@@ -4,6 +4,7 @@
 	"biome": "crypt",
 	"name": "Dread Wight",
 	"role": "tank",
+	"tier": 3,
 	"sprite": "monsters.dread_wight",
 	"corpse": "bones",
 	"ai": {

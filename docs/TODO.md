@@ -63,6 +63,9 @@ screenshot review at 1920x1080 and 3440x1440.
       Archibald floors (`economy`, `economy-lan`, `biomes*`)
 - [x] #7 Doors / props lit and shadowed like walls (LIT layer, occluders off the art; lighting tour of
       all 5 biomes reviewed; `biomes`, `darkness`, `art-check`, `full-*`)
+- [x] #8 Balance: kill XP curve (2-3 levels per floor, solo and 4 players), monster tiers gated by
+      depth, easier floors 1-3, item level from one function, 3% upgrade drops (`balance-*` progression
+      and pacing probes, `biomes`, `economy`)
 
 ## PixelLab ledger
 

@@ -4,6 +4,7 @@
 	"biome": "sewers",
 	"name": "Acid Slime",
 	"role": "splitter",
+	"tier": 1,
 	"sprite": "monsters.acid_slime",
 	"corpse": "none",
 	"no_corpse": true,

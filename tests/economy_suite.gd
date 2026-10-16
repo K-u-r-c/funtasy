@@ -163,7 +163,44 @@ func elites_and_key() -> void:
 		da.check(altar.opened and g.items_root.get_child_count() > n, "praying at the altar gives loot once")
 
 
+## Rare upgrade drops (#8): about loot.upgrade_chance of the items come 2-3 levels above the item
+## level and one rarity tier higher (clamped at Relic).
+func upgrade_drops() -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 2024
+	var n := 20000
+	var ups := 0
+	var bad := ""
+	var lv: Array = GameData.bal("loot.upgrade_levels")
+	for i in n:
+		var tier := 1 + i % 5
+		var r := LootTable.upgrade_roll(10, tier, rng)
+		if int(r[0]) != 10:
+			ups += 1
+			if int(r[0]) < 10 + int(lv[0]) or int(r[0]) > 10 + int(lv[1]) or int(r[1]) != mini(tier + 1, 5):
+				bad = "%s from tier %d" % [r, tier]
+		elif int(r[1]) != tier:
+			bad = "rarity changed without an upgrade"
+	var rate := float(ups) / n
+	var want := float(GameData.bal("loot.upgrade_chance"))
+	da.check(absf(rate - want) < 0.006 and bad.is_empty(), "%.1f%% of drops are +2-3 level, +1 rarity upgrades (want %.0f%%)%s" % [rate * 100.0, want * 100.0, "" if bad.is_empty() else ": " + bad])
+	var top := LootTable.upgrade_roll(int(GameData.bal("progression.max_level")), 5, RandomNumberGenerator.new())
+	da.check(int(top[0]) <= int(GameData.bal("progression.max_level")), "an upgrade never goes past the level cap")
+	# Every equipment drop goes through it: chest rolls show the upgrades too.
+	var seen := 0
+	var items := 0
+	for i in 3000:
+		for it in LootTable.roll("chest", 8, 3, ["warrior"], rng):
+			if it.get("kind", "") in ["weapon", "armor", "jewelry"] or it.has("slot"):
+				if not it.has("legendary"):
+					items += 1
+					if int(it.get("ilvl", 8)) > 8:
+						seen += 1
+	da.check(items > 0 and absf(float(seen) / items - want) < 0.01, "chest equipment: %d of %d are upgrades" % [seen, items])
+
+
 func merchants() -> void:
+	await upgrade_drops()
 	await merchant_rules()
 	await _force_merchant("archibald")
 	var m: Dictionary = g.layout.get("merchant", {})

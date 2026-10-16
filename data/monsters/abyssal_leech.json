@@ -4,6 +4,7 @@
 	"biome": "sewers",
 	"name": "Abyssal Leech",
 	"role": "parasite",
+	"tier": 1,
 	"sprite": "monsters.abyssal_leech",
 	"corpse": "flesh",
 	"ai": {

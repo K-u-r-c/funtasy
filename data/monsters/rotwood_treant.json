@@ -4,6 +4,7 @@
 	"biome": "kurgan",
 	"name": "Rotwood Treant",
 	"role": "behemoth",
+	"tier": 3,
 	"sprite": "monsters.rotwood_treant",
 	"corpse": "none",
 	"no_corpse": true,

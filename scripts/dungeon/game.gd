@@ -139,7 +139,7 @@ func start_floor(new_depth: int) -> void:
 	var count_mult := 1.0 + float(GameData.bal("scaling.count_per_extra_player")) * (maxi(n, 1) - 1)
 	var host_layout := DungeonGenerator.new().generate(floor_seed, floor_def, count_mult, new_depth, merchant_id)
 	_place_players()
-	merchants.host_new_floor(floor_seed, monster_level())
+	merchants.host_new_floor(floor_seed, item_level())
 	var elites := _pick_elites(host_layout, floor_seed, merchant_id == "archibald")
 	for gi in host_layout.spawns.size():
 		var group: Dictionary = host_layout.spawns[gi]
@@ -222,16 +222,9 @@ func spawn_monster(def_id: String, pos: Vector2, boss: bool, extra: Dictionary =
 		return null
 	var n := maxi(players_root.get_child_count(), 1)
 	var lvl := monster_level()
-	var diff := _difficulty()
-	var hp_mult := (1.0 + float(GameData.bal("scaling.hp_per_level")) * (lvl - 1)) * diff
-	hp_mult *= 1.0 + float(GameData.bal("scaling.boss_hp_per_extra_player" if boss else "scaling.hp_per_extra_player")) * (n - 1)
-	var dmg_mult := (1.0 + float(GameData.bal("scaling.damage_per_level")) * (lvl - 1)) * diff
-	dmg_mult *= 1.0 + float(GameData.bal("scaling.damage_per_extra_player")) * (n - 1)
-	# The first floors are easier (a simple start, #1): one {hp, damage} factor per depth.
-	var early: Array = GameData.bal("scaling.early_depths", [])
-	if depth >= 1 and depth <= early.size():
-		hp_mult *= float(early[depth - 1].get("hp", 1.0))
-		dmg_mult *= float(early[depth - 1].get("damage", 1.0))
+	var mults := spawn_mults(depth, lvl, boss, n, _difficulty())
+	var hp_mult := mults.x
+	var dmg_mult := mults.y
 	if not extra.get("elite", []).is_empty():
 		hp_mult *= float(GameData.bal("elite.hp_mult"))
 		dmg_mult *= float(GameData.bal("elite.damage_mult"))
@@ -275,14 +268,61 @@ func summon_monsters(def_id: String, count: int, origin: Vector2, r: float, cast
 
 
 func monster_level() -> int:
+	return monster_level_at(depth, party_level())
+
+
+## The party's average level (1 with nobody in the world yet).
+func party_level() -> float:
 	var total := 0
 	var n := 0
 	for p in players_root.get_children():
 		total += p.level
 		n += 1
-	var avg := float(total) / n if n > 0 else 1.0
+	return float(total) / n if n > 0 else 1.0
+
+
+## Spawn HP / damage multipliers (x, y) of a monster of level `lvl` on `at_depth` for `n`
+## heroes at difficulty `diff` (the balance probe runs the same function).
+static func spawn_mults(at_depth: int, lvl: int, boss: bool, n: int, diff: float = 1.0) -> Vector2:
+	var hp_mult := (1.0 + float(GameData.bal("scaling.hp_per_level")) * (lvl - 1)) * diff
+	hp_mult *= 1.0 + float(GameData.bal("scaling.boss_hp_per_extra_player" if boss else "scaling.hp_per_extra_player")) * (n - 1)
+	var dmg_mult := (1.0 + float(GameData.bal("scaling.damage_per_level")) * (lvl - 1)) * diff
+	dmg_mult *= 1.0 + float(GameData.bal("scaling.damage_per_extra_player")) * (n - 1)
+	# The first floors are easier (a simple start, #1): one {hp, damage, boss_hp} factor per depth.
+	var early: Array = GameData.bal("scaling.early_depths", [])
+	if at_depth >= 1 and at_depth <= early.size():
+		hp_mult *= float(early[at_depth - 1].get("boss_hp" if boss else "hp", early[at_depth - 1].get("hp", 1.0)))
+		dmg_mult *= float(early[at_depth - 1].get("damage", 1.0))
+	return Vector2(hp_mult, dmg_mult)
+
+
+## Monster level on `at_depth` for a party of average level `avg` (D-table "Item level"; the
+## balance probe runs the same function).
+static func monster_level_at(at_depth: int, avg: float) -> int:
 	var w := float(GameData.bal("scaling.level_party_weight"))
-	return maxi(1, roundi(float(GameData.bal("scaling.level_per_depth")) * (depth - 1) + w * avg + (1.0 - w)))
+	return maxi(1, roundi(float(GameData.bal("scaling.level_per_depth")) * (at_depth - 1) + w * avg + (1.0 - w)))
+
+
+## Item level of drops, chests, gold and merchant stock (#8): the monster level, never above the
+## level cap (an item nobody could ever wear would be useless).
+func item_level() -> int:
+	return item_level_at(monster_level())
+
+
+static func item_level_at(mon_level: int) -> int:
+	return clampi(mon_level, 1, int(GameData.bal("progression.max_level")))
+
+
+## XP every contributor gets for a kill (#8): base XP x xp_mult x level^monster_xp_exponent (it
+## grows like the XP a level needs, so a floor is worth about the same number of levels at any
+## depth), x the elite multiplier, divided over the extra monsters a bigger party faces.
+static func kill_xp(def: Dictionary, mon_level: int, elite: bool, party_size: int) -> int:
+	var xp := float(def.get("xp", 0)) * float(GameData.bal("progression.xp_mult", 1.0))
+	xp *= pow(float(maxi(mon_level, 1)), float(GameData.bal("progression.monster_xp_exponent", 1.0)))
+	if elite:
+		xp *= float(GameData.bal("elite.xp_mult"))
+	xp /= 1.0 + float(GameData.bal("scaling.count_per_extra_player")) * float(GameData.bal("progression.party_xp_share", 1.0)) * (maxi(party_size, 1) - 1)
+	return roundi(xp)
 
 
 func _difficulty() -> float:
@@ -324,12 +364,11 @@ func on_enemy_killed(e: Enemy) -> void:
 	# Shared XP: everyone who directly or indirectly contributed inside the time window.
 	var now := Time.get_ticks_msec() / 1000.0
 	var window := float(GameData.bal("progression.contribution_window"))
-	var xp := roundi(float(e.def.xp) * (1.0 + float(GameData.bal("progression.monster_xp_per_level")) * (e.level - 1)))
+	var xp := kill_xp(e.def, e.level, e.is_elite(), maxi(players_root.get_child_count(), 1))
 	if e.is_elite():
-		xp = roundi(xp * float(GameData.bal("elite.xp_mult")))
 		_dyn_counter += 1
 		dungeon.spawn_prop.rpc("Altar_%d" % _dyn_counter, "elite_altar", nearest_floor(e.global_position))
-		loot.drop_item(LootTable.gold_pile("elite", monster_level(), loot.rng), e.global_position + Vector2(12, 6))
+		loot.drop_item(LootTable.gold_pile("elite", item_level(), loot.rng), e.global_position + Vector2(12, 6))
 		broadcast_message.rpc("%s falls - an elite altar rises" % e.display_name, "#e8c040")
 	if e.key_carrier:
 		loot.drop_item(gold_key_item(), e.global_position + Vector2(-12, 6))

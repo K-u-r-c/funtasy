@@ -4,6 +4,7 @@
 	"biome": "sewers",
 	"name": "Gutter Stalker",
 	"role": "assassin",
+	"tier": 3,
 	"sprite": "monsters.gutter_stalker",
 	"corpse": "flesh",
 	"ai": {

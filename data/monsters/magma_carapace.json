@@ -4,6 +4,7 @@
 	"biome": "foundry",
 	"name": "Magma Carapace",
 	"role": "juggernaut",
+	"tier": 3,
 	"sprite": "monsters.magma_carapace",
 	"corpse": "none",
 	"no_corpse": true,

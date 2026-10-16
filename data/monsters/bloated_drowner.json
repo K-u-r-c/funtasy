@@ -4,6 +4,7 @@
 	"biome": "sewers",
 	"name": "Bloated Drowner",
 	"role": "kamikaze",
+	"tier": 2,
 	"sprite": "monsters.bloated_drowner",
 	"corpse": "none",
 	"no_corpse": true,

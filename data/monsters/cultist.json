@@ -3,6 +3,7 @@
 	"creature_type": "humanoid",
 	"name": "Cultist",
 	"role": "caster",
+	"tier": 2,
 	"sprite": "monsters.cultist",
 	"ai": {
 		"type": "caster",

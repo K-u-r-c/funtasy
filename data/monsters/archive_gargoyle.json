@@ -4,6 +4,7 @@
 	"biome": "archives",
 	"name": "Archive Gargoyle",
 	"role": "diver",
+	"tier": 2,
 	"sprite": "monsters.archive_gargoyle",
 	"corpse": "none",
 	"no_corpse": true,

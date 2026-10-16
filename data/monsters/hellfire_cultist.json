@@ -4,6 +4,7 @@
 	"biome": "foundry",
 	"name": "Hellfire Cultist",
 	"role": "nuker",
+	"tier": 2,
 	"sprite": "monsters.hellfire_cultist",
 	"corpse": "flesh",
 	"ai": {

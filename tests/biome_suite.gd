@@ -46,6 +46,7 @@ func check_layouts(fid: String) -> void:
 	var kinds := {}
 	var gates := 0
 	var gate_bad := ""
+	var tiers_seen := {}
 	var bad := ""
 	for i in 6:
 		var seed_value := 1000 + i * 7919
@@ -62,6 +63,10 @@ func check_layouts(fid: String) -> void:
 			for m in grp.monsters:
 				if not monsters.has(str(m.id)):
 					bad = "foreign monster %s" % m.id
+				var tier := int(GameData.monsters[str(m.id)].get("tier", 1))
+				tiers_seen[tier] = true
+				if tier > DungeonGenerator.tier_allowed(1 + i):
+					bad = "tier %d %s on depth %d" % [tier, m.id, 1 + i]
 		for pr in lay.props:
 			if not allowed_props.has(str(pr.type)):
 				bad = "foreign prop %s" % pr.type
@@ -84,7 +89,15 @@ func check_layouts(fid: String) -> void:
 				var levers: Array = lay.props.filter(func(pr): return int(pr.get("gate", -1)) == di)
 				if levers.size() != 2:
 					gate_bad = "floodgate %d has %d levers" % [di, levers.size()]
-	da.check(bad.is_empty(), "%s layouts are connected and use the biome's monsters and props%s" % [fid, "" if bad.is_empty() else ": " + bad])
+	da.check(bad.is_empty(), "%s layouts are connected and use the biome's monsters and props of the depth's tiers%s" % [fid, "" if bad.is_empty() else ": " + bad])
+	da.check(tiers_seen.has(1) and tiers_seen.has(2) and tiers_seen.has(3), "%s: depths 1-6 bring in tiers 1, 2 and 3 (%s)" % [fid, tiers_seen.keys()])
+	var basic := true
+	for d0 in [1, 2]:
+		var lay0: Dictionary = DungeonGenerator.new().generate(77 + d0, fd, 1.0, d0)
+		for grp0 in lay0.spawns:
+			for m0 in grp0.monsters:
+				basic = basic and int(GameData.monsters[str(m0.id)].get("tier", 1)) == 1
+	da.check(basic, "%s on depths 1-2 spawns only tier 1 monsters" % fid)
 	if fd.has("plates_per_room"):
 		da.check(plates > 0, "%s layouts have pressure plates (%d over 6 floors)" % [fid, plates])
 	da.check(pendulums == 0 and not fd.has("pendulums"), "%s layouts have no pendulum traps (#5)" % fid)

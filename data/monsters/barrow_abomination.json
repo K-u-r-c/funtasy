@@ -4,6 +4,7 @@
 	"biome": "kurgan",
 	"name": "Barrow Abomination",
 	"role": "brawler",
+	"tier": 3,
 	"sprite": "monsters.barrow_abomination",
 	"corpse": "flesh",
 	"ai": {

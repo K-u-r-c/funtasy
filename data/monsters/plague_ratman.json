@@ -4,6 +4,7 @@
 	"biome": "sewers",
 	"name": "Plague Ratman",
 	"role": "skirmisher",
+	"tier": 1,
 	"sprite": "monsters.plague_ratman",
 	"corpse": "flesh",
 	"ai": {

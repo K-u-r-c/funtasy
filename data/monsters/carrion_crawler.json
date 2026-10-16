@@ -4,6 +4,7 @@
 	"biome": "crypt",
 	"name": "Carrion Crawler",
 	"role": "ambush",
+	"tier": 2,
 	"sprite": "monsters.carrion_crawler",
 	"corpse": "flesh",
 	"ai": {

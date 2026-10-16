@@ -4,6 +4,7 @@
 	"biome": "kurgan",
 	"name": "Will-o'-the-Blight",
 	"role": "wisp",
+	"tier": 1,
 	"sprite": "monsters.will_o_blight",
 	"corpse": "none",
 	"no_corpse": true,

@@ -4,6 +4,7 @@
 	"biome": "crypt",
 	"name": "Skeletal Footman",
 	"role": "melee",
+	"tier": 1,
 	"sprite": "monsters.skeletal_footman",
 	"corpse": "bones",
 	"ai": {

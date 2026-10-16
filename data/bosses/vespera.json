@@ -7,7 +7,7 @@
 	"music": "boss_vespera",
 	"corpse": "flesh",
 	"base_stats": {
-		"hp": 880,
+		"hp": 1150,
 		"damage": 11,
 		"armor": 20,
 		"move_speed": 78,

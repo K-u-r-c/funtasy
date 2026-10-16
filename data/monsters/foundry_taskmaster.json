@@ -4,6 +4,7 @@
 	"biome": "foundry",
 	"name": "Foundry Taskmaster",
 	"role": "disrupter",
+	"tier": 2,
 	"sprite": "monsters.foundry_taskmaster",
 	"corpse": "flesh",
 	"ai": {

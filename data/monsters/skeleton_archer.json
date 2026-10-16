@@ -3,6 +3,7 @@
 	"creature_type": "undead",
 	"name": "Skeleton Archer",
 	"role": "ranged",
+	"tier": 1,
 	"sprite": "monsters.skeleton_archer",
 	"ai": {
 		"type": "ranged",

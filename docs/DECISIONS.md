@@ -69,7 +69,7 @@ Each one is an assumption that can be changed; most are a single value in `data/
 | Two weapon slots | "Right hand" (main) and "Left hand" (off). One-handed weapons can go in either; off-hand weapons add 50% of their DPS. Two-handed weapons fill both slots. Shields and trinkets are off-hand only. | `inventory.gd`, `stats.gd` |
 | Class weapons | Warrior: sword, axe, mace (1H), greatsword, greataxe, warhammer (2H), shield. Ranger: sling (1H), bow, crossbow (2H). Mage: Arcane Wand (2H) or Battle Staff (1H) + trinket. Priest: Holy Staff (2H) or Holy Wand (1H) + shield/trinket. CLAUDE.md gives wand/staff opposite handedness for Mage and Priest, so they are separate item bases. | `data/items/bases/` |
 | Off-class penalty | Any weapon/off-hand not listing the class: **x0.2 damage, x1.5 cooldowns**. Armor and jewelry have no class. | `balance.off_class` |
-| Item level | Item level = monster level where it dropped; **required level = item level**. Monster level = `1 x (depth-1) + 0.5 x party_avg_level + 0.5`, rounded. | `item_generator.gd`, `game.gd` |
+| Item level | Item level = monster level where it dropped, capped at the level cap (#8); **required level = item level**. Monster level = `level_per_depth x (depth-1) + 0.5 x party_avg_level + 0.5`, rounded (`level_per_depth` 1.25 since #8). A rare upgrade drop (#8) comes 2-3 levels above that: the hero grows into it. | `item_generator.gd`, `game.gd` |
 | Too-high-level gear | Shown before the player tries: backpack slots darken the icon with a red frame and a padlock "Lv N" badge, the item card shows a red "needs level N (you are M)" banner, the equip prompt says "Equip (needs level N)", ground items show "Requires level N" under their name and in the pick-up prompt. Trying anyway (click, A, drag onto the slot) is refused on the spot with a message in the inventory footer; the host still validates and its refusal names both levels. | `item_slot.gd`, `inventory_panel.gd`, `overhead.gd`, `inventory.gd` |
 | Rarity stats | Common: only armor/DPS. Uncommon: +1 primary stat. Rare: 1-2 primary + 1 secondary. Epic: 2-3 + 1-2. Relic: 3 + 2-3. Secondary = crit damage, haste, dodge, leech. | `data/items/rarities.json` |
 | Backpacks | Start with 12 slots. Bigger backpacks (16-32) drop rarely; picking one up upgrades capacity immediately (a smaller one stays on the ground for a teammate). | `balance.inventory`, `player.gd` |
@@ -256,7 +256,8 @@ proposal left a choice open, the chosen option is stated, and any change to a pr
 
 ### Balance pass (phase 10)
 
-The GDD gives no pacing targets, so the balance pass measures and records them instead of guessing.
+(Updated by the playtest fixes: see "#8 Balance" below for the hero level, the depths and the
+current numbers.) The GDD gives no pacing targets, so the balance pass measures and records them instead of guessing.
 `tests/balance_suite.gd` (suites `balance-<class>`) puts a hero of level = depth in rare gear of that item
 level, all stat points in the main stat, against every monster and both bosses of the biome at depths
 1, 2, 3, 4, 5, 8, 12, 16, 20, using the real host damage code (primary attack only, monster behaviour
@@ -376,3 +377,16 @@ it). The screenshot tour `--scenario=tour --tour=lighting --biome=<id>` shows a 
 torch, a door beside the carried torch and a prop beside the carried torch; all five biomes were
 reviewed at 1280x720. Characters, wall torches and wall spouts stay on `SELF_LIT`; no prop or door
 uses an additive material (the additive ones are particles, the portal and item glows).
+
+### #8 Balance: weaker early monsters, monster tiers, 2-3 levels per floor
+
+| Topic | Decision |
+| --- | --- |
+| Kill XP | `Game.kill_xp`: base XP x `progression.xp_mult` 0.55 x monster level ^ `monster_xp_exponent` 1.25 (it grows with the XP a level needs, so a floor is worth about the same number of levels at any depth), x `elite.xp_mult`, divided by `1 + count_per_extra_player x party_xp_share (0.6) x (players - 1)`: a bigger party faces more monsters, so each hero's share is evened out (not fully, because elites and the boss don't multiply). Everyone who contributed still gets the full share. Replaces `monster_xp_per_level`. |
+| Levels per floor | `BalanceSuite.run_progression` clears floors 1-5 kill by kill with the game's own `kill_xp` / `monster_level_at` (packs, elites, the boss; splitting slimes and summoned adds are left out), 4 seeds, solo and 4 players. Band `probe.levels_per_floor` [2, 3]. Result (2026-10-16): solo +2.51, +2.25, +2.64, +2.69, +2.27; four players +2.42, +2.19, +2.57, +2.52, +2.07. Solo level at the start of depths 1-12: 1, 3.5, 5.8, 8.4, 11.1, 13.3, 15.3, 17.3, 19.4, 21.8, 24.1, 26.0 (cap 30 around depth 14). |
+| Monster level and scaling | `scaling.level_per_depth` 1.25 (was 1.0): monsters stay about the party's level at the new pace. Per level +36% HP and +18% damage (was +22% / +14%): the party now levels 2.5 times faster, so the same hero-vs-monster relation needs steeper per-level steps. `Game.spawn_mults` is the one place that builds the spawn multipliers. |
+| Easier first floors | `scaling.early_depths` (normal HP / damage / boss HP): depth 1 0.55 / 0.5 / 0.65, depth 2 0.55 / 0.4, depth 3 0.42 / 0.45 / 0.6. A normal monster at the party's mid-floor level against the numbers before the playtest fixes (one level per floor, the old formulas): floor 1 HP x0.75 / damage x0.59 (was x1.00 / x1.00), floor 2 x1.14 / x0.62 (was x1.44 / x1.28), floor 3 x1.33 / x0.94 (was x1.66 / x1.42). The balance probe checks every floor is at least 15% lower on both. |
+| Tiers | Every monster has a `tier` (1 basic, 2 stronger, 3 the biome's heavies: Dread Wight, Gutter Stalker, Magma Carapace, Iron Punisher, Astral Warden, Barrow Abomination, Rotwood Treant). `scaling.tier_depths` [1, 3, 6] are the first depths of tiers 1, 2, 3: floors 1-2 spawn only tier 1, tier 2 joins on depth 3, tier 3 on depth 6 (the second lap of the biomes). `DungeonGenerator.spawnable` gates the packs, the balance probe and the fresh-hero probe. Summons, splits and boss adds ignore tiers. |
+| Item level | Drops, chests, altars, gold and Archibald's stock use `Game.item_level()` (the monster level, capped at 30), so items follow the same curve. |
+| Upgrade drops | `loot.upgrade_chance` 0.03: an equipment drop comes `loot.upgrade_levels` [2, 3] levels above the item level (never past the cap) and `loot.upgrade_rarity` 1 tier higher (at most Relic); the required level comes with it, so it is an item to grow into. The economy suite checks the rate over 20 000 seeded rolls and on chest loot. |
+| Pacing bands | The probe now puts the hero at the progression curve's mid-floor level in rare gear of the floor's item level and measures only the monsters that can spawn there, on depths 1-10, 12, 16, 20 (tier 3 first appears on 6-10). The one-hit floor (`normal_ttk_min`) applies from `normal_ttk_min_from_depth` 4: on the eased floors 1-3 trash may die to one hit. Vespera's HP 880 -> 1150 and the ash imp's 32 -> 38 keep them in the bands. All four classes pass. |

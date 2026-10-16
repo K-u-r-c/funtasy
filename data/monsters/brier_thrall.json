@@ -4,6 +4,7 @@
 	"biome": "kurgan",
 	"name": "Brier-Choked Thrall",
 	"role": "zombie",
+	"tier": 1,
 	"sprite": "monsters.brier_thrall",
 	"corpse": "flesh",
 	"ai": {

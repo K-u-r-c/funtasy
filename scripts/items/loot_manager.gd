@@ -26,7 +26,7 @@ func roll_and_drop(source: String, pos: Vector2, override: Dictionary = {}) -> v
 		return
 	var ov := override.duplicate()
 	ov.biome = str(game.floor_def.get("lore_origin", game.floor_def.get("id", "")))
-	var items := LootTable.roll(source, game.monster_level(), game.depth, GameState.classes_in_party(), rng, ov)
+	var items := LootTable.roll(source, game.item_level(), game.depth, GameState.classes_in_party(), rng, ov)
 	var scatter := float(GameData.bal("loot.drop_scatter"))
 	for i in items.size():
 		var off := Vector2.ZERO if items.size() == 1 else Vector2.from_angle(TAU * i / items.size()) * scatter

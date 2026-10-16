@@ -4,6 +4,7 @@
 	"biome": "archives",
 	"name": "Astral Warden",
 	"role": "guardian",
+	"tier": 3,
 	"sprite": "monsters.astral_warden",
 	"corpse": "none",
 	"no_corpse": true,

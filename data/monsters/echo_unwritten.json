@@ -4,6 +4,7 @@
 	"biome": "archives",
 	"name": "Echo of the Unwritten",
 	"role": "shapeshifter",
+	"tier": 2,
 	"sprite": "monsters.cultist",
 	"corpse": "none",
 	"no_corpse": true,

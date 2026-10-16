@@ -4,6 +4,7 @@
 	"biome": "foundry",
 	"name": "Flame Revenant",
 	"role": "phaser",
+	"tier": 2,
 	"sprite": "monsters.flame_revenant",
 	"corpse": "none",
 	"no_corpse": true,
