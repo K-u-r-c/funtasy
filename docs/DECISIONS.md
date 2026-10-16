@@ -254,6 +254,20 @@ proposal left a choice open, the chosen option is stated, and any change to a pr
 | Visage of the Dark Singularity | Paranoia (3 s, charm DR) makes the monster change sides: it fights the nearest monsters and heroes cannot hurt it until it ends. Bosses keep their side (their arena mechanics assume it); CC-immune monsters ignore it. |
 | Exorcist's Iron Striders | Checked on the 1 s aura tick: undead / demons within 30 px are stunned 1 s and take 100 (scaled) holy damage. |
 
+### Balance pass (phase 10)
+
+The GDD gives no pacing targets, so the balance pass measures and records them instead of guessing.
+`tests/balance_suite.gd` (suites `balance-<class>`) puts a hero of level = depth in rare gear of that item
+level, all stat points in the main stat, against every monster and both bosses of the biome at depths
+1, 2, 3, 4, 5, 8, 12, 16, 20, using the real host damage code (primary attack only, monster behaviour
+modules off). Bands in `balance.json` "probe": a normal monster dies in 0.3-12 s (one-hit critters under
+20 HP excepted) and needs at least 4 s to kill the hero; a boss takes 12-240 s alone and at least 3 s to
+kill the hero. Results (2026-10-16): normals 0.5-8 s to kill, bosses 17-53 s for one hero with the
+primary attack only (more players scale boss HP by +70% each, skills and talents shorten it), the
+fastest boss kill on a hero is about 11 s (Vulkania / Ignis on a mage). All four classes are inside the
+bands. The one change the pass needed: blood pools (Kurgan) no longer let a boss heal from its own
+hatchlings (see "The Kurgan").
+
 ### Skill groups per talent branch (D1)
 
 Tier in brackets. **Bold** = starter (free) skill.

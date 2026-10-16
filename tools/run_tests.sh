@@ -77,6 +77,9 @@ if [ "$WHAT" = all ] || [ "$WHAT" = quick ]; then
 	run biomes-archives --auto=solo --class=mage --name=Bio --scenario=biomes --biome=archives --quit=120
 	run biomes-kurgan --auto=solo --class=warrior --name=Bio --scenario=biomes --biome=kurgan --quit=120
 	run primitives --auto=solo --class=mage --name=Prim --scenario=primitives --quit=200
+	for c in warrior ranger mage priest; do
+		run balance-$c --auto=solo --class=$c --name=Bal --scenario=balance --quit=360
+	done
 	run ui-layout --auto=solo --class=priest --name=Layout --scenario=ui_layout --quit=90
 	run art-check --scenario=art_check --quit=120
 	run gamepad-menu --scenario=gamepad_menu --quit=60

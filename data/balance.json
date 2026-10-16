@@ -322,5 +322,15 @@
 	},
 	"combat": {
 		"max_traps": 3
+	},
+	"probe": {
+		"_comment": "Pacing bands for tests/balance_suite.gd (scenario balance): one hero of level = depth in rare gear, primary attack only, monster behaviour modules off. Seconds.",
+		"normal_ttk_min": 0.3,
+		"critter_hp_max": 20,
+		"normal_ttk_max": 12.0,
+		"normal_ttd_min": 4.0,
+		"boss_ttk_min": 12.0,
+		"boss_ttk_max": 240.0,
+		"boss_ttd_min": 3.0
 	}
 }

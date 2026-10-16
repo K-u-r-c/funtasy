@@ -225,6 +225,8 @@ func _run() -> void:
 				await BossSuite.new(self).run(biome)
 			"legendaries":
 				await LegendarySuite.new(self).run_legendaries(class_id)
+			"balance":
+				await BalanceSuite.new(self).run()
 			"biomes":
 				await BiomeSuite.new(self).run(biome)
 			"economy":
