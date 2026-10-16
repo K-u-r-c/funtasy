@@ -478,6 +478,10 @@ func _full_scenario() -> void:
 	host_p.iframe_left = 12.0
 	client_p.iframe_left = 12.0
 	var xp_before := client_p.xp + client_p.level * 100000
+	# Kill credit is what is checked, not the pack's toughness (wights, footmen that reassemble).
+	for e in g.enemies_root.get_children():
+		if e is Enemy and not e.is_boss and e.global_position.distance_to(target.global_position) < 260.0:
+			e.health.hp = e.health.max_hp * 0.15
 	NetworkManager.to_clients("DevAuto", "client_cmd", ["fight", true])
 	await _wait(9.0)
 	NetworkManager.to_clients("DevAuto", "client_cmd", ["fight", false])
@@ -651,7 +655,8 @@ func _full_scenario() -> void:
 	check(g.boss_engaged, "boss engaged (boss music + HUD bar)")
 	await _wait(14.0)
 	host_p.iframe_left = 60.0
-	boss.health.hp = boss.health.max_hp * 0.45
+	boss.health.absorb = 0.0
+	boss.health.hp = boss.health.max_hp * maxf(float(boss.def.phases[boss.def.phases.size() - 2].hp_above) - 0.05, 0.05)
 	await _wait(12.0)
 	check(boss.phase == boss.def.phases.size() - 1, "%s entered its last phase" % boss.display_name)
 	var boss_uses: Array = []
@@ -791,9 +796,8 @@ func _hazard_checks(g: Node, host_p: Player, client_p: Player) -> void:
 	host_p.host_teleport(c + Vector2(-100, 0))
 	await _wait(0.5)
 	var watcher: Enemy = g.spawn_monster("skeleton_archer", c + Vector2(60, 0), false)
-	await _wait(0.5)
-	watcher.set_physics_process(false)
-	await _wait(0.2)
+	watcher.set_physics_process(false)  # frozen at once: a strafing archer could step out of the crate's shadow
+	await _wait(0.7)
 	check(watcher.visible, "monster in plain sight is visible")
 	g.dungeon._add_prop("TestCrate", "crate", c + Vector2(-20, 6))
 	await _wait(0.4)
@@ -955,7 +959,8 @@ func _tank_scenario() -> void:
 	await _wait(0.6)
 	var pack: Array = []
 	for i in 4:
-		pack.append(g.spawn_monster("ghoul", c + Vector2(110, -40 + i * 26), false))
+		# Skeletal footmen: no behaviour that picks its own target (a ghoul's pounce would).
+		pack.append(g.spawn_monster("skeletal_footman", c + Vector2(110, -40 + i * 26), false))
 	await _wait(0.3)
 	for e in pack:
 		e.hp_mult *= 25.0  # test only: long enough fight to measure aggro
