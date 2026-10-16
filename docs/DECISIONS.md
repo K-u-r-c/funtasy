@@ -184,6 +184,20 @@ proposal left a choice open, the chosen option is stated, and any change to a pr
 | Boss pick | The host picks the floor's boss from the floor type's `bosses` list with the floor seed and sends the id with the floor build (tests pin one with `--boss=<id>`). Boss music comes from the boss's `music` key. |
 | Art method | Monsters: PixelLab v3 characters (48 px; Vespera 72 px), template animations on 5 drawn directions, W / NW / SW mirrored (`tools/build_monster.py`). Props: `create_map_object` (1 generation each), trimmed; lit / open variants (shrine, Gilded Portal) are recoloured copies, not generations. |
 
+### The Sewers (phase 5) - readings of the GDD
+
+| Topic | Decision |
+| --- | --- |
+| Architecture | Profile `aqueducts`: winding corridors, 60% of normal rooms get a ragged pool of shallow sewage (half of them with a deep-sludge core), 35% get a 2-cell toxic canal across the room with a 2-cell catwalk; a canal never ends in a door, so connectivity holds. 30% of doors become floodgates with a rusty lever on each side (pulling one opens it for good; monsters can't pass a shut floodgate). |
+| Cell kinds | `water` (walkable, A* weight 2), `sludge` (walkable, weight 2), `canal` (blocks movement on physics layer 128 only: sight, shots and spells pass), `bridge` (walkable). Shared by later biomes (lava lakes, grates). |
+| Sewer Rot & Sludge Drag | Wading (water or sludge) = -25% movement unless the boots have `terrain_immune` (D38); deep sludge adds a Blighted Taint stack each second (-5% healing received, max 10); 3 s on dry stone clears it. Players only (monsters are at home here). |
+| Sewer mist | The floor type's `vision_mult` 0.8 scales the FOV radius and the monster sight range. |
+| Hazards | Acid spouts in north walls spray 3 cells on the floor clock (35% of a 5 s cycle, 8 nature damage + Corroded). Gas pockets go off when a hero comes within 34 px or hits them (70 px nature burst; monsters too). |
+| Monsters | Ratman: below 30% it backflips 130 px and throws a blinding flask (once). Acid Slime splits into 3 Slimelings (60% size). Bloated Drowner: a 0.6 s swell at 50 px, then a burst + 10 s poison pool; killed early it still bursts. Flesh-Stitcher: every 8 s Foul Serum on nearby beasts (+30% damage, CC immune, bigger). Gutter Stalker starts submerged (stealthed, invisible), its first hit is a guaranteed crit (stealth rule), it re-submerges after 6 s without a hero near. Sludge Lobber: a mortar landing after 1.2 s anywhere (over walls) with a 5 s rooting mud zone. Abyssal Leech: latches (rides along, no dodge), drains 10 Fury / 15 Mana a second and keeps biting; another hero's melee hit knocks it off (1.5 s stun). |
+| Murk Amalgam | P1: Tidal Flush every 18 s (2.5 s warning; three raised platforms in the arena are safe), Engulf every 22 s (the current target is swallowed for up to 8 s with acid ticks; 500 damage x the boss's HP multiplier from the party frees them, else 45% max HP). P2 at 50%: the core hides and the Bile Twin (immune to physical) and the Gristle Twin (immune to magic) take over; the boss dies when both twins are dead. |
+| Krazik | P1: rides an ellipse along the arena edge; a green fog rises over time (party DoT by level, up to 8) and venting any of 3 exhaust valves clears it; every 20 s the Bell of Heresy sends a tinted phantom copy of every hero (12 s). P2 at 30%: the mount falls (on-foot sprite, +25% speed, +20% haste), incendiary flasks, a horde of 8 plague rats every 12 s. |
+| Floor order (D21) | Floor types carry an `order` (Crypt 1, Sewers 2, ...); depth cycles in that order. Tests and tours pin a first floor with `--biome=<id>`. |
+
 ### Skill groups per talent branch (D1)
 
 Tier in brackets. **Bold** = starter (free) skill.

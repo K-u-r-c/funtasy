@@ -33,7 +33,7 @@
 	"sunder": {"name": "Sundered", "kind": "stat", "stats": {"armor_mult": 0.7}, "color": "#aa7744", "debuff": true},
 	"acid": {"name": "Acid", "kind": "stat", "stats": {"armor_mult": 0.6}, "color": "#ccee33", "debuff": true, "cleanse": "poison"},
 	"healing_reduction": {"name": "Grievous Wound", "kind": "stat", "stats": {"healing_taken_mult": 0.5}, "color": "#880000", "debuff": true},
-	"blighted_taint": {"name": "Blighted Taint", "kind": "stat", "stack_stats": {"healing_received_mult": 0.95}, "max_stacks": 10, "color": "#7a8a2a", "debuff": true},
+	"blighted_taint": {"name": "Blighted Taint", "kind": "stat", "stack_stats": {"healing_taken_mult": 0.95}, "max_stacks": 10, "color": "#7a8a2a", "debuff": true},
 	"heat": {"name": "Heat", "kind": "stat", "stack_stats": {"armor_mult": 0.99}, "max_stacks": 30, "color": "#ff5500", "debuff": true},
 	"weakened": {"name": "Weakened", "kind": "stat", "stats": {"damage_mult": 0.85}, "color": "#887799", "debuff": true, "cleanse": "curse"},
 	"accuracy_down": {"name": "Blurred Sight", "kind": "stat", "stats": {"miss_chance": 0.3}, "color": "#778866", "debuff": true, "cleanse": "poison"},

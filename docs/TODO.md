@@ -27,7 +27,10 @@ screenshot review at 1920x1080 and 3440x1440.
       `bosses`, `biomes`, `boss` + `boss-vespera` LAN pairs, full suite green, biome tour screenshots at
       1920x1080 and 3440x1440). **Visual checkpoint asked of the user on 2026-10-16; art for other
       biomes waits for the answer (placeholders meanwhile).**
-- [ ] **5. Sewers** (tileset, props, hazards, mechanics, 7 monsters, Murk Amalgam + Krazik, lore, music keys)
+- [x] **5. Sewers** (tileset, props, hazards, mechanics, 7 monsters, Murk Amalgam + Krazik, lore, music keys)
+      (verified: `biomes-sewers`, `monsters`, `bosses`, `boss-amalgam` + `boss-krazik` LAN pairs, sewers
+      tour screenshots). **Art: placeholders** (recoloured Crypt tiles, existing monster sheets with tints,
+      generated prop icons) until the checkpoint answer.
 - [ ] **6. Foundry** (... Ignis + Vulkania ...)
 - [ ] **7. Archives** (... Malazar + Memory Devourer ...)
 - [ ] **8. Kurgan** (... Cernunnos + Isolde ...)
