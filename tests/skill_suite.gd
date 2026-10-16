@@ -17,6 +17,8 @@ var warded: Enemy
 var ally: Enemy  ## a dummy on the players' team: target of ally skills in solo
 var _start := Vector2.ZERO
 var _class_run := false
+var _spawned: Enemy = null  ## a monster a legendary trigger spawned (Exorcist's Iron Striders)
+var _spawned_seen: Array = []  ## statuses that landed on it
 
 
 func _init(dev_auto: Node) -> void:
@@ -119,14 +121,15 @@ func _trigger(what: String) -> void:
 				await da._wait(1.0)  # some history to rewind to
 			Combat.instance.deal_damage(Combat.instance.make_ctx(d0, {"id": "test", "school": "spell"}), p, p.health.max_hp * 3.0, {"damage_type": "true"})
 		"permafrost", "wait":
-			pass  # auras tick on their own
+			if not arg.is_empty():
+				await da._wait(float(arg))  # auras tick on their own
 		"overheal":
 			ally.health.hp = ally.health.max_hp * 0.9
 			Combat.instance.heal(Combat.instance.make_ctx(p, {"id": "test", "school": "spell"}), ally, ally.health.max_hp * 0.5)
 		"kill":
 			var victim: Enemy = g.spawn_monster("ghoul", g.nearest_floor(_start + Vector2(40, 30)), false)
 			await da._wait(0.2)
-			Combat.instance.deal_damage(Combat.instance.make_ctx(p, GameData.skill(str(p.skills[0]))), victim, victim.health.hp * 5.0, {"damage_type": "true"})
+			Combat.instance.deal_damage(Combat.instance.test_ctx(p, GameData.skill(str(p.skills[0]))), victim, victim.health.hp * 5.0, {"damage_type": "true"})
 		"dodge":
 			Combat.instance.fire(p, "on_dodge", {"target": d0, "attacker": d0})
 		"block":
@@ -142,12 +145,84 @@ func _trigger(what: String) -> void:
 		"poison_kill":
 			var v2: Enemy = g.spawn_monster("ghoul", g.nearest_floor(d0.global_position + Vector2(0, 20)), false)
 			await da._wait(0.2)
-			var pctx := Combat.instance.make_ctx(p, GameData.skill(str(p.skills[0])))
+			var pctx := Combat.instance.test_ctx(p, GameData.skill(str(p.skills[0])))
 			Combat.instance.apply_status(pctx, v2, "poison", 5.0, 1.0)
 			Combat.instance.deal_damage(pctx, v2, v2.health.hp * 5.0, {"damage_type": "true"})
 		"dot":
 			Combat.instance.apply_status(Combat.instance.make_ctx(p, {"id": "test", "school": "spell"}), d0, arg, 4.0, 3.0)
 			await da._wait(1.2)
+		# Legendary triggers ---------------------------------------------------------------
+		"low_hp":
+			p.health.hp = p.health.max_hp * 0.25
+			Combat.instance.fire(p, "on_low_hp", {"target": d0})
+		"hits5":
+			var c5 := Combat.instance.test_ctx(p, GameData.skill(str(p.skills[0])))
+			for i in 5:
+				Combat.instance.deal_damage(c5, d0, 2.0)
+				await da._wait(0.05)
+		"crit_taken":
+			var cc := Combat.instance.test_ctx(d0, {"id": "test_attack", "school": "melee"})
+			cc.guaranteed_crit = true
+			Combat.instance.deal_damage(cc, p, 5.0)
+		"dodge_roll":
+			Combat.instance.fire(p, "on_dodge_roll", {"target": d0, "dir": Vector2.RIGHT})
+		"ally_big_hit":
+			ally.host_teleport(g.nearest_floor(p.global_position + Vector2(-40, 0)))
+			ally.health.hp = ally.health.max_hp
+			await da._wait(0.1)
+			var bc := Combat.instance.test_ctx(d0, {"id": "test_attack", "school": "melee"})
+			Combat.instance.deal_damage(bc, ally, ally.health.max_hp * 0.5, {"damage_type": "true"})
+		"unlit":
+			var best := p.global_position
+			for y in range(2, g.dungeon.size.y - 2, 2):
+				for x in range(2, g.dungeon.size.x - 2, 2):
+					var c2 := Vector2i(x, y)
+					if g.dungeon.cell_at(c2) == DungeonGenerator.CELL_FLOOR and not g.dungeon.safe_rect.has_point(c2) and not LightLayers.is_lit(g.get_tree(), g.dungeon.cell_center(c2), true):
+						best = g.dungeon.cell_center(c2)
+			p.host_teleport(best)
+			await da._wait(1.4)
+		"move":
+			# Whole cells back and forth (nearest_floor snaps to cell centres).
+			for i in 8:
+				p.host_teleport(g.nearest_floor(p.global_position + Vector2(g.dungeon.tile * (1 if i % 2 == 0 else -1), 0)))
+				await da.get_tree().physics_frame
+				await da.get_tree().physics_frame
+		"two_elements":
+			Combat.instance.fire(p, "on_skill_cast", {"skill": "mage_fireball", "school": "spell", "target": null, "ctx": {}})
+			Combat.instance.fire(p, "on_skill_cast", {"skill": "mage_bolt", "school": "spell", "target": null, "ctx": {}})
+		"kill_shadow":
+			var vs: Enemy = g.spawn_monster("ghoul", g.nearest_floor(d0.global_position + Vector2(0, 24)), false)
+			await da._wait(0.2)
+			var sc := Combat.instance.test_ctx(p, {"id": "mage_shadow_bolt", "school": "spell", "damage_type": "shadow"})
+			sc.damage_type = "shadow"
+			Combat.instance.deal_damage(sc, vs, vs.health.hp * 5.0, {"damage_type": "shadow"})
+		"cast5":
+			for i in 5:
+				Combat.instance.fire(p, "on_skill_cast", {"skill": str(p.skills[0]), "school": "spell", "target": null, "ctx": {}})
+		"trample_undead":
+			_spawned = g.spawn_monster("skeletal_footman", g.nearest_floor(p.global_position + Vector2(10, 0)), false)
+			_spawned_seen = []
+			_spawned.set_meta("test_seen_status", _spawned_seen)  # outlives the monster (the holy burst can kill it)
+			await da._wait(1.4)
+		"ally_behind":
+			p.facing = Vector2.RIGHT
+			ally.host_teleport(g.nearest_floor(p.global_position + Vector2(-50, 0)))
+			await da._wait(1.3)
+		"crit_heal":
+			Combat.instance.fire(p, "on_heal", {"target": ally, "amount": 60.0, "crit": true})
+		"phys_hits":
+			var pc := Combat.instance.test_ctx(p, {"id": "test_strike", "school": "melee", "damage_type": "physical"})
+			pc.damage_type = "physical"
+			pc.melee_hit = true
+			for i in 3:
+				Combat.instance.deal_damage(pc, d0, 5.0, {"damage_type": "physical"})
+				await da._wait(0.05)
+		"clear_target":
+			d0.status.clear_all()
+			d0.set_meta("test_seen_status", [])
+		"break_ally_shield":
+			ally.health.absorb = 0.0
+			ally.status.remove("pw_shield")
 
 
 func run_primitives() -> void:
@@ -237,7 +312,7 @@ func _reset() -> void:
 	for id in g.dungeon.obstacles.keys():
 		g.dungeon.remove_obstacle(id)
 	for m in g.enemies_root.get_children():
-		if m.team == Actor.Team.PLAYERS and m != ally:
+		if m.team == Actor.Team.PLAYERS and m != ally and not dummies.has(m):  # a charmed dummy is still on our side
 			m.queue_free()
 
 
@@ -382,6 +457,12 @@ func _expect(ex: String, b: Dictionary, a: Dictionary, target: Enemy, proj_id: i
 			return a.d0_hp < b.d0_hp
 		"any_target_damaged":
 			return a.d0_hp < b.d0_hp or a.d1_hp < b.d1_hp or a.d2_hp < b.d2_hp
+		"any_enemy_damaged":
+			return a.d0_hp < b.d0_hp or a.d1_hp < b.d1_hp or a.d2_hp < b.d2_hp or a.warded_hp < b.warded_hp
+		"two_targets_damaged":
+			return [a.d0_hp < b.d0_hp, a.d1_hp < b.d1_hp, a.d2_hp < b.d2_hp, a.warded_hp < b.warded_hp].count(true) >= 2
+		"target_charmed":
+			return target.team == Actor.Team.PLAYERS or target.status.has_flag("charmed")
 		"all_targets_damaged":
 			return a.d0_hp < b.d0_hp and a.d1_hp < b.d1_hp and a.d2_hp < b.d2_hp
 		"target_status":
@@ -406,6 +487,20 @@ func _expect(ex: String, b: Dictionary, a: Dictionary, target: Enemy, proj_id: i
 			return not is_instance_valid(target) or not target.is_alive()
 		"self_lost":
 			return not p.status.has(arg)
+		"self_resource_gain":
+			return float(a.get("p_res", 0.0)) - float(b.get("p_res", 0.0)) >= float(arg) - 0.01
+		"all_targets_status":
+			return dummies.all(func(d): return d.status.has(arg) or _had_status(d, arg))
+		"other_target_status":
+			return dummies.slice(1).any(func(d): return d.status.has(arg) or _had_status(d, arg))
+		"ally_status":
+			return ally.status.has(arg) or _had_status(ally, arg)
+		"dodge_ready":
+			return p._dodge_cd_host <= 0.0
+		"cooldown_reduced":
+			return float(p.cooldowns.get(arg, 0.0)) < 29.0
+		"spawned_status":
+			return _spawned_seen.has(arg)
 		"torch_out":
 			return p.torch_left <= 0.0
 		"target_absorb_gone":

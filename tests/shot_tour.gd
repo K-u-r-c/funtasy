@@ -312,3 +312,25 @@ func _statuses(_arg: String) -> void:
 		await snap("statuses_%02d" % page)
 		page += 1
 	p.status.clear_all()
+
+
+## Legendaries: a few of the class's legendaries in the backpack, one worn, and the item card of each.
+func _legendaries(_arg: String) -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 7
+	var ids: Array = GameData.legendaries.keys().filter(func(id): return str(GameData.legendaries[id]["class"]) == p.class_id)
+	ids.sort()
+	for i in 8:
+		p.host_give_item(ItemGenerator.make_legendary(str(ids[(i * 5) % ids.size()]), 14, rng))
+	await da._wait(0.5)
+	var hud: Node = da.get_tree().get_first_node_in_group("hud")
+	var panel: Node = hud.menu_panel("inventory")
+	hud.open_overlay(panel)
+	await da._wait(0.6)
+	for k in ["b:0", "b:3", "b:6"]:
+		var slot: Control = panel._slots.get(k)
+		if slot:
+			slot.grab_focus()
+			await da._wait(0.4)
+			await snap("legendary_%s" % k.replace(":", ""))
+	hud.close_overlay()

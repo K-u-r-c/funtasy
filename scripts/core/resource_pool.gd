@@ -55,5 +55,5 @@ func _process(delta: float) -> void:
 	_since_combat += delta
 	if kind == "mana":
 		gain(regen_per_second * delta)
-	elif kind == "fury" and _since_combat > float(GameData.bal("fury.decay_delay")):
+	elif kind == "fury" and _since_combat > float(GameData.bal("fury.decay_delay")) and not (get_parent().stats and get_parent().stats.has_flag("no_fury_decay")):
 		gain(-float(GameData.bal("fury.decay_per_second")) * delta)

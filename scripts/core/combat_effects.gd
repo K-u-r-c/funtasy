@@ -32,6 +32,9 @@ func clear_floor() -> void:
 
 
 func run_effect(eff: Dictionary, ctx: Dictionary, origin: Vector2, aim: Vector2) -> void:
+	# A status reaction that only happens for heroes wearing a legendary (Merciful Mother).
+	if eff.has("if_caster_flag") and not (is_instance_valid(ctx.get("caster")) and ctx.caster.stats.has_flag(str(eff.if_caster_flag))):
+		return
 	if eff.has("chance") and rng.randf() > float(eff.chance):
 		return
 	if eff.has("if") and not proc_conditions(ctx.caster if is_instance_valid(ctx.caster) else null, eff["if"], ctx.get("event", {"target": ctx.get("event_target")})):
@@ -109,8 +112,13 @@ func run_effect(eff: Dictionary, ctx: Dictionary, origin: Vector2, aim: Vector2)
 			for t in select_targets(eff, ctx, origin, aim):
 				t.status.remove(str(eff.status))
 		"heal":
-			for t in select_targets(eff, ctx, origin, aim):
-				heal(ctx, t, _heal_amount(eff, ctx, t))
+			# Tome of Dire Anathema: a heal aimed at an enemy sears it for double as shadow.
+			var foes: Array = enemies_of(ctx.team, aim, 32.0) if caster and caster.stats.has_flag("anathema") and str(eff.get("target", "")) == "aim_ally" and origin.distance_to(aim) <= float(eff.get("range", 240)) + 32.0 else []
+			if not foes.is_empty():
+				deal_damage(ctx, foes[0], _heal_amount(eff, ctx, foes[0]) * 2.0, {"damage_type": "shadow"})
+			else:
+				for t in select_targets(eff, ctx, origin, aim):
+					heal(ctx, t, _heal_amount(eff, ctx, t))
 		"absorb":
 			for t in select_targets(eff, ctx, origin, aim):
 				var amount2 := _heal_amount(eff, ctx, t, "amount")
@@ -134,6 +142,9 @@ func run_effect(eff: Dictionary, ctx: Dictionary, origin: Vector2, aim: Vector2)
 		"resource":
 			for t in select_targets(eff, ctx, origin, aim):
 				var amt: float = float(eff.get("amount", 0.0)) + t.resource.max_value * float(eff.get("pct", 0.0))
+				var rev: Variant = ctx.get("event")
+				if eff.has("amount_event_pct") and rev is Dictionary:
+					amt += float(rev.get("amount", 0.0)) * float(eff.amount_event_pct)
 				t.resource.gain(amt * (t.stats.mult("resource_gen") if t.resource.kind == "fury" and amt > 0.0 else 1.0))
 		"summon":
 			if game and game.has_method("summon_monsters"):
@@ -152,7 +163,7 @@ func run_effect(eff: Dictionary, ctx: Dictionary, origin: Vector2, aim: Vector2)
 			var at := clamp_range(origin, aim, float(eff.get("max_range", 300))) if eff.get("at", "aim") == "aim" else origin
 			if eff.has("telegraph"):
 				fx.telegraph.rpc(at, float(eff.telegraph.get("radius", 40)), str(eff.telegraph.get("color", "#ff4422")), float(eff.delay))
-			delayed.append({"left": float(eff.delay), "effects": eff.effects, "ctx": ctx, "pos": at})
+			delayed.append({"left": float(eff.delay), "effects": eff.effects, "ctx": ctx, "pos": at, "follow": caster if eff.get("follow", false) else null})
 		"consume_dots":
 			for t in select_targets(eff, ctx, origin, aim, "aim_enemy"):
 				var total: float = t.status.consume_dot_damage(Array(eff.get("statuses", ["burn"])))
@@ -166,7 +177,33 @@ func run_effect(eff: Dictionary, ctx: Dictionary, origin: Vector2, aim: Vector2)
 			if n > 0 and caster:
 				if eff.has("refund"):
 					caster.resource.gain(float(eff.refund))
-				fire(caster, "on_cleanse", {"count": n, "ctx": ctx})
+				fire(caster, "on_cleanse", {"count": n, "ctx": ctx, "skill": str(ctx.get("skill", ""))})
+		"free_cast":
+			# A skill fired for free (no cost, no cooldown) by a legendary: Viperleap, Brierheart, Vindicator.
+			var fsk := GameData.skill(str(eff.skill))
+			var ft: Array = select_targets(eff, ctx, origin, aim, "nearest_enemy")
+			var faim: Vector2 = ft[0].global_position if not ft.is_empty() and is_instance_valid(ft[0]) else aim
+			if caster and not fsk.is_empty():
+				var fctx := make_ctx(caster, fsk)
+				fctx.from_proc = true
+				var fdir := (faim - caster.global_position).normalized()
+				for fe in fsk.effects:
+					run_effect(fe, fctx, caster.global_position, faim)
+				fx.sound.rpc(str(fsk.get("sfx", "cast")), caster.global_position)
+		"replay_skill":
+			# A skill's effects again from here (Cowl of the Frozen Spire's second nova).
+			var rsk := GameData.skill(str(eff.skill))
+			if caster and not rsk.is_empty():
+				var rctx := make_ctx(caster, rsk)
+				rctx.from_proc = true
+				for re in rsk.effects:
+					run_effect(re, rctx, origin, aim)
+		"threat_bonus":
+			# Mace of Veracity: the blow's damage counts again as threat.
+			var tt: Variant = ctx.get("event_target")
+			var ev2: Variant = ctx.get("event")
+			if is_instance_valid(tt) and tt.has_method("add_threat") and caster and ev2 is Dictionary:
+				tt.add_threat(caster, float(ev2.get("amount", 0.0)) * float(eff.get("mult", 2.0)))
 		"break_absorb":
 			# Shatters damage-absorbing wards (Iron Punisher's forging hammer).
 			for t in select_targets(eff, ctx, origin, aim, "aim_enemy"):
@@ -302,6 +339,7 @@ func _heal_amount(eff: Dictionary, ctx: Dictionary, t: Actor, key: String = "amo
 	var v := value_of_spec(spec, ctx) * float(ctx.heal_mult)
 	if spec is Dictionary:
 		v += t.health.max_hp * float(spec.get("pct_target_max_hp", 0.0))
+		v += float(ctx.get("magnitude", 0.0)) * float(spec.get("ctx_magnitude", 0.0))
 		# Healing from the triggering event (Vampiric Embrace, Overflowing Grace, ...).
 		var ev: Variant = ctx.get("event")
 		if ev is Dictionary and spec.has("event_pct"):
@@ -426,9 +464,18 @@ func apply_aoe(eff: Dictionary, ctx: Dictionary, center: Vector2) -> void:
 	var r := float(eff.radius) * float(ctx.radius_mult)
 	var targets_kind: String = eff.get("targets", "enemies")
 	if eff.has("damage") or targets_kind == "enemies":
+		var hits := 0
 		for a in hostile_in_radius(ctx, center, r, true):
+			# Splash around a struck target leaves that target out; "creatures" limits the kinds hit.
+			if eff.get("exclude_target", false) and a == ctx.get("event_target"):
+				continue
+			if eff.has("creatures") and not Array(eff.creatures).has(a.creature_type()):
+				continue
+			if eff.has("max_targets") and hits >= int(eff.max_targets):
+				break
 			if has_los(center, a.global_position):
 				hit_target(a, eff, ctx, true)
+				hits += 1
 	if eff.has("heal") or targets_kind == "allies":
 		for a in allies_of(ctx.team, center, r):
 			if eff.has("heal"):
@@ -497,6 +544,18 @@ func _beam(eff: Dictionary, ctx: Dictionary, origin: Vector2, dir: Vector2) -> v
 ## Single-target strike on the aimed enemy (or `target`), with a beam / bolt visual.
 func _hit(eff: Dictionary, ctx: Dictionary, origin: Vector2, aim: Vector2) -> void:
 	var targets := select_targets(eff, ctx, origin, aim, "aim_enemy")
+	# Void Needle: the beam forks to the enemies nearest the first target (within the skill's range).
+	var extra_n := int(ctx.caster.stats.skill_mod(str(ctx.get("skill", "")), "beam_targets_add")) if is_instance_valid(ctx.get("caster")) else 0
+	if extra_n > 0 and not targets.is_empty():
+		var near: Array = enemies_of(ctx.team, origin, float(eff.get("range", 250)) * float(ctx.get("range_mult", 1.0)))
+		var first_pos: Vector2 = targets[0].global_position
+		near.sort_custom(func(x, y): return x.global_position.distance_to(first_pos) < y.global_position.distance_to(first_pos))
+		for e in near:
+			if extra_n <= 0:
+				break
+			if not targets.has(e):
+				targets.append(e)
+				extra_n -= 1
 	for t in targets:
 		if t.team == ctx.team and t != ctx.caster:
 			# Smite on an ally: the ally part of the skill.
@@ -525,6 +584,17 @@ func _chain(eff: Dictionary, ctx: Dictionary, origin: Vector2, aim: Vector2) -> 
 		if cur == null:
 			break
 		hit.append(cur)
+		if i == 0 and eff.get("skip_first", false):
+			# Stormstring Gloves: the arc starts at the struck target and jumps on from it.
+			from = cur.global_position
+			var nx: Actor = null
+			var bd := float(eff.get("jump_range", 120))
+			for e0 in enemies_of(ctx.team, from, bd):
+				if not hit.has(e0) and has_los(from, e0.global_position) and e0.global_position.distance_to(from) <= bd:
+					bd = e0.global_position.distance_to(from)
+					nx = e0
+			cur = nx
+			continue
 		var c := ctx.duplicate()
 		c.damage_mult = float(ctx.damage_mult) * (1.0 + float(eff.get("per_jump", 0.0)) * i)
 		fx.beam.rpc(from, cur.global_position, str(eff.get("color", "#fff26a")), 0.2, "chain")
@@ -850,6 +920,19 @@ func add_zone(eff: Dictionary, ctx: Dictionary, pos: Vector2) -> int:
 	var id := new_id()
 	var is_trap: bool = eff.type == "trap"
 	var r := float(eff.get("trigger_radius" if is_trap else "radius", 40)) * (float(ctx.get("trap_radius_mult", 1.0)) if is_trap else float(ctx.radius_mult))
+	# Heart of the North Star: Blizzard drifts toward enemy clusters.
+	if str(ctx.get("skill", "")) == "mage_blizzard" and is_instance_valid(ctx.get("caster")) and ctx.caster.stats.has_flag("drifting_blizzard"):
+		eff = eff.duplicate()
+		eff.drift_speed = 30.0
+		eff.drift_range = 320.0
+	# A caster's traps are capped (Trapper's Sturdy Chaps double the cap): the oldest one goes.
+	if is_trap and is_instance_valid(ctx.get("caster")) and ctx.caster is Player:
+		var cap := int(GameData.bal("combat.max_traps", 3) * (1.0 + ctx.caster.stats.get_stat("max_traps")))
+		var mine: Array = zones.keys().filter(func(k): return zones[k].trap and zones[k].ctx.get("caster") == ctx.caster)
+		while mine.size() >= cap and not mine.is_empty():
+			var old: int = mine.pop_front()
+			zones.erase(old)
+			fx.zone_end.rpc(old)
 	zones[id] = {"eff": eff, "ctx": ctx, "pos": pos, "radius": r, "left": float(eff.get("duration", 5.0)) * (1.0 if is_trap else float(ctx.duration_mult)),
 		"tick_left": float(eff.get("first_tick", 0.0)), "arm_left": float(eff.get("arm_time", 0.0)), "trap": is_trap,
 		"inside": {}}
@@ -905,6 +988,10 @@ func _trap_victims(z: Dictionary) -> Array:
 
 func _zone_tick(z: Dictionary) -> void:
 	var eff: Dictionary = z.eff
+	# Cuirass of the Radiant Dawn: Consecration heals allies inside for 3% max HP a second.
+	if str(z.ctx.get("skill", "")) == "priest_consecration" and is_instance_valid(z.ctx.get("caster")) and z.ctx.caster.stats.has_flag("radiant_consecration"):
+		for ra in allies_of(z.ctx.team, z.pos, z.radius):
+			heal(z.ctx, ra, ra.health.max_hp * 0.03 * float(eff.get("tick", 1.0)))
 	if eff.has("damage"):
 		for a in hostile_in_radius(z.ctx, z.pos, z.radius, true):
 			hit_target(a, eff, z.ctx, true)
@@ -935,6 +1022,8 @@ func _step_delayed(delta: float) -> void:
 		if d.left > 0.0:
 			continue
 		delayed.remove_at(i)
+		if is_instance_valid(d.get("follow")):
+			d.pos = d.follow.global_position  # fires where the caster is now (landing a leap)
 		if d.get("aoe", false):
 			apply_aoe(d.eff, d.ctx, d.pos)
 		else:

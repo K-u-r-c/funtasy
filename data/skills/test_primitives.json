@@ -131,5 +131,14 @@
 		"effects": [{"type": "extinguish", "radius": 200}]},
 	{"id": "test_break_absorb", "name": "Test Break Absorb", "school": "melee", "cooldown": 1, "cost": 0,
 		"test": {"expect": ["target_absorb_gone"], "setup": {"target_absorb": 50}},
-		"effects": [{"type": "melee", "range": 200, "arc": 360, "max_targets": 1, "damage": {"base": 1, "coef": 0}, "on_hit": [{"type": "break_absorb"}]}]}
+		"effects": [{"type": "melee", "range": 200, "arc": 360, "max_targets": 1, "damage": {"base": 1, "coef": 0}, "on_hit": [{"type": "break_absorb"}]}]},
+	{"id": "test_free_cast", "name": "Test Free Cast", "school": "spell", "cooldown": 1, "cost": 0,
+		"test": {"expect": ["target_damaged"]},
+		"effects": [{"type": "free_cast", "skill": "test_hit", "target": "aim_enemy", "range": 400}]},
+	{"id": "test_replay_skill", "name": "Test Replay Skill", "school": "spell", "cooldown": 1, "cost": 0,
+		"test": {"expect": ["target_damaged"]},
+		"effects": [{"type": "replay_skill", "skill": "test_hit"}]},
+	{"id": "test_threat_bonus", "name": "Test Threat Bonus", "school": "melee", "cooldown": 1, "cost": 0,
+		"test": {"expect": ["target_damaged"]},
+		"effects": [{"type": "melee", "range": 200, "arc": 360, "max_targets": 1, "damage": {"base": 5, "coef": 0}, "on_hit": [{"type": "threat_bonus", "mult": 2.0}]}]}
 ]

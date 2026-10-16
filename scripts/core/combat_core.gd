@@ -80,7 +80,10 @@ func select_targets(eff: Dictionary, ctx: Dictionary, origin: Vector2, aim: Vect
 	var reach := float(eff.get("range", eff.get("max_range", 300))) * float(ctx.get("range_mult", 1.0))
 	match mode:
 		"party", "allies_radius":
-			return allies_of(ctx.team, origin, float(eff.get("radius", 250)) * float(ctx.radius_mult))
+			var al: Array = allies_of(ctx.team, origin, float(eff.get("radius", 250)) * float(ctx.radius_mult))
+			if eff.get("exclude_self", false):
+				al.erase(caster)
+			return al
 		"enemies_radius":
 			return enemies_of(ctx.team, origin, float(eff.get("radius", 100)) * float(ctx.radius_mult))
 		"aim_ally":
@@ -229,6 +232,12 @@ func deal_damage(ctx: Dictionary, target: Actor, amount: float, opts: Dictionary
 			_avoided(target, caster, data, "on_block")
 			return -1.0
 		var bc := target.stats.get_stat("block_chance")
+		# Crusader's Greaves: standing in your own Consecration, every block lands.
+		if target.stats.has_flag("crusader_ground") and in_own_zone(target, "priest_consecration"):
+			bc = 1.0
+		# Surehand Bracers: the hero's shots can't be blocked by monster shields.
+		if caster and caster.stats.has_flag("unblockable"):
+			bc = 0.0
 		if bc > 0.0 and _frontal(target, caster.global_position if caster else ctx.get("origin", pos)) and rng.randf() < bc:
 			blocked = true
 	if target.immune_to(dtype):
@@ -242,6 +251,13 @@ func deal_damage(ctx: Dictionary, target: Actor, amount: float, opts: Dictionary
 	if not dot or ctx.get("dot_can_crit", false):
 		var cc := float(ctx.crit_chance) + target.stats.get_stat("crit_taken")
 		var forced: bool = ctx.get("guaranteed_crit", false) or (caster and not dot and caster.status.has_flag("stealthed"))
+		# Signet of the Iron Vow: the melee blow after a block is a critical hit.
+		if caster and melee_hit and caster.status.has_flag("next_melee_crit"):
+			forced = true
+			caster.status.remove_flag("next_melee_crit")
+		# Mitre of the Grand Inquisitor: Smite always crits above 80% HP.
+		if caster and str(ctx.get("skill", "")) == "priest_smite" and caster.stats.has_flag("inquisitor_smite") and target.health.fraction() > 0.8:
+			forced = true
 		if caster and not dot and caster.status.consume_flag("next_hit_crit"):
 			forced = true
 		if forced or rng.randf() < cc:
@@ -262,6 +278,14 @@ func deal_damage(ctx: Dictionary, target: Actor, amount: float, opts: Dictionary
 			amount *= caster.stats.mult(school + "_damage")
 		if target.get("is_boss"):
 			amount *= caster.stats.mult("boss_damage")
+	if caster:
+		amount *= caster.stats.mult(dtype + "_damage")
+		# Mail of the Infernal Berserker: +5% per missing 10% HP.
+		if caster.stats.has_flag("berserker_wrath"):
+			amount *= 1.0 + 0.05 * floorf((1.0 - caster.health.fraction()) * 10.0)
+	# Band of Astral Shackles (anyone in the party): chilled / slowed / rooted foes take +20%.
+	if target.team == Actor.Team.MONSTERS and target.status.has_any(["chill", "slow", "root", "freeze", "frostpath_chill"]) and party_has_flag("astral_shackles"):
+		amount *= 1.2
 	amount *= target.stats.mult("damage_taken") * target.stats.mult(dtype + "_damage_taken")
 	if school in ["melee", "ranged", "spell"]:
 		amount *= target.stats.mult(school + "_damage_taken")
@@ -271,13 +295,20 @@ func deal_damage(ctx: Dictionary, target: Actor, amount: float, opts: Dictionary
 	if dtype != "true":
 		var reduction := target.stats.get_stat("strength_reduction")
 		var k := float(GameData.bal("stats.armor_constant")) + float(GameData.bal("stats.armor_per_level")) * int(ctx.level)
-		var armor := target.stats.get_stat("armor") * (1.0 - clampf(float(ctx.get("armor_pen", 0.0)), 0.0, 1.0))
+		var pen := clampf(float(ctx.get("armor_pen", 0.0)), 0.0, 1.0)
+		# Cowl of the Silent Stalker: from stealth or beyond 200 px, armor is ignored.
+		if caster and caster.stats.has_flag("ambush_armor_pen") and (caster.status.has_flag("stealthed") or caster.global_position.distance_to(target.global_position) > 200.0):
+			pen = 1.0
+		var armor := target.stats.get_stat("armor") * (1.0 - pen)
 		var armor_red := armor / (armor + k) if armor > 0.0 else 0.0
 		if dtype == "physical":
 			if not dot:
 				reduction += armor_red
 		else:
-			reduction += target.resist_to(dtype) - float(ctx.get("magic_pen", 0.0))
+			var res := target.resist_to(dtype)
+			if caster and caster.stats.has_flag("resist_ignore_40") and res > 0.0:
+				res *= 0.6  # Eye of the Cataclysm
+			reduction += res - float(ctx.get("magic_pen", 0.0))
 			reduction += armor_red * target.stats.get_stat("armor_vs_magic")
 		reduction = minf(reduction, float(GameData.bal("stats.max_damage_reduction")))
 		amount *= 1.0 - reduction
@@ -317,6 +348,10 @@ func deal_damage(ctx: Dictionary, target: Actor, amount: float, opts: Dictionary
 				target.status.remove(cd.id)
 				data.prevented = true
 				var heal_to := target.health.max_hp * float(cd.def.cheat_death)
+				# Tear of the Weeping Goddess: Guardian Spirit restores everything.
+				if is_instance_valid(cd.get("src_node")) and cd.src_node is Actor and cd.src_node.stats.has_flag("goddess_tear"):
+					heal_to = target.health.max_hp
+					target.resource.value = target.resource.max_value
 				_after_fatal_heal.call_deferred(target, heal_to)
 				fx.number.rpc(pos, "Saved!", "heal")
 		if not data.prevented:
@@ -327,7 +362,25 @@ func deal_damage(ctx: Dictionary, target: Actor, amount: float, opts: Dictionary
 	if caster:
 		target.last_attacker = caster
 		target.last_attack_ctx = ctx
+	# Wyvernscale Jerkin: poison clouds feed the ranger's mana instead of hurting.
+	if dtype == "nature" and dot and target.stats.has_flag("toxic_feeder"):
+		target.resource.gain(10.0)
+		return 0.0
 	var dealt := target.health.take(amount)
+	# Hellfire Mitts: burn damage heals the caster for 20%.
+	if dot and dtype == "fire" and caster and caster.stats.has_flag("burn_leech") and dealt > 0.0:
+		caster.health.heal(dealt * 0.2)
+	# Vestment of the Merciful Mother: a broken Power Word: Shield ends (and heals) at once.
+	if target.health.absorb <= 0.0 and target.status.has("pw_shield"):
+		target.status.remove("pw_shield")
+	# Band of the Steadfast Ward: a big hit on an ally rallies the warrior.
+	if target.team == Actor.Team.PLAYERS and not dot and amount > target.health.max_hp * 0.3 and game:
+		for w in game.players_root.get_children():
+			if w != target and w.is_alive() and w.stats.has_flag("steadfast_ward") and w.global_position.distance_to(target.global_position) <= 150.0:
+				w.resource.gain(50.0)
+				target.health.absorb = maxf(target.health.absorb, target.health.max_hp * 0.2)
+				target.health.absorb_time = maxf(target.health.absorb_time, 6.0)
+				fx.ring.rpc(target.global_position, 24.0, "#c0c0ff", "")
 	data.amount = amount
 	data.dealt = dealt
 	data.crit = crit
@@ -612,7 +665,41 @@ func proc_conditions(actor: Actor, cond: Dictionary, data: Dictionary) -> bool:
 			"status":
 				if not (Array(v) if v is Array else [v]).has(str(data.get("status", ""))):
 					return false
+			"self_resource_at_least":
+				if actor.resource.value < float(v):
+					return false
+			"self_still":
+				if float(actor.get("still_time") if actor.get("still_time") != null else 0.0) < float(v):
+					return false
+			"self_unlit":
+				if LightLayers.is_lit(get_tree(), actor.global_position, true) == bool(v):
+					return false
+			"target_not_self":
+				if (is_instance_valid(target) and target == actor) == bool(v):
+					return false
+			"self_in_own_zone":
+				if not in_own_zone(actor, str(v)):
+					return false
 	return true
+
+
+## Is the actor standing inside a zone it cast with this skill (Crusader's Greaves)?
+func in_own_zone(actor: Actor, skill_id: String) -> bool:
+	var zs: Dictionary = get("zones")  # the zone table lives in CombatEffects
+	for z in zs.values():
+		if z.ctx.get("caster") == actor and str(z.ctx.get("skill", "")) == skill_id and z.pos.distance_to(actor.global_position) <= float(z.radius):
+			return true
+	return false
+
+
+## Does any living hero of the party carry this stat flag (party-wide legendary auras)?
+func party_has_flag(flag: String) -> bool:
+	if game == null:
+		return false
+	for p in game.players_root.get_children():
+		if p.is_alive() and p.stats.has_flag(flag):
+			return true
+	return false
 
 
 ## Runs one proc: a code hook or its `do` effects, from the actor's position (or the event

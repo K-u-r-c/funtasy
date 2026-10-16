@@ -23,6 +23,7 @@ var skills: Array = []:  ## the loadout: slot 0 = primary attack, 1..5 = skills 
 # Replicated by the host (StateSync).
 var life_state: int = Life.ALIVE
 var torch_sync := 0  ## whole seconds left on the carried torch (host-driven, 0 = none)
+var still_time := 0.0  ## host: seconds without moving
 var downed_left := 0.0
 var revive_progress := 0.0
 var xp := 0
@@ -371,6 +372,8 @@ func _physics_process(delta: float) -> void:
 			history.append({"pos": position, "hp": health.hp, "t": Time.get_ticks_msec() / 1000.0})
 			if history.size() > 21:
 				history.pop_front()
+		# Standing still (Greaves of the Iron Colossus, Wasteland Marksman Hauberk).
+		still_time = still_time + delta if position.distance_to(_last_host_pos) < 0.5 else 0.0
 		_moved_acc += position.distance_to(_last_host_pos)
 		_last_host_pos = position
 		if _moved_acc >= float(GameData.bal("combat.on_move_step", 24.0)) and life_state == Life.ALIVE:
@@ -607,6 +610,17 @@ func sync_cooldown(sid: String) -> void:
 	var slot := skills.find(sid)
 	if slot >= 0:
 		_skill_result.rpc_id(peer_id, slot, cooldown_left(sid), cooldown_left(sid) > 0.0, "")
+
+
+## Host: the dodge roll is ready again at once (Predator's Breeches).
+func host_reset_dodge() -> void:
+	_dodge_cd_host = 0.0
+	_owner_reset_dodge.rpc_id(peer_id)
+
+
+@rpc("authority", "call_local", "reliable")
+func _owner_reset_dodge() -> void:
+	_dodge_cd = 0.0
 
 
 @rpc("any_peer", "call_local", "reliable")
@@ -1014,6 +1028,17 @@ func _level_up_fx(new_level: int) -> void:
 func on_death() -> void:
 	if life_state != Life.ALIVE:
 		return
+	# Crosier of Eternal Dawn: once per floor a fallen ally rises at once at 50% HP and mana.
+	var game := get_tree().get_first_node_in_group("game")
+	if game and multiplayer.is_server():
+		for pr in game.players_root.get_children():
+			if pr != self and pr.is_alive() and pr.stats.has_flag("dawn_crosier") and not pr.has_meta("crosier_used"):
+				pr.set_meta("crosier_used", true)
+				health.hp = health.max_hp * 0.5
+				resource.value = maxf(resource.value, resource.max_value * 0.5)
+				Combat.instance.fx.ring.rpc(global_position, 50.0, "#fff6c0", "")
+				Combat.instance.fx.number.rpc(global_position, "Eternal Dawn", "heal")
+				return
 	life_state = Life.DOWNED
 	downed_left = float(GameData.bal("player.downed_time"))
 	revive_progress = 0.0

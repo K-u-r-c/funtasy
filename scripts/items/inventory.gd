@@ -78,6 +78,11 @@ func equip_from_backpack(index: int, char_level: int) -> String:
 		return "Can't equip that"
 	if int(item.get("req", 1)) > char_level:
 		return "Requires level %d (you are level %d)" % [int(item.req), char_level]
+	# D8: a ring legendary is unique - two copies can't be worn together.
+	if item.has("legendary") and str(item.get("slot", "")) == "ring":
+		for rs in ["ring_1", "ring_2"]:
+			if str(equipment.get(rs, {}).get("legendary", "")) == str(item.legendary):
+				return "You already wear %s" % item.name
 	var targets := _target_slots(item)
 	var displaced: Array = []
 	for s in targets.clear:
@@ -175,6 +180,10 @@ func _target_slots(item: Dictionary) -> Dictionary:
 			return {"slot": "ring_1", "clear": ["ring_1"]}
 		"weapon":
 			if int(item.get("hands", 1)) == 2:
+				# Quivers (Ranger) stay with a bow; Grip of the Titan keeps a shield with a 2H weapon.
+				var off: Dictionary = equipment.get("off_hand", {})
+				if off.get("with_two_hand", false) or (_wears_flag("titan_grip") and off.get("base", "") == "shield"):
+					return {"slot": "main_hand", "clear": ["main_hand"]}
 				return {"slot": "main_hand", "clear": ["main_hand", "off_hand"]}
 			var main: Dictionary = equipment.get("main_hand", {})
 			if main.is_empty():
@@ -187,10 +196,19 @@ func _target_slots(item: Dictionary) -> Dictionary:
 		"offhand":
 			var main2: Dictionary = equipment.get("main_hand", {})
 			var clear: Array = ["off_hand"]
-			if int(main2.get("hands", 1)) == 2:
+			var keeps: bool = item.get("with_two_hand", false) or (_wears_flag("titan_grip") and item.get("base", "") == "shield")
+			if int(main2.get("hands", 1)) == 2 and not keeps:
 				clear.append("main_hand")
 			return {"slot": "off_hand", "clear": clear}
 	return {"slot": slot, "clear": [slot]}
+
+
+## A legendary flag on a worn item (Grip of the Titan).
+func _wears_flag(flag: String) -> bool:
+	for s in equipment:
+		if Array(equipment[s].get("flags", [])).has(flag):
+			return true
+	return false
 
 
 func _auto_quick(base_id: String) -> void:

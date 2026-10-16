@@ -92,6 +92,7 @@ func compute_player(class_def: Dictionary, level: int, equipment: Dictionary, ta
 	b.a("crit_damage", float(GameData.bal("stats.base_crit_damage")))
 	var main_dps := 0.0
 	var off_dps := 0.0
+	var item_skill_mods: Array = []
 	var offclass := false
 	for slot in equipment:
 		var item: Dictionary = equipment[slot]
@@ -101,7 +102,10 @@ func compute_player(class_def: Dictionary, level: int, equipment: Dictionary, ta
 		for k in item.get("stats", {}):
 			b.mod(str(k), float(item.stats[k]))
 		for m in item.get("mods", []):
-			b.mod(str(m.stat), float(m.value))
+			if m.has("skill"):
+				item_skill_mods.append(m)
+			else:
+				b.mod(str(m.stat), float(m.value))
 		for f in item.get("flags", []):
 			b.flags[f] = true
 		if item.get("kind") == "weapon":
@@ -111,7 +115,7 @@ func compute_player(class_def: Dictionary, level: int, equipment: Dictionary, ta
 				off_dps = float(item.get("dps", 0))
 		if item.get("kind") in ["weapon", "offhand"] and not Array(item.get("classes", [])).has(class_def.id):
 			offclass = true
-	skill_mods = skill_mods_for(class_def, talents, extra.get("skill_mods", []))
+	skill_mods = skill_mods_for(class_def, talents, extra.get("skill_mods", []) + item_skill_mods)
 	var tree: Dictionary = GameData.talents.get(class_def.id, {})
 	for node in tree.get("nodes", []):
 		var rank := int(talents.get(node.id, 0))
@@ -141,6 +145,8 @@ func compute_player(class_def: Dictionary, level: int, equipment: Dictionary, ta
 	if class_def.resource == "mana":
 		var mana_base: float = float(class_def.base_resource) + s.intellect * float(GameData.bal("stats.mana_per_intellect"))
 		s.max_resource = b.val("max_resource", mana_base)
+		if b.flags.has("mana_to_armor"):
+			s.armor += s.max_resource * 0.15  # Signet of the Iron Zealot
 		s.resource_regen = (float(GameData.bal("stats.mana_regen_base")) + s.intellect * float(GameData.bal("stats.mana_regen_per_intellect")) + float(b.add.get("mana_regen", 0.0))) * b.factor("resource_regen")
 	else:
 		s.max_resource = float(GameData.bal("fury.max"))
@@ -148,6 +154,8 @@ func compute_player(class_def: Dictionary, level: int, equipment: Dictionary, ta
 	s.crit_chance = float(b.add.get("crit_chance", 0.0)) + s.agility * float(GameData.bal("stats.crit_per_agility"))
 	s.crit_damage = b.val("crit_damage", 0.0)
 	s.power_melee = s.weapon_dps + s.strength * float(GameData.bal("stats.melee_power_per_strength")) + float(b.add.get("melee_power", 0.0))
+	if b.flags.has("armor_to_power"):
+		s.power_melee += s.armor * 0.2  # Ymir's Blood Drop
 	s.power_ranged = s.weapon_dps + s.agility * float(GameData.bal("stats.ranged_power_per_agility")) + float(b.add.get("ranged_power", 0.0))
 	s.power_spell = s.weapon_dps + s.intellect * float(GameData.bal("stats.spell_power_per_intellect")) + float(b.add.get("spell_power", 0.0))
 	s.strength_reduction = s.strength * float(GameData.bal("stats.damage_reduction_per_strength"))

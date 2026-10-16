@@ -20,7 +20,7 @@ const EFFECT_TYPES := ["melee", "cone", "projectile", "aoe", "zone", "trap", "de
 	"line", "chain", "beam", "knockback", "pull", "delayed", "consume_dots", "cleanse", "dispel",
 	"destroy_projectiles", "terrain", "threat_drop", "reveal", "interrupt", "cooldown", "self_damage",
 	"resource_drain", "tether", "stored_damage", "spread", "revive", "toggle_status", "fetch", "prevent_death",
-	"extinguish", "break_absorb"]
+	"extinguish", "break_absorb", "free_cast", "replay_skill", "threat_bonus"]
 ## Extra effect types valid inside `on_hit` lists.
 const ON_HIT_TYPES := ["knockback", "threat"]
 ## Events a proc ({"event", "do"}) can listen to.
@@ -64,7 +64,7 @@ func try_use_skill(caster: Actor, skill_id: String, aim: Vector2, opts: Dictiona
 		return "Silenced"
 	if caster.status.has("school_lockout") and str(skill.get("element", school)) == caster.lockout_element:
 		return "Locked out"
-	var max_charges := int(skill.get("charges", 0)) + int(caster.stats.skill_mod(skill_id, "charges_add"))
+	var max_charges := int(skill.get("charges", 1)) + int(caster.stats.skill_mod(skill_id, "charges_add"))
 	if max_charges > 1:
 		if int(caster.skill_charges.get(skill_id, max_charges)) <= 0:
 			return "Not ready"
@@ -84,6 +84,14 @@ func try_use_skill(caster: Actor, skill_id: String, aim: Vector2, opts: Dictiona
 		fx.sound.rpc(str(skill.get("sfx", "cast")), caster.global_position)
 		return ""
 	var cost := caster.stats.cost_for(skill)
+	if JSON.stringify(skill.get("effects", [])).contains("\"heal\""):
+		cost *= caster.stats.mult("heal_cost")  # Black Iron Penitent Cross
+	if caster.stats.has_flag("free_shot_chance") and str(skill.get("school", "")) == "ranged" and rng.randf() < 0.25:
+		cost = 0.0  # Quiver of the Endless Abyss
+	# Stormweaver Grips: the stacks cheapen this cast, then they are spent.
+	for cst in caster.status.effects.duplicate():
+		if cst.def.get("consume_on_cast", false) and not skill.get("passive", false):
+			caster.status.remove(cst.id)
 	# Spatial anomaly (Archives): the cost of every cast rolls +-30%, shown above the caster.
 	if cost > 0.0 and caster is Player and game and game.dungeon.in_anomaly(caster.global_position):
 		var roll := rng.randf_range(1.0 - float(GameData.bal("anomaly.cost_swing", 0.3)), 1.0 + float(GameData.bal("anomaly.cost_swing", 0.3)))
@@ -118,7 +126,7 @@ func try_use_skill(caster: Actor, skill_id: String, aim: Vector2, opts: Dictiona
 	if max_charges > 1:
 		caster.skill_charges[skill_id] = int(caster.skill_charges.get(skill_id, max_charges)) - 1
 		if caster.cooldown_left(skill_id) <= 0.0:
-			caster.cooldowns[skill_id] = caster.stats.cooldown_for(skill)
+			caster.cooldowns[skill_id] = caster.stats.cooldown_for(skill) * maxf(0.1, 1.0 + caster.stats.skill_mod(skill_id, "recharge_mult"))
 	else:
 		caster.cooldowns[skill_id] = caster.stats.cooldown_for(skill)
 	var proc_need := str(skill.get("usable_if", {}).get("proc", ""))
@@ -233,7 +241,7 @@ static func skill_numbers(st: Stats, level: int, skill: Dictionary) -> Dictionar
 		"armor_pen": st.get_stat("armor_pen") + st.skill_mod(sid, "armor_pen") + float(skill.get("armor_pen", 0.0)),
 		"magic_pen": st.get_stat("magic_pen") + st.skill_mod(sid, "magic_pen"),
 		"cannot_miss": bool(skill.get("cannot_miss", false)) or st.has_flag("cannot_miss") and school == "ranged",
-		"trap_radius_mult": 1.0 + st.skill_mod("*traps", "radius_mult") + st.get_stat("trap_radius_pct"),
+		"trap_radius_mult": 1.0 + st.skill_mod("*traps", "radius_mult") + st.mult("trap_radius") - 1.0,
 		"low_hp_heal_below": st.get_stat("low_hp_heal_below"), "low_hp_heal_bonus": st.get_stat("low_hp_heal_bonus"),
 		"dot_can_crit": st.has_flag("dot_can_crit"),
 	}
@@ -243,7 +251,16 @@ static func skill_numbers(st: Stats, level: int, skill: Dictionary) -> Dictionar
 static func value_of(spec: Variant, nums: Dictionary) -> float:
 	if not spec is Dictionary or spec.is_empty():
 		return 0.0
-	return (float(spec.get("base", 0)) + float(nums.power) * float(spec.get("coef", 0))) * float(nums.damage_mult)
+	var base := float(spec.get("base", 0))
+	if spec.get("level_scaled", false):
+		base *= legendary_scale(int(nums.get("level", 30)))
+	return (base + float(nums.power) * float(spec.get("coef", 0))) * float(nums.damage_mult)
+
+
+## D7: legendary numbers are level-30 values, scaled linearly down to `scale_floor` at level 1.
+static func legendary_scale(level: int) -> float:
+	var f := float(GameData.bal("legendary.scale_floor", 0.35))
+	return f + (1.0 - f) * clampf(float(level) / 30.0, 0.0, 1.0)
 
 
 ## Cast time after haste.
@@ -299,7 +316,9 @@ func _step_channel(a: Actor, delta: float) -> void:
 	if not a.can_act() or a.status.has_flag("silenced") and str(skill.get("school", "")) == "spell":
 		stop_channel(a)
 		return
-	if spec.get("move_cancels", false) and a.global_position.distance_to(ch.start) > 6.0:
+	# Slippers of Grace: healing channels survive moving.
+	var mobile := a.stats.has_flag("mobile_caster") and JSON.stringify(skill.get("effects", [])).contains("\"heal\"")
+	if spec.get("move_cancels", false) and not mobile and a.global_position.distance_to(ch.start) > 6.0:
 		stop_channel(a)
 		return
 	var cps := float(spec.get("cost_per_second", 0.0)) * a.stats.mult("cost")

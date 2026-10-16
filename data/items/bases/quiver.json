@@ -1,0 +1,1 @@
+{"id": "quiver", "name": "Quiver", "kind": "offhand", "slot": "offhand", "hands": 1, "classes": ["ranger"], "icon": "items.quiver", "appearance": "", "tint": "#8a6a4a", "armor": [1, 2], "with_two_hand": true, "base_stats": {"agility": [1, 3]}}

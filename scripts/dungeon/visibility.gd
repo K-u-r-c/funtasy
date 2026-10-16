@@ -200,7 +200,9 @@ func _update_enemies() -> void:
 			var sight := max_sight
 			if v is Actor and v.status.has_flag("blinded"):
 				sight = float(GameData.bal("vision.blind_sight", 40.0))
-			if d > sight or (not lit and d > personal_radius):
+			# Falconer's Focus Band: darkness doesn't hide monsters from this hero.
+			var dark_ok: bool = v is Actor and v.stats.has_flag("darkvision")
+			if d > sight or (not lit and not dark_ok and d > personal_radius):
 				continue
 			# Stealthed monsters stay hidden until revealed.
 			if e.status.has_flag("stealthed") and not e.status.has_flag("revealed"):

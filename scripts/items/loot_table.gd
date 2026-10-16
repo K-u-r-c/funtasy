@@ -39,6 +39,12 @@ static func roll(source: String, item_level: int, depth: int, party_classes: Arr
 			if source == "altar":
 				count = 0
 	var bonus := float(GameData.bal("scaling.rarity_bonus_per_depth")) * (depth - 1)
+	# Legendaries (GDD 6): bosses, elites and chests can drop one, weighted to the party's classes.
+	var lchance := float((GameData.bal("legendary.drop_chance") as Dictionary).get(source, 0.0))
+	if lchance > 0.0 and rng.randf() < lchance:
+		var lg := roll_legendary(party_classes, item_level, rng)
+		if not lg.is_empty():
+			out.append(lg)
 	for i in count:
 		var r2 := rng.randf()
 		if source != "boss" and r2 < float(GameData.bal("loot.consumable_chance")):
@@ -50,6 +56,15 @@ static func roll(source: String, item_level: int, depth: int, party_classes: Arr
 			var tier := ItemGenerator.roll_rarity(rng, bonus, min_tier)
 			out.append(ItemGenerator.generate_equipment(base_id, item_level, tier, rng))
 	return out
+
+
+static func roll_legendary(party_classes: Array, item_level: int, rng: RandomNumberGenerator) -> Dictionary:
+	var ids: Array = GameData.legendaries.keys()
+	if ids.is_empty():
+		return {}
+	var boost := float(GameData.bal("legendary.party_class_weight", 3.0))
+	var weights: Array = ids.map(func(id): return boost if party_classes.has(GameData.legendaries[id]["class"]) else 1.0)
+	return ItemGenerator.make_legendary(str(ids[ItemGenerator._weighted_index(weights, rng)]), item_level, rng)
 
 
 static func pick_base(party_classes: Array, rng: RandomNumberGenerator) -> String:

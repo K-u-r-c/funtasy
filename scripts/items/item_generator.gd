@@ -68,6 +68,37 @@ static func generate_equipment(base_id: String, item_level: int, tier: int, rng:
 	return item
 
 
+## A named legendary (GDD 6, D6/D7): rarity 5, fixed stats and affix scaled from their level-30
+## values to `item_level`, the legendary's procs / mods / flags carried on the item.
+static func make_legendary(id: String, item_level: int, rng: RandomNumberGenerator) -> Dictionary:
+	var lg: Dictionary = GameData.legendaries.get(id, {})
+	if lg.is_empty():
+		return {}
+	var base: Dictionary = GameData.item_bases.get(str(lg.base), {})
+	var lvl := maxi(item_level, 1)
+	var scale := Combat.legendary_scale(lvl)
+	var item := {
+		"uid": new_uid(rng), "base": str(lg.base), "legendary": id, "kind": base.get("kind", "armor"), "slot": base.get("slot", lg.slot),
+		"hands": int(base.get("hands", 1)), "rarity": 5, "ilvl": lvl, "req": lvl, "classes": [lg["class"]],
+		"appearance": base.get("appearance", ""), "tint": "#ffb040", "name": lg.name,
+		"icon": lg.icon if GameData.asset_exists(str(lg.icon)) else base.get("icon", "items.ring"),
+		"stats": {}, "mods": lg.get("mods", []).duplicate(true), "flags": lg.get("flags", []).duplicate(), "procs": lg.get("procs", []).duplicate(true),
+		"affix": lg.affix,
+	}
+	if base.get("with_two_hand", false):
+		item.with_two_hand = true
+	var pct: Array = GameData.affixes.percent_stats
+	for k in lg.get("stats", {}):
+		var v := float(lg.stats[k])
+		# Percentages stay fixed; flat numbers scale with the item level (D7).
+		item.stats[k] = v if (pct.has(k) or k.ends_with("_mult") or k.ends_with("_pct") or absf(v) < 1.0) else float(roundi(v * scale))
+	if lg.has("armor"):
+		item.armor = roundi(float(lg.armor) * scale)
+	if lg.has("dps"):
+		item.dps = snappedf(float(lg.dps) * scale, 0.1)
+	return item
+
+
 static func generate_consumable(id: String, count: int, rng: RandomNumberGenerator) -> Dictionary:
 	var c: Dictionary = GameData.consumables[id]
 	return {"uid": new_uid(rng), "base": id, "kind": "consumable", "name": c.name, "icon": c.icon,
@@ -120,13 +151,21 @@ static func describe(item: Dictionary, class_id: String = "", char_level: int = 
 	lines.append([kind_txt, Color(0.7, 0.7, 0.7)])
 	if item.has("dps"):
 		lines.append(["%.1f DPS" % float(item.dps), Color(1, 1, 1)])
+	if item.has("legendary"):
+		lines.append(["Legendary", Color.from_string(rar.color, Color.ORANGE)])
 	if item.has("armor") and int(item.armor) > 0:
 		lines.append(["%d Armor" % int(item.armor), Color(1, 1, 1)])
 	var names: Dictionary = GameData.affixes.stat_names
 	for k in item.get("stats", {}):
 		var v := float(item.stats[k])
-		var txt := "+%d%% %s" % [roundi(v * 100.0), names.get(k, k)] if Array(GameData.affixes.percent_stats).has(k) else "+%d %s" % [int(v), names.get(k, k)]
+		var is_pct := Array(GameData.affixes.percent_stats).has(k) or (absf(v) < 1.0 and v != 0.0)
+		var txt := ("%+d%% %s" % [roundi(v * 100.0), names.get(k, k)]) if is_pct else ("%+d %s" % [int(v), names.get(k, k)])
 		lines.append([txt, Color(0.55, 0.9, 0.55)])
+	if item.has("affix"):
+		lines.append([str(item.affix), Color(1.0, 0.72, 0.3)])
+		var lg: Dictionary = GameData.legendaries.get(str(item.get("legendary", "")), {})
+		if lg.has("description"):
+			lines.append([str(lg.description), Color(0.6, 0.6, 0.65)])
 	if char_level > 0 and too_high_level(item, char_level):
 		lines.append(["Requires level %d (you are level %d)" % [int(item.get("req", 1)), char_level], Color(0.95, 0.4, 0.35)])
 	else:

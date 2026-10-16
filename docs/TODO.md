@@ -41,7 +41,9 @@ screenshot review at 1920x1080 and 3440x1440.
 - [x] **8. Kurgan** (caverns, blood pools, sprouting thorns, root snares, dread totems, ground fog, 7 monsters,
       Cernunnos + Isolde) (verified: `biomes-kurgan`, `monsters`, `bosses`, `boss-cernunnos` + `boss-isolde` LAN
       pairs, kurgan tour screenshots). **Art: placeholders.**
-- [ ] **9. Legendaries**: 108 items + affix hooks + icons + drop rules + tooltips
+- [x] **9. Legendaries**: 108 items + affix hooks + icons + drop rules + tooltips (verified: `legendaries-warrior/
+      ranger/mage/priest` suites prove every affix, `primitives`, `skills-*`, `economy`, `ui-layout`, legendary
+      tour screenshots at 1920x1080 and 3440x1440). Icons: 7 Pixen sheets of 16 cut by `tools/cut_icon_sheet.py`.
 - [ ] **10. Integration**: balance pass, audio keys + Suno prompt list, README / DECISIONS / TODO,
       full test suite, LAN + Steam smoke test, final screenshot tours
 
@@ -56,6 +58,7 @@ Goal cap: 2500 generations, and never more than the remaining allowance. Spend =
 | 2026-10-15 | (start) | 1081 | 1081 | 0 | 0 |
 | 2026-10-16 | Skill icon sheets: 8 Pixen 128x128 sheets of 16 icons (96 skills, 24 keystones, 6 items, 2 statuses), cut by `tools/cut_icon_sheet.py` | 1081 | 1089 | 8 | 8 |
 | 2026-10-16 | Crypt: 4 monsters (v3 48 px) + Vespera (v3 72 px) with template / v3 animations on 5 directions, 15 crypt props, 9 shared merchant-chamber / altar / lore props (map objects; lit / open / used variants recoloured, no generation) | 1089 | 1222 | 133 | 141 |
+| 2026-10-16 | Legendary icons: 7 Pixen 128x128 sheets of 16 icons (108 legendaries + quiver), cut by `tools/cut_icon_sheet.py` | 1222 | 1229 | 7 | 148 |
 
 ## Done (MVP)
 

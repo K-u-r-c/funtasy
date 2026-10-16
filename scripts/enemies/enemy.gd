@@ -34,6 +34,7 @@ var behavior_state := "":  ## replicated: what the behaviours look like right no
 	set(v):
 		behavior_state = v
 		_apply_behavior_visual()
+var _charmed := false  ## host: fighting for the heroes (Paranoia from the Visage of the Dark Singularity)
 var _wander := Vector2.ZERO
 var _wander_left := 0.0
 
@@ -327,6 +328,13 @@ func _opponents(game: Node) -> Array:
 func _host_ai(delta: float) -> void:
 	if not is_alive():
 		return
+	# Charmed monsters change sides while it lasts and pick a fresh target either way.
+	var charmed_now := status.has_flag("charmed") and not is_boss  # bosses keep their side (arena mechanics)
+	if charmed_now and not _charmed and team == Team.MONSTERS or _charmed and not charmed_now:
+		_charmed = charmed_now
+		team = Team.PLAYERS if _charmed else Team.MONSTERS
+		threat.clear()
+		target = null
 	for b in behaviors:
 		b.on_physics(delta)
 	var game := get_tree().get_first_node_in_group("game")

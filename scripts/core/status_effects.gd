@@ -45,6 +45,14 @@ func apply(id: String, duration: float, magnitude: float, source: Variant) -> bo
 		push_error("StatusEffects: unknown status '%s'" % id)
 		return false
 	var actor := _actor()
+	# Wyvernscale Jerkin: no poison takes hold.
+	if id == "poison" and actor.stats and actor.stats.has_flag("poison_immune"):
+		return false
+	var src_actor: Variant = source.get("caster") if source is Dictionary else null
+	if is_instance_valid(src_actor) and src_actor is Actor:
+		# Grip of Absolute Zero: freezes last a second longer.
+		if (id == "freeze" or id == "frozen") and src_actor.stats.has_flag("deep_frost"):
+			duration += 1.0
 	# Whirlwind and friends: immune to slows and roots while it lasts.
 	if def.get("debuff", false) and str(def.get("cleanse", "")) == "movement" and has_flag("movement_immune"):
 		return false
@@ -89,6 +97,11 @@ func apply(id: String, duration: float, magnitude: float, source: Variant) -> bo
 
 func max_stacks(def: Dictionary) -> int:
 	var n := int(def.get("max_stacks", 1))
+	# Blessed Touch Gloves: Renew stacks up to 3 times from a priest wearing them.
+	if def == GameData.status_effects.get("renew", {}):
+		for e0 in effects:
+			if e0.def == def and is_instance_valid(e0.src_node) and e0.src_node is Actor and e0.src_node.stats.has_flag("renew_mastery"):
+				return 3
 	var actor := _actor()
 	if def.has("stack_bonus_flag"):
 		# e.g. Venomtouch Grips: poisons stack to 6 when the poisoner has the flag.

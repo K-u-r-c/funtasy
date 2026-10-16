@@ -18,7 +18,7 @@ fi
 
 run() { # name, args...
 	local name=$1; shift
-	timeout 320 "$GODOT" --headless --path . -- --nosteam --profile=test_$name "$@" > "$OUT/$name.log" 2>&1
+	timeout 400 "$GODOT" --headless --path . -- --nosteam --profile=test_$name "$@" > "$OUT/$name.log" 2>&1
 	report "$name"
 }
 
@@ -68,6 +68,9 @@ if [ "$WHAT" = all ] || [ "$WHAT" = quick ]; then
 	run lore --auto=solo --class=priest --name=Lore --scenario=lore --quit=120
 	run monsters --auto=solo --class=warrior --name=Mon --scenario=monsters --quit=300
 	run bosses --auto=solo --class=mage --name=Bos --scenario=bosses --quit=300
+	for c in warrior ranger mage priest; do
+		run legendaries-$c --auto=solo --class=$c --name=Leg --scenario=legendaries --quit=360
+	done
 	run biomes --auto=solo --class=warrior --name=Bio --scenario=biomes --quit=120
 	run biomes-sewers --auto=solo --class=ranger --name=Bio --scenario=biomes --biome=sewers --quit=120
 	run biomes-foundry --auto=solo --class=priest --name=Bio --scenario=biomes --biome=foundry --quit=120

@@ -112,6 +112,12 @@ func _try_begin() -> void:
 
 func start_floor(new_depth: int) -> void:
 	depth = new_depth
+	# Floor-bound buffs (Eater of Battles) and once-per-floor legendaries reset.
+	for p in players_root.get_children():
+		for st in p.status.effects.duplicate():
+			if st.def.get("floor_bound", false):
+				p.status.remove(st.id)
+		p.remove_meta("crosier_used")
 	var ft_id := floor_type_for(new_depth)
 	var floor_seed := hash(run_seed + new_depth * 7919)
 	combat.clear_floor()
@@ -434,7 +440,13 @@ func _physics_process(delta: float) -> void:
 		_hazard_left = float(GameData.bal("hazards.lava_tick"))
 		for a in actors:
 			if a.is_targetable() and dungeon.is_lava(a.global_position) and not a.has_meta("ignores_hazards"):
-				combat.deal_damage(combat.env_ctx(0.0), a, float(GameData.bal("hazards.lava_damage")), {"dot": true, "damage_type": "fire"})
+				if a.stats.has_flag("lava_walker"):
+					# Magma Tectonic Slacks: lava mends and empowers.
+					combat.heal(combat.env_ctx(0.0), a, float(GameData.bal("hazards.lava_damage")))
+					a.status.apply("magma_surge", float(GameData.bal("hazards.lava_tick")) + 0.6, 0.0, combat.env_ctx(0.0))
+					continue
+				var lava := float(GameData.bal("hazards.lava_damage")) * (0.2 if a.stats.has_flag("lava_resist") else 1.0)
+				combat.deal_damage(combat.env_ctx(0.0), a, lava, {"dot": true, "damage_type": "fire"})
 	if portal:
 		_portal_left -= delta
 		if _portal_left <= 0.0:

@@ -1,21 +1,96 @@
 {
 	"primary": [
-		{"stat": "strength", "min": 2, "max": 4, "per_level": 0.9, "suffix": "of the Bear"},
-		{"stat": "stamina", "min": 2, "max": 4, "per_level": 0.9, "suffix": "of the Ox"},
-		{"stat": "agility", "min": 2, "max": 4, "per_level": 0.9, "suffix": "of the Falcon"},
-		{"stat": "intellect", "min": 2, "max": 4, "per_level": 0.9, "suffix": "of the Owl"}
+		{
+			"stat": "strength",
+			"min": 2,
+			"max": 4,
+			"per_level": 0.9,
+			"suffix": "of the Bear"
+		},
+		{
+			"stat": "stamina",
+			"min": 2,
+			"max": 4,
+			"per_level": 0.9,
+			"suffix": "of the Ox"
+		},
+		{
+			"stat": "agility",
+			"min": 2,
+			"max": 4,
+			"per_level": 0.9,
+			"suffix": "of the Falcon"
+		},
+		{
+			"stat": "intellect",
+			"min": 2,
+			"max": 4,
+			"per_level": 0.9,
+			"suffix": "of the Owl"
+		}
 	],
 	"secondary": [
-		{"stat": "crit_damage", "min": 0.05, "max": 0.1, "per_level": 0.004, "suffix": "of Ruin"},
-		{"stat": "haste", "min": 0.02, "max": 0.05, "per_level": 0.002, "suffix": "of Swiftness"},
-		{"stat": "dodge", "min": 0.01, "max": 0.03, "per_level": 0.001, "suffix": "of Evasion"},
-		{"stat": "leech", "min": 0.01, "max": 0.03, "per_level": 0.001, "suffix": "of the Leech"}
+		{
+			"stat": "crit_damage",
+			"min": 0.05,
+			"max": 0.1,
+			"per_level": 0.004,
+			"suffix": "of Ruin"
+		},
+		{
+			"stat": "haste",
+			"min": 0.02,
+			"max": 0.05,
+			"per_level": 0.002,
+			"suffix": "of Swiftness"
+		},
+		{
+			"stat": "dodge",
+			"min": 0.01,
+			"max": 0.03,
+			"per_level": 0.001,
+			"suffix": "of Evasion"
+		},
+		{
+			"stat": "leech",
+			"min": 0.01,
+			"max": 0.03,
+			"per_level": 0.001,
+			"suffix": "of the Leech"
+		}
 	],
 	"level_growth": 0.12,
 	"stat_names": {
-		"strength": "Strength", "stamina": "Stamina", "agility": "Agility", "intellect": "Intellect",
-		"armor": "Armor", "dps": "DPS", "crit_damage": "Crit damage", "haste": "Haste",
-		"dodge": "Dodge chance", "leech": "Leech"
+		"strength": "Strength",
+		"stamina": "Stamina",
+		"agility": "Agility",
+		"intellect": "Intellect",
+		"armor": "Armor",
+		"dps": "DPS",
+		"crit_damage": "Crit damage",
+		"haste": "Haste",
+		"dodge": "Dodge chance",
+		"leech": "Leech",
+		"crit_chance": "Critical Chance",
+		"move_speed": "Move Speed",
+		"move_speed_mult": "Move Speed",
+		"threat_mult": "Threat",
+		"block_chance": "Block Chance",
+		"magic_resist": "Magic Resistance",
+		"max_resource": "Max Mana",
+		"resource_regen": "Mana Regen",
+		"max_hp_pct": "Max Health",
+		"ranged_damage_mult": "Ranged Damage",
+		"boss_damage_mult": "Damage to Bosses",
+		"fire_damage_mult": "Fire Damage",
+		"magic_pen": "Magic Penetration",
+		"low_hp_heal_below": "Low-health heal threshold",
+		"low_hp_heal_bonus": "Healing on low-health allies"
 	},
-	"percent_stats": ["crit_damage", "haste", "dodge", "leech"]
+	"percent_stats": [
+		"crit_damage",
+		"haste",
+		"dodge",
+		"leech"
+	]
 }

@@ -308,5 +308,19 @@
 	"anomaly": {
 		"cost_swing": 0.3,
 		"chronostasis_projectile_mult": 0.3
+	},
+	"legendary": {
+		"scale_floor": 0.35,
+		"party_class_weight": 3.0,
+		"drop_chance": {
+			"boss": 0.4,
+			"elite": 0.06,
+			"chest": 0.02,
+			"secret": 0.05,
+			"altar": 0.05
+		}
+	},
+	"combat": {
+		"max_traps": 3
 	}
 }

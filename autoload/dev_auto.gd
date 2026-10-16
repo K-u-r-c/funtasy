@@ -18,6 +18,7 @@ var shot := ""
 var shot_at := 0.0
 var biome := ""  ## --biome=<floor type id> (monster suite, tours)
 var tour := ""  ## --tour=<name>[:arg] (screenshot tours)
+var only: Array = []  ## --only=a,b: limit a suite to these ids (debugging one legendary)
 var window_size := Vector2i.ZERO  ## --window=WxH: resize the window (layout checks per aspect)
 var fails := 0
 var passes := 0
@@ -53,6 +54,8 @@ func _ready() -> void:
 		elif a.begins_with("--biome="):
 			biome = v
 			GameState.set_meta("force_biome", v)
+		elif a.begins_with("--only="):
+			only = Array(v.split(","))
 		elif a.begins_with("--tour="):
 			tour = v
 		elif a.begins_with("--boss="):
@@ -220,6 +223,8 @@ func _run() -> void:
 				await MonsterSuite.new(self).run(biome)
 			"bosses":
 				await BossSuite.new(self).run(biome)
+			"legendaries":
+				await LegendarySuite.new(self).run_legendaries(class_id)
 			"biomes":
 				await BiomeSuite.new(self).run(biome)
 			"economy":

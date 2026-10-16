@@ -234,6 +234,25 @@ proposal left a choice open, the chosen option is stated, and any change to a pr
 | Cernunnos | P1: four stone dolmens stand in the arena; Antler Stampede every 14 s charges straight at a hero, smashing dolmens on the way; slamming a wall stuns him 3 s. Creeping Briar: every 60 s the outer ring of the arena becomes living briar (2 rings at most, about 10% of the arena each). P2 at 50%: he drinks every corpse in the arena (+15% max HP, again every 30 s); Shower of Thorns every 12 s hits every hero not within 36 px of a dolmen (new dolmens rise if fewer than 2 stand). |
 | Isolde | P1: Blood-Thread Bond links two random heroes for 10 s; more than 150 px apart and it snaps for 90% of both heroes' max HP (needs 2 living heroes). Brood Nursery hatches 4 blood ticks every 14 s (they latch on and burst after a 3 s fuse). P2 at 40%: the cocoon tears (spider sprite), permanent Frenzy of the Feast: +100% leech (every hit heals her for the damage dealt), +25% haste, +15% damage, CC immune. |
 
+### Legendaries (phase 9) - readings of the GDD
+
+| Topic | Decision |
+| --- | --- |
+| Data | `data/items/legendaries.json`: 108 items (27 per class), each with GDD stats, affix text, `mods` (stats or per-skill modifiers), `flags`, `procs` (the shared proc system: event, `if`, `icd`, effect list or a `hook` in `scripts/items/legendary_affixes.gd`) and a `test` block run by `tests/legendary_suite.gd`. |
+| Scaling | The GDD numbers are the level-30 values. Stats and flat proc numbers scale with the item level: `scale_floor + (1 - scale_floor) * min(level / 30, 1)` with `balance.legendary.scale_floor` 0.35. Percent effects never scale. |
+| Drops | Legendary (Relic, tier 5) chance per source in `balance.legendary.drop_chance`: boss 40%, elite 6%, secret 5%, altar 5%, chest 2%. Classes in the party weigh x3 (`party_class_weight`), any class can drop. |
+| Unique rings (D8) | Two copies of the same legendary ring cannot be worn. |
+| Quiver | New off-hand base `quiver` (ranger) that can be worn with a two-handed bow / crossbow. Titan's grip (warrior) lets a two-handed weapon and a shield be worn together. |
+| Slippers of Grace | Heroes already move at full speed while casting, so the "does not slow" part is always true; the flag also keeps healing channels alive while moving. |
+| Boots of the Flame Trail | The burning trail zones are lit like every zone (they count as light for the darkness rules). |
+| Vestment of the Merciful Mother | When Power Word: Shield breaks or runs out it heals the target for 100% of the shield's starting value. |
+| Stormweaver Grips | The stacks (max 3, -20% cost each) are spent by the next cast. |
+| Wasteland Marksman Hauberk | Standing still 1.5 s keeps a short "Steady Aim" buff refreshed (+50% to the next shot); moving lets it lapse. |
+| Tome of Dire Anathema | A healing spell aimed within 32 px of an enemy (in range) deals twice the heal as shadow damage to it instead of healing. |
+| Void Needle Athame | Drain Soul also hits the enemy nearest the first target (within the skill's range). |
+| Visage of the Dark Singularity | Paranoia (3 s, charm DR) makes the monster change sides: it fights the nearest monsters and heroes cannot hurt it until it ends. Bosses keep their side (their arena mechanics assume it); CC-immune monsters ignore it. |
+| Exorcist's Iron Striders | Checked on the 1 s aura tick: undead / demons within 30 px are stunned 1 s and take 100 (scaled) holy damage. |
+
 ### Skill groups per talent branch (D1)
 
 Tier in brackets. **Bold** = starter (free) skill.
