@@ -8,7 +8,7 @@
 	"corpse": "none",
 	"no_corpse": true,
 	"spawn_only": true,
-	"scale": 0.45,
+	"scale": 0.8,
 	"ai": {
 		"type": "melee",
 		"aggro_radius": 400,
@@ -36,6 +36,5 @@
 		}
 	],
 	"collision_radius": 4,
-	"xp": 0,
-	"tint": "#c02020"
+	"xp": 0
 }

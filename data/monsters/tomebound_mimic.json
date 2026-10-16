@@ -41,6 +41,5 @@
 		}
 	},
 	"collision_radius": 9,
-	"xp": 16,
-	"tint": "#c0a080"
+	"xp": 16
 }

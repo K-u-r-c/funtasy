@@ -19,7 +19,6 @@
 	"xp": 360,
 	"aggro_radius": 380,
 	"scale": 1.2,
-	"tint": "#a0c0ff",
 	"phases": [
 		{
 			"hp_above": 0.45,

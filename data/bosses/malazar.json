@@ -4,6 +4,7 @@
 	"biome": "archives",
 	"name": "Grand Archivist Malazar",
 	"sprite": "monsters.malazar",
+	"scale": 1.3,
 	"music": "boss_malazar",
 	"corpse": "none",
 	"base_stats": {
@@ -18,7 +19,6 @@
 	"collision_radius": 14,
 	"xp": 360,
 	"aggro_radius": 380,
-	"tint": "#e0d8c0",
 	"phases": [
 		{
 			"hp_above": 0.5,

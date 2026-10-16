@@ -112,6 +112,55 @@
 		"hellfire_cultist": {
 			"same_as": "cultist",
 			"note": "tinted in its monster data"
+		},
+		"astral_warden": {
+			"zip": "a38c5afe-70a6-42e1-90f8-50cb581c01ee",
+			"cell": 64
+		},
+		"cursed_scribe": {
+			"zip": "d35a2efc-430d-42c6-b489-db9651e706ed",
+			"cell": 64,
+			"attack_template": "fireball"
+		},
+		"void_weaver": {
+			"zip": "71c28704-7546-4dfb-8ef8-8a41fffe0d43",
+			"cell": 64,
+			"attack_template": "fireball"
+		},
+		"echo_unwritten": {
+			"zip": "8eb22a4f-cba4-404d-af19-a89c0508c602",
+			"cell": 64
+		},
+		"archive_gargoyle": {
+			"zip": "f133fa59-80f9-45e1-95d2-ef47fde26208",
+			"cell": 64
+		},
+		"malazar": {
+			"zip": "5f9929f8-f381-4606-82a3-a0f6ede33327",
+			"cell": 112,
+			"attack_template": "fireball"
+		},
+		"memory_devourer": {
+			"zip": "b8e22c23-4cf6-4f3b-a444-5aa1792609ad",
+			"cell": 112
+		},
+		"ink_horror": {
+			"blob": "8cf9e1dd-493d-42ec-96d9-6de991d5796c",
+			"cell": 64
+		},
+		"tomebound_mimic": {
+			"blob": "ba128bc5-4130-4aa9-afc6-befe41b41a0f",
+			"cell": 64,
+			"args": [
+				"--mirror-west"
+			]
+		},
+		"blood_tick": {
+			"blob": "69b75375-b00c-4f9b-a377-4728d3da773b",
+			"cell": 48,
+			"args": [
+				"--faces-left"
+			]
 		}
 	},
 	"props": {
@@ -137,6 +186,20 @@
 		"slag_safe": "f32a6fc0-9f7c-45f0-9249-0425aa6f4df0",
 		"slag_safe_open": "98eb4605-2cd0-4da4-b162-9be892e55318",
 		"flame_jet": "b4b76aaf-2aa0-4238-83af-ee81a78012ae",
-		"grate": "6f9f0f40-2772-4083-b222-0e4e93542a5a"
+		"grate": "6f9f0f40-2772-4083-b222-0e4e93542a5a",
+		"lectern": "184c57d1-016d-4008-a28b-41d22b34eb67",
+		"locked_lectern": "3d942c19-96a4-4d46-800f-f74270647543",
+		"locked_lectern_open": "44685a53-3655-48ea-92e7-1dba6d18ae2d",
+		"orrery": "925f4934-5625-4f8c-acd0-e1a7b63456be",
+		"reading_table": "05014362-8129-4b06-bb9d-396f2cbb84c2",
+		"spectral_candles": "521154a9-6897-44fc-86f1-32f8f26db645",
+		"arcane_lantern": "8a9ada15-f6e2-430f-a908-c48fe2977d12",
+		"astral_mirror": "f831bcea-7938-4b63-9f78-de3c024dd6a3",
+		"authorial_seal": "8e511650-8223-4375-9ba3-af4660404cf1",
+		"temporal_prism": "20a01640-9185-49e0-9d98-b2b5b8262a8f",
+		"silence_rune": "fd38ecbf-a8c4-4f12-a637-b37d64a0d1d2",
+		"void_rift": "24205955-59dc-4d25-8c03-635a0d3ca288",
+		"ink_puddle": "427cd04b-1cff-421b-8002-368a607e2384",
+		"gargoyle_statue": "archive_gargoyle south rotation, greyscale"
 	}
 }
