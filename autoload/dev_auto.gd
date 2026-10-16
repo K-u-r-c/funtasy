@@ -1023,7 +1023,9 @@ func _tank_scenario() -> void:
 				on_tank += 1
 			if last.has(e) and last[e] != e.target:
 				switches += 1
-				if last_switch.has(e) and t - float(last_switch[e]) < 2.0:
+				# A taunt pulling the monster back is the tank doing its job, not a flip-flop.
+				var taunted: bool = e.threat._taunt_left > 0.0 and e.target == e.threat._taunt_by
+				if last_switch.has(e) and t - float(last_switch[e]) < 2.0 and not taunted:
 					rapid += 1
 					log_line("rapid switch %s at %.1f s -> %s; threat tank %.0f dps %.0f, taunt %.1f s, state '%s'" % [e.name, t,
 						e.target.name, e.threat.value_of(tank), e.threat.value_of(dps), e.threat._taunt_left, e.behavior_state])

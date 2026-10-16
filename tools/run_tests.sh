@@ -4,6 +4,9 @@
 set -u
 cd "$(dirname "$0")/.."
 GODOT=${GODOT:-godot}
+# Line-buffered output: a test instance killed by `timeout` would otherwise lose its last lines.
+LB=""
+command -v stdbuf > /dev/null && LB="stdbuf -oL -eL"
 OUT=${TEST_LOG_DIR:-${TMPDIR:-/tmp}/funtasy_tests}
 mkdir -p "$OUT"
 WHAT=${1:-all}
@@ -18,7 +21,7 @@ fi
 
 run() { # name, args...
 	local name=$1; shift
-	timeout 400 "$GODOT" --headless --path . -- --nosteam --profile=test_$name "$@" > "$OUT/$name.log" 2>&1
+	timeout 400 $LB "$GODOT" --headless --path . -- --nosteam --profile=test_$name "$@" > "$OUT/$name.log" 2>&1
 	report "$name"
 }
 
@@ -39,10 +42,10 @@ report() {
 
 pair() { # name, host-args, client-args
 	local name=$1 hargs=$2 cargs=$3
-	timeout 320 "$GODOT" --headless --path . -- --nosteam --profile=test_$name-host --auto=host --players=2 $hargs > "$OUT/$name-host.log" 2>&1 &
+	timeout 320 $LB "$GODOT" --headless --path . -- --nosteam --profile=test_$name-host --auto=host --players=2 $hargs > "$OUT/$name-host.log" 2>&1 &
 	local hp=$!
 	sleep 2
-	timeout 320 "$GODOT" --headless --path . -- --nosteam --profile=test_$name-client --auto=join $cargs > "$OUT/$name-client.log" 2>&1 &
+	timeout 320 $LB "$GODOT" --headless --path . -- --nosteam --profile=test_$name-client --auto=join $cargs > "$OUT/$name-client.log" 2>&1 &
 	local cp=$!
 	wait $hp; wait $cp
 	report "$name-host"
@@ -85,9 +88,9 @@ if [ "$WHAT" = all ] || [ "$WHAT" = quick ]; then
 	run gamepad-menu --scenario=gamepad_menu --quit=60
 	run gamepad --auto=solo --class=warrior --name=PadTester --scenario=gamepad --quit=60
 	run continue --auto=solo --class=ranger --gender=female --name=Saver --scenario=continue --quit=60
-	timeout 60 "$GODOT" --headless --path . -- --nosteam --profile=test_rebind --scenario=rebind --quit=20 > "$OUT/rebind.log" 2>&1
+	timeout 60 $LB "$GODOT" --headless --path . -- --nosteam --profile=test_rebind --scenario=rebind --quit=20 > "$OUT/rebind.log" 2>&1
 	report rebind
-	timeout 60 "$GODOT" --headless --path . -- --nosteam --profile=test_rebind --scenario=rebind_check --quit=20 > "$OUT/rebind-check.log" 2>&1
+	timeout 60 $LB "$GODOT" --headless --path . -- --nosteam --profile=test_rebind --scenario=rebind_check --quit=20 > "$OUT/rebind-check.log" 2>&1
 	report rebind-check
 fi
 if [ "$WHAT" = all ] || [ "$WHAT" = lan ]; then
@@ -115,7 +118,7 @@ if [ "$WHAT" = all ] || [ "$WHAT" = lan ]; then
 fi
 if [ "$WHAT" = steam ]; then
 	echo "== Steam"
-	timeout 60 "$GODOT" --headless --path . -- --profile=test_steam --auto=steamhost --quit=40 > "$OUT/steam.log" 2>&1
+	timeout 60 $LB "$GODOT" --headless --path . -- --profile=test_steam --auto=steamhost --quit=40 > "$OUT/steam.log" 2>&1
 	report steam
 fi
 echo "logs: $OUT"
