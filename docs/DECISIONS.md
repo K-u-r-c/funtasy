@@ -409,3 +409,11 @@ priest Acolyte Staff (2H `holy_staff`). Their worn art (`weapon_sword`, `weapon_
 `weapon_staff`) already exists, so the weapon shows on the sprite at once. Heroes saved before keep
 their saved equipment. CLAUDE.md's "characters start in their underwear" now means underwear plus this
 one weapon.
+
+### #11 Item comparison
+
+The backpack item card compares an item with everything equipping it would take off
+(`Inventory.replaced_by`, the same slot rules as equipping): a 2H weapon against the main hand and the
+off hand together (their DPS, armor and stats are summed, so the off-hand relic's stats show as red
+losses), an off-hand item against a worn 2H weapon, a 1H weapon against the 2H weapon it would replace
+and against nothing when it goes into the empty left hand. The header reads "vs A + B".

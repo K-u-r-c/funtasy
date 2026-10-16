@@ -203,6 +203,16 @@ func _target_slots(item: Dictionary) -> Dictionary:
 	return {"slot": slot, "clear": [slot]}
 
 
+## The worn items equipping `item` would take off (#11): both hands for a 2H weapon, a 2H weapon
+## for an off-hand item, nothing when it goes into an empty slot.
+func replaced_by(item: Dictionary) -> Array:
+	var out: Array = []
+	for s in _target_slots(item).clear:
+		if equipment.has(s):
+			out.append(equipment[s])
+	return out
+
+
 ## A legendary flag on a worn item (Grip of the Titan).
 func _wears_flag(flag: String) -> bool:
 	for s in equipment:

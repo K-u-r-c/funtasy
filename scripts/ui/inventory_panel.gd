@@ -374,13 +374,19 @@ func _show_card(b: ItemSlot) -> void:
 		var c: Color = lines[i][1]
 		_card.add_child(_wrap(UITheme.label(str(lines[i][0]), c, UITheme.FONT_SMALL)))
 	if item.get("kind") in ["weapon", "offhand", "armor", "jewelry"] and b.slot_key.begins_with("b:"):
-		var eq := _equipped_for(item)
+		# Compared with everything equipping it would take off (#11): a 2H weapon against both
+		# hands, an off-hand item against a 2H weapon.
+		var replaced: Array = player.inv.replaced_by(item)
 		_card.add_child(HSeparator.new())
-		if eq.is_empty():
+		if replaced.is_empty():
 			_card.add_child(UITheme.label("Nothing equipped there", UITheme.TEXT_DIM, UITheme.FONT_SMALL))
 		else:
-			_card.add_child(_wrap(UITheme.label("vs %s" % eq.get("name", "?"), UITheme.rarity_color(int(eq.get("rarity", 1))), UITheme.FONT_SMALL)))
-			for d in _diff(item, eq):
+			var vs: Array = replaced.map(func(r): return str(r.get("name", "?")))
+			var top := 1
+			for r in replaced:
+				top = maxi(top, int(r.get("rarity", 1)))
+			_card.add_child(_wrap(UITheme.label("vs %s" % " + ".join(vs), UITheme.rarity_color(top), UITheme.FONT_SMALL)))
+			for d in compare_lines(item, replaced):
 				_card.add_child(UITheme.label(d[0], d[1], UITheme.FONT_SMALL))
 
 
@@ -391,8 +397,19 @@ func _wrap(l: Label) -> Label:
 	return l
 
 
+## Stat changes if `item` replaced all of `replaced` (their stats are summed): [[text, color], ...].
+static func compare_lines(item: Dictionary, replaced: Array) -> Array:
+	var sum := {"dps": 0.0, "armor": 0.0, "stats": {}}
+	for r in replaced:
+		sum.dps += float(r.get("dps", 0.0))
+		sum.armor += float(r.get("armor", 0.0))
+		for k in r.get("stats", {}):
+			sum.stats[k] = float(sum.stats.get(k, 0.0)) + float(r.stats[k])
+	return _diff(item, sum)
+
+
 ## Stat changes if `item` replaced `eq`: [[text, color], ...] (green = gain, red = loss).
-func _diff(item: Dictionary, eq: Dictionary) -> Array:
+static func _diff(item: Dictionary, eq: Dictionary) -> Array:
 	var out: Array = []
 	var names: Dictionary = GameData.affixes.stat_names
 	var pct: Array = GameData.affixes.percent_stats
@@ -446,17 +463,6 @@ func _prompts_for(item: Dictionary, key: String = "") -> Array:
 		out.append(["ui_secondary", "Drop"])
 	out.append(["ui_cancel", "Close"])
 	return out
-
-
-func _equipped_for(item: Dictionary) -> Dictionary:
-	match str(item.slot):
-		"weapon":
-			return player.inv.equipment.get("main_hand", {})
-		"offhand":
-			return player.inv.equipment.get("off_hand", {})
-		"ring":
-			return player.inv.equipment.get("ring_1", {})
-	return player.inv.equipment.get(str(item.slot), {})
 
 
 func _refresh_stats() -> void:

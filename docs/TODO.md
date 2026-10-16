@@ -70,6 +70,8 @@ screenshot review at 1920x1080 and 3440x1440.
       Smite learnable (`classes-*`, `skills-priest`, `ui-layout`, `skills-lan`, `full-pr`)
 - [x] #10 Every class starts with a Common class weapon, drawn on the sprite (`classes-*`, `wipe`,
       `continue*`, `full-wm`)
+- [x] #11 Item card compares against every item equipping would take off (2H vs both hands, off-hand vs
+      2H; `economy`, `ui-layout`)
 
 ## PixelLab ledger
 

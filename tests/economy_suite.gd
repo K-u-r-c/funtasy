@@ -23,6 +23,7 @@ func run() -> void:
 	await talents_and_loadout()
 	await gold()
 	await elites_and_key()
+	item_compare()
 	await merchants()
 
 
@@ -161,6 +162,46 @@ func elites_and_key() -> void:
 		g.host_interact(p, altar)
 		await da._wait(0.3)
 		da.check(altar.opened and g.items_root.get_child_count() > n, "praying at the altar gives loot once")
+
+
+## Item card comparison (#11): a 2H weapon against the main AND off hand together (the off-hand
+## stats it would remove are losses), an off-hand item against a worn 2H weapon.
+func item_compare() -> void:
+	var panel: Script = load("res://scripts/ui/inventory_panel.gd")
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 5
+	var inv := Inventory.new()
+	var sword := ItemGenerator.generate_equipment("sword", 10, 2, rng)
+	var relic := ItemGenerator.generate_equipment("trinket", 10, 5, rng)
+	inv.equipment = {"main_hand": sword, "off_hand": relic}
+	var staff := ItemGenerator.generate_equipment("holy_staff", 10, 1, rng)
+	staff.erase("stats")
+	var rep2: Array = inv.replaced_by(staff)
+	var lines: Array = panel.compare_lines(staff, rep2)
+	var relic_stats: Dictionary = relic.get("stats", {})
+	var losses_ok := not relic_stats.is_empty()
+	for k in relic_stats:
+		var label: String = GameData.affixes.stat_names.get(k, k)
+		var found := false
+		for l in lines:
+			if str(l[0]).contains(label) and str(l[0]).begins_with("-") and l[1] == UITheme.DANGER:
+				found = true
+		losses_ok = losses_ok and (found or float(staff.get("stats", {}).get(k, 0.0)) >= float(relic_stats[k]))
+	da.check(rep2.size() == 2 and rep2.has(sword) and rep2.has(relic) and losses_ok,
+			"a 2H weapon compares against the main and the off hand: the relic's stats show as losses (%s)" % [lines])
+	# An off-hand item against a worn 2H weapon: the weapon's DPS is what it would cost.
+	var inv2 := Inventory.new()
+	inv2.equipment = {"main_hand": staff}
+	var shield := ItemGenerator.generate_equipment("shield", 10, 2, rng)
+	var rep3: Array = inv2.replaced_by(shield)
+	var lines2: Array = panel.compare_lines(shield, rep3)
+	da.check(rep3 == [staff] and lines2.any(func(l): return str(l[0]).begins_with("-") and str(l[0]).contains(str(GameData.affixes.stat_names.get("dps", "dps")))),
+			"an off-hand item compares against the worn 2H weapon it would replace (%s)" % [lines2])
+	# A 1H weapon goes next to a 1H weapon (nothing replaced) and replaces a 2H one.
+	var inv3 := Inventory.new()
+	inv3.equipment = {"main_hand": sword}
+	da.check(inv3.replaced_by(ItemGenerator.generate_equipment("sword", 10, 1, rng)).is_empty()
+			and inv2.replaced_by(ItemGenerator.generate_equipment("sword", 10, 1, rng)) == [staff], "a 1H weapon compares against whatever it would replace")
 
 
 ## Rare upgrade drops (#8): about loot.upgrade_chance of the items come 2-3 levels above the item
