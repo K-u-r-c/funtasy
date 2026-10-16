@@ -535,6 +535,8 @@ func _expect(ex: String, b: Dictionary, a: Dictionary, target: Enemy, proj_id: i
 		"warded_takes_half":
 			var dd: float = b.d0_hp - a.d0_hp
 			var dw: float = b.warded_hp - a.warded_hp
+			if not (dd > 0.0 and absf(dw - dd * 0.5) <= 1.5):
+				print("[test] warded check: dummy took %.1f, warded took %.1f" % [dd, dw])
 			return dd > 0.0 and absf(dw - dd * 0.5) <= 1.5
 		"warded_untouched":
 			return is_equal_approx(float(a.warded_hp), float(b.warded_hp))

@@ -2,7 +2,8 @@ extends FloorMechanic
 ## Kurgan - Blood-Cursed Earth (GDD 1.5): every slain monster leaves a pool of accursed blood for
 ## `duration` s. Monsters standing in it regenerate `regen` of their max health per second; heroes
 ## take `burn` of their weapon power per second as physical damage. params: duration (20),
-## radius (36), regen (0.03), burn (0.05)
+## radius (36), regen (0.03), burn (0.05), skip_roles (["swarm"]: brood and swarm critters leave no
+## pool, or a boss's own hatchlings would heal it endlessly), boss_regen_mult (0.2)
 
 var pools: Array = []  ## [{pos, left}]
 var _tick := 0.0
@@ -10,6 +11,8 @@ var burns := 0
 
 
 func on_enemy_killed(e: Node) -> void:
+	if Array(p("skip_roles", ["swarm"])).has(str(e.def.get("role", ""))) or e.get_meta("summoned", false):
+		return
 	pools.append({"pos": e.global_position, "left": float(p("duration", 20.0))})
 	Combat.instance.add_zone({"type": "zone", "radius": float(p("radius", 36.0)), "duration": float(p("duration", 20.0)), "tick": 99.0,
 		"color": "#7a0a10", "light_only": true}, Combat.instance.env_ctx(0.0), e.global_position)
@@ -30,7 +33,8 @@ func physics(delta: float) -> void:
 			if not (a is Actor) or not a.is_targetable() or a.global_position.distance_to(pool.pos) > r:
 				continue
 			if a.team == Actor.Team.MONSTERS:
-				Combat.instance.heal(Combat.instance.env_ctx(0.0), a, a.health.max_hp * float(p("regen", 0.03)))
+				var mult: float = float(p("boss_regen_mult", 0.2)) if a.get("is_boss") else 1.0
+				Combat.instance.heal(Combat.instance.env_ctx(0.0), a, a.health.max_hp * float(p("regen", 0.03)) * mult)
 			elif a is Player:
 				var power: float = a.stats.power_for("melee")
 				if Combat.instance.deal_damage(Combat.instance.env_ctx(0.0), a, maxf(1.0, power * float(p("burn", 0.05))), {"dot": true}) > 0.0:

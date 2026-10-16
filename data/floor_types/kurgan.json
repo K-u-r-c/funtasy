@@ -120,6 +120,8 @@
 			"radius": 36,
 			"regen": 0.03,
 			"burn": 0.05,
+			"skip_roles": ["swarm"],
+			"boss_regen_mult": 0.2,
 			"test_wait": 3
 		},
 		{

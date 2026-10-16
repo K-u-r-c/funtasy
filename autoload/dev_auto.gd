@@ -933,6 +933,8 @@ func _boss_scenario() -> void:
 				p.host_teleport(g.nearest_floor(boss.global_position + Vector2(0, 90)))
 		await _wait(1.0)
 		t += 1.0
+		if int(t) % 30 == 0 and is_instance_valid(boss):
+			print("[auto:host] boss %s at %d s: HP %d / %d, phase %d" % [boss.def_id, t, boss.health.hp, boss.health.max_hp, boss.phase])
 	_fight = false
 	for a in ["attack", "skill_1", "skill_2", "skill_3", "skill_4", "skill_5"]:
 		Input.action_release(a)

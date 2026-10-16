@@ -256,6 +256,7 @@ func summon_monsters(def_id: String, count: int, origin: Vector2, r: float, cast
 		var e: Node = spawn_monster(def_id, pos, false, extra)
 		if e == null:
 			continue
+		e.set_meta("summoned", true)
 		if int(extra.get("team", Actor.Team.MONSTERS)) == Actor.Team.MONSTERS:
 			for p in players_root.get_children():
 				if p.is_targetable() and p.global_position.distance_to(origin) < 500.0:
