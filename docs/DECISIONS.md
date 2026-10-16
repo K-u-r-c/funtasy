@@ -285,9 +285,23 @@ The MVP skill ids are kept (saves and tests reference them) and renamed: `warrio
 `mage_meteor` = Meteor Strike, `priest_heal` = Flash Heal, `priest_holy_shield` = Power Word: Shield,
 `priest_renewal` = Prayer of Healing.
 
+### Biome art (after the phase-4 checkpoint)
+
+The user approved the Crypt's look, scale and method on 2026-10-16. The other four biomes use the same
+style at a lower cost per monster:
+
+| Topic | Decision |
+| --- | --- |
+| Humanoid monsters and bosses | PixelLab v3 characters (48 px, bosses 64 px), **three** template animations (walk, attack, death) on 5 drawn directions, W / NW / SW mirrored: ~17 generations instead of the Crypt's ~22. Idle is two walk frames, hit is the start of the death fall, downed its last frame, cast and dash reuse attack and walk. Casters attack with the `fireball` template, the sludge lobber and bramble warden with `throw-object`. Built by `tools/build_monster_zip.py` from the character download. |
+| Shapeless creatures | Slimes, leeches, the ink horror, the mimic, rats, ticks, the wisp, the Murk Amalgam, Krazik on his mole-rat, Vulkania, the magma carapace, the brimstone hound and Isolde's spider form are one PixelLab map object each (1 generation), animated by `tools/build_blob.py` with squash / stretch / bob / fade frames on all 8 rows (mirrored for the facing). |
+| Reuse | Hellfire cultist = cultist (tinted), barrow bloodhound = brimstone hound (tinted), Krazik on foot = plague ratman (larger, tinted through the new phase `tint`), the Amalgam twins = the Amalgam (scaled, tinted), void phantoms = the void weaver, the gargoyle statue = the gargoyle's rotation in grey, the rusty lever "on" = the lever flipped. |
+| Tiles | One `create_tiles_pro` call per biome (16 tiles of 32 px), cut into the same 4x3 atlas layout as the Crypt. |
+| Props | One `create_map_object` per prop (46), trimmed by `fetch_props.sh`; open / used variants generated or derived. |
+| Sources | Every PixelLab id is listed in `tools/biome_art_sources.json` so a sheet can be rebuilt. |
+
 ### Budget deviation (PixelLab)
 
-The goal caps PixelLab spend at 2500 generations, but the account had **919** left at the start
+(Superseded by the user's checkpoint approval and a later Tier 2 upgrade; kept for the record.) The goal caps PixelLab spend at 2500 generations, but the account had **919** left at the start
 (used 1081 of 2000, reset 2026-11-14), and the plan estimates 2000-2800 for all art. Art is therefore
 spent **Crypt first** (phase 4, then the visual checkpoint), and every asset the allowance cannot cover
 stays a placeholder (recolours / scaled reuse of existing monsters, drawn shapes, workbench art) with its

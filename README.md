@@ -8,8 +8,8 @@ The game implements the full Game Design Document: 5 biomes, 35 monsters with be
 elites and altars, 10 bosses with phases and arena mechanics, 120 class skills, 3-branch talent trees
 with keystones and a Skill Book loadout, damage types and resistances, gold, merchants (Archibald's
 shared shop, Malphas's tithe, contracts and pact potions), 108 legendaries and 105 lore books with a
-permanent codex. Art that is not finished yet uses placeholders (recoloured tiles, tinted monster
-sheets, drawn icons) and every sound is a placeholder until the Suno files are dropped in (see
+permanent codex. All art is PixelLab pixel art (sources in `tools/biome_art_sources.json` and the
+PixelLab tools in `tools/`); every sound is a placeholder until the Suno files are dropped in (see
 `docs/SUNO_PROMPTS.md`).
 
 ## Requirements
@@ -123,7 +123,9 @@ assets/          placeholder sprites/audio + shaders
 tools/           gen_placeholders.gd, check_scripts.gd, run_tests.sh,
                  pixellab_import.gd / pixellab_build_char.py (PixelLab art -> sheets),
                  build_hero.py + hero_<gender>[_sources].json (hero body + worn gear:
-                 gear_cut.gd, body_regions.gd, bake_gear.gd), build_monster.py
+                 gear_cut.gd, body_regions.gd, bake_gear.gd), build_monster.py, build_monster_zip.py
+                 (v3 monsters from a character download), build_blob.py (shapeless creatures from one
+                 sprite), cut_icon_sheet.py, gen_suno_prompts.py, register_audio.py
 docs/            DECISIONS.md, TODO.md, DATA.md, SUNO_PROMPTS.md
 ```
 

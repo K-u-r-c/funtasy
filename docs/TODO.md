@@ -25,22 +25,21 @@ screenshot review at 1920x1080 and 3440x1440.
 - [x] **4. Crypt complete**: 4 new + 3 extended monsters, Morvath + Vespera, hazards (pressure
       plates, pendulums), props, mechanics (unlit regen, urn miasma), lore drops (verified: `monsters`,
       `bosses`, `biomes`, `boss` + `boss-vespera` LAN pairs, full suite green, biome tour screenshots at
-      1920x1080 and 3440x1440). **Visual checkpoint asked of the user on 2026-10-16; art for other
-      biomes waits for the answer (placeholders meanwhile).**
+      1920x1080 and 3440x1440). Visual checkpoint asked on 2026-10-16 and **approved by the user** (look, scale,
+      method), then the other four biomes got PixelLab art.
 - [x] **5. Sewers** (tileset, props, hazards, mechanics, 7 monsters, Murk Amalgam + Krazik, lore, music keys)
       (verified: `biomes-sewers`, `monsters`, `bosses`, `boss-amalgam` + `boss-krazik` LAN pairs, sewers
-      tour screenshots). **Art: placeholders** (recoloured Crypt tiles, existing monster sheets with tints,
-      generated prop icons) until the checkpoint answer.
+      tour screenshots). Art: PixelLab (tiles, monsters, bosses, props; see DECISIONS "Biome art").
 - [x] **6. Foundry** (platforms over molten lakes, grates, flame jets, cauldrons, heat armor loss, magma
       geysers, 7 monsters, Ignis + Vulkania) (verified: `biomes-foundry`, `monsters`, `bosses`, `primitives`,
-      `boss-ignis` + `boss-vulkania` LAN pairs, foundry tour screenshots). **Art: placeholders.**
+      `boss-ignis` + `boss-vulkania` LAN pairs, foundry tour screenshots). Art: PixelLab.
 - [x] **7. Archives** (library grid, round reading rooms, bookshelf doors, spatial anomalies, void rifts,
       silence runes, animated books, 7 monsters, Malazar + the Memory Devourer, Tome Prison side arena)
       (verified: `biomes-archives`, `monsters`, `bosses`, `boss-malazar` + `boss-devourer` LAN pairs, archives
-      tour screenshots). **Art: placeholders.**
+      tour screenshots). Art: PixelLab.
 - [x] **8. Kurgan** (caverns, blood pools, sprouting thorns, root snares, dread totems, ground fog, 7 monsters,
       Cernunnos + Isolde) (verified: `biomes-kurgan`, `monsters`, `bosses`, `boss-cernunnos` + `boss-isolde` LAN
-      pairs, kurgan tour screenshots). **Art: placeholders.**
+      pairs, kurgan tour screenshots). Art: PixelLab.
 - [x] **9. Legendaries**: 108 items + affix hooks + icons + drop rules + tooltips (verified: `economy-lan` (a client equips a legendary through the host and its proc fires), `legendaries-warrior/
       ranger/mage/priest` suites prove every affix, `primitives`, `skills-*`, `economy`, `ui-layout`, legendary
       tour screenshots at 1920x1080 and 3440x1440). Icons: 7 Pixen sheets of 16 cut by `tools/cut_icon_sheet.py`.
@@ -61,6 +60,7 @@ Goal cap: 2500 generations, and never more than the remaining allowance. Spend =
 | 2026-10-16 | Skill icon sheets: 8 Pixen 128x128 sheets of 16 icons (96 skills, 24 keystones, 6 items, 2 statuses), cut by `tools/cut_icon_sheet.py` | 1081 | 1089 | 8 | 8 |
 | 2026-10-16 | Crypt: 4 monsters (v3 48 px) + Vespera (v3 72 px) with template / v3 animations on 5 directions, 15 crypt props, 9 shared merchant-chamber / altar / lore props (map objects; lit / open / used variants recoloured, no generation) | 1089 | 1222 | 133 | 141 |
 | 2026-10-16 | Legendary icons: 7 Pixen 128x128 sheets of 16 icons (108 legendaries + quiver), cut by `tools/cut_icon_sheet.py` | 1222 | 1229 | 7 | 148 |
+| 2026-10-16 | Biome art after the checkpoint approval: 4 tiles-pro sets, 26 v3 monsters / bosses (3 template animations on 5 directions), 11 shapeless creatures and forms from map objects, 46 props, 10 pact potion icons (1 Pixen sheet) | 1229 | 1736 | 507 | 655 |
 
 ## Done (MVP)
 
@@ -127,9 +127,9 @@ Goal cap: 2500 generations, and never more than the remaining allowance. Spend =
 - [x] Physical gamepad: Xbox Series controller over Bluetooth (Linux) works in game (confirmed by the user).
       `tools/pad_test.gd` walks through every control; `data/joy_mappings.txt` can override SDL mappings
       for pads with an unusual layout (the entry for this pad is commented out: not needed).
-- [ ] **Art for the Sewers, Foundry, Archives and Kurgan** (tilesets, 28 monsters, 8 bosses, biome props):
-      placeholders until the user answers the phase-4 visual checkpoint (look, scale, method). PixelLab
-      left at the end of the goal: 771 of 2000 (reset 2026-11-14).
+- [x] **Art for the Sewers, Foundry, Archives and Kurgan** (4 tilesets, 26 monsters + 3 recolour / reuse,
+      8 bosses + Isolde's spider form and Krazik on foot, 46 props, 10 pact potion icons) after the user's
+      checkpoint approval; sources in `tools/biome_art_sources.json`.
 - [ ] **Music and SFX** (user, Suno): 17 music and 93 SFX keys, file paths and prompts in
       `docs/SUNO_PROMPTS.md`; drop the files in and run `python3 tools/register_audio.py`.
 - [ ] Optional worn art: new armour sets beyond the plate / cloth layers (legendaries reuse them).
