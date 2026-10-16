@@ -34,7 +34,10 @@ screenshot review at 1920x1080 and 3440x1440.
 - [x] **6. Foundry** (platforms over molten lakes, grates, flame jets, cauldrons, heat armor loss, magma
       geysers, 7 monsters, Ignis + Vulkania) (verified: `biomes-foundry`, `monsters`, `bosses`, `primitives`,
       `boss-ignis` + `boss-vulkania` LAN pairs, foundry tour screenshots). **Art: placeholders.**
-- [ ] **7. Archives** (... Malazar + Memory Devourer ...)
+- [x] **7. Archives** (library grid, round reading rooms, bookshelf doors, spatial anomalies, void rifts,
+      silence runes, animated books, 7 monsters, Malazar + the Memory Devourer, Tome Prison side arena)
+      (verified: `biomes-archives`, `monsters`, `bosses`, `boss-malazar` + `boss-devourer` LAN pairs, archives
+      tour screenshots). **Art: placeholders.**
 - [ ] **8. Kurgan** (... Cernunnos + Isolde ...)
 - [ ] **9. Legendaries**: 108 items + affix hooks + icons + drop rules + tooltips
 - [ ] **10. Integration**: balance pass, audio keys + Suno prompt list, README / DECISIONS / TODO,

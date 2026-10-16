@@ -1,0 +1,34 @@
+{
+	"id": "void_phantom",
+	"creature_type": "aberration",
+	"biome": "archives",
+	"name": "Void Weaver",
+	"role": "illusion",
+	"sprite": "monsters.void_weaver",
+	"corpse": "none",
+	"no_corpse": true,
+	"spawn_only": true,
+	"no_shadow": true,
+	"ai": {
+		"type": "caster",
+		"aggro_radius": 400,
+		"preferred_range": [
+			160,
+			280
+		],
+		"abilities": [
+			"phantom_missile"
+		]
+	},
+	"base_stats": {
+		"hp": 1,
+		"damage": 3,
+		"armor": 0,
+		"move_speed": 74,
+		"crit_chance": 0.0,
+		"dodge": 0.0
+	},
+	"collision_radius": 8,
+	"xp": 0,
+	"tint": "#8060c0"
+}

@@ -1,0 +1,84 @@
+{
+	"id": "memory_devourer",
+	"creature_type": "aberration",
+	"biome": "archives",
+	"name": "The Memory Devourer",
+	"sprite": "monsters.memory_devourer",
+	"music": "boss_memory_devourer",
+	"corpse": "none",
+	"base_stats": {
+		"hp": 1100,
+		"damage": 12,
+		"armor": 30,
+		"move_speed": 56,
+		"crit_chance": 0.05,
+		"dodge": 0.0,
+		"arcane_resist": 0.4
+	},
+	"collision_radius": 18,
+	"xp": 360,
+	"aggro_radius": 380,
+	"scale": 1.2,
+	"tint": "#a0c0ff",
+	"phases": [
+		{
+			"hp_above": 0.45,
+			"abilities": [
+				"devourer_lash",
+				"devourer_shards"
+			],
+			"preferred_range": [
+				0,
+				60
+			],
+			"mechanics": [
+				{
+					"id": "chronostasis",
+					"every": 12,
+					"first": 5,
+					"count": 2,
+					"radius": 80,
+					"duration": 8,
+					"test_wait": 2
+				},
+				{
+					"id": "echoes_of_regret",
+					"every": 16,
+					"first": 11,
+					"delay": 10,
+					"replay": 6,
+					"monster": "echo_phantom",
+					"test_wait": 2
+				}
+			]
+		},
+		{
+			"hp_above": 0.0,
+			"abilities": [
+				"devourer_lash",
+				"devourer_shards"
+			],
+			"preferred_range": [
+				0,
+				60
+			],
+			"title": "Death Paradox",
+			"message": "Time fractures - the dead will not rest!",
+			"mechanics": [
+				{
+					"id": "death_paradox",
+					"fuse": 6,
+					"grid_every": 9,
+					"test_wait": 3
+				}
+			]
+		}
+	],
+	"loot": {
+		"drops": [
+			4,
+			5
+		],
+		"min_rarity": 3
+	}
+}

@@ -1,0 +1,133 @@
+{
+	"id": "archives",
+	"order": 4,
+	"name": "The Shrouded Archives",
+	"tiles": "tiles.archives",
+	"music": "archives",
+	"bosses": [
+		"malazar",
+		"memory_devourer"
+	],
+	"ambient_color": "#0d081f",
+	"torch_color": "#8855ff",
+	"lava_color": "#8855ff",
+	"grid": [
+		96,
+		72
+	],
+	"rooms": {
+		"count": [
+			9,
+			12
+		],
+		"min_size": [
+			10,
+			9
+		],
+		"max_size": [
+			16,
+			12
+		],
+		"boss_size": [
+			19,
+			15
+		]
+	},
+	"generator": {
+		"profile": "library_grid",
+		"winding": false,
+		"extra_edges": 3,
+		"shelf_room_chance": 0.5,
+		"round_room_chance": 0.3,
+		"bookshelf_door_chance": 0.25,
+		"anomaly_room_chance": 0.3,
+		"side_arena": [
+			14,
+			10
+		]
+	},
+	"monsters": [
+		{
+			"id": "tomebound_mimic",
+			"weight": 2
+		},
+		{
+			"id": "astral_warden",
+			"weight": 3
+		},
+		{
+			"id": "void_weaver",
+			"weight": 2
+		},
+		{
+			"id": "cursed_scribe",
+			"weight": 3
+		},
+		{
+			"id": "archive_gargoyle",
+			"weight": 2
+		},
+		{
+			"id": "echo_unwritten",
+			"weight": 2
+		},
+		{
+			"id": "ink_horror",
+			"weight": 3
+		}
+	],
+	"enemies_per_room": [
+		2,
+		4
+	],
+	"props_per_room": [
+		3,
+		6
+	],
+	"prop_weights": {
+		"lectern": 3,
+		"spectral_candles": 4,
+		"arcane_lantern": 2,
+		"astral_mirror": 2,
+		"reading_table": 3,
+		"crate": 1
+	},
+	"torches_per_room": [
+		1,
+		2
+	],
+	"chests": [
+		1,
+		3
+	],
+	"lava_room_chance": 0.0,
+	"spikes_per_room": [
+		0,
+		0
+	],
+	"bookshelves_per_room": [
+		1,
+		3
+	],
+	"secret_containers": [
+		1,
+		2
+	],
+	"secret_container": "locked_lectern",
+	"lore_origin": "archives",
+	"void_rifts": [
+		2,
+		4
+	],
+	"silence_runes": [
+		3,
+		6
+	],
+	"floor_mechanics": [
+		{
+			"id": "animated_books",
+			"radius": 120,
+			"test_wait": 3
+		}
+	]
+}

@@ -35,5 +35,14 @@
 	"blast_furnace": {"name": "Blast Furnace", "sprite": "props.blast_furnace", "hp": 120, "size": [36, 14], "blocks_sight": true, "debris": true, "sfx": "break", "light": "#ff7a2a", "light_radius": 90},
 	"boiling_cauldron": {"name": "Boiling Cauldron", "sprite": "props.boiling_cauldron", "hp": 0, "size": [24, 10], "blocks_sight": false, "pulse": {"every": 6.0, "radius": 56, "damage": 10, "damage_type": "fire", "color": "#ff9a3a"}, "light": "#ff9a3a"},
 	"ore_cart": {"name": "Ore Cart", "sprite": "props.ore_cart", "hp": 30, "size": [24, 10], "blocks_sight": true, "debris": true, "sfx": "break", "drop_chance": 0.15},
-	"slag_safe": {"name": "Slag Safe", "sprite": "props.slag_safe", "sprite_open": "props.slag_safe_open", "hp": 0, "size": [26, 12], "blocks_sight": false, "interactable": true, "verb": "Crack open", "loot": "secret"}
+	"slag_safe": {"name": "Slag Safe", "sprite": "props.slag_safe", "sprite_open": "props.slag_safe_open", "hp": 0, "size": [26, 12], "blocks_sight": false, "interactable": true, "verb": "Crack open", "loot": "secret"},
+	"lectern": {"name": "Lectern", "sprite": "props.lectern", "hp": 14, "size": [18, 8], "blocks_sight": false, "debris": true, "sfx": "break", "drop_chance": 0.1},
+	"spectral_candles": {"name": "Spectral Candles", "sprite": "props.spectral_candles", "hp": 4, "size": [10, 6], "blocks_sight": false, "debris": true, "sfx": "break", "light": "#8855ff"},
+	"arcane_lantern": {"name": "Arcane Lantern", "sprite": "props.arcane_lantern", "hp": 6, "size": [10, 6], "blocks_sight": false, "debris": true, "sfx": "break", "light": "#8855ff", "light_radius": 80},
+	"astral_mirror": {"name": "Shattered Astral Mirror", "sprite": "props.astral_mirror", "hp": 12, "size": [20, 8], "blocks_sight": true, "debris": true, "sfx": "break"},
+	"reading_table": {"name": "Reading Table", "sprite": "props.reading_table", "hp": 24, "size": [36, 12], "blocks_sight": false, "debris": true, "sfx": "break", "drop_chance": 0.15},
+	"orrery": {"name": "Celestial Orrery", "sprite": "props.orrery", "hp": 0, "size": [40, 16], "blocks_sight": false, "light": "#c0a0ff", "light_radius": 110},
+	"locked_lectern": {"name": "Locked Lectern", "sprite": "props.locked_lectern", "sprite_open": "props.locked_lectern_open", "hp": 0, "size": [20, 10], "blocks_sight": false, "interactable": true, "verb": "Unlock", "loot": "secret"},
+	"authorial_seal": {"name": "Authorial Seal", "sprite": "props.authorial_seal", "hp": 60, "size": [18, 8], "blocks_sight": false, "debris": true, "sfx": "break", "players_only": true, "no_loot": true, "light": "#ffffff"},
+	"temporal_prism": {"name": "Temporal Prism", "sprite": "props.temporal_prism", "hp": 40, "size": [16, 8], "blocks_sight": false, "debris": true, "sfx": "break", "players_only": true, "no_loot": true, "light": "#c0e0ff"}
 }

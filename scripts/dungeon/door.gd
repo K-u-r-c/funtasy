@@ -8,6 +8,7 @@ var vertical := false
 var is_open := false
 var monster_proof := false  ## merchant chamber doors: monsters never open them
 var floodgate := false  ## Sewers: rusted shut until a lever beside it is pulled
+var style := ""  ## "bookshelf": an Archives revolving bookshelf door (D34)
 var world_rect := Rect2()
 var _shape: CollisionShape2D
 var _occluder: LightOccluder2D
@@ -19,6 +20,7 @@ func setup(d: Dictionary, tile: int) -> void:
 	vertical = d.vertical
 	monster_proof = bool(d.get("monster_proof", false))
 	floodgate = bool(d.get("floodgate", false))
+	style = str(d.get("style", ""))
 	var r: Rect2i = d.rect
 	world_rect = Rect2(Vector2(r.position * tile), Vector2(r.size * tile))
 	position = world_rect.position + Vector2(world_rect.size.x / 2.0, world_rect.size.y)
@@ -44,6 +46,8 @@ func setup(d: Dictionary, tile: int) -> void:
 func interact_text() -> String:
 	if floodgate and not is_open:
 		return "Floodgate - rusted shut"
+	if style == "bookshelf":
+		return "Turn the bookshelf" if not is_open else "Close the bookshelf"
 	return "Close door" if is_open else "Open door"
 
 
@@ -96,11 +100,15 @@ func _refresh() -> void:
 		# One door spanning the whole opening (art for 2 and 3 cells; other widths are scaled).
 		var wide: bool = cells.size() >= 3 and GameData.assets.props.has("door_closed_wide")
 		var dt := GameData.texture("props.door_closed_wide") if wide else tex
+		if style == "bookshelf":
+			dt = GameData.texture("props.bookshelf")
 		var s3 := Sprite2D.new()
 		s3.light_mask = LightLayers.SELF_LIT
 		s3.texture = dt
 		s3.offset = Vector2(0, -dt.get_height() / 2.0)
 		s3.scale.x = world_rect.size.x / float(dt.get_width())
+		if floodgate:
+			s3.modulate = Color(0.62, 0.7, 0.66)
 		_sprites.add_child(s3)
 	else:
 		for i in cells.size():

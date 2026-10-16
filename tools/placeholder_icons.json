@@ -1025,5 +1025,113 @@
 	"sfx.cauldron": {
 		"like": "sfx.fire",
 		"prompt": "boiling metal cauldron bubbling over and splashing"
+	},
+	"props.lectern": {
+		"color": "#6a4a2a",
+		"text": "Le",
+		"shape": "square",
+		"size": 26
+	},
+	"props.spectral_candles": {
+		"color": "#8855ff",
+		"text": "",
+		"shape": "circle",
+		"size": 16
+	},
+	"props.arcane_lantern": {
+		"color": "#a070ff",
+		"text": "",
+		"shape": "diamond",
+		"size": 18
+	},
+	"props.astral_mirror": {
+		"color": "#a0a0c0",
+		"text": "Mi",
+		"shape": "square",
+		"size": 28
+	},
+	"props.reading_table": {
+		"color": "#5a3a20",
+		"text": "Tb",
+		"shape": "square",
+		"size": 36
+	},
+	"props.orrery": {
+		"color": "#c0a0ff",
+		"text": "Or",
+		"shape": "circle",
+		"size": 48
+	},
+	"props.locked_lectern": {
+		"color": "#7a5a2a",
+		"text": "LL",
+		"shape": "square",
+		"size": 26
+	},
+	"props.locked_lectern_open": {
+		"color": "#a08a5a",
+		"text": "Op",
+		"shape": "square",
+		"size": 26
+	},
+	"props.authorial_seal": {
+		"color": "#f0f0f0",
+		"text": "Se",
+		"shape": "diamond",
+		"size": 28
+	},
+	"props.temporal_prism": {
+		"color": "#c0e0ff",
+		"text": "Pr",
+		"shape": "diamond",
+		"size": 24
+	},
+	"props.gargoyle_statue": {
+		"color": "#7a7a84",
+		"text": "Gs",
+		"shape": "square",
+		"size": 32
+	},
+	"props.ink_puddle": {
+		"color": "#151520",
+		"text": "",
+		"shape": "circle",
+		"size": 28
+	},
+	"props.void_rift": {
+		"color": "#3a1060",
+		"text": "",
+		"shape": "circle",
+		"size": 40
+	},
+	"props.silence_rune": {
+		"color": "#a0a0ff",
+		"text": "",
+		"shape": "diamond",
+		"size": 22
+	},
+	"music.archives": {
+		"like": "music.crypt",
+		"prompt": "Dark fantasy dungeon ambience, haunted forbidden library: whispering pages, ethereal choir pads, celesta and glass harmonica, ticking clocks, 75 bpm, mysterious, loopable, instrumental"
+	},
+	"music.boss_malazar": {
+		"like": "music.boss_bone_lord",
+		"prompt": "Dark fantasy boss battle, lich archivist: frantic harpsichord, dissonant organ, choir whispering incantations, paper rustle percussion, 135 bpm, cerebral menace, loopable, instrumental"
+	},
+	"music.boss_memory_devourer": {
+		"like": "music.boss_bone_lord",
+		"prompt": "Dark fantasy boss battle, cosmic time devourer: reversed piano, shimmering glass synths, deep cosmic drones, irregular clock percussion, 128 bpm, otherworldly, loopable, instrumental"
+	},
+	"sfx.book_burst": {
+		"like": "sfx.explosion",
+		"prompt": "an enchanted book bursting in a flurry of pages and arcane sparks"
+	},
+	"sfx.rift": {
+		"like": "sfx.cast",
+		"prompt": "low humming void rift pulling in air"
+	},
+	"sfx.rune": {
+		"like": "sfx.cast",
+		"prompt": "a silence rune flaring with a muffled chime"
 	}
 }

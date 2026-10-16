@@ -1,0 +1,80 @@
+{
+	"id": "malazar",
+	"creature_type": "undead",
+	"biome": "archives",
+	"name": "Grand Archivist Malazar",
+	"sprite": "monsters.malazar",
+	"music": "boss_malazar",
+	"corpse": "none",
+	"base_stats": {
+		"hp": 1000,
+		"damage": 12,
+		"armor": 20,
+		"move_speed": 66,
+		"crit_chance": 0.05,
+		"dodge": 0.05,
+		"arcane_resist": 0.3
+	},
+	"collision_radius": 14,
+	"xp": 360,
+	"aggro_radius": 380,
+	"tint": "#e0d8c0",
+	"phases": [
+		{
+			"hp_above": 0.5,
+			"abilities": [
+				"malazar_ribbons",
+				"malazar_mirror"
+			],
+			"preferred_range": [
+				120,
+				240
+			],
+			"mechanics": [
+				{
+					"id": "forbidden_inversion",
+					"every": 15,
+					"first": 6,
+					"duration": 4,
+					"test_wait": 2
+				},
+				{
+					"id": "rune_damnation",
+					"every": 18,
+					"first": 10,
+					"count": 7,
+					"lifetime": 14,
+					"test_wait": 2
+				}
+			]
+		},
+		{
+			"hp_above": 0.0,
+			"abilities": [
+				"malazar_ribbons",
+				"malazar_mirror"
+			],
+			"preferred_range": [
+				120,
+				240
+			],
+			"title": "Tome Prison",
+			"message": "The Archivist opens the Tome Prison!",
+			"mechanics": [
+				{
+					"id": "tome_prison",
+					"seals": 4,
+					"drop_every": 1.4,
+					"test_wait": 3
+				}
+			]
+		}
+	],
+	"loot": {
+		"drops": [
+			4,
+			5
+		],
+		"min_rarity": 3
+	}
+}

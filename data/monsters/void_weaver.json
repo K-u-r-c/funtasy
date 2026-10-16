@@ -1,0 +1,38 @@
+{
+	"id": "void_weaver",
+	"creature_type": "humanoid",
+	"biome": "archives",
+	"name": "Void Weaver",
+	"role": "illusionist",
+	"sprite": "monsters.void_weaver",
+	"corpse": "flesh",
+	"ai": {
+		"type": "caster",
+		"aggro_radius": 280,
+		"preferred_range": [
+			160,
+			280
+		],
+		"abilities": [
+			"weaver_missile"
+		]
+	},
+	"base_stats": {
+		"hp": 44,
+		"damage": 8,
+		"armor": 4,
+		"move_speed": 74,
+		"crit_chance": 0.05,
+		"dodge": 0.06
+	},
+	"behaviors": [
+		{
+			"id": "illusion_clones",
+			"count": 3,
+			"monster": "void_phantom"
+		}
+	],
+	"collision_radius": 8,
+	"xp": 15,
+	"tint": "#8060c0"
+}

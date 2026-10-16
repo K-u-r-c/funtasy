@@ -669,6 +669,8 @@ func _spawn_decoy(spec: Dictionary, ctx: Dictionary, pos: Vector2) -> void:
 func spawn_projectile(eff: Dictionary, ctx: Dictionary, origin: Vector2, dir: Vector2, aim: Vector2 = Vector2.INF) -> int:
 	var id := new_id()
 	var speed := float(eff.speed)
+	if is_instance_valid(ctx.get("caster")) and ctx.caster is Actor and ctx.caster.status.has_flag("slow_projectiles"):
+		speed *= float(GameData.bal("anomaly.chronostasis_projectile_mult", 0.3))
 	var reach := float(eff.range) * float(ctx.get("range_mult", 1.0))
 	var p := {
 		"eff": eff, "ctx": ctx, "pos": origin + dir * 8.0, "dir": dir, "team": ctx.team,

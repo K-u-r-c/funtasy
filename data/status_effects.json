@@ -167,5 +167,14 @@
 	"heat_exhaustion": {"name": "Abyssal Heat", "kind": "stat", "stack_stats": {"armor_mult": 0.97}, "max_stacks": 10, "color": "#ff5511", "debuff": true},
 	"white_heat": {"name": "White Heat", "kind": "stat", "stats": {"haste": 0.5}, "color": "#fff0c0", "visual": {"tint": "#ffe0a0", "scale": 1.05}},
 	"submerged_lava": {"name": "Submerged", "kind": "stat", "flags": ["untargetable", "invulnerable"], "color": "#ff5511", "visual": {"alpha": 0.25}},
-	"molten_blood": {"name": "Molten Blood", "kind": "dot", "tick": 1.0, "damage_type": "fire", "color": "#ff2200", "debuff": true, "cleanse": "magic", "cured_by_potion": true}
+	"molten_blood": {"name": "Molten Blood", "kind": "dot", "tick": 1.0, "damage_type": "fire", "color": "#ff2200", "debuff": true, "cleanse": "magic", "cured_by_potion": true},
+	"prism_ward": {"name": "Prism Wall", "kind": "stat", "flags": ["reflect_projectiles"], "color": "#a080ff", "visual": {"tint": "#d0c0ff"}},
+	"anguish": {"name": "Anguish", "kind": "stat", "stack_stats": {"intellect": -3, "strength": -3}, "max_stacks": 5, "color": "#c03060", "debuff": true, "cleanse": "magic"},
+	"ink_obscured": {"name": "Ink-Blinded", "kind": "stat", "flags": ["ink_obscure"], "color": "#202030", "debuff": true, "cleanse": "magic"},
+	"inverted_controls": {"name": "Forbidden Inversion", "kind": "cc", "flags": ["invert_move"], "color": "#a080ff", "debuff": true, "cleanse": "magic"},
+	"inverted_healing": {"name": "Inverted Healing", "kind": "stat", "flags": ["heal_inverted"], "color": "#a040ff", "debuff": true, "cleanse": "magic"},
+	"tome_prison": {"name": "Tome Prison", "kind": "stat", "flags": ["monochrome"], "color": "#e0e0e0"},
+	"out_of_reach": {"name": "Beyond Reality", "kind": "stat", "flags": ["untargetable", "invulnerable"], "color": "#e0e0e0", "visual": {"alpha": 0.3}},
+	"weakened_archivist": {"name": "Weakened", "kind": "stat", "stats": {"damage_taken_mult": 1.5}, "color": "#ffffff", "debuff": true},
+	"chronostasis": {"name": "Chronostasis", "kind": "stat", "stats": {"move_speed_mult": 0.3, "haste": -0.7}, "flags": ["slow_projectiles"], "color": "#80c0ff", "debuff": true, "cleanse": "movement"}
 }

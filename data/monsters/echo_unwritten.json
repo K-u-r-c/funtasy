@@ -1,0 +1,56 @@
+{
+	"id": "echo_unwritten",
+	"creature_type": "aberration",
+	"biome": "archives",
+	"name": "Echo of the Unwritten",
+	"role": "shapeshifter",
+	"sprite": "monsters.cultist",
+	"corpse": "none",
+	"no_corpse": true,
+	"copy_random_player": true,
+	"copy_tint": "#c0a0ff",
+	"ai": {
+		"type": "melee",
+		"aggro_radius": 260,
+		"preferred_range": [
+			0,
+			40
+		],
+		"abilities": [
+			"echo_cleave"
+		]
+	},
+	"base_stats": {
+		"hp": 60,
+		"damage": 8,
+		"armor": 10,
+		"move_speed": 84,
+		"crit_chance": 0.05,
+		"dodge": 0.05
+	},
+	"behaviors": [
+		{
+			"id": "shapeshift_player",
+			"kits": {
+				"warrior": [
+					"echo_cleave",
+					"echo_charge"
+				],
+				"ranger": [
+					"echo_arrow",
+					"echo_volley"
+				],
+				"mage": [
+					"echo_bolt",
+					"echo_nova"
+				],
+				"priest": [
+					"echo_smite",
+					"echo_mend"
+				]
+			}
+		}
+	],
+	"collision_radius": 8,
+	"xp": 16
+}

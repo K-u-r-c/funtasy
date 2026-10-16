@@ -62,6 +62,7 @@ func generate(seed_value: int, floor_def: Dictionary, count_mult: float = 1.0, d
 	_place_pools(rooms, door_zone)
 	_place_canals(rooms, door_zone)
 	_place_platforms(rooms, doors, door_zone)
+	_round_rooms(rooms, doors, door_zone)
 	var used := door_zone.duplicate()
 	layout.props = _place_props(rooms, floor_def, used)
 	layout.props.append_array(_place_lore_props(rooms, floor_def, used))
@@ -71,6 +72,16 @@ func generate(seed_value: int, floor_def: Dictionary, count_mult: float = 1.0, d
 	layout.pendulums = _place_pendulums(rooms, floor_def, used)
 	layout.spouts = _place_spouts(rooms, floor_def)
 	layout.grates = _place_grates(rooms, floor_def, used)
+	layout.props.append_array(_place_shelf_rows(rooms, used))
+	layout.anomalies = _place_anomalies(rooms)
+	layout.rifts = _scatter(rooms, used, floor_def.get("void_rifts", [0, 0]))
+	layout.runes = _scatter(rooms, used, floor_def.get("silence_runes", [0, 0]))
+	for d in doors:
+		if not d.get("monster_proof", false) and not d.get("floodgate", false) and rng.randf() < float(gen.get("bookshelf_door_chance", 0.0)):
+			d.style = "bookshelf"
+	var arena := _side_arena(rooms)
+	if arena.size != Vector2i.ZERO:
+		layout.side_arena = arena
 	layout.props.append_array(_place_floodgates(doors, rooms, used))
 	layout.torches = _place_torches(rooms, floor_def, depth)
 	layout.spawns = _place_spawns(rooms, floor_def, used, count_mult)
@@ -538,6 +549,123 @@ func _place_platforms(rooms: Array, doors: Array, door_zone: Dictionary) -> void
 				else:
 					p.x += step_x
 		room.platforms = true
+
+
+## Reading rooms (Archives): some rooms are round - cells outside an ellipse turn to wall, except
+## around the doors (a straight 2-cell aisle joins every door to the centre).
+func _round_rooms(rooms: Array, doors: Array, door_zone: Dictionary) -> void:
+	var chance := float(gen.get("round_room_chance", 0.0))
+	if chance <= 0.0:
+		return
+	for room in rooms:
+		if room.role != "normal" or rng.randf() > chance:
+			continue
+		var r: Rect2i = room.rect
+		if r.size.x < 11 or r.size.y < 9:
+			continue
+		var c := Vector2(r.position) + Vector2(r.size) / 2.0
+		var rx := r.size.x / 2.0
+		var ry := r.size.y / 2.0
+		var keep := {}
+		for d in doors:
+			var dc: Vector2i = d.cells[0]
+			if not r.grow(1).has_point(dc):
+				continue
+			var p := dc.clamp(r.position, r.end - Vector2i.ONE)
+			var goal := Vector2i(c)
+			var guard := 0
+			while p != goal and guard < 64:
+				guard += 1
+				for o in [Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 1), Vector2i(1, 1)]:
+					keep[p + o] = true
+				if p.x != goal.x and (d.vertical or p.y == goal.y):
+					p.x += signi(goal.x - p.x)
+				elif p.y != goal.y:
+					p.y += signi(goal.y - p.y)
+		for x in range(r.position.x, r.end.x):
+			for y in range(r.position.y, r.end.y):
+				var cell := Vector2i(x, y)
+				var dx := (x + 0.5 - c.x) / rx
+				var dy := (y + 0.5 - c.y) / ry
+				if dx * dx + dy * dy > 1.0 and not keep.has(cell) and not door_zone.has(cell) and get_cell(cell) == CELL_FLOOR:
+					_set_cell(cell, CELL_WALL)
+		room.round = true
+
+
+## Library mazes (Archives): rows of bookshelves (they block sight) with aisles in some rooms.
+func _place_shelf_rows(rooms: Array, used: Dictionary) -> Array:
+	var out: Array = []
+	var chance := float(gen.get("shelf_room_chance", 0.0))
+	if chance <= 0.0:
+		return out
+	for room in rooms:
+		if room.role != "normal" or room.get("round", false) or rng.randf() > chance:
+			continue
+		var r: Rect2i = room.rect
+		var gap := rng.randi_range(r.position.x + 2, r.end.x - 4)
+		for y in range(r.position.y + 2, r.end.y - 2, 3):
+			for x in range(r.position.x + 1, r.end.x - 1):
+				var cell := Vector2i(x, y)
+				if absi(x - gap) <= 1 or used.has(cell) or get_cell(cell) != CELL_FLOOR:
+					continue
+				if x % 2 == 0:
+					continue  # bookshelf props are one cell wide every other cell
+				used[cell] = true
+				used[cell + Vector2i(1, 0)] = true
+				out.append({"type": "bookshelf", "pos": _cell_center(cell) + Vector2(_tile_half(), 0)})
+	return out
+
+
+func _tile_half() -> float:
+	return tile * 0.5
+
+
+## Spatial anomaly zones (Archives): whole rooms where skill costs fluctuate.
+func _place_anomalies(rooms: Array) -> Array:
+	var out: Array = []
+	var chance := float(gen.get("anomaly_room_chance", 0.0))
+	for room in rooms:
+		if room.role == "normal" and chance > 0.0 and rng.randf() < chance:
+			out.append(room.rect)
+	return out
+
+
+## A handful of free floor spots in normal rooms (void rifts, silence runes).
+func _scatter(rooms: Array, used: Dictionary, span: Array) -> Array:
+	var out: Array = []
+	var n := rng.randi_range(int(span[0]), int(span[1]))
+	var normals: Array = rooms.filter(func(rm): return rm.role == "normal")
+	var guard := 0
+	while out.size() < n and not normals.is_empty() and guard < 200:
+		guard += 1
+		var room: Dictionary = normals[rng.randi_range(0, normals.size() - 1)]
+		var c := _free_cell(room.rect, 2, used, false)
+		if c.x >= 0:
+			used[c] = true
+			out.append(_cell_center(c))
+	return out
+
+
+## Tome Prison (D32): a sealed side arena carved out of solid rock, not connected to anything.
+func _side_arena(rooms: Array) -> Rect2i:
+	if not gen.has("side_arena"):
+		return Rect2i()
+	var sz: Array = gen.side_arena
+	var rects: Array = rooms.map(func(rm): return rm.rect)
+	for i in 300:
+		var r := Rect2i(rng.randi_range(3, w - int(sz[0]) - 4), rng.randi_range(3, h - int(sz[1]) - 4), int(sz[0]), int(sz[1]))
+		var ok := true
+		for x in range(r.position.x - 3, r.end.x + 3):
+			for y in range(r.position.y - 3, r.end.y + 3):
+				if get_cell(Vector2i(x, y)) != CELL_WALL:
+					ok = false
+		if ok:
+			for x in range(r.position.x, r.end.x):
+				for y in range(r.position.y, r.end.y):
+					_set_cell(Vector2i(x, y), CELL_FLOOR)
+			rooms.append({"rect": r, "role": "prison"})
+			return r
+	return Rect2i()
 
 
 ## Collapsing grates (Foundry): grates over lava in normal rooms.

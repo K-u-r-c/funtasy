@@ -304,5 +304,9 @@
 		"bar_trail_delay": 0.3,
 		"bar_trail_time": 0.45,
 		"window_pop_time": 0.25
+	},
+	"anomaly": {
+		"cost_swing": 0.3,
+		"chronostasis_projectile_mult": 0.3
 	}
 }

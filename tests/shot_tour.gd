@@ -289,7 +289,9 @@ func _boss_shots(bid: String) -> void:
 			await da._wait(1.0)
 			await snap("boss_%s_p%d_%s" % [bid, i + 1, m.params.get("id", "mech")])
 			await da._wait(0.5)
+	boss.stop_mechanics()
 	boss.queue_free()
+	p.status.clear_all()
 	await da._wait(0.3)
 
 

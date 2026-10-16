@@ -71,6 +71,7 @@ if [ "$WHAT" = all ] || [ "$WHAT" = quick ]; then
 	run biomes --auto=solo --class=warrior --name=Bio --scenario=biomes --quit=120
 	run biomes-sewers --auto=solo --class=ranger --name=Bio --scenario=biomes --biome=sewers --quit=120
 	run biomes-foundry --auto=solo --class=priest --name=Bio --scenario=biomes --biome=foundry --quit=120
+	run biomes-archives --auto=solo --class=mage --name=Bio --scenario=biomes --biome=archives --quit=120
 	run primitives --auto=solo --class=mage --name=Prim --scenario=primitives --quit=200
 	run ui-layout --auto=solo --class=priest --name=Layout --scenario=ui_layout --quit=90
 	run art-check --scenario=art_check --quit=120
@@ -91,6 +92,8 @@ if [ "$WHAT" = all ] || [ "$WHAT" = lan ]; then
 	pair boss-amalgam "--class=mage --name=HostA --scenario=boss --biome=sewers --boss=murk_amalgam --quit=300" "--class=warrior --name=ClientA --quit=300"
 	pair boss-ignis "--class=warrior --name=HostI --scenario=boss --biome=foundry --boss=ignis --quit=300" "--class=mage --name=ClientI --quit=300"
 	pair boss-vulkania "--class=priest --name=HostU --scenario=boss --biome=foundry --boss=vulkania --quit=300" "--class=ranger --name=ClientU --quit=300"
+	pair boss-malazar "--class=mage --name=HostZ --scenario=boss --biome=archives --boss=malazar --quit=300" "--class=warrior --name=ClientZ --quit=300"
+	pair boss-devourer "--class=ranger --name=HostD --scenario=boss --biome=archives --boss=memory_devourer --quit=300" "--class=priest --name=ClientD --quit=300"
 	pair boss-krazik "--class=ranger --name=HostK --scenario=boss --biome=sewers --boss=krazik --quit=300" "--class=priest --name=ClientK --quit=300"
 	pair tank "--class=warrior --name=HostT --scenario=tank --quit=120" "--class=mage --name=ClientT --quit=120"
 	pair host-leave "--class=mage --name=HostL --scenario=host_leave --quit=60" "--class=warrior --name=ClientL --quit=60"

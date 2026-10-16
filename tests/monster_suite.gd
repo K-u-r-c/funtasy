@@ -58,7 +58,10 @@ func check_monster(id: String) -> void:
 				used = true
 		await da._wait(0.25)
 		t += 0.25
-	da.check(used, "%s used one of its abilities" % id)
+	# Ambushers (mimics, perched gargoyles, ink pools) only strike once their behaviour springs:
+	# their ability check waits until the behaviour tests below have run.
+	if used:
+		da.check(used, "%s used one of its abilities" % id)
 	if is_instance_valid(e):
 		for b in e.behaviors:
 			await b.test_trigger(self)
@@ -72,6 +75,17 @@ func check_monster(id: String) -> void:
 				await da._wait(0.25)
 				bt += 0.25
 			da.check(err.is_empty(), "%s behaviour %s%s" % [id, b.params.get("id", "?"), "" if err.is_empty() else ": " + err])
+	if not used:
+		var t2 := 0.0
+		while t2 < 6.0 and not used:
+			_keep_hero()
+			var uses2: Dictionary = Combat.instance.get_meta("uses", {})
+			for sid in abilities:
+				if uses2.has("%s:%s" % [e.name if is_instance_valid(e) else "", sid]):
+					used = true
+			await da._wait(0.25)
+			t2 += 0.25
+		da.check(used, "%s used one of its abilities" % id)
 	for m in g.enemies_root.get_children():
 		m.queue_free()
 	Combat.instance.clear_floor()

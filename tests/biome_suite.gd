@@ -38,6 +38,9 @@ func check_layouts(fid: String) -> void:
 	var plates := 0
 	var pendulums := 0
 	var spouts := 0
+	var arenas := 0
+	var anomalies := 0
+	var rifts := 0
 	var kinds := {}
 	var gates := 0
 	var gate_bad := ""
@@ -47,6 +50,10 @@ func check_layouts(fid: String) -> void:
 		var lay: Dictionary = DungeonGenerator.new().generate(seed_value, fd, 1.0, 1 + i)
 		var reach := _flood(lay, lay.start)
 		for room in lay.rooms:
+			if room.role == "prison":
+				if reach.has(Vector2i(room.rect.get_center())):
+					bad = "the Tome Prison arena is reachable (seed %d)" % seed_value
+				continue
 			if not reach.has(Vector2i(room.rect.get_center())):
 				bad = "room %s unreachable (seed %d)" % [room.role, seed_value]
 		for grp in lay.spawns:
@@ -61,6 +68,9 @@ func check_layouts(fid: String) -> void:
 		plates += lay.get("plates", []).size()
 		pendulums += lay.get("pendulums", []).size()
 		spouts += lay.get("spouts", []).size()
+		arenas += 1 if lay.has("side_arena") else 0
+		anomalies += lay.get("anomalies", []).size()
+		rifts += lay.get("rifts", []).size() + lay.get("runes", []).size()
 		var cells: PackedByteArray = lay.cells
 		for v in cells:
 			kinds[v] = true
@@ -86,6 +96,12 @@ func check_layouts(fid: String) -> void:
 		da.check(spouts > 0, "%s layouts have wall spouts (%d over 6 floors)" % [fid, spouts])
 	if gen.has("platform_room_chance"):
 		da.check(kinds.has(DungeonGenerator.CELL_LAVA) and kinds.has(DungeonGenerator.CELL_BRIDGE), "%s layouts have molten lakes with bridges" % fid)
+	if gen.has("side_arena"):
+		da.check(arenas > 0, "%s floors carve a sealed Tome Prison arena (%d of 6)" % [fid, arenas])
+	if gen.has("anomaly_room_chance"):
+		da.check(anomalies > 0, "%s layouts have spatial anomaly rooms (%d)" % [fid, anomalies])
+	if fd.has("void_rifts"):
+		da.check(rifts > 0, "%s layouts have void rifts and silence runes (%d)" % [fid, rifts])
 	if gen.has("grates_per_room"):
 		da.check(kinds.has(DungeonGenerator.CELL_GRATE), "%s layouts have collapsing grates" % fid)
 	var picked := {}
@@ -135,6 +151,19 @@ func check_live_floor() -> void:
 		p.host_teleport(pr.global_position + Vector2(0, 20))
 		await da._wait(0.6)
 		da.check(not g.dungeon.props.values().has(pr), "a gas pocket goes off when a hero comes close")
+	if not g.layout.get("rifts", []).is_empty():
+		var rift: Vector2 = g.layout.rifts[0]
+		_ready_hero()
+		p.host_teleport(g.nearest_floor(rift + Vector2(70, 0)))
+		var d0 := p.global_position.distance_to(rift)
+		await da._wait(1.2)
+		da.check(p.global_position.distance_to(rift) < d0 - 4.0, "a void rift pulls the hero in")
+	if not g.layout.get("runes", []).is_empty():
+		var rune: Vector2 = g.layout.runes[0]
+		_ready_hero()
+		p.host_teleport(rune)
+		await da._wait(0.4)
+		da.check(p.status.has("silence") or p.status.has_flag("silenced"), "a silence rune silences the hero")
 	if not g.dungeon.grates.is_empty():
 		var gr: Node2D = g.dungeon.grates[0]
 		_ready_hero()

@@ -32,6 +32,7 @@ var spouts: Array = []  ## wall spouts: acid (Sewers), flame jets (Foundry)
 var grates: Array = []  ## collapsing grates (Foundry)
 var grate_by_id: Dictionary = {}
 var pulse_props: Array = []  ## props that pulse damage around them (boiling cauldrons)
+var anomalies: Array = []  ## Archives: world rects where skill costs fluctuate
 var proximity_props: Array = []  ## host: props that go off when a hero comes close (gas pockets)
 var lights: Array = []  ## torch / lava lights, culled by distance in Visibility
 var obstacles: Dictionary = {}  ## dynamic terrain id -> {node, cells}
@@ -105,6 +106,9 @@ func build(new_layout: Dictionary, def: Dictionary, entity_root: Node2D) -> void
 		spout.setup(sp2.cell, sp2.dir, tile, float(sp2.phase), str(sp2.get("kind", "acid")))
 		entities.add_child(spout)
 		spouts.append(spout)
+	anomalies.clear()
+	for ar in layout.get("anomalies", []):
+		anomalies.append(Rect2(Vector2(ar.position * tile), Vector2(ar.size * tile)))
 	n = 0
 	for gr in layout.get("grates", []):
 		var grate: Node2D = GRATE_SCRIPT.new()
@@ -348,6 +352,13 @@ func cell_center(c: Vector2i) -> Vector2:
 ## Inside the merchant chamber (secure ground).
 func is_safe(pos: Vector2) -> bool:
 	return safe_rect.size != Vector2i.ZERO and safe_rect.has_point(cell_of(pos))
+
+
+func in_anomaly(pos: Vector2) -> bool:
+	for r in anomalies:
+		if r.has_point(pos):
+			return true
+	return false
 
 
 func is_lava(pos: Vector2) -> bool:

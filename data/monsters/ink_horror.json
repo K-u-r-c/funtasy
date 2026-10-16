@@ -1,0 +1,46 @@
+{
+	"id": "ink_horror",
+	"creature_type": "aberration",
+	"biome": "archives",
+	"name": "Ink Horror",
+	"role": "ambush",
+	"sprite": "monsters.ink_horror",
+	"corpse": "none",
+	"no_corpse": true,
+	"ai": {
+		"type": "melee",
+		"aggro_radius": 260,
+		"preferred_range": [
+			0,
+			26
+		],
+		"abilities": [
+			"ink_lash"
+		]
+	},
+	"base_stats": {
+		"hp": 50,
+		"damage": 8,
+		"armor": 0,
+		"move_speed": 80,
+		"crit_chance": 0.05,
+		"dodge": 0.05
+	},
+	"behaviors": [
+		{
+			"id": "ink_pool",
+			"surface": 4,
+			"speed_mult": 1.5
+		}
+	],
+	"behavior_visuals": {
+		"puddle": {
+			"texture": "props.ink_puddle",
+			"hide_bar": true,
+			"untargetable": true
+		}
+	},
+	"collision_radius": 8,
+	"xp": 15,
+	"tint": "#303040"
+}

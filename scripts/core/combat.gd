@@ -83,7 +83,12 @@ func try_use_skill(caster: Actor, skill_id: String, aim: Vector2, opts: Dictiona
 		caster.cooldowns[skill_id] = float(skill.get("cooldown", 1.0))
 		fx.sound.rpc(str(skill.get("sfx", "cast")), caster.global_position)
 		return ""
-	var cost := caster.stats.cost_for(skill) * float(caster.get_meta("cost_roll", 1.0))
+	var cost := caster.stats.cost_for(skill)
+	# Spatial anomaly (Archives): the cost of every cast rolls +-30%, shown above the caster.
+	if cost > 0.0 and caster is Player and game and game.dungeon.in_anomaly(caster.global_position):
+		var roll := rng.randf_range(1.0 - float(GameData.bal("anomaly.cost_swing", 0.3)), 1.0 + float(GameData.bal("anomaly.cost_swing", 0.3)))
+		cost *= roll
+		fx.number.rpc(caster.global_position + Vector2(0, -24), "Cost x%.2f" % roll, "info")
 	if skill.has("channel"):
 		cost = 0.0  # channels pay per second
 	if caster.resource.kind != "none" and cost > 0.0:

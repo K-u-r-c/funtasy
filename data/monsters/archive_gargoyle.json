@@ -1,0 +1,48 @@
+{
+	"id": "archive_gargoyle",
+	"creature_type": "construct",
+	"biome": "archives",
+	"name": "Archive Gargoyle",
+	"role": "diver",
+	"sprite": "monsters.archive_gargoyle",
+	"corpse": "none",
+	"no_corpse": true,
+	"ai": {
+		"type": "melee",
+		"aggro_radius": 300,
+		"preferred_range": [
+			0,
+			30
+		],
+		"abilities": [
+			"gargoyle_dive",
+			"gargoyle_claw"
+		]
+	},
+	"base_stats": {
+		"hp": 64,
+		"damage": 8,
+		"armor": 40,
+		"move_speed": 88,
+		"crit_chance": 0.05,
+		"dodge": 0.0
+	},
+	"behaviors": [
+		{
+			"id": "perch_dive",
+			"range": 300,
+			"wake": 90,
+			"skill": "gargoyle_dive"
+		}
+	],
+	"behavior_visuals": {
+		"statue": {
+			"texture": "props.gargoyle_statue",
+			"hide_bar": true,
+			"untargetable": true
+		}
+	},
+	"collision_radius": 9,
+	"xp": 16,
+	"tint": "#9090a0"
+}

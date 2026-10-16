@@ -1,0 +1,33 @@
+{
+	"id": "echo_phantom",
+	"creature_type": "aberration",
+	"biome": "archives",
+	"name": "Echo of Regret",
+	"role": "illusion",
+	"sprite": "monsters.cultist",
+	"corpse": "none",
+	"no_corpse": true,
+	"spawn_only": true,
+	"copy_tint": "#80c0ff",
+	"ai": {
+		"type": "melee",
+		"aggro_radius": 0,
+		"preferred_range": [
+			0,
+			30
+		],
+		"abilities": [
+			"echo_bolt"
+		]
+	},
+	"base_stats": {
+		"hp": 30,
+		"damage": 6,
+		"armor": 0,
+		"move_speed": 0,
+		"crit_chance": 0.0,
+		"dodge": 0.0
+	},
+	"collision_radius": 8,
+	"xp": 0
+}

@@ -1,0 +1,41 @@
+{
+	"id": "astral_warden",
+	"creature_type": "construct",
+	"biome": "archives",
+	"name": "Astral Warden",
+	"role": "guardian",
+	"sprite": "monsters.astral_warden",
+	"corpse": "none",
+	"no_corpse": true,
+	"ai": {
+		"type": "melee",
+		"aggro_radius": 240,
+		"preferred_range": [
+			0,
+			44
+		],
+		"abilities": [
+			"warden_polearm"
+		]
+	},
+	"base_stats": {
+		"hp": 90,
+		"damage": 8,
+		"armor": 30,
+		"move_speed": 70,
+		"crit_chance": 0.05,
+		"dodge": 0.03,
+		"arcane_resist": 0.3
+	},
+	"behaviors": [
+		{
+			"id": "prism_wall",
+			"every": 10,
+			"duration": 4,
+			"status": "prism_ward"
+		}
+	],
+	"collision_radius": 10,
+	"xp": 18,
+	"tint": "#a0a0ff"
+}

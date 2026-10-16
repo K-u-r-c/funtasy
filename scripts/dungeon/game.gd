@@ -44,6 +44,7 @@ var _prox_left := 0.0
 @onready var camera: GameCamera = $Camera
 @onready var world_ui: CanvasLayer = $WorldUI
 @onready var hud: CanvasLayer = $HUD
+var screen_fx: ScreenFx
 @onready var combat: Combat = $Combat
 @onready var fx: CombatFx = $CombatFx
 @onready var loot: LootManager = $Loot
@@ -73,6 +74,8 @@ func _ready() -> void:
 	enemy_spawner.spawn_function = _spawn_enemy
 	item_spawner.spawn_function = loot.spawn_function
 	_setup_environment()
+	screen_fx = ScreenFx.new()
+	add_child(screen_fx)
 	EventBus.local_player_spawned.connect(_on_local_player)
 	if multiplayer.is_server():
 		multiplayer.peer_disconnected.connect(_on_peer_disconnected)
@@ -143,6 +146,7 @@ func start_floor(new_depth: int) -> void:
 		fm.setup(self, md)
 		floor_mechanics.append(fm)
 	spawn_monster(boss_id, host_layout.boss_pos, true)
+	_spawn_floor_hazards(host_layout)
 	boss_alive = true
 	boss_engaged = false
 	GameState.current_depth = new_depth
@@ -221,6 +225,10 @@ func spawn_monster(def_id: String, pos: Vector2, boss: bool, extra: Dictionary =
 	_enemy_counter += 1
 	var data := {"name": "E%d" % _enemy_counter, "def_id": def_id, "boss": boss, "pos": pos,
 		"level": lvl, "hp_mult": hp_mult, "dmg_mult": dmg_mult}
+	# Echo of the Unwritten: wears a random hero's look (D31).
+	if def.get("copy_random_player", false) and players_root.get_child_count() > 0:
+		var heroes := players_root.get_children()
+		data.copy_peer = int(heroes[randi() % heroes.size()].peer_id)
 	data.merge(extra)
 	return enemy_spawner.spawn(data)
 
@@ -648,6 +656,22 @@ func _corpse_gone(corpse_id: int) -> void:
 
 
 ## Host: corpses within r of pos (optionally only bone piles / one creature type).
+## Host: the floor's standing hazards that live in the combat zone system (Archives' void rifts
+## pull and burn with shadow; silence runes are one-shot traps).
+func _spawn_floor_hazards(lay: Dictionary) -> void:
+	var env := combat.env_ctx(0.0)
+	for pos in lay.get("rifts", []):
+		var c := env.duplicate()
+		c.damage_type = "shadow"
+		combat.add_zone({"type": "zone", "radius": 56, "duration": 99999.0, "tick": 0.5, "damage": {"base": 3, "coef": 0}, "damage_type": "shadow",
+			"color": "#5a20a0", "sprite": "void_rift",
+			"tick_effects": [{"type": "pull", "at": "self", "radius": 110, "force": 70}]}, c, pos)
+	for pos in lay.get("runes", []):
+		combat.add_zone({"type": "trap", "trigger_radius": 16, "duration": 99999.0, "color": "#a0a0ff", "sprite": "silence_rune",
+			"effects": [{"type": "status", "target": "event_target", "status": "silence", "duration": 3.0},
+				{"type": "aoe", "at": "self", "radius": 20, "damage": {"base": 1, "coef": 0}, "color": "#a0a0ff"}]}, env, pos)
+
+
 ## Host: boiling cauldrons and the like splash everyone around them every few seconds.
 func _pulse_prop(pr: Node, delta: float) -> void:
 	if not is_instance_valid(pr):

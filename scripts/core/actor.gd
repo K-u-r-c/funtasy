@@ -63,6 +63,9 @@ func _ready() -> void:
 	_shadow.texture = GameData.texture("fx.shadow")
 	_shadow.z_index = -1
 	_shadow.scale = Vector2.ONE * (radius / 9.0)
+	# Void Weaver phantoms: only the true weaver casts a ground shadow.
+	if get("def") is Dictionary and get("def").get("no_shadow", false):
+		_shadow.visible = false
 	add_child(_shadow)
 	sprite = CharacterSprite.new()
 	sprite.name = "Sprite"
