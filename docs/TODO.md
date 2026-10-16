@@ -61,6 +61,8 @@ screenshot review at 1920x1080 and 3440x1440.
 - [x] #5 Pendulum traps removed (PNG kept; `biomes*` suites check every biome has none)
 - [x] #6 One seeded merchant per floor in its own room, no portal / altarpiece, Gold Key only on
       Archibald floors (`economy`, `economy-lan`, `biomes*`)
+- [x] #7 Doors / props lit and shadowed like walls (LIT layer, occluders off the art; lighting tour of
+      all 5 biomes reviewed; `biomes`, `darkness`, `art-check`, `full-*`)
 
 ## PixelLab ledger
 

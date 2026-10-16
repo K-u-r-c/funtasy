@@ -35,7 +35,15 @@ func setup(d: Dictionary, tile: int) -> void:
 	_occluder = LightOccluder2D.new()
 	var occ := OccluderPolygon2D.new()
 	var hw := world_rect.size.x / 2.0
-	occ.polygon = PackedVector2Array([Vector2(-hw, -world_rect.size.y), Vector2(hw, -world_rect.size.y), Vector2(hw, 0), Vector2(-hw, 0)])
+	# The door art is lit and shadowed like the walls (#7), so its occluder must not cover it:
+	# a band across the top of the drawn door (horizontal doors) or a line down
+	# the middle of the opening (side doors, drawn edge-on). It still closes the opening to light.
+	var art := GameData.texture("props.door_closed")
+	var art_h := float(art.get_height()) if art else float(tile)
+	if vertical:
+		occ.polygon = PackedVector2Array([Vector2(-2, -world_rect.size.y - art_h + float(tile)), Vector2(2, -world_rect.size.y - art_h + float(tile)), Vector2(2, 0), Vector2(-2, 0)])
+	else:
+		occ.polygon = PackedVector2Array([Vector2(-hw, -art_h), Vector2(hw, -art_h), Vector2(hw, -art_h + 4.0), Vector2(-hw, -art_h + 4.0)])
 	_occluder.occluder = occ
 	add_child(_occluder)
 	_sprites = Node2D.new()
@@ -86,7 +94,7 @@ func _refresh() -> void:
 		# Side doors: one sprite per cell, drawn edge-on.
 		for i in cells.size():
 			var s := Sprite2D.new()
-			s.light_mask = LightLayers.SELF_LIT
+			s.light_mask = LightLayers.LIT
 			s.texture = GameData.texture("props.door_open")
 			s.offset = Vector2(0, -tex.get_height() / 2.0)
 			s.position = Vector2(0, -world_rect.size.y + (i + 1) * world_rect.size.y / cells.size())
@@ -103,7 +111,7 @@ func _refresh() -> void:
 		if style == "bookshelf":
 			dt = GameData.texture("props.bookshelf")
 		var s3 := Sprite2D.new()
-		s3.light_mask = LightLayers.SELF_LIT
+		s3.light_mask = LightLayers.LIT
 		s3.texture = dt
 		s3.offset = Vector2(0, -dt.get_height() / 2.0)
 		s3.scale.x = world_rect.size.x / float(dt.get_width())
@@ -113,7 +121,7 @@ func _refresh() -> void:
 	else:
 		for i in cells.size():
 			var s2 := Sprite2D.new()
-			s2.light_mask = LightLayers.SELF_LIT
+			s2.light_mask = LightLayers.LIT
 			s2.texture = tex
 			s2.offset = Vector2(0, -tex.get_height() / 2.0)
 			var cx := -world_rect.size.x / 2.0 + (i + 0.5) * world_rect.size.x / cells.size()

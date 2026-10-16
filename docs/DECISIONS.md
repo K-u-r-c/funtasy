@@ -362,3 +362,17 @@ seed because the generator no longer draws random numbers for pendulums.
 | No portal, no altarpiece | The Gilded Portal and the Demon Altarpiece are gone (their props; the PNGs stay on disk). Archibald trades once the party hands him the floor's Gold Key (talking to him uses it up); Malphas asks for the tithe when a hero first talks to him. Buying / selling only works on an Archibald floor, the tithe, contracts and pacts only on a Malphas floor. |
 | Gold Key | The key carrier (still 50% from the seed) only exists on Archibald floors. |
 | Cave rooms | Building the extra room exposed a generator bug: Kurgan cave rooms could wall off a corridor that entered through a wide opening. The cells where a corridor enters a cave room now stay open. |
+
+### #7 Doors and props in the light
+
+Door and prop sprites were drawn on the `SELF_LIT` layer (lit, never shadowed) so their own
+occluders would not black them out, which made them glow flat-bright wherever any light reached them,
+even through walls and inside shadows. They are now on `LIT`, like the walls and floor, and their
+occluders moved off the art: a 4 px band across the top of the drawn sprite (props: the width of the
+footprint; horizontal doors: the opening) or, for side doors drawn edge-on, a line down the middle of
+the opening. Light from the front reaches the whole door or prop, light from behind is blocked, and the
+opening stays closed to light (a closed door may let a few pixels of light into the cell just behind
+it). The screenshot tour `--scenario=tour --tour=lighting --biome=<id>` shows a door beside a wall
+torch, a door beside the carried torch and a prop beside the carried torch; all five biomes were
+reviewed at 1280x720. Characters, wall torches and wall spouts stay on `SELF_LIT`; no prop or door
+uses an additive material (the additive ones are particles, the portal and item glows).

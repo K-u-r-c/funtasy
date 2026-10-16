@@ -333,3 +333,47 @@ func _legendaries(_arg: String) -> void:
 			await da._wait(0.4)
 			await snap("legendary_%s" % k.replace(":", ""))
 	hud.close_overlay()
+
+
+## Lighting review (#7): a closed door and props beside a wall torch, then beside the carried
+## torch far from wall torches. Run once per biome (--biome=<id>).
+func _lighting(_arg: String) -> void:
+	for e in g.enemies_root.get_children():
+		e.queue_free()
+	p.iframe_left = 9999.0
+	var fid: String = g.floor_type_for(g.depth)
+	var lit_door: Node = null
+	var dark_door: Node = null
+	for d in g.dungeon.doors:
+		if d.is_open or d.vertical or d.floodgate:
+			continue
+		var near := 9999.0
+		for t in g.dungeon.torches.values():
+			near = minf(near, t.global_position.distance_to(d.global_position))
+		if near < 150.0 and lit_door == null:
+			lit_door = d
+		elif near > 320.0 and dark_door == null:
+			dark_door = d
+	if lit_door == null:
+		lit_door = g.dungeon.doors[0]
+	if dark_door == null:
+		dark_door = g.dungeon.doors[-1]
+	p.torch_left = 0.0
+	p.host_teleport(g.nearest_floor(lit_door.global_position + Vector2(0, 70)))
+	await da._wait(1.2)
+	await snap("lighting_%s_wall_torch" % fid)
+	p.host_take_torch()
+	p.host_teleport(g.nearest_floor(dark_door.global_position + Vector2(20, 46)))
+	await da._wait(1.2)
+	await snap("lighting_%s_carried_torch" % fid)
+	# A loose prop beside the carried torch.
+	var best: Node = null
+	for k in g.dungeon.props:
+		var pr: Node = g.dungeon.props[k]
+		if pr.destructible() and (best == null or pr.global_position.distance_to(p.global_position) < best.global_position.distance_to(p.global_position)):
+			best = pr
+	if best:
+		p.host_teleport(g.nearest_floor(best.global_position + Vector2(24, 30)))
+		await da._wait(1.2)
+		await snap("lighting_%s_prop" % fid)
+

@@ -385,6 +385,16 @@ func client_cmd(cmd: String, arg: Variant) -> void:
 		"check_door":
 			var door: Node = _game().dungeon.get_node_or_null(NodePath("../Entities/" + str(arg[0])))
 			check(door != null and door.is_open == bool(arg[1]), "client sees door %s open=%s" % [arg[0], arg[1]])
+		"use_slots":
+			for slot in arg:
+				var aim_at: Vector2 = p.global_position + p.facing * 60.0
+				var near := _nearest_enemy(p.global_position)
+				if near:
+					aim_at = near.global_position
+				p.request_skill.rpc_id(1, int(slot), aim_at)
+				await _wait(1.2)
+				p.request_skill_release.rpc_id(1, int(slot), aim_at)
+				await _wait(0.4)
 		"check_windup":
 			var lp: Node = _game().enemies_root.get_node_or_null(str(arg))
 			check(int(Combat.instance.fx.get_meta("windup_markers", 0)) > 0 and lp != null and lp.has_meta("cast_end"),
@@ -498,7 +508,18 @@ func _full_scenario() -> void:
 	NetworkManager.to_clients("DevAuto", "client_cmd", ["fight", true])
 	await _wait(9.0)
 	NetworkManager.to_clients("DevAuto", "client_cmd", ["fight", false])
+	# The fight's input cycle can miss a slot's window (a charge-up skill, a busy moment): the
+	# client then asks for every bar skill it hasn't used yet, still through the host.
 	var used := Combat.instance.get_meta("uses", {}) as Dictionary
+	var missing: Array = []
+	for i in client_p.skills.size():
+		if not str(client_p.skills[i]).is_empty() and not used.has("%s:%s" % [client_p.name, client_p.skills[i]]):
+			missing.append(i)
+	if not missing.is_empty():
+		client_p.resource.value = client_p.resource.max_value
+		NetworkManager.to_clients("DevAuto", "client_cmd", ["use_slots", missing])
+		await _wait(1.6 * missing.size() + 0.5)
+	used = Combat.instance.get_meta("uses", {}) as Dictionary
 	var client_uses := 0
 	for k in used:
 		if str(k).begins_with(client_p.name + ":"):
@@ -507,11 +528,12 @@ func _full_scenario() -> void:
 	check(client_uses >= client_bar, "client used %d different skills through host validation (%d on the bar)" % [client_uses, client_bar])
 	check(client_p.cooldowns.size() > 0 or client_uses > 0, "host tracks client cooldowns")
 	check(not is_instance_valid(target) or target.health.hp < target.health.max_hp, "client damaged the monster (host authority)")
-	if client_p.xp + client_p.level * 100000 <= xp_before and not (is_instance_valid(target) and target.is_alive()):
-		# The host's cleave can finish the target before the client touches it: any XP monster will do.
+	if client_p.xp + client_p.level * 100000 <= xp_before and not (is_instance_valid(target) and target.is_alive() and target.is_targetable()):
+		# The host's cleave can finish the target before the client touches it (or it is out of
+		# reach underground): any XP monster that can be hit will do.
 		target = null
 		for e in g.enemies_root.get_children():
-			if e is Enemy and not e.is_boss and e.is_alive() and int(e.def.get("xp", 0)) > 0:
+			if e is Enemy and not e.is_boss and e.is_alive() and e.is_targetable() and int(e.def.get("xp", 0)) > 0:
 				if target == null or e.global_position.distance_to(client_p.global_position) < target.global_position.distance_to(client_p.global_position):
 					target = e
 	if client_p.xp + client_p.level * 100000 <= xp_before and is_instance_valid(target) and target.is_alive():
