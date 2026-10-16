@@ -469,6 +469,13 @@ func _credit_support(ctx: Dictionary, target: Actor, threat_amount: float) -> vo
 
 
 ## Context for damage that belongs to nobody (lava, spikes, monster-triggered barrels).
+## Test harness: a context whose hits can't miss or be dodged (setup kills must land).
+func test_ctx(caster: Actor, skill: Dictionary) -> Dictionary:
+	var c := make_ctx(caster, skill)
+	c.cannot_miss = true
+	return c
+
+
 func env_ctx(power: float) -> Dictionary:
 	return {"caster": null, "team": ENV_TEAM, "skill": "", "school": "physical", "damage_type": "physical", "power": power,
 		"damage_mult": 1.0, "heal_mult": 1.0, "crit_chance": 0.0, "crit_damage": 0.0, "leech": 0.0,

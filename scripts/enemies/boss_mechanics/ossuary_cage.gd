@@ -78,6 +78,6 @@ func test_check(_suite: RefCounted) -> String:
 		for nm in spears:
 			var pr: Node = g.dungeon.props.get(nm)
 			if pr and pr.destructible():
-				pr.take_damage(999.0, Combat.instance.make_ctx(victim, {"id": "t", "school": "melee"}))
+				pr.take_damage(999.0, Combat.instance.test_ctx(victim, {"id": "t", "school": "melee"}))
 		return "spears broken, waiting"
 	return "" if spears.is_empty() and (victim == null or not victim.status.has("caged")) else "cage still up"

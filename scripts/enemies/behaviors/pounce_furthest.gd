@@ -28,7 +28,14 @@ func on_think(game: Node) -> bool:
 
 func test_trigger(suite: RefCounted) -> void:
 	_left = 0.0
-	suite.p.host_teleport(suite.g.nearest_floor(enemy.global_position + Vector2(150, 0)))
+	# A spot ~150 px away the ghoul can see (pillars and walls block the pounce).
+	var spot: Vector2 = suite.g.nearest_floor(enemy.global_position + Vector2(150, 0))
+	for dir in [Vector2.RIGHT, Vector2.LEFT, Vector2.DOWN, Vector2.UP, Vector2(1, 1).normalized(), Vector2(-1, 1).normalized()]:
+		var cand: Vector2 = suite.g.nearest_floor(enemy.global_position + dir * 150.0)
+		if cand.distance_to(enemy.global_position) > 80.0 and Combat.instance.has_los(enemy.global_position, cand):
+			spot = cand
+			break
+	suite.p.host_teleport(spot)
 	await suite.da._wait(0.1)
 
 

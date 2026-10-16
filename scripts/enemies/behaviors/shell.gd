@@ -29,7 +29,7 @@ func modify_damage_taken(amount: float, data: Dictionary) -> float:
 
 
 func test_trigger(suite: RefCounted) -> void:
-	var c := Combat.instance.make_ctx(suite.p, {"id": "t", "school": "spell", "damage_type": "frost"})
+	var c := Combat.instance.test_ctx(suite.p, {"id": "t", "school": "spell", "damage_type": "frost"})
 	Combat.instance.deal_damage(c, enemy, 1.0, {"damage_type": "frost"})
 
 

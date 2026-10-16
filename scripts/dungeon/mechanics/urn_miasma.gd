@@ -23,7 +23,7 @@ func test_trigger(suite: RefCounted) -> void:
 	await suite.da._wait(0.2)
 	var urn: Node = game.dungeon.props.get("TestUrn")
 	if urn:
-		urn.take_damage(999.0, Combat.instance.make_ctx(suite.p, {"id": "t", "school": "melee"}))
+		urn.take_damage(999.0, Combat.instance.test_ctx(suite.p, {"id": "t", "school": "melee"}))
 	params.chance = saved
 
 

@@ -4,6 +4,7 @@ extends MonsterBehavior
 
 var _corpse := {}
 var _eat_left := -1.0
+var _walk := 0.0
 
 
 func on_ally_death(_other: Enemy, corpse: Dictionary) -> void:
@@ -21,7 +22,9 @@ func on_think(game: Node) -> bool:
 		_eat_left = -1.0
 		set_state("")
 		return false
-	if enemy.global_position.distance_to(_corpse.pos) > 14.0:
+	_walk += float(GameData.bal("ai.think_interval"))
+	# Close enough to feed (a prop or a wall can keep it a few pixels off the exact spot).
+	if enemy.global_position.distance_to(_corpse.pos) > 22.0 and not (_walk > 3.0 and enemy.global_position.distance_to(_corpse.pos) < 48.0):
 		return true
 	if _eat_left < 0.0:
 		_eat_left = float(p("channel", 1.2))
@@ -49,6 +52,7 @@ func on_physics(delta: float) -> void:
 			Combat.instance.fx.sound.rpc("devour", enemy.global_position)
 		_corpse = {}
 		_eat_left = -1.0
+		_walk = 0.0
 		set_state("")
 
 
@@ -57,7 +61,7 @@ func test_trigger(suite: RefCounted) -> void:
 	var victim: Enemy = suite.g.spawn_monster("skeleton_archer", suite.g.nearest_floor(enemy.global_position + Vector2(30, 0)), false)
 	await suite.da._wait(0.3)
 	victim.def = victim.def.merged({"corpse": "flesh"}, true)
-	Combat.instance.deal_damage(Combat.instance.make_ctx(suite.p, GameData.skill(str(suite.p.skills[0]))), victim, victim.health.hp * 5.0, {"damage_type": "true"})
+	Combat.instance.deal_damage(Combat.instance.test_ctx(suite.p, GameData.skill(str(suite.p.skills[0]))), victim, victim.health.hp * 5.0, {"damage_type": "true"})
 
 
 func test_check(_suite: RefCounted) -> String:

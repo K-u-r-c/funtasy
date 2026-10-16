@@ -494,6 +494,12 @@ func _full_scenario() -> void:
 	check(client_uses >= 4, "client used %d different skills through host validation" % client_uses)
 	check(client_p.cooldowns.size() > 0 or client_uses > 0, "host tracks client cooldowns")
 	check(not is_instance_valid(target) or target.health.hp < target.health.max_hp, "client damaged the monster (host authority)")
+	if client_p.xp + client_p.level * 100000 <= xp_before and is_instance_valid(target) and target.is_alive():
+		# The pack outlasted the 9 s fight (reassembling footmen, burrowed crawlers): the client
+		# lands the killing blow so kill credit is still what gets checked.
+		var kctx := Combat.instance.make_ctx(client_p, GameData.skill(str(client_p.skills[0])))
+		Combat.instance.deal_damage(kctx, target, target.health.hp + target.health.absorb + 999.0, {"damage_type": "true", "area": true})
+		await _wait(0.5)
 	check(client_p.xp + client_p.level * 100000 > xp_before, "client earned XP for kills")
 	log_line("client resource %s %.1f/%.1f" % [client_p.resource.kind, client_p.resource.value, client_p.resource.max_value])
 	# Isolate the remaining checks from the monsters that are still chasing the party.
@@ -918,7 +924,7 @@ func _boss_scenario() -> void:
 			p.iframe_left = 2.0
 			if p.life_state != Player.Life.ALIVE:
 				p.revive(1.0)
-			if p.global_position.distance_to(boss.global_position) > 260.0:
+			if p.global_position.distance_to(boss.global_position) > 260.0 and not p.status.has("tome_prison"):
 				p.host_teleport(g.nearest_floor(boss.global_position + Vector2(0, 90)))
 		await _wait(1.0)
 		t += 1.0

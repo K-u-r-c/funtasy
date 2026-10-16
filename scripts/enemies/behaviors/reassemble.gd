@@ -50,7 +50,7 @@ func on_physics(delta: float) -> void:
 
 
 func test_trigger(suite: RefCounted) -> void:
-	var ctx := Combat.instance.make_ctx(suite.p, GameData.skill(str(suite.p.skills[0])))
+	var ctx := Combat.instance.test_ctx(suite.p, GameData.skill(str(suite.p.skills[0])))
 	Combat.instance.deal_damage(ctx, enemy, enemy.health.hp + 50.0, {"damage_type": "true"})
 	await suite.da._wait(0.3)
 	suite.da.check(is_pile() and enemy.behavior_state == "pile", "footman collapses into a bone pile")

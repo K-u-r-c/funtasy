@@ -24,7 +24,7 @@ func stop() -> void:
 
 
 func test_trigger(suite: RefCounted) -> void:
-	var c := Combat.instance.make_ctx(suite.p, {"id": "t", "school": "melee"})
+	var c := Combat.instance.test_ctx(suite.p, {"id": "t", "school": "melee"})
 	Combat.instance.deal_damage(c, boss, 5.0, {})
 
 

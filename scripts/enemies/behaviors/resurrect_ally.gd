@@ -62,7 +62,7 @@ func test_trigger(suite: RefCounted) -> void:
 	_left = 0.0
 	var victim: Enemy = suite.g.spawn_monster("skeleton_archer", suite.g.nearest_floor(enemy.global_position + Vector2(40, 0)), false)
 	await suite.da._wait(0.3)
-	Combat.instance.deal_damage(Combat.instance.make_ctx(suite.p, GameData.skill(str(suite.p.skills[0]))), victim, victim.health.hp * 5.0, {"damage_type": "true"})
+	Combat.instance.deal_damage(Combat.instance.test_ctx(suite.p, GameData.skill(str(suite.p.skills[0]))), victim, victim.health.hp * 5.0, {"damage_type": "true"})
 	await suite.da._wait(0.2)
 
 

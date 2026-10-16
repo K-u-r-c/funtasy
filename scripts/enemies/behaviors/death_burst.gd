@@ -17,7 +17,7 @@ func on_death() -> bool:
 
 
 func test_trigger(suite: RefCounted) -> void:
-	Combat.instance.deal_damage(Combat.instance.make_ctx(suite.p, {"id": "t", "school": "spell"}), enemy, enemy.health.hp + 50.0, {"damage_type": "true"})
+	Combat.instance.deal_damage(Combat.instance.test_ctx(suite.p, {"id": "t", "school": "spell"}), enemy, enemy.health.hp + 50.0, {"damage_type": "true"})
 	await suite.da._wait(0.2)
 
 
