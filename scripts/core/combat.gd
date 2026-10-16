@@ -70,6 +70,9 @@ func try_use_skill(caster: Actor, skill_id: String, aim: Vector2, opts: Dictiona
 			return "Not ready"
 	elif caster.cooldown_left(skill_id) > 0.0:
 		return "Not ready"
+	# A monster never leaps or charges right after it spots a hero (#2).
+	if caster is Enemy and is_lunge(skill) and caster.aggro_age() < float(GameData.bal("ai.lunge_grace", 1.5)):
+		return "Not ready"
 	var why := _usable(caster, skill, aim)
 	if not why.is_empty():
 		return why
@@ -160,13 +163,46 @@ func try_use_skill(caster: Actor, skill_id: String, aim: Vector2, opts: Dictiona
 		caster.charging = {"skill": skill_id, "t": 0.0, "max": maxf(ct, 0.05), "aim": aim}
 		fx.cast_bar.rpc(caster.get_path(), ct)
 		return ""
-	var cast_time := cast_time_for(caster.stats, skill)
+	# A wind-up ("windup", not shortened by haste) gives a cast bar plus a ground marker.
+	var cast_time := maxf(cast_time_for(caster.stats, skill), float(skill.get("windup", 0.0)))
 	if cast_time > 0.01:
 		caster.casting = {"skill": skill_id, "aim": aim, "left": cast_time, "extra": extra}
 		fx.cast_bar.rpc(caster.get_path(), cast_time)
+		if skill.has("windup"):
+			_windup_marker(caster, skill, aim, cast_time)
 	else:
 		finish_cast(caster, skill_id, aim, extra)
 	return ""
+
+
+## Leaps and charges: the moves that need a wind-up and a grace period on monsters (#2).
+static func is_lunge(skill: Dictionary) -> bool:
+	for eff in skill.get("effects", []):
+		if eff is Dictionary and str(eff.get("type", "")) in ["leap", "charge"]:
+			return true
+	return false
+
+
+## The ground marker of a wind-up: the landing circle of a leap or the path of a charge, as
+## finish_cast will compute it from the same aim.
+func _windup_marker(caster: Actor, skill: Dictionary, aim: Vector2, windup: float) -> void:
+	var origin := caster.global_position
+	var dir := (aim - origin).normalized()
+	if dir == Vector2.ZERO:
+		dir = caster.facing
+	for eff in skill.get("effects", []):
+		match str(eff.get("type", "")):
+			"leap":
+				var dest := walkable_point(origin, dir, minf(origin.distance_to(aim), float(eff.get("distance", 200))))
+				var r := 36.0
+				for sub in eff.get("on_arrive", []):
+					r = maxf(r, float(sub.get("radius", 0.0)))
+				fx.windup_marker.rpc("circle", origin, dest, r, windup + float(eff.get("duration", 0.45)), str(eff.get("color", "#ff3020")))
+				return
+			"charge":
+				var end := walkable_point(origin, dir, float(eff.get("distance", 240)))
+				fx.windup_marker.rpc("line", origin, end, float(eff.get("width", 18)), windup + origin.distance_to(end) / float(eff.get("speed", 760)), str(eff.get("color", "#ff3020")))
+				return
 
 
 ## Checks `usable_if` and a required target. Returns "" or the reason.

@@ -20,9 +20,11 @@ func on_think(game: Node) -> bool:
 			best = pl
 	if best == null:
 		return false
+	# Refused during the grace after spotting a hero (#2): try again on the next think.
+	if not Combat.instance.try_use_skill(enemy, "ghoul_pounce", best.global_position).is_empty():
+		return false
 	_left = float(p("every", 9.0))
 	enemy.target = best
-	Combat.instance.try_use_skill(enemy, "ghoul_pounce", best.global_position)
 	return true
 
 

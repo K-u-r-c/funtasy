@@ -318,3 +318,12 @@ key in `data/assets.json`, so the user can swap files later without code changes
 | Other tier-0 skills | The old free starters (Shield Slam, Taunting Shout, Deadly Charge, Battle Cry, Multishot, Viper Arrow, both traps, Frost Nova, Chain Lightning, Blink, Meteor Strike, Power Word: Shield, Consecration, Rebuke, Prayer of Healing) are ordinary tier-0 skill nodes: one talent point each, learned in the tree and slotted in the Skill Book. Talent data marks them `legacy_starter`. |
 | Old saves | A character saved without `"kit"` is a hero from before the simple start (`Player.legacy_kit`, replicated): its `legacy_starter` nodes stay free and unlocked, so its saved loadout is kept. New heroes are saved with `"kit": 2` (`GameState.KIT_VERSION`). |
 | Easy first floors | `balance.json` `scaling.early_depths` scales monster and boss HP / damage on depths 1-3 (0.65 / 0.5, 0.75 / 0.4, 0.9 / 0.7). The balance probe's fresh-hero pass (`BalanceSuite.run_fresh`) checks a brand-new level 1 hero, primary attack only, against every monster and boss of the floor 1-2 pools: each normal monster dies within `probe.fresh_ttk_max` (8 s) and needs at least `probe.fresh_ttd_min` (16 s) to kill the hero alone; each boss dies within 150 s and needs at least 6 s. |
+
+### #2 Telegraphed leaps and charges
+
+| Topic | Decision |
+| --- | --- |
+| Wind-up | A skill's `windup` (s, data) is a cast time that haste cannot shorten. Pounce, Blazing Leap, Shield Charge 1.0 s, Stone Dive 1.1 s, Echoed Charge 0.9 s; Cernunnos's Antler Stampede `windup` 1.2 s (boss data). During it the monster stands still under a cast bar. |
+| Ground marker | `CombatFx.windup_marker` (reliable RPC, so every peer draws it): a leap marks its landing circle (radius of its landing blast), a charge its whole path, both computed from the aim locked at the start of the wind-up, which is where the move goes. |
+| Grace | `ai.lunge_grace` (1.5 s): a monster refuses leaps and charges until that long after it noticed a hero (`Enemy.aggro_age`); the ghoul retries on its next think, the gargoyle wakes without diving and dives through its normal AI once the grace is over. |
+| Damage | Landing / path damage lowered (Pounce 2 + 0.9x, Blazing Leap 2 + 0.85x, Stone Dive 2 + 1.0x, Shield Charge 2 + 0.7x). The monster suite checks that even a crit at monster level 1, without the floor-1 easing, stays below the lowest fresh level 1 hero's health. |

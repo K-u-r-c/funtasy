@@ -1,7 +1,8 @@
 extends MonsterBehavior
 ## Archive Gargoyle: perches as a stone statue (untargetable) until a hero casts a spell (or
 ## channels) within `range` px - or simply comes close - then dives onto them, interrupting the
-## cast. It fights on, and perches again after `rest` s without a target in reach.
+## cast. It fights on, and perches again after `rest` s without a target in reach. The dive
+## itself waits out the monsters' grace after spotting a hero (ai.lunge_grace, #2).
 ## params: range (300), wake (90), skill (gargoyle_dive)
 
 var perched := true
@@ -31,7 +32,6 @@ func on_think(g: Node) -> bool:
 			enemy.target = pl
 			enemy.cooldowns.erase(str(p("skill", "gargoyle_dive")))
 			Combat.instance.try_use_skill(enemy, str(p("skill", "gargoyle_dive")), pl.global_position)
-			dives += 1
 			return false
 	return true
 
@@ -45,4 +45,6 @@ func test_trigger(suite: RefCounted) -> void:
 
 
 func test_check(_suite: RefCounted) -> String:
+	var uses: Dictionary = Combat.instance.get_meta("uses", {})
+	dives = int(uses.get("%s:%s" % [enemy.name, str(p("skill", "gargoyle_dive"))], 0))
 	return "" if dives > 0 else "never dove"

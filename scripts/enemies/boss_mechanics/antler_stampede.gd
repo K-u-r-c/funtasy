@@ -1,11 +1,15 @@
 extends BossMechanic
 ## Cernunnos P1 - Antler Stampede: four stone dolmens stand in the arena. Every `every` s he
 ## charges at a hero in a straight line, smashing dolmens in his path; slamming into the arena
-## wall stuns him for `stun` s. params: every (14), speed (420), stun (3), dolmens (4), damage
+## wall stuns him for `stun` s. Each charge first winds up for `windup` s (cast bar and a path
+## marker, #2), never in the first ai.lunge_grace s of the fight.
+## params: every (14), speed (420), stun (3), dolmens (4), windup (1.2), damage
 
 var dolmens: Array = []
 var _dir := Vector2.ZERO
 var _left := -1.0
+var _windup := -1.0
+const CHARGE_TIME := 2.5
 var charges := 0
 var walls := 0
 
@@ -21,26 +25,39 @@ func _ready() -> void:
 
 
 func busy() -> bool:
-	return _left > 0.0
+	return _left > 0.0 or _windup > 0.0
 
 
 func trigger() -> void:
 	var pool := living_players()
-	if pool.is_empty() or _left > 0.0:
+	if pool.is_empty() or _left > 0.0 or _windup > 0.0:
+		return
+	if boss.aggro_age() < float(GameData.bal("ai.lunge_grace", 1.5)):
+		left = 0.5  # too soon after spotting the heroes: try again shortly
 		return
 	var t: Node = pool[randi() % pool.size()]
 	_dir = (t.global_position - boss.global_position).normalized()
 	if _dir == Vector2.ZERO:
 		_dir = Vector2.RIGHT
-	_left = 2.5
-	charges += 1
-	boss.play_action.rpc("dash", _dir)
+	_windup = float(p("windup", 1.2))
+	boss.facing = _dir
+	var end := Combat.instance.walkable_point(boss.global_position, _dir, float(p("speed", 420.0)) * CHARGE_TIME)
+	Combat.instance.fx.cast_bar.rpc(boss.get_path(), _windup)
+	Combat.instance.fx.windup_marker.rpc("line", boss.global_position, end, 26.0, _windup + 0.6, "#80ff60")
 	Combat.instance.fx.sound.rpc("roar", boss.global_position)
 	game().broadcast_message.rpc("Antler Stampede!", "#80ff60")
 
 
 func physics(delta: float) -> void:
 	super.physics(delta)
+	if _windup > 0.0:
+		_windup -= delta
+		boss.velocity = Vector2.ZERO
+		if _windup <= 0.0:
+			_left = CHARGE_TIME
+			charges += 1
+			boss.play_action.rpc("dash", _dir)
+		return
 	if _left <= 0.0:
 		return
 	_left -= delta
@@ -71,6 +88,7 @@ func physics(delta: float) -> void:
 
 func stop() -> void:
 	_left = -1.0
+	_windup = -1.0
 
 
 func test_trigger(_suite: RefCounted) -> void:
@@ -78,4 +96,4 @@ func test_trigger(_suite: RefCounted) -> void:
 
 
 func test_check(_suite: RefCounted) -> String:
-	return "" if charges > 0 and _left <= 0.0 else "still charging"
+	return "" if charges > 0 and _left <= 0.0 and _windup <= 0.0 else "still charging"

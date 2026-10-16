@@ -52,6 +52,8 @@ screenshot review at 1920x1080 and 3440x1440.
 
 - [x] #1 Simple start: primary + one basic skill, empty slots, easier floors 1-3 (`classes-*`,
       `balance-*` fresh-hero pass, `economy`, `economy-lan`, `ui-layout`, `full-wm`)
+- [x] #2 Telegraphed monster leaps / charges: wind-up + cast bar + ground marker, 1.5 s grace, lower
+      damage (`monsters`, `bosses`, `full-wm` client check, `boss-cernunnos`)
 
 ## PixelLab ledger
 

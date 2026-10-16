@@ -385,6 +385,10 @@ func client_cmd(cmd: String, arg: Variant) -> void:
 		"check_door":
 			var door: Node = _game().dungeon.get_node_or_null(NodePath("../Entities/" + str(arg[0])))
 			check(door != null and door.is_open == bool(arg[1]), "client sees door %s open=%s" % [arg[0], arg[1]])
+		"check_windup":
+			var lp: Node = _game().enemies_root.get_node_or_null(str(arg))
+			check(int(Combat.instance.fx.get_meta("windup_markers", 0)) > 0 and lp != null and lp.has_meta("cast_end"),
+					"client sees the leap's cast bar and landing marker")
 		"check_prop_gone":
 			check(not _game().dungeon.props.has(str(arg)), "client sees floor 2 prop %s destroyed" % arg)
 		"check_chest_open":
@@ -567,6 +571,24 @@ func _full_scenario() -> void:
 	host_p.iframe_left = 0.0
 	client_p.iframe_left = 0.0
 	_reset_player(host_p)
+	await _wait(0.3)
+
+	# --- 2b'. A monster leap winds up with a cast bar and a landing marker the client sees too (#2)
+	client_p.iframe_left = 30.0
+	var leaper: Enemy = g.spawn_monster("ghoul", g.nearest_floor(client_p.global_position + Vector2(140, 0)), false)
+	await _wait(0.3)
+	leaper.behaviors = []
+	leaper.add_threat(client_p, 50.0)
+	leaper._aggro_since -= 5.0
+	var leap_err := Combat.instance.try_use_skill(leaper, "ghoul_pounce", client_p.global_position)
+	check(leap_err.is_empty() and float(leaper.casting.get("left", 0.0)) >= 0.8, "host: the ghoul winds up its pounce (%s)" % leap_err)
+	await _wait(0.3)
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["check_windup", str(leaper.name)])
+	await _wait(1.5)
+	if is_instance_valid(leaper):
+		leaper.queue_free()
+	client_p.iframe_left = 0.0
+	_reset_player(client_p)
 	await _wait(0.3)
 
 	# --- 2c. Hazards + friendly fire -----------------------------------------------------------

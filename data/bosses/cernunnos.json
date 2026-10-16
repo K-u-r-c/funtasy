@@ -39,7 +39,8 @@
 					"speed": 420,
 					"stun": 3,
 					"dolmens": 4,
-					"test_wait": 4
+					"windup": 1.2,
+					"test_wait": 5
 				},
 				{
 					"id": "creeping_briar",

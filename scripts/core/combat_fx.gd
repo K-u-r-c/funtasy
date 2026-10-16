@@ -258,6 +258,38 @@ func blink(from: Vector2, to: Vector2) -> void:
 	_puff(to, Color(0.7, 0.5, 1.0), 14)
 
 
+## Host -> all (reliable): the wind-up of a monster leap or charge (#2). kind "circle" marks the
+## landing spot `b` (radius r), "line" the path a -> b (width r); it fills in over `duration` s.
+## Peers count markers in the "windup_markers" meta (test harness).
+@rpc("authority", "call_local", "reliable")
+func windup_marker(kind: String, a: Vector2, b: Vector2, r: float, duration: float, color_html: String) -> void:
+	set_meta("windup_markers", int(get_meta("windup_markers", 0)) + 1)
+	if world == null:
+		return
+	var c := Color.from_string(color_html, Color.RED)
+	var root := Node2D.new()
+	root.z_index = GROUND_Z
+	root.modulate = Color(1, 1, 1, 0.3)
+	world.add_child(root)
+	if kind == "line":
+		var ln := Line2D.new()
+		ln.points = PackedVector2Array([a, b])
+		ln.width = r * 2.0
+		ln.default_color = Color(c.r * 1.4, c.g, c.b, 0.45)
+		ln.begin_cap_mode = Line2D.LINE_CAP_ROUND
+		ln.end_cap_mode = Line2D.LINE_CAP_ROUND
+		root.add_child(ln)
+	var s := Sprite2D.new()
+	s.texture = _tex("fx.ring")
+	s.position = b
+	s.scale = Vector2(r / 64.0, r / 64.0 * 0.75)
+	s.modulate = Color(c.r * 1.5, c.g * 1.2, c.b, 1.0)
+	root.add_child(s)
+	var t := root.create_tween()
+	t.tween_property(root, "modulate:a", 0.9, duration).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	t.tween_callback(root.queue_free)
+
+
 ## Host -> all (unreliable): shows a cast bar above an actor.
 @rpc("authority", "call_local", "unreliable")
 func cast_bar(actor_path: NodePath, duration: float) -> void:

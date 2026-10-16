@@ -238,7 +238,7 @@
 		"separation_force": 60,
 		"projectile_range_use": 0.85,
 		"heal_ally_below": 0.7,
-		"boss_knockback_taken": 0.25
+		"boss_knockback_taken": 0.25, "lunge_grace": 1.5
 	},
 	"hazards": {
 		"lava_damage": 10,

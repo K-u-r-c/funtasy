@@ -35,6 +35,73 @@ func run(biome: String = "") -> void:
 		n += 1
 		await check_monster(str(id))
 	da.check(n > 0, "monster suite ran %d monsters" % n)
+	await check_lunges(biome)
+
+
+## Leaps and charges (#2): refused in the grace after spotting a hero, then a wind-up of at
+## least 0.8 s with a cast bar and a ground marker before the monster moves; one hit (even a
+## crit, without the floor-1 easing) never kills a fresh level 1 hero of any class.
+func check_lunges(biome: String) -> void:
+	var lunges := {"ghoul": "ghoul_pounce", "brimstone_hound": "hound_leap", "archive_gargoyle": "gargoyle_dive",
+		"dread_wight": "wight_shield_charge", "echo_unwritten": "echo_charge"}
+	var min_hp := INF
+	for cid in GameData.classes:
+		p.stats.compute_player(GameData.classes[cid], 1, {}, {}, {}, {"allocated": {}, "run_mods": [], "mods": [], "skill_mods": []})
+		min_hp = minf(min_hp, p.stats.get_stat("max_hp"))
+	p.recompute_stats()
+	var keep_depth: int = g.depth
+	g.depth = 1
+	var early: Array = GameData.bal("scaling.early_depths", [])
+	var ease := float(early[0].get("damage", 1.0)) if not early.is_empty() else 1.0
+	for id in lunges:
+		if not biome.is_empty() and str(GameData.monsters[id].get("biome", "")) != biome:
+			continue
+		var sid: String = lunges[id]
+		var sk := GameData.skill(sid)
+		_keep_hero()
+		p.host_teleport(start)
+		var e: Enemy = g.spawn_monster(id, g.nearest_floor(start + Vector2(150, 0)), false)
+		await da._wait(0.3)
+		if not is_instance_valid(e):
+			da.check(false, "%s spawned" % id)
+			continue
+		e.behaviors = []
+		e.behavior_state = ""
+		e._abilities = []
+		e.add_threat(p, 10.0)
+		var err := Combat.instance.try_use_skill(e, sid, p.global_position)
+		da.check(not err.is_empty(), "%s: no %s right after spotting the hero (%s)" % [id, sid, err])
+		e._aggro_since -= float(GameData.bal("ai.lunge_grace")) + 0.1
+		e.cooldowns.erase(sid)
+		var markers := int(Combat.instance.fx.get_meta("windup_markers", 0))
+		var from := e.global_position
+		err = Combat.instance.try_use_skill(e, sid, p.global_position)
+		da.check(err.is_empty() and float(e.casting.get("left", 0.0)) >= 0.8 and float(sk.get("windup", 0.0)) >= 0.8,
+				"%s: %s winds up for %.2f s (%s)" % [id, sid, float(e.casting.get("left", 0.0)), err])
+		da.check(int(Combat.instance.fx.get_meta("windup_markers", 0)) == markers + 1 and e.has_meta("cast_end"),
+				"%s: the wind-up shows a cast bar and a ground marker" % id)
+		await da._wait(0.6)
+		da.check(is_instance_valid(e) and e.global_position.distance_to(from) < 6.0, "%s: no movement during the wind-up" % id)
+		await da._wait(float(sk.windup) + 0.4)
+		da.check(is_instance_valid(e) and e.global_position.distance_to(from) > 20.0, "%s: the %s lands after the wind-up" % [id, sid])
+		if is_instance_valid(e):
+			var spec: Variant = _lunge_damage(sk)
+			var ctx: Dictionary = Combat.instance.make_ctx(e, sk)
+			var worst: float = Combat.instance.damage_value(spec, ctx, p) / ease * (1.0 + float(ctx.crit_damage))
+			da.check(worst < min_hp, "%s: a level 1 hero survives a %s crit (%.0f < %.0f HP)" % [id, sid, worst, min_hp])
+			e.queue_free()
+		await da._wait(0.2)
+	g.depth = keep_depth
+
+
+func _lunge_damage(sk: Dictionary) -> Variant:
+	for eff in sk.effects:
+		if eff.has("path_damage"):
+			return eff.path_damage
+		for sub in eff.get("on_arrive", []):
+			if sub.has("damage"):
+				return sub.damage
+	return {"base": 0, "coef": 0}
 
 
 func check_monster(id: String) -> void:
