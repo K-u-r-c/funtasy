@@ -5,6 +5,8 @@ extends Control
 const FLOOR := Color("3a4560")
 const WALL := Color("151a27")
 const LAVA := Color("d9561a")
+const WATER := Color("2f5a4a")
+const CANAL := Color("1a3a14")
 
 var cell_px := 2.0
 var full_map := false
@@ -46,6 +48,10 @@ func _draw() -> void:
 				continue
 			var v := d.cell_at(c)
 			var col := FLOOR if v == DungeonGenerator.CELL_FLOOR else (LAVA if v == DungeonGenerator.CELL_LAVA else WALL)
+			if v == DungeonGenerator.CELL_WATER or v == DungeonGenerator.CELL_SLUDGE or v == DungeonGenerator.CELL_CANAL:
+				col = WATER if v != DungeonGenerator.CELL_CANAL else CANAL
+			elif v == DungeonGenerator.CELL_BRIDGE:
+				col = FLOOR
 			draw_rect(Rect2(origin + Vector2(c) * px, Vector2(px, px)), col)
 	for door in d.doors:
 		var dc: Vector2i = door.cells[0]

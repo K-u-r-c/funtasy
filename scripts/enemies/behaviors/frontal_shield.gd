@@ -5,7 +5,7 @@ extends MonsterBehavior
 
 func modify_damage_taken(amount: float, data: Dictionary) -> float:
 	var att: Variant = data.get("attacker")
-	if not (att is Node2D and is_instance_valid(att)) or data.get("dot", false):
+	if not (is_instance_valid(att) and att is Node2D) or data.get("dot", false):
 		return amount
 	var to: Vector2 = att.global_position - enemy.global_position
 	if to.length() > 1.0 and absf(enemy.facing.angle_to(to)) <= deg_to_rad(float(p("arc", 120.0)) / 2.0):

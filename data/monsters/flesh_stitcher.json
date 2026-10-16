@@ -1,0 +1,47 @@
+{
+	"id": "flesh_stitcher",
+	"creature_type": "humanoid",
+	"biome": "sewers",
+	"name": "Heretic Flesh-Stitcher",
+	"role": "support",
+	"sprite": "monsters.flesh_stitcher",
+	"corpse": "flesh",
+	"ai": {
+		"type": "caster",
+		"aggro_radius": 260,
+		"preferred_range": [
+			140,
+			240
+		],
+		"abilities": [
+			"stitcher_scalpel"
+		]
+	},
+	"base_stats": {
+		"hp": 40,
+		"damage": 6,
+		"armor": 4,
+		"move_speed": 76,
+		"crit_chance": 0.05,
+		"dodge": 0.04
+	},
+	"behaviors": [
+		{
+			"id": "buff_allies",
+			"every": 8,
+			"radius": 220,
+			"status": "foul_serum",
+			"duration": 12,
+			"creature": "beast",
+			"skill": "stitcher_serum"
+		}
+	],
+	"behavior_visuals": {
+		"injecting": {
+			"tint": "#c0ff90"
+		}
+	},
+	"collision_radius": 8,
+	"xp": 13,
+	"tint": "#d0a0a0"
+}

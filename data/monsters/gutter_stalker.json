@@ -1,0 +1,39 @@
+{
+	"id": "gutter_stalker",
+	"creature_type": "humanoid",
+	"biome": "sewers",
+	"name": "Gutter Stalker",
+	"role": "assassin",
+	"sprite": "monsters.gutter_stalker",
+	"corpse": "flesh",
+	"ai": {
+		"type": "melee",
+		"aggro_radius": 230,
+		"preferred_range": [
+			0,
+			30
+		],
+		"abilities": [
+			"stalker_backstab",
+			"stalker_mud"
+		]
+	},
+	"base_stats": {
+		"hp": 44,
+		"damage": 8,
+		"armor": 6,
+		"move_speed": 96,
+		"crit_chance": 0.1,
+		"dodge": 0.08
+	},
+	"behaviors": [
+		{
+			"id": "submerged_stealth",
+			"status": "submerged",
+			"rest": 6.0
+		}
+	],
+	"collision_radius": 8,
+	"xp": 14,
+	"tint": "#708060"
+}

@@ -19,5 +19,14 @@
 	"bone_pile": {"name": "Bone Pile", "sprite": "props.bone_pile", "hp": 10, "size": [18, 8], "blocks_sight": false, "debris": true, "sfx": "bone_collapse", "drop_chance": 0.05},
 	"crusader_remains": {"name": "Crusader Remains", "sprite": "props.crusader_remains", "hp": 12, "size": [24, 8], "blocks_sight": false, "debris": true, "sfx": "break", "drop_chance": 0.2},
 	"bone_spears": {"name": "Bone Spears", "sprite": "props.bone_spears", "hp": 22, "size": [10, 6], "blocks_sight": false, "debris": true, "sfx": "bone_collapse", "no_loot": true, "players_only": true},
-	"consecrated_shrine": {"name": "Consecrated Shrine", "sprite": "props.consecrated_shrine", "sprite_open": "props.consecrated_shrine_lit", "hp": 0, "size": [24, 10], "blocks_sight": false, "interactable": true, "verb": "Light", "loot": "none", "light_open": "#fff0a0"}
+	"consecrated_shrine": {"name": "Consecrated Shrine", "sprite": "props.consecrated_shrine", "sprite_open": "props.consecrated_shrine_lit", "hp": 0, "size": [24, 10], "blocks_sight": false, "interactable": true, "verb": "Light", "loot": "none", "light_open": "#fff0a0"},
+	"sewer_pipe": {"name": "Drainage Pipe", "sprite": "props.sewer_pipe", "hp": 30, "size": [24, 10], "blocks_sight": false, "debris": true, "sfx": "break"},
+	"fungal_bloom": {"name": "Fungal Bloom", "sprite": "props.fungal_bloom", "hp": 6, "size": [14, 8], "blocks_sight": false, "debris": true, "sfx": "break", "light": "#7fd94a"},
+	"vermin_carcass": {"name": "Vermin Carcass", "sprite": "props.vermin_carcass", "hp": 8, "size": [20, 8], "blocks_sight": false, "debris": true, "sfx": "break", "drop_chance": 0.1},
+	"sewer_barrel": {"name": "Sludge Barrel", "sprite": "props.sewer_barrel", "hp": 16, "size": [18, 10], "blocks_sight": true, "debris": true, "sfx": "break", "drop_chance": 0.1},
+	"gas_pocket": {"name": "Corpse-Gas Pocket", "sprite": "props.gas_pocket", "hp": 1, "size": [16, 8], "blocks_sight": false, "debris": false, "sfx": "explosion", "explode": {"radius": 70, "damage": 26, "damage_type": "nature", "color": "#9acd32"}, "proximity": 34},
+	"sewer_strongbox": {"name": "Sewer Strongbox", "sprite": "props.sewer_strongbox", "sprite_open": "props.sewer_strongbox_open", "hp": 0, "size": [28, 12], "blocks_sight": false, "interactable": true, "verb": "Pry open", "loot": "secret"},
+	"rusty_lever": {"name": "Rusty Lever", "sprite": "props.rusty_lever", "sprite_open": "props.rusty_lever_on", "hp": 0, "size": [10, 6], "blocks_sight": false, "interactable": true, "verb": "Pull", "loot": "none", "lever": true},
+	"exhaust_valve": {"name": "Exhaust Valve", "sprite": "props.exhaust_valve", "hp": 0, "size": [16, 8], "blocks_sight": false, "interactable": true, "verb": "Vent", "loot": "none", "reusable": true},
+	"sewer_platform": {"name": "Raised Platform", "sprite": "props.sewer_platform", "hp": 0, "size": [0, 0], "blocks_sight": false, "flat": true}
 }

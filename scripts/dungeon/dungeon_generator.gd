@@ -15,6 +15,15 @@ extends RefCounted
 const CELL_WALL := 0
 const CELL_FLOOR := 1
 const CELL_LAVA := 2
+const CELL_WATER := 3  ## shallow sewage: walkable, slows (Sewers)
+const CELL_SLUDGE := 4  ## deep sludge: walkable, slows + Blighted Taint (Sewers)
+const CELL_CANAL := 5  ## toxic canal: blocks movement, not sight or projectiles
+const CELL_BRIDGE := 6  ## catwalk over a canal: walkable
+
+
+## Can heroes and monsters stand on this cell kind?
+static func walkable(v: int) -> bool:
+	return v == CELL_FLOOR or v == CELL_LAVA or v == CELL_WATER or v == CELL_SLUDGE or v == CELL_BRIDGE
 
 var rng := RandomNumberGenerator.new()
 var w := 0
@@ -49,6 +58,8 @@ func generate(seed_value: int, floor_def: Dictionary, count_mult: float = 1.0, d
 				for dy in range(-2, 3):
 					door_zone[c + Vector2i(dx, dy)] = true
 	layout.lava_pools = _place_lava(rooms, floor_def, door_zone)
+	_place_pools(rooms, door_zone)
+	_place_canals(rooms, door_zone)
 	var used := door_zone.duplicate()
 	layout.props = _place_props(rooms, floor_def, used)
 	layout.props.append_array(_place_lore_props(rooms, floor_def, used))
@@ -56,6 +67,8 @@ func generate(seed_value: int, floor_def: Dictionary, count_mult: float = 1.0, d
 	layout.spikes = _place_spikes(rooms, floor_def, used)
 	layout.plates = _place_plates(rooms, floor_def, used)
 	layout.pendulums = _place_pendulums(rooms, floor_def, used)
+	layout.spouts = _place_spouts(rooms, floor_def)
+	layout.props.append_array(_place_floodgates(doors, rooms, used))
 	layout.torches = _place_torches(rooms, floor_def, depth)
 	layout.spawns = _place_spawns(rooms, floor_def, used, count_mult)
 	var boss_room: Dictionary = rooms[1]
@@ -413,6 +426,127 @@ func _place_spikes(rooms: Array, fd: Dictionary, used: Dictionary) -> Array:
 			if c.x >= 0:
 				used[c] = true
 				out.append({"cell": c, "phase": rng.randf()})
+	return out
+
+
+## Aqueducts (Sewers): irregular pools of shallow sewage in some normal rooms, with a deep sludge
+## core now and then. Pools keep clear of doors, so every room stays reachable.
+func _place_pools(rooms: Array, door_zone: Dictionary) -> void:
+	var chance := float(gen.get("water_room_chance", 0.0))
+	if chance <= 0.0:
+		return
+	for room in rooms:
+		if room.role != "normal" or rng.randf() > chance:
+			continue
+		var r: Rect2i = room.rect
+		var pw := rng.randi_range(3, maxi(3, mini(7, r.size.x - 4)))
+		var ph := rng.randi_range(2, maxi(2, mini(5, r.size.y - 4)))
+		var pos := Vector2i(rng.randi_range(r.position.x + 2, r.end.x - 2 - pw), rng.randi_range(r.position.y + 2, r.end.y - 2 - ph))
+		var sludge := rng.randf() < float(gen.get("sludge_chance", 0.0))
+		for x in range(pos.x - 1, pos.x + pw + 1):
+			for y in range(pos.y - 1, pos.y + ph + 1):
+				var c := Vector2i(x, y)
+				var edge := x < pos.x or y < pos.y or x >= pos.x + pw or y >= pos.y + ph
+				if door_zone.has(c) or get_cell(c) != CELL_FLOOR or not r.has_point(c):
+					continue
+				if edge and rng.randf() < 0.5:
+					continue  # ragged rim
+				var core := not edge and x > pos.x and y > pos.y and x < pos.x + pw - 1 and y < pos.y + ph - 1
+				_set_cell(c, CELL_SLUDGE if sludge and core else CELL_WATER)
+
+
+## Toxic canals (Sewers) cut across some rooms, 2 cells wide, with a catwalk bridge across.
+## A canal never runs into a door, so both halves keep their doors and the bridge joins them.
+func _place_canals(rooms: Array, door_zone: Dictionary) -> void:
+	var chance := float(gen.get("canal_room_chance", 0.0))
+	if chance <= 0.0:
+		return
+	for room in rooms:
+		if room.role != "normal" or rng.randf() > chance:
+			continue
+		var r: Rect2i = room.rect
+		var horizontal := r.size.x >= r.size.y
+		var span := r.size.y if horizontal else r.size.x
+		if span < 8:
+			continue
+		var at := rng.randi_range(3, span - 5)
+		var cells_: Array = []
+		var ok := true
+		for k in 2:
+			for i in (r.size.x if horizontal else r.size.y):
+				var c := Vector2i(r.position.x + i, r.position.y + at + k) if horizontal else Vector2i(r.position.x + at + k, r.position.y + i)
+				if door_zone.has(c) or get_cell(c) == CELL_LAVA:
+					ok = false
+				cells_.append(c)
+			# Both ends must meet solid wall, not an opening.
+			var end_a := Vector2i(r.position.x - 1, r.position.y + at + k) if horizontal else Vector2i(r.position.x + at + k, r.position.y - 1)
+			var end_b := Vector2i(r.end.x, r.position.y + at + k) if horizontal else Vector2i(r.position.x + at + k, r.end.y)
+			if get_cell(end_a) != CELL_WALL or get_cell(end_b) != CELL_WALL:
+				ok = false
+		if not ok:
+			continue
+		var length := r.size.x if horizontal else r.size.y
+		var b := rng.randi_range(2, length - 4)
+		for c in cells_:
+			var along: int = (c.x - r.position.x) if horizontal else (c.y - r.position.y)
+			_set_cell(c, CELL_BRIDGE if along >= b and along < b + 2 else CELL_CANAL)
+			door_zone[c] = true
+
+
+## Acid spouts (Sewers): pipes in the north wall of normal rooms spraying down on a timer.
+func _place_spouts(rooms: Array, fd: Dictionary) -> Array:
+	var out: Array = []
+	if not fd.has("acid_spouts"):
+		return out
+	var cands: Array = []
+	for room in rooms:
+		if room.role != "normal":
+			continue
+		var r: Rect2i = room.rect
+		for x in range(r.position.x + 1, r.end.x - 1):
+			var w := Vector2i(x, r.position.y - 1)
+			if get_cell(w) == CELL_WALL and walkable(get_cell(w + Vector2i(0, 1))) and walkable(get_cell(w + Vector2i(0, 2))):
+				cands.append(w)
+	var n := rng.randi_range(int(fd.acid_spouts[0]), int(fd.acid_spouts[1]))
+	while out.size() < n and not cands.is_empty():
+		var c: Vector2i = cands.pop_at(rng.randi_range(0, cands.size() - 1))
+		var clash := false
+		for o in out:
+			if Vector2(o.cell - c).length() < 4.0:
+				clash = true
+		if not clash:
+			out.append({"cell": c, "dir": Vector2i.DOWN, "phase": rng.randf()})
+	return out
+
+
+## Floodgates (Sewers): some doors rust shut; a rusty lever beside the door on each side opens it.
+func _place_floodgates(doors: Array, rooms: Array, used: Dictionary) -> Array:
+	var out: Array = []
+	var chance := float(gen.get("floodgate_chance", 0.0))
+	if chance <= 0.0:
+		return out
+	for i in doors.size():
+		var d: Dictionary = doors[i]
+		if d.get("monster_proof", false) or rng.randf() > chance:
+			continue
+		var c0: Vector2i = d.cells[0]
+		var across := Vector2i(1, 0) if d.vertical else Vector2i(0, 1)
+		var along := Vector2i(0, -1) if d.vertical else Vector2i(-1, 0)
+		var levers: Array = []
+		for side in [-1, 1]:
+			var placed := false
+			for k in [0, -1, 1, 2]:
+				var lc: Vector2i = c0 + across * side * 3 + along * k
+				if get_cell(lc) == CELL_FLOOR and not used.has(lc):
+					used[lc] = true
+					levers.append({"type": "rusty_lever", "pos": _cell_center(lc), "gate": i})
+					placed = true
+					break
+			if not placed:
+				break
+		if levers.size() == 2:
+			d.floodgate = true
+			out.append_array(levers)
 	return out
 
 

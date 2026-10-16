@@ -1,0 +1,33 @@
+{
+	"id": "phantom_copy",
+	"creature_type": "aberration",
+	"biome": "sewers",
+	"name": "Heretic Phantom",
+	"role": "illusion",
+	"sprite": "monsters.cultist",
+	"corpse": "none",
+	"no_corpse": true,
+	"spawn_only": true,
+	"copy_tint": "#80ff80",
+	"ai": {
+		"type": "melee",
+		"aggro_radius": 400,
+		"preferred_range": [
+			0,
+			30
+		],
+		"abilities": [
+			"phantom_strike"
+		]
+	},
+	"base_stats": {
+		"hp": 18,
+		"damage": 5,
+		"armor": 0,
+		"move_speed": 96,
+		"crit_chance": 0.0,
+		"dodge": 0.0
+	},
+	"collision_radius": 8,
+	"xp": 0
+}

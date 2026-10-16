@@ -31,6 +31,7 @@ var party_keys := 0  ## Gold Keys the party carries (D11), replicated by _sync_k
 var _dyn_counter := 0
 var boss_id := ""  ## this floor's boss, picked from the floor type's list by the floor seed
 var floor_mechanics: Array = []  ## host: FloorMechanic modules of the floor type
+var _prox_left := 0.0
 
 @onready var dungeon: Dungeon = $Dungeon
 @onready var entities: Node2D = $Entities
@@ -108,9 +109,7 @@ func _try_begin() -> void:
 
 func start_floor(new_depth: int) -> void:
 	depth = new_depth
-	var ft_ids: Array = GameData.floor_types.keys()
-	ft_ids.sort()
-	var ft_id: String = ft_ids[(new_depth - 1) % ft_ids.size()]
+	var ft_id := floor_type_for(new_depth)
 	var floor_seed := hash(run_seed + new_depth * 7919)
 	combat.clear_floor()
 	loot.clear_floor()
@@ -238,7 +237,7 @@ func summon_monsters(def_id: String, count: int, origin: Vector2, r: float, cast
 		extra.copy_peer = int(caster.peer_id)
 	for i in count:
 		var pos := origin + Vector2.from_angle(TAU * i / count + randf()) * r
-		if dungeon.cell_at(dungeon.cell_of(pos)) != DungeonGenerator.CELL_FLOOR:
+		if not DungeonGenerator.walkable(dungeon.cell_at(dungeon.cell_of(pos))):
 			pos = origin
 		var e: Node = spawn_monster(def_id, pos, false, extra)
 		if e == null:
@@ -344,6 +343,17 @@ func host_interact(p: Player, node: Node) -> void:
 		if node.is_lit():
 			p.host_take_torch()
 			dungeon.set_torch_state.rpc(node.torch_id, node.State.TAKEN)
+	elif node.get("def") is Dictionary and node.def.get("lever", false):
+		# A rusty lever opens its floodgate for good.
+		if node.interactable():
+			dungeon.open_chest.rpc(node.prop_id)
+			var gi := int(node.get_meta("gate", -1))
+			if gi >= 0 and gi < dungeon.doors.size():
+				dungeon.doors[gi].floodgate = false
+				dungeon.doors[gi].host_set_open(true)
+			combat.fx.sound.rpc("floodgate", node.global_position)
+	elif node.has_method("host_set_open") and node.floodgate and not node.is_open:
+		combat.fx.number.rpc(node.interact_pos(), "Rusted shut - find a lever", "info")
 	elif node.has_method("host_set_open"):
 		# Don't let a door close on someone standing in the doorway.
 		if node.is_open:
@@ -372,6 +382,8 @@ func _physics_process(delta: float) -> void:
 		s.update_state(floor_time)
 	for pd in dungeon.pendulums:
 		pd.update_state(floor_time)
+	for sp in dungeon.spouts:
+		sp.update_state(floor_time)
 	if not multiplayer.is_server() or depth == 0:
 		return
 	_clock_sync_left -= delta
@@ -385,6 +397,12 @@ func _physics_process(delta: float) -> void:
 		pl.host_tick(delta, actors, dungeon)
 	for pd in dungeon.pendulums:
 		pd.host_damage(actors, floor_time)
+	for sp in dungeon.spouts:
+		sp.host_damage(actors, floor_time)
+	_prox_left -= delta
+	if _prox_left <= 0.0:
+		_prox_left = 0.2
+		_check_proximity_props()
 	for fm in floor_mechanics:
 		fm.physics(delta)
 	var life := float(GameData.bal("corpses.lifetime", 20.0))
@@ -531,6 +549,19 @@ func _sync_clock(t: float) -> void:
 	floor_time = t
 
 
+## D21: depth cycles through the floor types by their "order" (Crypt, Sewers, Foundry, Archives,
+## Kurgan). Tests and tours can pin the first floor's type ("force_biome" meta on GameState).
+static func floor_type_for(new_depth: int) -> String:
+	var ft_ids: Array = GameData.floor_types.keys()
+	ft_ids.sort_custom(func(a, b): return int(GameData.floor_types[a].get("order", 99)) < int(GameData.floor_types[b].get("order", 99)) \
+		or (int(GameData.floor_types[a].get("order", 99)) == int(GameData.floor_types[b].get("order", 99)) and str(a) < str(b)))
+	var forced := str(GameState.get_meta("force_biome", ""))
+	if forced != "" and ft_ids.has(forced):
+		var i := ft_ids.find(forced)
+		return ft_ids[(i + new_depth - 1) % ft_ids.size()]
+	return ft_ids[(new_depth - 1) % ft_ids.size()]
+
+
 ## Host: the floor's boss, a seeded pick from the floor type's list ("force_boss" meta on
 ## GameState pins one for tests and screenshots).
 static func pick_boss(ft: Dictionary, floor_seed: int) -> String:
@@ -613,6 +644,19 @@ func _corpse_gone(corpse_id: int) -> void:
 
 
 ## Host: corpses within r of pos (optionally only bone piles / one creature type).
+## Host: gas pockets and the like go off when a hero walks up to them.
+func _check_proximity_props() -> void:
+	for pr in dungeon.proximity_props.duplicate():
+		if not is_instance_valid(pr) or not pr.destructible():
+			dungeon.proximity_props.erase(pr)
+			continue
+		for p in players_root.get_children():
+			if p.is_targetable() and p.global_position.distance_to(pr.global_position) <= float(pr.def.proximity):
+				dungeon.proximity_props.erase(pr)
+				pr.take_damage(pr.hp + 1.0, combat.make_ctx(p, {"id": "proximity", "school": "physical"}))
+				break
+
+
 ## Host: a prop broke (floor mechanics react: grave urn miasma...).
 func on_prop_broken(prop: Node) -> void:
 	for fm in floor_mechanics:
@@ -746,6 +790,13 @@ func nearest_floor(pos: Vector2) -> Vector2:
 				var cc := c + Vector2i(dx, dy)
 				if dungeon.cell_at(cc) == DungeonGenerator.CELL_FLOOR:
 					return dungeon.cell_center(cc)
+	# No dry stone near: any walkable cell (shallow water, a catwalk).
+	for r2 in range(0, 6):
+		for dx2 in range(-r2, r2 + 1):
+			for dy2 in range(-r2, r2 + 1):
+				var cc2 := c + Vector2i(dx2, dy2)
+				if DungeonGenerator.walkable(dungeon.cell_at(cc2)):
+					return dungeon.cell_center(cc2)
 	return pos
 
 

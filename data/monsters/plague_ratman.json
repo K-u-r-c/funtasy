@@ -1,0 +1,39 @@
+{
+	"id": "plague_ratman",
+	"creature_type": "beast",
+	"biome": "sewers",
+	"name": "Plague Ratman",
+	"role": "skirmisher",
+	"sprite": "monsters.plague_ratman",
+	"corpse": "flesh",
+	"ai": {
+		"type": "melee",
+		"aggro_radius": 240,
+		"preferred_range": [
+			0,
+			30
+		],
+		"abilities": [
+			"ratman_dagger"
+		]
+	},
+	"base_stats": {
+		"hp": 36,
+		"damage": 6,
+		"armor": 8,
+		"move_speed": 104,
+		"crit_chance": 0.08,
+		"dodge": 0.08
+	},
+	"behaviors": [
+		{
+			"id": "retreat_low_hp",
+			"threshold": 0.3,
+			"distance": 130,
+			"skill": "ratman_flask"
+		}
+	],
+	"collision_radius": 8,
+	"xp": 9,
+	"tint": "#b0c890"
+}

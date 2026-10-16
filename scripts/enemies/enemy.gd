@@ -28,6 +28,7 @@ var elite: Array = []  ## elite modifier ids (D10), from the spawn data on every
 var key_carrier := false  ## host: drops the floor's Gold Key (D11)
 var copy_peer := 0  ## replicated at spawn: draw this player's look instead of the monster art (D31)
 var _state_sprite: Sprite2D = null
+var _melee_reach := 0.0
 var behaviors: Array = []  ## host: MonsterBehavior modules from data (scripts/enemies/behaviors/)
 var behavior_state := "":  ## replicated: what the behaviours look like right now (bone pile, mound...)
 	set(v):
@@ -107,6 +108,18 @@ func _configure_ai() -> void:
 	_abilities = ai.get("abilities", [])
 	_preferred = ai.get("preferred_range", [0, 40])
 	_aggro_radius = float(ai.get("aggro_radius", def.get("aggro_radius", 220)))
+	_update_reach()
+
+
+## The shortest melee / cone reach among the abilities: a melee monster closes in at least that far,
+## whatever its preferred range says (otherwise it would stop just out of its own reach).
+func _update_reach() -> void:
+	_melee_reach = 0.0
+	for sid in _abilities:
+		for eff in GameData.skills.get(sid, {}).get("effects", []):
+			if str(eff.type) in ["melee", "cone"]:
+				var r := float(eff.get("range", 40))
+				_melee_reach = r if _melee_reach <= 0.0 else minf(_melee_reach, r)
 
 
 ## D31: decoys and shapeshifters wear a party member's body and gear, tinted.
@@ -191,7 +204,13 @@ func monster_extra() -> Dictionary:
 
 
 func visual_scale() -> float:
-	return float(GameData.bal("elite.scale")) if not elite.is_empty() else 1.0
+	var s := float(def.get("scale", 1.0))
+	return s * float(GameData.bal("elite.scale")) if not elite.is_empty() else s
+
+
+## Host: a movement direction forced by something other than a behaviour (boss mechanics).
+func extra_move_override(_delta: float) -> Vector2:
+	return Vector2.INF
 
 
 func is_elite() -> bool:
@@ -416,7 +435,7 @@ func _hurt_ally(r: float) -> Actor:
 func _move(game: Node, delta: float) -> void:
 	var desired := Vector2.ZERO
 	var speed := move_speed()
-	var forced := Vector2.INF
+	var forced := extra_move_override(delta)
 	for b in behaviors:
 		var v: Vector2 = b.move_override(delta)
 		if v != Vector2.INF:
@@ -436,7 +455,10 @@ func _move(game: Node, delta: float) -> void:
 		var dist := to_t.length()
 		var los := dist < 600.0 and Combat.instance.has_los(global_position, target.global_position)
 		var lo := float(_preferred[0])
-		var hi := float(_preferred[1]) + target.radius
+		var hi := float(_preferred[1])
+		if _melee_reach > 0.0 and lo <= 0.0:
+			hi = minf(hi, _melee_reach - 4.0)
+		hi += target.radius
 		if dist > hi or not los:
 			desired = _path_dir(game, target.global_position, delta)
 		elif dist < lo:
@@ -473,7 +495,7 @@ func _fear_dir() -> Vector2:
 	for e in status.effects:
 		if Array(e.def.get("flags", [])).has("feared") and e.source is Dictionary:
 			var c: Variant = e.source.get("caster")
-			src = c.global_position if c is Node2D and is_instance_valid(c) else e.source.get("origin", src)
+			src = c.global_position if is_instance_valid(c) and c is Node2D else e.source.get("origin", src)
 	var d := global_position - src
 	return d.normalized() if d.length() > 1.0 else Vector2.RIGHT
 
@@ -494,8 +516,8 @@ func _path_dir(game: Node, goal: Vector2, delta: float) -> Vector2:
 	var next := _path[0]
 	# Closed doors: simple monsters open them after a short delay.
 	var door: Node = game.dungeon.closed_door_near(global_position, next)
-	if door and door.monster_proof:
-		return Vector2.ZERO  # the merchant chamber is safe ground
+	if door and (door.monster_proof or door.floodgate):
+		return Vector2.ZERO  # the merchant chamber is safe ground; floodgates need a lever
 	if door:
 		_door_wait += delta
 		if _door_wait >= float(GameData.bal("world.door_enemy_open_delay")):

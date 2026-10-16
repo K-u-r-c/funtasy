@@ -1,0 +1,90 @@
+{
+	"id": "murk_amalgam",
+	"creature_type": "aberration",
+	"biome": "sewers",
+	"name": "The Murk Amalgam",
+	"sprite": "monsters.murk_amalgam",
+	"music": "boss_murk_amalgam",
+	"corpse": "none",
+	"base_stats": {
+		"hp": 1150,
+		"damage": 12,
+		"armor": 30,
+		"move_speed": 56,
+		"crit_chance": 0.03,
+		"dodge": 0.0,
+		"nature_resist": 0.3
+	},
+	"collision_radius": 20,
+	"xp": 320,
+	"aggro_radius": 360,
+	"scale": 1.3,
+	"tint": "#c8e0a0",
+	"phases": [
+		{
+			"hp_above": 0.5,
+			"abilities": [
+				"amalgam_slam",
+				"amalgam_spew"
+			],
+			"preferred_range": [
+				0,
+				70
+			],
+			"mechanics": [
+				{
+					"id": "wave_sweep",
+					"every": 18,
+					"first": 9,
+					"telegraph": 2.5,
+					"platforms": 3,
+					"damage": {
+						"base": 14,
+						"coef": 2.2
+					},
+					"test_wait": 4
+				},
+				{
+					"id": "engulf",
+					"every": 22,
+					"first": 14,
+					"duration": 8,
+					"burst": 500,
+					"dot": {
+						"base": 2,
+						"coef": 0.5
+					},
+					"fail": 0.45,
+					"test_wait": 3
+				}
+			]
+		},
+		{
+			"hp_above": 0.0,
+			"abilities": [],
+			"preferred_range": [
+				0,
+				70
+			],
+			"title": "Divided",
+			"message": "The Amalgam tears itself in two!",
+			"mechanics": [
+				{
+					"id": "split",
+					"twins": [
+						"bile_twin",
+						"gristle_twin"
+					],
+					"test_wait": 6
+				}
+			]
+		}
+	],
+	"loot": {
+		"drops": [
+			4,
+			5
+		],
+		"min_rarity": 3
+	}
+}

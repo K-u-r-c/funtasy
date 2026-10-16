@@ -1,0 +1,44 @@
+{
+	"id": "gristle_twin",
+	"creature_type": "aberration",
+	"biome": "sewers",
+	"name": "The Gristle Twin",
+	"role": "boss_part",
+	"sprite": "monsters.murk_amalgam",
+	"corpse": "none",
+	"no_corpse": true,
+	"scale": 0.7,
+	"tint": "#ff9a8a",
+	"spawn_only": true,
+	"immune": [
+		"fire",
+		"frost",
+		"earth",
+		"lightning",
+		"holy",
+		"shadow",
+		"nature",
+		"arcane"
+	],
+	"ai": {
+		"type": "melee",
+		"aggro_radius": 400,
+		"preferred_range": [
+			0,
+			50
+		],
+		"abilities": [
+			"twin_slam"
+		]
+	},
+	"base_stats": {
+		"hp": 330,
+		"damage": 11,
+		"armor": 30,
+		"move_speed": 66,
+		"crit_chance": 0.03,
+		"dodge": 0.0
+	},
+	"collision_radius": 13,
+	"xp": 60
+}

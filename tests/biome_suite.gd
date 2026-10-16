@@ -32,11 +32,15 @@ func check_layouts(fid: String) -> void:
 	var monsters := {}
 	for m in fd.monsters:
 		monsters[str(m.id)] = true
-	var allowed_props := {"pillar": true, "bookshelf": true, str(fd.get("secret_container", "secret_sarcophagus")): true}
+	var allowed_props := {"pillar": true, "bookshelf": true, "rusty_lever": true, str(fd.get("secret_container", "secret_sarcophagus")): true}
 	for k in fd.get("prop_weights", {}):
 		allowed_props[k] = true
 	var plates := 0
 	var pendulums := 0
+	var spouts := 0
+	var kinds := {}
+	var gates := 0
+	var gate_bad := ""
 	var bad := ""
 	for i in 6:
 		var seed_value := 1000 + i * 7919
@@ -56,11 +60,30 @@ func check_layouts(fid: String) -> void:
 			bad = "no merchant chamber (seed %d)" % seed_value
 		plates += lay.get("plates", []).size()
 		pendulums += lay.get("pendulums", []).size()
+		spouts += lay.get("spouts", []).size()
+		var cells: PackedByteArray = lay.cells
+		for v in cells:
+			kinds[v] = true
+		for di in lay.doors.size():
+			if lay.doors[di].get("floodgate", false):
+				gates += 1
+				var levers: Array = lay.props.filter(func(pr): return int(pr.get("gate", -1)) == di)
+				if levers.size() != 2:
+					gate_bad = "floodgate %d has %d levers" % [di, levers.size()]
 	da.check(bad.is_empty(), "%s layouts are connected and use the biome's monsters and props%s" % [fid, "" if bad.is_empty() else ": " + bad])
 	if fd.has("plates_per_room"):
 		da.check(plates > 0, "%s layouts have pressure plates (%d over 6 floors)" % [fid, plates])
 	if fd.has("pendulums"):
 		da.check(pendulums > 0, "%s layouts have pendulums (%d over 6 floors)" % [fid, pendulums])
+	var gen: Dictionary = fd.get("generator", {})
+	if gen.has("water_room_chance"):
+		da.check(kinds.has(DungeonGenerator.CELL_WATER) and kinds.has(DungeonGenerator.CELL_SLUDGE), "%s layouts have sewage pools and deep sludge" % fid)
+	if gen.has("canal_room_chance"):
+		da.check(kinds.has(DungeonGenerator.CELL_CANAL) and kinds.has(DungeonGenerator.CELL_BRIDGE), "%s layouts have toxic canals with catwalks" % fid)
+	if gen.has("floodgate_chance"):
+		da.check(gates > 0 and gate_bad.is_empty(), "%s floodgates each have two levers (%d gates%s)" % [fid, gates, "" if gate_bad.is_empty() else ", " + gate_bad])
+	if fd.has("acid_spouts"):
+		da.check(spouts > 0, "%s layouts have acid spouts (%d over 6 floors)" % [fid, spouts])
 	var picked := {}
 	for s in 60:
 		picked[g.pick_boss(fd, s * 31 + 7)] = true
@@ -91,6 +114,44 @@ func check_live_floor() -> void:
 			await da.get_tree().physics_frame
 			t += 1.0 / 60.0
 		da.check(p.health.hp < hp2, "the pendulum blade cuts the hero")
+	if not g.dungeon.spouts.is_empty():
+		var sp: Node2D = g.dungeon.spouts[0]
+		_ready_hero()
+		var hp3 := p.health.hp
+		var t3 := 0.0
+		while t3 < 6.0 and p.health.hp >= hp3:
+			p.host_teleport(sp.spray_rect().get_center())
+			await da.get_tree().physics_frame
+			t3 += 1.0 / 60.0
+		da.check(p.health.hp < hp3, "an acid spout burns the hero")
+	if not g.dungeon.proximity_props.is_empty():
+		var pr: Node2D = g.dungeon.proximity_props[0]
+		_ready_hero()
+		p.iframe_left = 9999.0
+		p.host_teleport(pr.global_position + Vector2(0, 20))
+		await da._wait(0.6)
+		da.check(not g.dungeon.props.values().has(pr), "a gas pocket goes off when a hero comes close")
+	var gate := -1
+	for di in g.dungeon.doors.size():
+		if g.dungeon.doors[di].floodgate:
+			gate = di
+			break
+	if gate >= 0:
+		var door: Node = g.dungeon.doors[gate]
+		_ready_hero()
+		p.host_teleport(door.interact_pos() + Vector2(0, 20))
+		g.host_interact(p, door)
+		await da._wait(0.3)
+		var shut: bool = not door.is_open
+		var lever: Node = null
+		for pr2 in g.dungeon.props.values():
+			if int(pr2.get_meta("gate", -1)) == gate:
+				lever = pr2
+		if lever:
+			p.host_teleport(lever.global_position + Vector2(0, 14))
+			g.host_interact(p, lever)
+		await da._wait(0.4)
+		da.check(shut and door.is_open, "a floodgate stays shut until its lever is pulled")
 	for fm in g.floor_mechanics:
 		_ready_hero()
 		p.iframe_left = 9999.0

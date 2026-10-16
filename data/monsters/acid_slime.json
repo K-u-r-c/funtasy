@@ -1,0 +1,41 @@
+{
+	"id": "acid_slime",
+	"creature_type": "aberration",
+	"biome": "sewers",
+	"name": "Acid Slime",
+	"role": "splitter",
+	"sprite": "monsters.acid_slime",
+	"corpse": "none",
+	"no_corpse": true,
+	"ai": {
+		"type": "ranged",
+		"aggro_radius": 220,
+		"preferred_range": [
+			60,
+			150
+		],
+		"abilities": [
+			"slime_bile"
+		]
+	},
+	"base_stats": {
+		"hp": 60,
+		"damage": 6,
+		"armor": 0,
+		"move_speed": 62,
+		"crit_chance": 0.03,
+		"dodge": 0.0,
+		"nature_resist": 0.3
+	},
+	"behaviors": [
+		{
+			"id": "split_on_death",
+			"into": "acid_slime_small",
+			"count": 3,
+			"radius": 22
+		}
+	],
+	"collision_radius": 10,
+	"xp": 12,
+	"tint": "#90ff60"
+}

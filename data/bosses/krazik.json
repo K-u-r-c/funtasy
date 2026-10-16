@@ -1,0 +1,85 @@
+{
+	"id": "krazik",
+	"creature_type": "beast",
+	"biome": "sewers",
+	"name": "Krazik the Unclean",
+	"sprite": "monsters.krazik",
+	"music": "boss_krazik",
+	"corpse": "flesh",
+	"base_stats": {
+		"hp": 950,
+		"damage": 11,
+		"armor": 20,
+		"move_speed": 92,
+		"crit_chance": 0.06,
+		"dodge": 0.06
+	},
+	"collision_radius": 16,
+	"xp": 320,
+	"aggro_radius": 360,
+	"phases": [
+		{
+			"hp_above": 0.3,
+			"abilities": [
+				"krazik_censer"
+			],
+			"preferred_range": [
+				0,
+				90
+			],
+			"mechanics": [
+				{
+					"id": "perimeter_circle",
+					"speed": 1.0,
+					"margin": 2
+				},
+				{
+					"id": "valve_fog",
+					"valves": 3,
+					"rise": 1.0,
+					"max": 8,
+					"chant": {
+						"base": 1,
+						"coef": 0.1
+					},
+					"test_wait": 4
+				},
+				{
+					"id": "phantom_copies",
+					"every": 20,
+					"first": 12,
+					"monster": "phantom_copy",
+					"lifetime": 12,
+					"test_wait": 2
+				}
+			]
+		},
+		{
+			"hp_above": 0.0,
+			"abilities": [
+				"krazik_claw",
+				"krazik_flask",
+				"krazik_rats"
+			],
+			"preferred_range": [
+				0,
+				60
+			],
+			"title": "Unmounted",
+			"sprite": "monsters.krazik_foot",
+			"scale": 0.8,
+			"on_enter": [
+				"krazik_frenzy"
+			],
+			"message": "Krazik's mount crashes into the flooded pit!",
+			"mechanics": []
+		}
+	],
+	"loot": {
+		"drops": [
+			4,
+			5
+		],
+		"min_rarity": 3
+	}
+}

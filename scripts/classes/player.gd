@@ -444,7 +444,7 @@ func _owner_tick(delta: float) -> void:
 		_release_quick_holds()
 		return
 	# Dodge
-	if Input.is_action_just_pressed("dodge") and _dodge_cd <= 0.0 and speed > 0.0:
+	if Input.is_action_just_pressed("dodge") and _dodge_cd <= 0.0 and speed > 0.0 and not status.has_flag("no_dash"):
 		_dodge_dir = dir if dir != Vector2.ZERO else facing
 		_dodge_left = float(GameData.bal("player.dodge_duration"))
 		_dodge_cd = float(GameData.bal("player.dodge_cooldown"))
@@ -611,7 +611,7 @@ func sync_cooldown(sid: String) -> void:
 
 @rpc("any_peer", "call_local", "reliable")
 func request_dodge(dir: Vector2) -> void:
-	if not _from_owner() or life_state != Life.ALIVE or _dodge_cd_host > 0.1 or move_speed() <= 0.0:
+	if not _from_owner() or life_state != Life.ALIVE or _dodge_cd_host > 0.1 or move_speed() <= 0.0 or status.has_flag("no_dash"):
 		return
 	_dodge_cd_host = float(GameData.bal("player.dodge_cooldown"))
 	iframe_left = maxf(iframe_left, float(GameData.bal("player.dodge_iframes")))

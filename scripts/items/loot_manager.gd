@@ -39,7 +39,7 @@ func drop_item(item: Dictionary, pos: Vector2) -> void:
 	_counter += 1
 	# Keep drops out of walls.
 	var c: Vector2i = game.dungeon.cell_of(pos)
-	if game.dungeon.cell_at(c) != DungeonGenerator.CELL_FLOOR:
+	if not DungeonGenerator.walkable(game.dungeon.cell_at(c)):
 		pos = game.dungeon.cell_center(game.dungeon.cell_of(game.nearest_floor(pos)))
 	spawner.spawn({"name": "Item_%d" % _counter, "pos": pos, "item": item})
 

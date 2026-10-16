@@ -1,0 +1,31 @@
+{
+	"id": "sludge_lobber",
+	"creature_type": "humanoid",
+	"biome": "sewers",
+	"name": "Sludge Lobber",
+	"role": "artillery",
+	"sprite": "monsters.sludge_lobber",
+	"corpse": "flesh",
+	"ai": {
+		"type": "ranged",
+		"aggro_radius": 320,
+		"preferred_range": [
+			180,
+			320
+		],
+		"abilities": [
+			"lobber_mortar"
+		]
+	},
+	"base_stats": {
+		"hp": 42,
+		"damage": 7,
+		"armor": 10,
+		"move_speed": 64,
+		"crit_chance": 0.04,
+		"dodge": 0.0
+	},
+	"collision_radius": 9,
+	"xp": 12,
+	"tint": "#b0a070"
+}

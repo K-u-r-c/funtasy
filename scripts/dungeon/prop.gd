@@ -32,6 +32,22 @@ func setup(new_type: String, pos: Vector2) -> void:
 	if _sprite.texture:
 		_sprite.offset = Vector2(0, -_sprite.texture.get_height() / 2.0 + 2.0)
 	add_child(_sprite)
+	if def.get("flat", false):
+		# Floor-level pieces (raised platforms): no collision, drawn under everyone.
+		collision_layer = 0
+		_sprite.offset = Vector2.ZERO
+		_sprite.z_index = -8
+		_sprite.light_mask = LightLayers.LIT
+	if def.has("light"):
+		# Glowing props (fungal blooms) are real light sources.
+		var l := PointLight2D.new()
+		LightLayers.setup_light(l)
+		l.texture = GameData.texture("fx.light")
+		l.color = Color.from_string(str(def.light), Color.WHITE)
+		l.energy = 0.8
+		l.position = Vector2(0, -6)
+		LightLayers.register(l, float(def.get("light_radius", 56.0)))
+		add_child(l)
 	if bool(def.get("blocks_sight", true)):
 		var occ := LightOccluder2D.new()
 		var poly := OccluderPolygon2D.new()
@@ -89,7 +105,8 @@ func take_damage(amount: float, ctx: Dictionary) -> void:
 		var ectx: Dictionary = Combat.instance.env_ctx(float(ex.damage))
 		ectx.peer = int(ctx.get("peer", 0))
 		var eff := {"type": "aoe", "radius": float(ex.radius), "damage": {"base": 0, "coef": 1.0},
-			"color": ex.get("color", "#ff7722"), "fx": ex.get("fx", "explosion"), "shake": ex.get("shake", 4)}
+			"color": ex.get("color", "#ff7722"), "fx": ex.get("fx", "explosion"), "shake": ex.get("shake", 4),
+			"damage_type": str(ex.get("damage_type", "fire"))}
 		Combat.instance.apply_aoe.call_deferred(eff, ectx, global_position)
 	elif randf() < float(def.get("drop_chance", 0.0)):
 		game.loot.roll_and_drop(str(def.get("loot", "prop")), global_position)
@@ -115,7 +132,7 @@ func break_apart() -> void:
 	add_child(p)
 	p.emitting = true
 	for c in get_children():
-		if c is LightOccluder2D:
+		if c is LightOccluder2D or c is PointLight2D:
 			c.queue_free()
 	if bool(def.get("debris", false)):
 		_sprite.texture = GameData.texture("props.debris")

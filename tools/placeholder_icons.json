@@ -815,5 +815,127 @@
 	"sfx.stomp": {
 		"like": "sfx.explosion",
 		"prompt": "giant armored foot stomping, ground shockwave, deep boom"
+	},
+	"props.sewer_pipe": {
+		"color": "#4a5a3a",
+		"text": "Pi",
+		"shape": "bar",
+		"size": 32
+	},
+	"props.fungal_bloom": {
+		"color": "#7fd94a",
+		"text": "",
+		"shape": "circle",
+		"size": 20
+	},
+	"props.vermin_carcass": {
+		"color": "#6a4a3a",
+		"text": "",
+		"shape": "circle",
+		"size": 22
+	},
+	"props.sewer_barrel": {
+		"color": "#5a6a2a",
+		"text": "Br",
+		"shape": "square",
+		"size": 24
+	},
+	"props.gas_pocket": {
+		"color": "#9acd32",
+		"text": "",
+		"shape": "circle",
+		"size": 20
+	},
+	"props.sewer_strongbox": {
+		"color": "#5a5a4a",
+		"text": "Bx",
+		"shape": "square",
+		"size": 28
+	},
+	"props.sewer_strongbox_open": {
+		"color": "#8a8a5a",
+		"text": "Op",
+		"shape": "square",
+		"size": 28
+	},
+	"props.rusty_lever": {
+		"color": "#7a4a2a",
+		"text": "L",
+		"shape": "bar",
+		"size": 20
+	},
+	"props.rusty_lever_on": {
+		"color": "#c08a3a",
+		"text": "L",
+		"shape": "bar",
+		"size": 20
+	},
+	"props.exhaust_valve": {
+		"color": "#6a7a5a",
+		"text": "V",
+		"shape": "circle",
+		"size": 24
+	},
+	"props.sewer_platform": {
+		"color": "#5a5a50",
+		"text": "",
+		"shape": "square",
+		"size": 64
+	},
+	"props.acid_spout": {
+		"color": "#8acd32",
+		"text": "",
+		"shape": "diamond",
+		"size": 20
+	},
+	"props.floodgate": {
+		"color": "#4a4a3a",
+		"text": "FG",
+		"shape": "square",
+		"size": 32
+	},
+	"music.sewers": {
+		"like": "music.crypt",
+		"prompt": "Dark fantasy dungeon ambience, flooded sewers: dripping water, distant rushing channels, low drones, muffled chanting of heretics, sparse detuned plucks, 70 bpm, oppressive, loopable, instrumental"
+	},
+	"music.boss_murk_amalgam": {
+		"like": "music.boss_bone_lord",
+		"prompt": "Dark fantasy boss battle, colossal sludge monster: sludgy distorted low brass, heavy wet percussion, churning drones, choir groans, 120 bpm, crushing, loopable, instrumental"
+	},
+	"music.boss_krazik": {
+		"like": "music.boss_bone_lord",
+		"prompt": "Dark fantasy boss battle, ratman prophet on a giant mole-rat: frantic tribal drums, bells of heresy tolling, screeching strings, chittering, 150 bpm, chaotic, loopable, instrumental"
+	},
+	"sfx.gas_pop": {
+		"like": "sfx.explosion",
+		"prompt": "wet bloated gas pocket bursting with a sickly hiss, short"
+	},
+	"sfx.acid_hiss": {
+		"like": "sfx.fire",
+		"prompt": "high-pressure acid spout hissing and spraying, 1 second"
+	},
+	"sfx.lever": {
+		"like": "sfx.door",
+		"prompt": "rusty iron lever pulled with a grinding clunk"
+	},
+	"sfx.floodgate": {
+		"like": "sfx.door",
+		"prompt": "heavy iron floodgate grinding open with rushing water"
+	},
+	"sfx.splash": {
+		"like": "sfx.dash",
+		"prompt": "body splashing into murky sewer water, short"
+	},
+	"sfx.bell": {
+		"like": "sfx.roar",
+		"prompt": "cracked heretical bell tolling once with eerie echo"
+	},
+	"sfx.engulf": {
+		"like": "sfx.death",
+		"prompt": "huge wet gulp of a sludge monster swallowing someone"
+	},
+	"sfx.wave": {
+		"like": "sfx.explosion",
+		"prompt": "wall of sewer water crashing across a stone chamber"
 	}
 }

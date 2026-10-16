@@ -4,7 +4,10 @@ extends Enemy
 ## swap the ability list and can fire one-off abilities (e.g. enrage) when entered. Each phase
 ## can run arena mechanics (scripts/enemies/boss_mechanics/, host-only).
 
-var phase := -1  ## replicated for the HUD
+var phase := -1:  ## replicated for the HUD; a phase can change the boss's look
+	set(v):
+		phase = v
+		_apply_phase_look()
 var mechanics: Array = []  ## host: BossMechanic modules of the current phase
 
 
@@ -49,6 +52,14 @@ func _host_ai(delta: float) -> void:
 	super._host_ai(delta)
 
 
+func extra_move_override(delta: float) -> Vector2:
+	for m in mechanics:
+		var v: Vector2 = m.move_override(delta)
+		if v != Vector2.INF:
+			return v
+	return Vector2.INF
+
+
 func mechanics_busy() -> bool:
 	for m in mechanics:
 		if m.busy():
@@ -83,6 +94,16 @@ func on_death() -> void:
 	super.on_death()
 
 
+## Every peer: data "sprite" / "scale" on a phase (Krazik on foot).
+func _apply_phase_look() -> void:
+	if sprite == null or phase < 0 or phase >= def.get("phases", []).size():
+		return
+	var p: Dictionary = def.phases[phase]
+	if p.has("sprite"):
+		sprite.set_layer("body", str(p.sprite), Color.from_string(str(def.get("tint", "#ffffff")), Color.WHITE))
+		def = def.merged({"sprite": p.sprite, "scale": float(p.get("scale", def.get("scale", 1.0)))}, true)
+
+
 func _enter_phase(i: int) -> void:
 	phase = i
 	var p: Dictionary = def.phases[i]
@@ -95,6 +116,7 @@ func _enter_phase(i: int) -> void:
 			m.setup(self, md)
 	_abilities = p.abilities
 	_preferred = p.get("preferred_range", [0, 60])
+	_update_reach()
 	for sid in p.get("on_enter", []):
 		var ctx := Combat.instance.make_ctx(self, GameData.skill(sid))
 		for eff in GameData.skill(sid).effects:

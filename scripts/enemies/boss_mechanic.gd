@@ -54,6 +54,11 @@ func modify_damage_taken(amount: float, _data: Dictionary) -> float:
 	return amount
 
 
+## Host: a direction the boss must move in (Vector2.INF = no override).
+func move_override(_delta: float) -> Vector2:
+	return Vector2.INF
+
+
 ## Test harness: force the mechanic now, then check it did its job ("" = ok).
 func test_trigger(_suite: RefCounted) -> void:
 	trigger()

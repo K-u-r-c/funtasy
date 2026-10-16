@@ -42,7 +42,7 @@ func run_effect(eff: Dictionary, ctx: Dictionary, origin: Vector2, aim: Vector2)
 		if picked.is_empty():
 			return
 		aim = picked[0].global_position
-	if str(eff.get("from", "")) == "target" and ctx.get("event_target") is Actor and is_instance_valid(ctx.event_target):
+	if str(eff.get("from", "")) == "target" and is_instance_valid(ctx.get("event_target")) and ctx.get("event_target") is Actor:
 		origin = ctx.event_target.global_position
 	var dir := (aim - origin).normalized()
 	if dir == Vector2.ZERO:
@@ -286,7 +286,7 @@ func _magnitude(eff: Dictionary, ctx: Dictionary, t: Actor = null) -> float:
 	var v := value_of_spec(m, ctx)
 	if m is Dictionary and t:
 		v += t.health.max_hp * float(m.get("pct_target_max_hp", 0.0))
-		if ctx.caster is Actor and is_instance_valid(ctx.caster):
+		if is_instance_valid(ctx.caster) and ctx.caster is Actor:
 			v += ctx.caster.health.max_hp * float(m.get("pct_caster_max_hp", 0.0))
 	return v
 
@@ -305,7 +305,7 @@ func _heal_amount(eff: Dictionary, ctx: Dictionary, t: Actor, key: String = "amo
 			v += ev_amount
 		if spec.has("max_pct_target_max_hp"):
 			v = minf(v, t.health.max_hp * float(spec.max_pct_target_max_hp))
-		if ctx.caster is Actor and is_instance_valid(ctx.caster):
+		if is_instance_valid(ctx.caster) and ctx.caster is Actor:
 			v += ctx.caster.health.max_hp * float(spec.get("pct_caster_max_hp", 0.0))
 	if t.health.fraction() < float(ctx.get("low_hp_heal_below", 0.0)):
 		v *= 1.0 + float(ctx.get("low_hp_heal_bonus", 0.0))

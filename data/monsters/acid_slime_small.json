@@ -1,0 +1,34 @@
+{
+	"id": "acid_slime_small",
+	"creature_type": "aberration",
+	"biome": "sewers",
+	"name": "Acid Slimeling",
+	"role": "splitter",
+	"sprite": "monsters.acid_slime",
+	"corpse": "none",
+	"no_corpse": true,
+	"scale": 0.6,
+	"spawn_only": true,
+	"ai": {
+		"type": "melee",
+		"aggro_radius": 220,
+		"preferred_range": [
+			0,
+			24
+		],
+		"abilities": [
+			"slime_small_bite"
+		]
+	},
+	"base_stats": {
+		"hp": 14,
+		"damage": 3,
+		"armor": 0,
+		"move_speed": 84,
+		"crit_chance": 0.03,
+		"dodge": 0.0
+	},
+	"collision_radius": 6,
+	"xp": 2,
+	"tint": "#a0ff70"
+}

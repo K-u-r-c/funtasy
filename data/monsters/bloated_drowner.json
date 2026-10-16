@@ -1,0 +1,38 @@
+{
+	"id": "bloated_drowner",
+	"creature_type": "undead",
+	"biome": "sewers",
+	"name": "Bloated Drowner",
+	"role": "kamikaze",
+	"sprite": "monsters.bloated_drowner",
+	"corpse": "none",
+	"no_corpse": true,
+	"ai": {
+		"type": "melee",
+		"aggro_radius": 260,
+		"preferred_range": [
+			0,
+			20
+		],
+		"abilities": []
+	},
+	"base_stats": {
+		"hp": 70,
+		"damage": 9,
+		"armor": 6,
+		"move_speed": 52,
+		"crit_chance": 0.0,
+		"dodge": 0.0
+	},
+	"behaviors": [
+		{
+			"id": "kamikaze",
+			"trigger": 50,
+			"fuse": 0.6,
+			"skill": "drowner_burst"
+		}
+	],
+	"collision_radius": 10,
+	"xp": 12,
+	"tint": "#a0c0a0"
+}

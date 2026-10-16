@@ -45,6 +45,8 @@ func check_boss(id: String) -> void:
 	boss.add_threat(p, 10.0)
 	var phases: Array = boss.def.phases
 	for i in phases.size():
+		if not is_instance_valid(boss) or not boss.is_alive():
+			break  # a mechanic finished the fight (the Amalgam dies with its twins)
 		if i > 0:
 			boss.health.absorb = 0.0
 			boss.health.hp = boss.health.max_hp * maxf(float(phases[i - 1].hp_above) - 0.03, 0.02)
@@ -65,6 +67,8 @@ func check_boss(id: String) -> void:
 			t += 0.25
 		da.check(used, "%s used a phase %d ability" % [id, i + 1])
 		for m in boss.mechanics.duplicate():
+			if not is_instance_valid(boss):
+				break
 			await m.test_trigger(self)
 			var mt := 0.0
 			var err := "not checked"

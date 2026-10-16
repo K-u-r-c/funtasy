@@ -93,7 +93,7 @@ func max_stacks(def: Dictionary) -> int:
 	if def.has("stack_bonus_flag"):
 		# e.g. Venomtouch Grips: poisons stack to 6 when the poisoner has the flag.
 		for e in effects:
-			if e.def == def and e.src_node is Actor and is_instance_valid(e.src_node) and e.src_node.stats.has_flag(str(def.stack_bonus_flag)):
+			if e.def == def and is_instance_valid(e.src_node) and e.src_node is Actor and e.src_node.stats.has_flag(str(def.stack_bonus_flag)):
 				return int(def.get("bonus_max_stacks", n))
 	return n if actor else n
 

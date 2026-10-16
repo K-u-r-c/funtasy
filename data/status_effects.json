@@ -33,7 +33,7 @@
 	"sunder": {"name": "Sundered", "kind": "stat", "stats": {"armor_mult": 0.7}, "color": "#aa7744", "debuff": true},
 	"acid": {"name": "Acid", "kind": "stat", "stats": {"armor_mult": 0.6}, "color": "#ccee33", "debuff": true, "cleanse": "poison"},
 	"healing_reduction": {"name": "Grievous Wound", "kind": "stat", "stats": {"healing_taken_mult": 0.5}, "color": "#880000", "debuff": true},
-	"blighted_taint": {"name": "Blighted Taint", "kind": "stat", "stack_stats": {"healing_taken_mult": 0.95}, "max_stacks": 10, "color": "#556622", "debuff": true, "cleanse": "disease"},
+	"blighted_taint": {"name": "Blighted Taint", "kind": "stat", "stack_stats": {"healing_received_mult": 0.95}, "max_stacks": 10, "color": "#7a8a2a", "debuff": true},
 	"heat": {"name": "Heat", "kind": "stat", "stack_stats": {"armor_mult": 0.99}, "max_stacks": 30, "color": "#ff5500", "debuff": true},
 	"weakened": {"name": "Weakened", "kind": "stat", "stats": {"damage_mult": 0.85}, "color": "#887799", "debuff": true, "cleanse": "curse"},
 	"accuracy_down": {"name": "Blurred Sight", "kind": "stat", "stats": {"miss_chance": 0.3}, "color": "#778866", "debuff": true, "cleanse": "poison"},
@@ -151,5 +151,15 @@
 	"airborne": {"name": "Airborne", "kind": "stat", "flags": ["knockback_immune", "cc_immune"], "color": "#e0d0ff", "visual": {"scale": 1.08, "alpha": 0.95, "lift": 22}},
 	"chant_of_the_damned": {"name": "Chant of the Damned", "kind": "dot", "tick": 1.0, "ramp": 0.15, "damage_type": "shadow", "color": "#8040c0", "debuff": true},
 	"bone_whirlwind": {"name": "Bone Whirlwind", "kind": "stat", "flags": ["reflect_projectiles", "knockback_immune"], "color": "#e8e0c8"},
-	"unlit_chill": {"name": "Chilling Breath", "kind": "stat", "stats": {"resource_regen_mult": 0.5, "resource_gen_mult": 0.5}, "color": "#506080", "debuff": true}
+	"unlit_chill": {"name": "Chilling Breath", "kind": "stat", "stats": {"resource_regen_mult": 0.5, "resource_gen_mult": 0.5}, "color": "#506080", "debuff": true},
+	"corroded": {"name": "Corroded", "kind": "stat", "stats": {"armor_mult": 0.9}, "color": "#b0ff40", "debuff": true, "cleanse": "poison"},
+	"foul_serum": {"name": "Foul Serum", "kind": "stat", "stats": {"damage_mult": 1.3}, "flags": ["cc_immune"], "color": "#90ff60", "visual": {"scale": 1.2, "tint": "#c0ff90"}},
+	"submerged": {"name": "Submerged", "kind": "stat", "flags": ["stealthed"], "color": "#405030"},
+	"mud_grasp": {"name": "Grasping Mud", "kind": "cc", "flags": ["rooted"], "color": "#6a5a2a", "debuff": true, "cleanse": "movement", "dr_category": "root"},
+	"leeched": {"name": "Leeched", "kind": "stat", "flags": ["no_dash"], "color": "#6a1a2a", "debuff": true},
+	"sewage_slow": {"name": "Wading", "kind": "stat", "stats": {"move_speed_mult": 0.75}, "color": "#4a6a3a", "debuff": true},
+	"engulfed": {"name": "Engulfed", "kind": "cc", "flags": ["stunned", "rooted", "untargetable"], "color": "#5a7a2a", "debuff": true},
+	"green_fog": {"name": "Lethal Green Fog", "kind": "dot", "tick": 1.0, "ramp": 0.25, "damage_type": "nature", "color": "#7fd94a", "debuff": true},
+	"krazik_frenzy": {"name": "Frenzied Agility", "kind": "stat", "stats": {"move_speed_mult": 1.25, "haste": 0.2}, "color": "#c0ff60"},
+	"split_hidden": {"name": "Divided", "kind": "stat", "flags": ["untargetable", "invulnerable"], "color": "#5a7a2a", "visual": {"alpha": 0.0}}
 }

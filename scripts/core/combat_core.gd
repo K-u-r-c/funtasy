@@ -107,11 +107,11 @@ func select_targets(eff: Dictionary, ctx: Dictionary, origin: Vector2, aim: Vect
 			return [low] if low else []
 		"event_target":
 			var t: Variant = ctx.get("event_target")
-			return [t] if t is Actor and is_instance_valid(t) and t.is_alive() else []
+			return [t] if is_instance_valid(t) and t is Actor and t.is_alive() else []
 		"event_attacker":
 			var ev: Variant = ctx.get("event", {})
 			var at: Variant = ev.get("attacker") if ev is Dictionary else null
-			return [at] if at is Actor and is_instance_valid(at) and at.is_alive() else []
+			return [at] if is_instance_valid(at) and at is Actor and at.is_alive() else []
 		"nearest_enemy", "highest_hp_enemy", "random_enemy", "lowest_hp_enemy":
 			var pool := enemies_of(ctx.team, origin, reach).filter(func(x): return has_los(origin, x.global_position))
 			if pool.is_empty():
@@ -298,7 +298,7 @@ func deal_damage(ctx: Dictionary, target: Actor, amount: float, opts: Dictionary
 	# Martyrdom / Halo: a share goes to another actor (true damage, never chained).
 	if not opts.get("redirected", false):
 		var rd := target.status.find_entry_with("redirect")
-		if not rd.is_empty() and rd.get("src_node") is Actor and is_instance_valid(rd.src_node) and rd.src_node.is_alive() and rd.src_node != target:
+		if not rd.is_empty() and is_instance_valid(rd.get("src_node")) and rd.get("src_node") is Actor and rd.src_node.is_alive() and rd.src_node != target:
 			var share := amount * float(rd.def.redirect)
 			amount -= share
 			var rctx := env_ctx(0.0)
@@ -552,19 +552,19 @@ func proc_conditions(actor: Actor, cond: Dictionary, data: Dictionary) -> bool:
 				if bool(data.get("dot", false)) != bool(v):
 					return false
 			"target_status":
-				if not (target is Actor and is_instance_valid(target) and target.status.has_any(Array(v) if v is Array else [v])):
+				if not (is_instance_valid(target) and target is Actor and target.status.has_any(Array(v) if v is Array else [v])):
 					return false
 			"target_flag":
-				if not (target is Actor and is_instance_valid(target) and target.status.has_flag(str(v))):
+				if not (is_instance_valid(target) and target is Actor and target.status.has_flag(str(v))):
 					return false
 			"target_creature":
-				if not (target is Actor and is_instance_valid(target) and (Array(v) if v is Array else [v]).has(target.creature_type())):
+				if not (is_instance_valid(target) and target is Actor and (Array(v) if v is Array else [v]).has(target.creature_type())):
 					return false
 			"target_hp_below":
-				if not (target is Actor and is_instance_valid(target) and target.health.fraction() < float(v)):
+				if not (is_instance_valid(target) and target is Actor and target.health.fraction() < float(v)):
 					return false
 			"target_hp_above":
-				if not (target is Actor and is_instance_valid(target) and target.health.fraction() > float(v)):
+				if not (is_instance_valid(target) and target is Actor and target.health.fraction() > float(v)):
 					return false
 			"self_hp_below":
 				if actor.health.fraction() >= float(v):
@@ -576,19 +576,19 @@ func proc_conditions(actor: Actor, cond: Dictionary, data: Dictionary) -> bool:
 				if not actor.status.has_flag(str(v)):
 					return false
 			"target_team":
-				if not (target is Actor and is_instance_valid(target) and (target.team == actor.team) == (str(v) == "ally")):
+				if not (is_instance_valid(target) and target is Actor and (target.team == actor.team) == (str(v) == "ally")):
 					return false
 			"amount_above_max_hp_pct":
-				if not (target is Actor and is_instance_valid(target) and float(data.get("amount", 0.0)) > target.health.max_hp * float(v)):
+				if not (is_instance_valid(target) and target is Actor and float(data.get("amount", 0.0)) > target.health.max_hp * float(v)):
 					return false
 			"xp":
 				if bool(data.get("xp", false)) != bool(v):
 					return false
 			"target_boss":
-				if not (target is Actor and is_instance_valid(target) and bool(target.get("is_boss")) == bool(v)):
+				if not (is_instance_valid(target) and target is Actor and bool(target.get("is_boss")) == bool(v)):
 					return false
 			"target_alive":
-				if not (target is Actor and is_instance_valid(target) and target.is_alive() == bool(v)):
+				if not (is_instance_valid(target) and target is Actor and target.is_alive() == bool(v)):
 					return false
 			"in_combat":
 				if (actor.resource.since_combat() < float(GameData.bal("stats.out_of_combat_delay", 5.0))) != bool(v):
@@ -627,7 +627,7 @@ func run_proc(actor: Actor, pr: Dictionary, data: Dictionary) -> void:
 	ctx.event_target = data.get("target")
 	ctx.event = data
 	var target: Variant = data.get("target")
-	var tpos: Vector2 = target.global_position if target is Actor and is_instance_valid(target) else actor.global_position
+	var tpos: Vector2 = target.global_position if is_instance_valid(target) and target is Actor else actor.global_position
 	var origin := tpos if str(pr.get("at", "self")) == "target" else actor.global_position
 	for eff in pr.get("do", []):
 		call("run_effect", eff, ctx, origin, tpos)

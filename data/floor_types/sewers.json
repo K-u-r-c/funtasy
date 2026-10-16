@@ -1,0 +1,130 @@
+{
+	"id": "sewers",
+	"order": 2,
+	"name": "Sewers of Heresy",
+	"tiles": "tiles.sewers",
+	"music": "sewers",
+	"bosses": [
+		"murk_amalgam",
+		"krazik"
+	],
+	"ambient_color": "#1a3311",
+	"torch_color": "#7fd94a",
+	"lava_color": "#9acd32",
+	"vision_mult": 0.8,
+	"grid": [
+		96,
+		72
+	],
+	"rooms": {
+		"count": [
+			9,
+			12
+		],
+		"min_size": [
+			9,
+			8
+		],
+		"max_size": [
+			16,
+			12
+		],
+		"boss_size": [
+			19,
+			15
+		]
+	},
+	"generator": {
+		"profile": "aqueducts",
+		"winding": true,
+		"extra_edges": 3,
+		"water_room_chance": 0.6,
+		"sludge_chance": 0.5,
+		"canal_room_chance": 0.35,
+		"floodgate_chance": 0.3
+	},
+	"monsters": [
+		{
+			"id": "plague_ratman",
+			"weight": 5
+		},
+		{
+			"id": "acid_slime",
+			"weight": 3
+		},
+		{
+			"id": "bloated_drowner",
+			"weight": 2
+		},
+		{
+			"id": "flesh_stitcher",
+			"weight": 2
+		},
+		{
+			"id": "gutter_stalker",
+			"weight": 2
+		},
+		{
+			"id": "sludge_lobber",
+			"weight": 2
+		},
+		{
+			"id": "abyssal_leech",
+			"weight": 2
+		}
+	],
+	"enemies_per_room": [
+		2,
+		4
+	],
+	"props_per_room": [
+		3,
+		7
+	],
+	"prop_weights": {
+		"sewer_pipe": 3,
+		"fungal_bloom": 4,
+		"vermin_carcass": 3,
+		"sewer_barrel": 3,
+		"gas_pocket": 2,
+		"crate": 1,
+		"pillar": 1
+	},
+	"torches_per_room": [
+		1,
+		2
+	],
+	"chests": [
+		1,
+		3
+	],
+	"lava_room_chance": 0.0,
+	"spikes_per_room": [
+		0,
+		0
+	],
+	"acid_spouts": [
+		3,
+		6
+	],
+	"bookshelves_per_room": [
+		0,
+		0
+	],
+	"bookshelf_chance": 0.15,
+	"secret_containers": [
+		1,
+		2
+	],
+	"secret_container": "sewer_strongbox",
+	"lore_origin": "sewers",
+	"floor_mechanics": [
+		{
+			"id": "sludge_drag_taint",
+			"slow": "sewage_slow",
+			"taint": "blighted_taint",
+			"dry_time": 3.0,
+			"test_wait": 7
+		}
+	]
+}

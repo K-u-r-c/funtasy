@@ -1,0 +1,45 @@
+{
+	"id": "abyssal_leech",
+	"creature_type": "beast",
+	"biome": "sewers",
+	"name": "Abyssal Leech",
+	"role": "parasite",
+	"sprite": "monsters.abyssal_leech",
+	"corpse": "flesh",
+	"ai": {
+		"type": "melee",
+		"aggro_radius": 220,
+		"preferred_range": [
+			0,
+			20
+		],
+		"abilities": [
+			"leech_bite"
+		]
+	},
+	"base_stats": {
+		"hp": 38,
+		"damage": 4,
+		"armor": 4,
+		"move_speed": 90,
+		"crit_chance": 0.0,
+		"dodge": 0.05
+	},
+	"behaviors": [
+		{
+			"id": "latch",
+			"fury": 10,
+			"mana": 15,
+			"status": "leeched",
+			"range": 26
+		}
+	],
+	"behavior_visuals": {
+		"latched": {
+			"scale": 0.8
+		}
+	},
+	"collision_radius": 7,
+	"xp": 11,
+	"tint": "#c06070"
+}

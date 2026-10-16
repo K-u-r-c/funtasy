@@ -52,6 +52,7 @@ func _ready() -> void:
 			shot_at = float(v)
 		elif a.begins_with("--biome="):
 			biome = v
+			GameState.set_meta("force_biome", v)
 		elif a.begins_with("--tour="):
 			tour = v
 		elif a.begins_with("--boss="):

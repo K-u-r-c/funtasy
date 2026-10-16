@@ -11,6 +11,7 @@ const SPIKES_SCRIPT := preload("res://scripts/dungeon/spikes.gd")
 const TORCH_SCRIPT := preload("res://scripts/dungeon/torch.gd")
 const PLATE_SCRIPT := preload("res://scripts/dungeon/pressure_plate.gd")
 const PENDULUM_SCRIPT := preload("res://scripts/dungeon/pendulum.gd")
+const SPOUT_SCRIPT := preload("res://scripts/dungeon/acid_spout.gd")
 
 var layout: Dictionary = {}
 var floor_def: Dictionary = {}
@@ -26,6 +27,8 @@ var spikes: Array = []
 var plates: Array = []  ## pressure plates (Crypt)
 var plate_by_id: Dictionary = {}
 var pendulums: Array = []  ## pendulum scythes (Crypt)
+var spouts: Array = []  ## acid spouts (Sewers)
+var proximity_props: Array = []  ## host: props that go off when a hero comes close (gas pockets)
 var lights: Array = []  ## torch / lava lights, culled by distance in Visibility
 var obstacles: Dictionary = {}  ## dynamic terrain id -> {node, cells}
 var safe_rect := Rect2i()  ## the merchant chamber (cells): monsters never path into it or target anyone inside
@@ -61,6 +64,8 @@ func build(new_layout: Dictionary, def: Dictionary, entity_root: Node2D) -> void
 	n = 0
 	for p in layout.props:
 		_add_prop("Prop_%d" % n, str(p.type), p.pos)
+		if p.has("gate"):
+			props["Prop_%d" % n].set_meta("gate", int(p.gate))
 		n += 1
 	# The merchant chamber's fixed pieces (the same names on every peer).
 	var m: Dictionary = layout.get("merchant", {})
@@ -91,6 +96,11 @@ func build(new_layout: Dictionary, def: Dictionary, entity_root: Node2D) -> void
 		plates.append(plate)
 		plate_by_id[plate.plate_id] = plate
 		n += 1
+	for sp2 in layout.get("spouts", []):
+		var spout: Node2D = SPOUT_SCRIPT.new()
+		spout.setup(sp2.cell, sp2.dir, tile, float(sp2.phase))
+		entities.add_child(spout)
+		spouts.append(spout)
 	for pe in layout.get("pendulums", []):
 		var pend: Node2D = PENDULUM_SCRIPT.new()
 		pend.setup(pe.pos, pe.axis, float(pe.span), float(pe.phase))
@@ -147,6 +157,10 @@ func clear() -> void:
 	for pd in pendulums:
 		_discard(pd)
 	pendulums.clear()
+	for sp in spouts:
+		_discard(sp)
+	spouts.clear()
+	proximity_props.clear()
 	for l in lights:
 		if is_instance_valid(l):
 			var torch: Node = l.get_parent()
@@ -199,6 +213,10 @@ func _build_tiles() -> void:
 			elif v == DungeonGenerator.CELL_LAVA:
 				var lv: Array = tiles_entry.lava
 				floor_layer.set_cell(c, 0, Vector2i(int(lv[0]), int(lv[1])))
+			elif SPECIAL_TILES.has(v):
+				var key: String = SPECIAL_TILES[v]
+				var st: Array = tiles_entry.get(key, tiles_entry.floor[0])
+				floor_layer.set_cell(c, 0, Vector2i(int(st[0]), int(st[1])))
 			else:
 				if not _near_floor(c):
 					continue
@@ -209,6 +227,11 @@ func _build_tiles() -> void:
 				else:
 					var wt: Array = tiles_entry.wall_top
 					wall_layer.set_cell(c, 0, Vector2i(int(wt[0]), int(wt[1])))
+
+
+## Cell kinds drawn from a named tile of the biome's atlas ("water", "sludge", ...).
+const SPECIAL_TILES := {DungeonGenerator.CELL_WATER: "water", DungeonGenerator.CELL_SLUDGE: "sludge",
+	DungeonGenerator.CELL_CANAL: "canal", DungeonGenerator.CELL_BRIDGE: "bridge"}
 
 
 func _near_floor(c: Vector2i) -> bool:
@@ -225,6 +248,10 @@ func _make_tileset(entry: Dictionary) -> TileSet:
 	ts.add_physics_layer()
 	ts.set_physics_layer_collision_layer(0, 1)
 	ts.set_physics_layer_collision_mask(0, 0)
+	# Canals block movement only (layer 128, like movement obstacles): sight and shots pass.
+	ts.add_physics_layer()
+	ts.set_physics_layer_collision_layer(1, 128)
+	ts.set_physics_layer_collision_mask(1, 0)
 	ts.add_occlusion_layer()
 	var src := TileSetAtlasSource.new()
 	src.texture = load(str(entry.path))
@@ -240,6 +267,11 @@ func _make_tileset(entry: Dictionary) -> TileSet:
 	for f in entry.wall_face:
 		all_tiles.append([Vector2i(int(f[0]), int(f[1])), "face"])
 	all_tiles.append([Vector2i(int(entry.lava[0]), int(entry.lava[1])), "lava"])
+	for k in ["water", "sludge", "bridge"]:
+		if entry.has(k):
+			all_tiles.append([Vector2i(int(entry[k][0]), int(entry[k][1])), "floor"])
+	if entry.has("canal"):
+		all_tiles.append([Vector2i(int(entry.canal[0]), int(entry.canal[1])), "canal"])
 	for t in all_tiles:
 		var coords: Vector2i = t[0]
 		if not src.has_tile(coords):
@@ -253,6 +285,9 @@ func _make_tileset(entry: Dictionary) -> TileSet:
 				occ.polygon = full if t[1] == "top" else face_top
 				data.set_occluder(0, occ)
 				data.y_sort_origin = int(half)
+			"canal":
+				data.add_collision_polygon(1)
+				data.set_collision_polygon_points(1, 0, full)
 	return ts
 
 
@@ -273,6 +308,10 @@ func _build_astar() -> void:
 				astar.set_point_solid(Vector2i(x, y), true)
 			elif v == DungeonGenerator.CELL_LAVA:
 				astar.set_point_weight_scale(Vector2i(x, y), 25.0)
+			elif v == DungeonGenerator.CELL_CANAL:
+				astar.set_point_solid(Vector2i(x, y), true)
+			elif v == DungeonGenerator.CELL_WATER or v == DungeonGenerator.CELL_SLUDGE:
+				astar.set_point_weight_scale(Vector2i(x, y), 2.0)
 
 
 func cell_at(c: Vector2i) -> int:
@@ -463,7 +502,7 @@ func remove_obstacle(id: int) -> void:
 		return
 	if o.blocks != "none":
 		for c in o.cells:
-			if astar.is_in_boundsv(c) and cell_at(c) != DungeonGenerator.CELL_WALL:
+			if astar.is_in_boundsv(c) and DungeonGenerator.walkable(cell_at(c)):
 				astar.set_point_solid(c, false)
 	_discard(o.node)
 
@@ -483,6 +522,8 @@ func _add_prop(prop_name: String, type: String, pos: Vector2) -> void:
 	p.setup(type, pos)
 	entities.add_child(p)
 	props[prop_name] = p
+	if p.def.has("proximity"):
+		proximity_props.append(p)
 	if p.blocks_path():
 		astar.set_point_solid(cell_of(pos), true)
 

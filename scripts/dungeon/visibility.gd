@@ -54,6 +54,10 @@ func _ready() -> void:
 
 func reset_floor() -> void:
 	_visible_now.clear()
+	# Sewer mist and the like: the floor type scales how far heroes see.
+	var vm := float(game.floor_def.get("vision_mult", 1.0)) if game else 1.0
+	fov_radius = int(round(float(GameData.bal("vision.fov_radius")) * vm))
+	max_sight = float(GameData.bal("vision.max_sight")) * vm
 	var s := dungeon.size
 	_fog_img = Image.create(s.x, s.y, false, Image.FORMAT_RGBA8)
 	_fog_img.fill(Color(0, 0, 0, FOG_UNSEEN))

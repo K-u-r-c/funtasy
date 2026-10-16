@@ -7,6 +7,7 @@ var cells: Array = []
 var vertical := false
 var is_open := false
 var monster_proof := false  ## merchant chamber doors: monsters never open them
+var floodgate := false  ## Sewers: rusted shut until a lever beside it is pulled
 var world_rect := Rect2()
 var _shape: CollisionShape2D
 var _occluder: LightOccluder2D
@@ -17,6 +18,7 @@ func setup(d: Dictionary, tile: int) -> void:
 	cells = d.cells
 	vertical = d.vertical
 	monster_proof = bool(d.get("monster_proof", false))
+	floodgate = bool(d.get("floodgate", false))
 	var r: Rect2i = d.rect
 	world_rect = Rect2(Vector2(r.position * tile), Vector2(r.size * tile))
 	position = world_rect.position + Vector2(world_rect.size.x / 2.0, world_rect.size.y)
@@ -40,6 +42,8 @@ func setup(d: Dictionary, tile: int) -> void:
 
 
 func interact_text() -> String:
+	if floodgate and not is_open:
+		return "Floodgate - rusted shut"
 	return "Close door" if is_open else "Open door"
 
 
