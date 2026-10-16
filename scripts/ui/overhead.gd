@@ -43,6 +43,8 @@ func _draw() -> void:
 				draw_arc(p.global_position + Vector2(0, -20), 16.0, -PI / 2.0, -PI / 2.0 + TAU * p.revive_progress, 24, Color(0.5, 1.0, 0.6), 3.0)
 		_cast(p, head + Vector2(0, -16), now)
 	if is_instance_valid(game.local_player):
+		_ally_target_marker(game, game.local_player)
+	if is_instance_valid(game.local_player):
 		var lp: Player = game.local_player
 		for g in game.items_root.get_children():
 			if g.global_position.distance_to(lp.global_position) < 110.0:
@@ -73,3 +75,34 @@ func _text(center: Vector2, text: String, color: Color, size: int) -> void:
 	var pos := center - Vector2(w / 2.0, 0)
 	draw_string_outline(_font, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, size, 3, Color(0, 0, 0, 0.85))
 	draw_string(_font, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, size, color)
+
+
+## Ally-targeted skills (3.4): mark the teammate an ally skill on the bar would pick right now
+## (the one nearest the aim point, within reach); nothing when it would fall back to yourself.
+func _ally_target_marker(game: Node, lp: Player) -> void:
+	if lp.life_state != Player.Life.ALIVE:
+		return
+	var reach := 0.0
+	for sid in lp.skills:
+		for eff in GameData.skills.get(str(sid), {}).get("effects", []):
+			if str(eff.get("target", "")) in ["aim_ally", "aim_any"]:
+				reach = maxf(reach, float(eff.get("range", eff.get("max_range", 300))))
+	if reach <= 0.0:
+		return
+	var best: Player = null
+	var best_d := 90.0
+	for other in game.players_root.get_children():
+		if other == lp or other.life_state != Player.Life.ALIVE or other.global_position.distance_to(lp.global_position) > reach:
+			continue
+		var d: float = other.global_position.distance_to(lp.aim_pos)
+		if d <= best_d:
+			best_d = d
+			best = other
+	if best == null:
+		return
+	var c := best.global_position
+	var col := Color(0.45, 1.0, 0.55, 0.85)
+	draw_arc(c, 13.0, 0.0, TAU, 24, col, 1.5)
+	for i in 4:
+		var a := TAU * i / 4.0 + Time.get_ticks_msec() / 600.0
+		draw_line(c + Vector2.from_angle(a) * 15.0, c + Vector2.from_angle(a) * 19.0, col, 1.5)

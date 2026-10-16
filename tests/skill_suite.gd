@@ -448,3 +448,71 @@ func _max_delay(effects: Array) -> float:
 	for e in effects:
 		m = maxf(m, float(e.get("delay", 0.0)) + _max_delay(e.get("effects", [])))
 	return m
+
+
+# =========================================================================================
+# LAN pair (host + priest client): a channel started and released by the client's real input,
+# and an ally skill from the client landing on the host's hero.
+# =========================================================================================
+
+
+func run_lan() -> void:
+	g = da._game()
+	p = da._local()
+	await da._wait_until(func(): return g.players_root.get_child_count() >= 2, 10.0)
+	await da._wait(1.0)
+	var c: Player = da._other_player()
+	for e in g.enemies_root.get_children():
+		e.queue_free()
+	await da._wait(0.3)
+	var start: Vector2 = g.layout.start
+	p.host_teleport(start)
+	c.host_teleport(g.nearest_floor(start + Vector2(-60, 0)))
+	var d: Enemy = g.spawn_monster("training_dummy", g.nearest_floor(start + Vector2(60, 0)), false)
+	for pl in [p, c]:
+		pl.iframe_left = 9999.0
+	# The client learns Penance and slots it on 1, Flash Heal on 2.
+	var t := c.talents.duplicate()
+	t["p_s_penance"] = 1
+	c.talents = t
+	c.recompute_stats()
+	var lo: Array = c.skills.duplicate()
+	lo[1] = "priest_penance"
+	lo[2] = "priest_heal"
+	if lo.count("priest_penance") > 1 or lo.count("priest_heal") > 1:
+		lo = ["priest_smite", "priest_penance", "priest_heal", "priest_holy_shield", "priest_consecration", "priest_rebuke"]
+	c.resource._since_combat = 99.0
+	c.skills = lo
+	await da._wait(0.6)
+	da.check(str(c.skills[1]) == "priest_penance", "client has Penance on slot 1")
+	var hp0 := d.health.hp
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["sk_channel", d.global_position])
+	var started: bool = await da._wait_until(func(): return not c.channel.is_empty(), 3.0)
+	da.check(started, "the client's held key starts the channel on the host")
+	var stopped: bool = await da._wait_until(func(): return c.channel.is_empty(), 3.0)
+	await da._wait(0.2)
+	da.check(stopped and d.health.hp < hp0, "releasing the key stops the channel early (dummy took %d)" % roundi(hp0 - d.health.hp))
+	p.health.hp = p.health.max_hp * 0.4
+	var php := p.health.hp
+	c.cooldowns.clear()
+	c.resource.value = c.resource.max_value
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["sk_heal_host", p.global_position])
+	await da._wait(1.5)
+	da.check(p.health.hp > php + 1.0, "the client's Flash Heal aimed at the host heals the host (%d -> %d)" % [php, p.health.hp])
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["done", null])
+	await da._wait(1.0)
+
+
+func client_cmd(cmd: String, arg: Variant) -> void:
+	p = da._local()
+	match cmd:
+		"sk_channel":
+			p.auto_aim = arg
+			Input.action_press("skill_1")
+			await da._wait(0.9)
+			Input.action_release("skill_1")
+		"sk_heal_host":
+			p.auto_aim = arg
+			Input.action_press("skill_2")
+			await da._wait(0.15)
+			Input.action_release("skill_2")

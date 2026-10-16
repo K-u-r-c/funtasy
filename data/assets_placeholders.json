@@ -25,11 +25,19 @@
 		"secret_sarcophagus_open": "res://assets/sprites/placeholder/gdd/props/secret_sarcophagus_open.png"
 	},
 	"sfx": {
+		"beam": "res://assets/audio/sfx/placeholder/gdd/beam.wav",
 		"book_open": "res://assets/audio/sfx/placeholder/gdd/book_open.wav",
+		"chain": "res://assets/audio/sfx/placeholder/gdd/chain.wav",
+		"channel": "res://assets/audio/sfx/placeholder/gdd/channel.wav",
 		"coin": "res://assets/audio/sfx/placeholder/gdd/coin.wav",
 		"key_unlock": "res://assets/audio/sfx/placeholder/gdd/key_unlock.wav",
+		"leap": "res://assets/audio/sfx/placeholder/gdd/leap.wav",
 		"merchant_chime": "res://assets/audio/sfx/placeholder/gdd/merchant_chime.wav",
 		"page": "res://assets/audio/sfx/placeholder/gdd/page.wav",
-		"tithe": "res://assets/audio/sfx/placeholder/gdd/tithe.wav"
+		"shout": "res://assets/audio/sfx/placeholder/gdd/shout.wav",
+		"stealth": "res://assets/audio/sfx/placeholder/gdd/stealth.wav",
+		"tithe": "res://assets/audio/sfx/placeholder/gdd/tithe.wav",
+		"transform": "res://assets/audio/sfx/placeholder/gdd/transform.wav",
+		"trap": "res://assets/audio/sfx/placeholder/gdd/trap.wav"
 	}
 }

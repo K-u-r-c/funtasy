@@ -219,6 +219,8 @@ func _run() -> void:
 				await EconomySuite.new(self).run()
 			"economy_lan":
 				await EconomySuite.new(self).run_lan()
+			"skills_lan":
+				await SkillSuite.new(self).run_lan()
 			"lore":
 				await LoreSuite.new(self).run()
 			"tour":
@@ -425,6 +427,8 @@ func client_cmd(cmd: String, arg: Variant) -> void:
 			_finish.call_deferred("host finished")
 		_ when cmd.begins_with("eco_"):
 			await EconomySuite.new(self).client_cmd(cmd, arg)
+		_ when cmd.begins_with("sk_"):
+			await SkillSuite.new(self).client_cmd(cmd, arg)
 		"leave":
 			log_line("client leaves to the main menu mid-run")
 			NetworkManager.leave_to_menu()
@@ -1455,13 +1459,25 @@ func _ui_layout_scenario() -> void:
 	nodes.append(tp._reset)
 	res = _focus_graph(tp, nodes[0], nodes)
 	check(res.missing.is_empty() and res.leaks == 0, "talent d-pad graph reaches all %d nodes + reset, stays in the window (missing %d, leaks %d)" % [nodes.size() - 1, res.missing.size(), res.leaks])
+	# The Skill Book with every skill of the class unlocked (30 entries).
+	var lp := _local()
+	var all_t := {}
+	for nd in lp.talent_tree().get("nodes", []):
+		if nd.get("type", "") == "skill" and not nd.get("starter", false):
+			all_t[nd.id] = 1
+	var saved_t: Dictionary = lp.talents.duplicate()
+	lp.talents = all_t
 	hud.open_overlay(hud.SkillBookPanel.new())
 	await _wait(0.5)
 	var sbp: Node = hud._overlay
+	check(sbp._skill_buttons.size() == 30, "Skill Book lists all 30 unlocked skills (%d)" % sbp._skill_buttons.size())
+	var sbw: Rect2 = sbp.window.get_global_rect()
+	check(get_viewport().get_visible_rect().encloses(sbw), "the full Skill Book fits on screen")
 	var sb_nodes: Array = sbp._slot_buttons + sbp._skill_buttons.values()
 	res = _focus_graph(sbp, sb_nodes[0], sb_nodes)
 	check(res.missing.is_empty() and res.leaks == 0, "Skill Book d-pad graph reaches the bar and every skill (missing %d, leaks %d)" % [res.missing.size(), res.leaks])
 	hud.close_overlay()
+	lp.talents = saved_t
 	# Mouse drag and drop in the inventory, with real mouse events.
 	win.size = Vector2i(1920, 1080)
 	await _wait(0.3)

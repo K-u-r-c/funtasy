@@ -667,5 +667,37 @@
 		"color": "#e8c040",
 		"text": "TC",
 		"shape": "diamond"
+	},
+	"sfx.leap": {
+		"like": "sfx.dash",
+		"prompt": "heavy armored leap whoosh into the air then a ground-shaking landing thud"
+	},
+	"sfx.stealth": {
+		"like": "sfx.dash",
+		"prompt": "soft shadowy whoosh fading to silence, cloak rustle"
+	},
+	"sfx.transform": {
+		"like": "sfx.level_up",
+		"prompt": "deep empowering roar with metallic resonance, transformation surge"
+	},
+	"sfx.beam": {
+		"like": "sfx.cast",
+		"prompt": "sustained humming light beam, bright and searing"
+	},
+	"sfx.chain": {
+		"like": "sfx.lightning",
+		"prompt": "crackling electric arc jumping between targets"
+	},
+	"sfx.shout": {
+		"like": "sfx.roar",
+		"prompt": "commanding war cry shout echoing in a stone hall"
+	},
+	"sfx.trap": {
+		"like": "sfx.equip",
+		"prompt": "mechanical trap spring clank being set on stone floor"
+	},
+	"sfx.channel": {
+		"like": "sfx.cast",
+		"prompt": "rising magical hum while channelling a spell"
 	}
 }

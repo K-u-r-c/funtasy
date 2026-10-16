@@ -156,3 +156,39 @@ func _lore(_arg: String) -> void:
 	await da._wait(0.6)
 	await snap("lore_codex")
 	hud.close_overlay()
+
+
+## A class's new skills in action, then its full talent tree and Skill Book.
+func _skills(_arg: String) -> void:
+	var picks := {
+		"warrior": ["warrior_whirlwind", "warrior_earthshaker", "warrior_heroic_leap", "warrior_avatar", "warrior_intimidating_roar", "warrior_armor_sunder"],
+		"ranger": ["ranger_rain_of_arrows", "ranger_trickshot", "ranger_shadow_ballista", "ranger_venomous_vapors", "ranger_shadow_flare", "ranger_bone_harpoon"],
+		"mage": ["mage_blizzard", "mage_thunderstorm", "mage_singularity", "mage_luminance", "mage_lightning_orb", "mage_grasp_of_the_void"],
+		"priest": ["priest_bastion_sigil", "priest_penance", "priest_holy_nova", "priest_lightwell", "priest_chastise", "priest_apotheosis"],
+	}
+	var t := {}
+	for nd in p.talent_tree().get("nodes", []):
+		if nd.get("type", "") == "skill" and not nd.get("starter", false):
+			t[nd.id] = 1
+	p.talents = t
+	p.recompute_stats()
+	var d := await arena(4)
+	for sid in picks.get(p.class_id, []):
+		for x in d:
+			x.health.hp = x.health.max_hp
+			x.status.clear_all()
+		p.host_teleport(g.layout.start)
+		await da._wait(0.2)
+		await cast(str(sid), d[0].global_position)
+		await da._wait(0.8 if GameData.skill(str(sid)).has("channel") or str(sid).ends_with("leap") else 0.5)
+		await snap("skills_%s" % sid)
+		await da._wait(0.6)
+		Combat.instance.clear_floor()
+		p.channel = {}
+	p.talent_points = 6
+	var hud: Node = da.get_tree().get_first_node_in_group("hud")
+	for tab in ["talents", "skillbook", "character"]:
+		hud.open_overlay(hud.menu_panel(tab))
+		await da._wait(0.6)
+		await snap("skills_%s_%s" % [p.class_id, tab])
+	hud.close_overlay()
