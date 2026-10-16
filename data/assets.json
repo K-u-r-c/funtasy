@@ -67,6 +67,11 @@
 		}
 	},
 	"monsters": {
+		"skeletal_footman": {"path": "res://assets/sprites/pixellab/monsters/skeletal_footman/", "frame_size": 64, "feet_offset": 12, "height": 41, "anims": {"idle": {"frames": 4, "fps": 5}, "walk": {"frames": 8, "fps": 12}, "attack": {"frames": 6, "fps": 14}, "cast": {"frames": 6, "fps": 12}, "dash": {"frames": 8, "fps": 16}, "hit": {"frames": 2, "fps": 10}, "downed": {"frames": 2, "fps": 2}, "death": {"frames": 7, "fps": 10}}},
+		"vespera": {"path": "res://assets/sprites/pixellab/monsters/cultist/", "frame_size": 64, "feet_offset": 9, "height": 44, "anims": {"idle": {"frames": 4, "fps": 5}, "walk": {"frames": 8, "fps": 12}, "attack": {"frames": 3, "fps": 10}, "cast": {"frames": 6, "fps": 12}, "dash": {"frames": 8, "fps": 16}, "hit": {"frames": 2, "fps": 10}, "downed": {"frames": 2, "fps": 2}, "death": {"frames": 7, "fps": 10}}},
+		"banshee": {"path": "res://assets/sprites/pixellab/monsters/cultist/", "frame_size": 64, "feet_offset": 9, "height": 44, "anims": {"idle": {"frames": 4, "fps": 5}, "walk": {"frames": 8, "fps": 12}, "attack": {"frames": 3, "fps": 10}, "cast": {"frames": 6, "fps": 12}, "dash": {"frames": 8, "fps": 16}, "hit": {"frames": 2, "fps": 10}, "downed": {"frames": 2, "fps": 2}, "death": {"frames": 7, "fps": 10}}},
+		"carrion_crawler": {"path": "res://assets/sprites/pixellab/monsters/ghoul/", "frame_size": 64, "feet_offset": 8, "height": 45, "anims": {"idle": {"frames": 4, "fps": 5}, "walk": {"frames": 8, "fps": 12}, "attack": {"frames": 6, "fps": 14}, "cast": {"frames": 6, "fps": 12}, "dash": {"frames": 8, "fps": 16}, "hit": {"frames": 2, "fps": 10}, "downed": {"frames": 2, "fps": 2}, "death": {"frames": 7, "fps": 10}}},
+		"dread_wight": {"path": "res://assets/sprites/pixellab/monsters/dread_wight/", "frame_size": 64, "feet_offset": 11, "height": 43, "anims": {"idle": {"frames": 4, "fps": 5}, "walk": {"frames": 8, "fps": 12}, "attack": {"frames": 6, "fps": 14}, "cast": {"frames": 6, "fps": 12}, "dash": {"frames": 8, "fps": 16}, "hit": {"frames": 2, "fps": 10}, "downed": {"frames": 2, "fps": 2}, "death": {"frames": 7, "fps": 10}}},
 		"ghoul": {"path": "res://assets/sprites/pixellab/monsters/ghoul/", "frame_size": 64, "feet_offset": 8, "height": 45, "anims": {"idle": {"frames": 4, "fps": 5}, "walk": {"frames": 8, "fps": 12}, "attack": {"frames": 6, "fps": 14}, "cast": {"frames": 6, "fps": 12}, "dash": {"frames": 8, "fps": 16}, "hit": {"frames": 2, "fps": 10}, "downed": {"frames": 2, "fps": 2}, "death": {"frames": 7, "fps": 10}}},
 		"skeleton_archer": {"path": "res://assets/sprites/pixellab/monsters/skeleton_archer/", "frame_size": 64, "feet_offset": 10, "height": 44, "anims": {"idle": {"frames": 4, "fps": 5}, "walk": {"frames": 8, "fps": 12}, "attack": {"frames": 6, "fps": 14}, "cast": {"frames": 6, "fps": 12}, "dash": {"frames": 8, "fps": 16}, "hit": {"frames": 2, "fps": 10}, "downed": {"frames": 2, "fps": 2}, "death": {"frames": 7, "fps": 10}}},
 		"cultist": {"path": "res://assets/sprites/pixellab/monsters/cultist/", "frame_size": 64, "feet_offset": 9, "height": 44, "anims": {"idle": {"frames": 4, "fps": 5}, "walk": {"frames": 8, "fps": 12}, "attack": {"frames": 3, "fps": 10}, "cast": {"frames": 6, "fps": 12}, "dash": {"frames": 8, "fps": 16}, "hit": {"frames": 2, "fps": 10}, "downed": {"frames": 2, "fps": 2}, "death": {"frames": 7, "fps": 10}}},
@@ -77,6 +82,17 @@
 			"floor": [[0, 0], [1, 0], [2, 0], [3, 0]], "wall_top": [0, 1], "wall_face": [[1, 1], [2, 1]], "lava": [3, 1]}
 	},
 	"props": {
+		"lid": "res://assets/sprites/pixellab/props/lid.png",
+		"bone_spears": "res://assets/sprites/pixellab/props/bone_spears.png",
+		"pendulum": "res://assets/sprites/pixellab/props/pendulum.png",
+		"consecrated_shrine_lit": "res://assets/sprites/pixellab/props/consecrated_shrine_lit.png",
+		"consecrated_shrine": "res://assets/sprites/pixellab/props/consecrated_shrine.png",
+		"pressure_plate": "res://assets/sprites/pixellab/props/pressure_plate.png",
+		"crusader_remains": "res://assets/sprites/pixellab/props/crusader_remains.png",
+		"bone_pile": "res://assets/sprites/pixellab/props/bone_pile.png",
+		"rotted_banner": "res://assets/sprites/pixellab/props/rotted_banner.png",
+		"grave_urn": "res://assets/sprites/pixellab/props/grave_urn.png",
+		"sarcophagus": "res://assets/sprites/pixellab/props/sarcophagus.png",
 		"table": "res://assets/sprites/pixellab/props/table.png",
 		"chair": "res://assets/sprites/pixellab/props/chair.png",
 		"crate": "res://assets/sprites/pixellab/props/crate.png",

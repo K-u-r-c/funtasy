@@ -19,7 +19,8 @@ const EFFECT_TYPES := ["melee", "cone", "projectile", "aoe", "zone", "trap", "de
 	"blink", "teleport", "status", "remove_status", "heal", "absorb", "taunt", "resource", "summon", "hit",
 	"line", "chain", "beam", "knockback", "pull", "delayed", "consume_dots", "cleanse", "dispel",
 	"destroy_projectiles", "terrain", "threat_drop", "reveal", "interrupt", "cooldown", "self_damage",
-	"resource_drain", "tether", "stored_damage", "spread", "revive", "toggle_status", "fetch", "prevent_death"]
+	"resource_drain", "tether", "stored_damage", "spread", "revive", "toggle_status", "fetch", "prevent_death",
+	"extinguish"]
 ## Extra effect types valid inside `on_hit` lists.
 const ON_HIT_TYPES := ["knockback", "threat"]
 ## Events a proc ({"event", "do"}) can listen to.

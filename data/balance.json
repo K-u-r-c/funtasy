@@ -113,30 +113,63 @@
 	},
 	"loot": {
 		"monster_drop_chance": 0.28,
-		"chest_drops": [2, 3],
-		"boss_drops": [4, 5],
+		"chest_drops": [
+			2,
+			3
+		],
+		"boss_drops": [
+			4,
+			5
+		],
 		"boss_min_rarity": 3,
 		"chest_min_rarity": 2,
 		"party_class_weight": 3.0,
 		"consumable_chance": 0.35,
 		"backpack_chance": 0.04,
-		"rarity_weights": [60, 26, 10, 3.5, 0.5],
+		"rarity_weights": [
+			60,
+			26,
+			10,
+			3.5,
+			0.5
+		],
 		"drop_scatter": 22
 	},
 	"gold": {
 		"_comment": "Gold piles (D12): amount ranges per source, x (1 + per_level x (item level - 1)). A pile is split among living party members.",
 		"monster_chance": 0.5,
-		"monster": [2, 6],
-		"elite": [25, 45],
-		"chest": [12, 30],
-		"boss": [60, 120],
-		"altar": [15, 30],
+		"monster": [
+			2,
+			6
+		],
+		"elite": [
+			25,
+			45
+		],
+		"chest": [
+			12,
+			30
+		],
+		"boss": [
+			60,
+			120
+		],
+		"altar": [
+			15,
+			30
+		],
 		"per_level": 0.18
 	},
 	"elite": {
 		"_comment": "Elite packs (D10) and the Gold Key (D11).",
-		"packs": [1, 3],
-		"modifiers": [1, 2],
+		"packs": [
+			1,
+			3
+		],
+		"modifiers": [
+			1,
+			2
+		],
 		"hp_mult": 3.0,
 		"damage_mult": 1.3,
 		"scale": 1.15,
@@ -145,13 +178,29 @@
 	},
 	"merchant": {
 		"_comment": "Item value = tier_value[rarity - 1] x (1 + per_item_level x (item level - 1)); Archibald sells at buy_mult and buys at sell_mult.",
-		"tier_value": [4, 10, 24, 50, 100],
+		"tier_value": [
+			4,
+			10,
+			24,
+			50,
+			100
+		],
 		"per_item_level": 0.25,
 		"buy_mult": 1.0,
 		"sell_mult": 0.3,
-		"consumable_price": {"potion_health": 16, "potion_mana": 16, "potion_haste": 24, "food": 12, "torch_bundle": 8},
+		"consumable_price": {
+			"potion_health": 16,
+			"potion_mana": 16,
+			"potion_haste": 24,
+			"food": 12,
+			"torch_bundle": 8
+		},
 		"consumable_per_level": 0.12,
-		"book_value": {"standard": 6, "tome": 30, "legendary": 120},
+		"book_value": {
+			"standard": 6,
+			"tome": 30,
+			"legendary": 120
+		},
 		"interact_range": 140
 	},
 	"level_scale": {
@@ -161,11 +210,19 @@
 	},
 	"lore": {
 		"_comment": "Lore books (GDD 7, D20): category roll first, then a book of that category from the floor's biome (+ Ancient Lore anywhere). Unread books weigh x unread_weight.",
-		"category_weights": {"standard": 80, "tome": 18, "legendary": 2},
+		"category_weights": {
+			"standard": 80,
+			"tome": 18,
+			"legendary": 2
+		},
 		"unread_weight": 3.0,
 		"altar_book_chance": 0.6,
 		"secret_book_chance": 0.4,
-		"rarity": {"standard": 2, "tome": 3, "legendary": 5}
+		"rarity": {
+			"standard": 2,
+			"tome": 3,
+			"legendary": 5
+		}
 	},
 	"inventory": {
 		"start_capacity": 12,
@@ -189,7 +246,12 @@
 		"spikes_up_time": 0.9,
 		"spikes_down_time": 1.8,
 		"explosion_damage": 45,
-		"explosion_radius": 80
+		"explosion_radius": 80,
+		"plate_delay": 0.35,
+		"plate_cooldown": 4.0,
+		"pendulum_period": 2.4,
+		"pendulum_damage": 18,
+		"pendulum_hit_cooldown": 0.8
 	},
 	"audio": {
 		"music_crossfade": 1.5

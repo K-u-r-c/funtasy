@@ -4,9 +4,48 @@
 	"name": "Cultist",
 	"role": "caster",
 	"sprite": "monsters.cultist",
-	"ai": {"type": "caster", "aggro_radius": 280, "preferred_range": [170, 300], "abilities": ["cultist_mend", "cultist_curse", "cultist_bolt"]},
-	"base_stats": {"hp": 34, "damage": 8, "armor": 2, "move_speed": 74, "crit_chance": 0.05, "dodge": 0.02},
+	"ai": {
+		"type": "caster",
+		"aggro_radius": 280,
+		"preferred_range": [
+			170,
+			300
+		],
+		"abilities": [
+			"cultist_mend",
+			"cultist_curse",
+			"cultist_bolt"
+		]
+	},
+	"base_stats": {
+		"hp": 34,
+		"damage": 8,
+		"armor": 2,
+		"move_speed": 74,
+		"crit_chance": 0.05,
+		"dodge": 0.02
+	},
 	"collision_radius": 8,
 	"xp": 15,
-	"tint": "#ffffff"
+	"tint": "#ffffff",
+	"biome": "crypt",
+	"corpse": "flesh",
+	"behaviors": [
+		{
+			"id": "resurrect_ally",
+			"every": 8,
+			"radius": 150,
+			"channel": 2.0,
+			"hp": 0.5,
+			"kinds": [
+				"skeletal_footman",
+				"skeleton_archer"
+			]
+		}
+	],
+	"behavior_visuals": {
+		"chanting": {
+			"tint": "#c080ff"
+		}
+	}
 }

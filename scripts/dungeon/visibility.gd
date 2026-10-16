@@ -38,6 +38,7 @@ func _ready() -> void:
 	LightLayers.setup_light(vision_light)
 	vision_light.texture = GameData.texture("fx.light")
 	LightLayers.register(vision_light, personal_radius)
+	vision_light.set_meta("personal", true)
 	vision_light.energy = float(GameData.bal("lighting.personal_light_energy"))
 	vision_light.color = Color(0.85, 0.8, 0.95)
 	vision_light.shadow_enabled = true

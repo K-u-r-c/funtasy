@@ -1,9 +1,11 @@
 class_name Boss
 extends Enemy
 ## Floor boss (data/bosses/*.json). Same AI as other monsters, plus HP-threshold phases that
-## swap the ability list and can fire one-off abilities (e.g. enrage) when entered.
+## swap the ability list and can fire one-off abilities (e.g. enrage) when entered. Each phase
+## can run arena mechanics (scripts/enemies/boss_mechanics/, host-only).
 
 var phase := -1  ## replicated for the HUD
+var mechanics: Array = []  ## host: BossMechanic modules of the current phase
 
 
 func setup(data: Dictionary) -> void:
@@ -21,6 +23,11 @@ func _configure_ai() -> void:
 
 
 func _think(game: Node) -> void:
+	_check_phase()
+	super._think(game)
+
+
+func _check_phase() -> void:
 	var phases: Array = def.phases
 	var frac := health.fraction()
 	for i in phases.size():
@@ -28,12 +35,64 @@ func _think(game: Node) -> void:
 			if i > phase:
 				_enter_phase(i)
 			break
-	super._think(game)
+
+
+func _host_ai(delta: float) -> void:
+	if not is_alive():
+		return
+	if aggro:  # arena mechanics run once the fight is on
+		for m in mechanics:
+			m.physics(delta)
+	if mechanics_busy():
+		_check_phase()
+		return  # a mechanic drives the boss (whirlwind, flight...)
+	super._host_ai(delta)
+
+
+func mechanics_busy() -> bool:
+	for m in mechanics:
+		if m.busy():
+			return true
+	return false
+
+
+func modify_damage_taken(amount: float, data: Dictionary) -> float:
+	amount = super.modify_damage_taken(amount, data)
+	for m in mechanics:
+		amount = m.modify_damage_taken(amount, data)
+	return amount
+
+
+## Host: a player used an arena object; the mechanic that owns it handles it.
+func on_mechanic_interact(p: Player, node: Node) -> bool:
+	for m in mechanics:
+		if m.on_interact(p, node):
+			return true
+	return false
+
+
+func stop_mechanics() -> void:
+	for m in mechanics:
+		m.stop()
+	mechanics.clear()
+
+
+func on_death() -> void:
+	if multiplayer.is_server():
+		stop_mechanics()
+	super.on_death()
 
 
 func _enter_phase(i: int) -> void:
 	phase = i
 	var p: Dictionary = def.phases[i]
+	if multiplayer.is_server():
+		stop_mechanics()
+		for md in p.get("mechanics", []):
+			var scr: Script = load(GameData.BOSS_MECHANIC_DIR + str(md.id) + ".gd")
+			var m: BossMechanic = scr.new()
+			mechanics.append(m)
+			m.setup(self, md)
 	_abilities = p.abilities
 	_preferred = p.get("preferred_range", [0, 60])
 	for sid in p.get("on_enter", []):

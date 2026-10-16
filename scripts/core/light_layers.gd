@@ -37,9 +37,12 @@ static func unregister(l: Node) -> void:
 		l.remove_from_group(GROUP)
 
 
-## Is `pos` inside the bright area of any registered light?
-static func is_lit(tree: SceneTree, pos: Vector2) -> bool:
+## Is `pos` inside the bright area of any registered light? `exclude_personal` ignores the local
+## player's own small vision light (it only exists on one machine, so host rules skip it).
+static func is_lit(tree: SceneTree, pos: Vector2, exclude_personal: bool = false) -> bool:
 	for l in tree.get_nodes_in_group(GROUP):
+		if exclude_personal and l.has_meta("personal"):
+			continue
 		if l.is_visible_in_tree() and l.global_position.distance_to(pos) <= float(l.get_meta("radius", 0.0)):
 			return true
 	return false

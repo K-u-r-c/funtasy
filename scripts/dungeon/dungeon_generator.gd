@@ -6,7 +6,11 @@ extends RefCounted
 ## Layout keys: size, cells (PackedByteArray, see CELL_*), rooms [{rect, role}], doors
 ## [{cells, vertical, rect}], props [{type, pos}], chests [pos], spikes [{cell, phase}],
 ## torches [{cell}], lava_pools [Rect2i], spawns [{room, monsters: [{id, pos}]}],
+## plates [{cell}], pendulums [{pos, axis, span, phase}],
 ## start (Vector2), boss_pos (Vector2), boss_room (int), portal_pos (Vector2).
+##
+## A floor type's "generator" block picks the architecture profile, e.g. the Crypt's
+## labyrinth_vaults: {"winding": true, "extra_edges": 4, "pillared_hall_chance": 0.4}.
 
 const CELL_WALL := 0
 const CELL_FLOOR := 1
@@ -17,6 +21,7 @@ var w := 0
 var h := 0
 var tile := 32
 var cells := PackedByteArray()
+var gen: Dictionary = {}  ## the floor type's architecture profile
 
 
 ## `depth` makes deeper floors darker (fewer lit rooms), so every peer must pass the same value.
@@ -30,6 +35,7 @@ func generate(seed_value: int, floor_def: Dictionary, count_mult: float = 1.0, d
 	cells.resize(w * h)
 	cells.fill(CELL_WALL)
 	var layout := {"size": Vector2i(w, h)}
+	gen = floor_def.get("generator", {})
 	var rooms := _place_rooms(floor_def)
 	_connect_rooms(rooms)
 	_pick_merchant_room(rooms)
@@ -48,6 +54,8 @@ func generate(seed_value: int, floor_def: Dictionary, count_mult: float = 1.0, d
 	layout.props.append_array(_place_lore_props(rooms, floor_def, used))
 	layout.chests = _place_chests(rooms, floor_def, used)
 	layout.spikes = _place_spikes(rooms, floor_def, used)
+	layout.plates = _place_plates(rooms, floor_def, used)
+	layout.pendulums = _place_pendulums(rooms, floor_def, used)
 	layout.torches = _place_torches(rooms, floor_def, depth)
 	layout.spawns = _place_spawns(rooms, floor_def, used, count_mult)
 	var boss_room: Dictionary = rooms[1]
@@ -152,7 +160,7 @@ func _connect_rooms(rooms: Array) -> void:
 					pair = Vector2i(a, b)
 		in_tree[pair.y] = true
 		edges.append(pair)
-	for k in 2:
+	for k in int(gen.get("extra_edges", 2)):
 		var a2 := rng.randi_range(0, n - 1)
 		var b2 := rng.randi_range(0, n - 1)
 		if a2 != b2 and not (a2 == 1 or b2 == 1):
@@ -162,6 +170,18 @@ func _connect_rooms(rooms: Array) -> void:
 
 
 func _carve_corridor(a: Vector2i, b: Vector2i) -> void:
+	if gen.get("winding", false) and Vector2(b - a).length() > 10.0:
+		# Labyrinth: a detour through a jittered midpoint gives the corridor extra bends.
+		var mid := (a + b) / 2
+		var side := Vector2(b - a).orthogonal().normalized() * rng.randf_range(-6.0, 6.0)
+		mid = Vector2i(clampi(mid.x + int(side.x), 3, w - 5), clampi(mid.y + int(side.y), 3, h - 5))
+		_carve_l(a, mid)
+		_carve_l(mid, b)
+		return
+	_carve_l(a, b)
+
+
+func _carve_l(a: Vector2i, b: Vector2i) -> void:
 	var corner := Vector2i(b.x, a.y) if rng.randf() < 0.5 else Vector2i(a.x, b.y)
 	_carve_line(a, corner)
 	_carve_line(corner, b)
@@ -321,6 +341,15 @@ func _place_props(rooms: Array, fd: Dictionary, used: Dictionary) -> Array:
 		if room.role == "start" or room.role == "merchant":
 			continue
 		var n := rng.randi_range(int(fd.props_per_room[0]), int(fd.props_per_room[1]))
+		if rng.randf() < float(gen.get("pillared_hall_chance", 0.0)) and r.size.x >= 9 and r.size.y >= 8:
+			# A geometric hall: a grid of stone pillars, fewer loose props.
+			for x in range(r.position.x + 2, r.end.x - 2, 3):
+				for y in range(r.position.y + 2, r.end.y - 2, 3):
+					var pc := Vector2i(x, y)
+					if not used.has(pc) and get_cell(pc) == CELL_FLOOR:
+						used[pc] = true
+						out.append({"type": str(gen.get("pillar_prop", "pillar")), "pos": _cell_center(pc)})
+			n = n / 2
 		for i in n:
 			var c2 := _free_cell(r, 1, used, true)
 			if c2.x < 0:
@@ -384,6 +413,72 @@ func _place_spikes(rooms: Array, fd: Dictionary, used: Dictionary) -> Array:
 			if c.x >= 0:
 				used[c] = true
 				out.append({"cell": c, "phase": rng.randf()})
+	return out
+
+
+## Pressure plates (Crypt): hidden-ish floor plates in normal rooms that raise spikes around them.
+func _place_plates(rooms: Array, fd: Dictionary, used: Dictionary) -> Array:
+	var out: Array = []
+	if not fd.has("plates_per_room"):
+		return out
+	for room in rooms:
+		if room.role != "normal":
+			continue
+		for i in rng.randi_range(int(fd.plates_per_room[0]), int(fd.plates_per_room[1])):
+			var c := _free_cell(room.rect, 2, used, false)
+			if c.x >= 0:
+				for dx in range(-1, 2):
+					for dy in range(-1, 2):
+						used[c + Vector2i(dx, dy)] = true
+				out.append({"cell": c})
+	return out
+
+
+## Pendulum scythes (Crypt) across straight 2-wide corridor stretches, away from rooms and doors.
+func _place_pendulums(rooms: Array, fd: Dictionary, used: Dictionary) -> Array:
+	var out: Array = []
+	if not fd.has("pendulums"):
+		return out
+	var in_room := func(c: Vector2i) -> bool:
+		for room in rooms:
+			if room.rect.grow(2).has_point(c):
+				return true
+		return false
+	var cands: Array = []
+	for y in range(2, h - 3):
+		for x in range(2, w - 3):
+			var c := Vector2i(x, y)
+			if used.has(c) or in_room.call(c):
+				continue
+			# Horizontal stretch: rows y and y+1 open, walls above and below, for 5 cells.
+			var hor := true
+			var ver := true
+			for k in range(-2, 3):
+				var hc := c + Vector2i(k, 0)
+				if not (get_cell(hc) == CELL_FLOOR and get_cell(hc + Vector2i(0, 1)) == CELL_FLOOR
+						and get_cell(hc + Vector2i(0, -1)) == CELL_WALL and get_cell(hc + Vector2i(0, 2)) == CELL_WALL):
+					hor = false
+				var vc := c + Vector2i(0, k)
+				if not (get_cell(vc) == CELL_FLOOR and get_cell(vc + Vector2i(1, 0)) == CELL_FLOOR
+						and get_cell(vc + Vector2i(-1, 0)) == CELL_WALL and get_cell(vc + Vector2i(2, 0)) == CELL_WALL):
+					ver = false
+			if hor:
+				cands.append({"cell": c, "axis": Vector2.DOWN, "pos": _cell_center(c) + Vector2(0, tile * 0.5)})
+			elif ver:
+				cands.append({"cell": c, "axis": Vector2.RIGHT, "pos": _cell_center(c) + Vector2(tile * 0.5, 0)})
+	var n := rng.randi_range(int(fd.pendulums[0]), int(fd.pendulums[1]))
+	while out.size() < n and not cands.is_empty():
+		var pick: Dictionary = cands.pop_at(rng.randi_range(0, cands.size() - 1))
+		var clash := false
+		for o in out:
+			if Vector2(o.cell - pick.cell).length() < 8.0:
+				clash = true
+		if clash:
+			continue
+		for k in range(-2, 3):
+			used[pick.cell + Vector2i(k, 0)] = true
+			used[pick.cell + Vector2i(0, k)] = true
+		out.append({"cell": pick.cell, "pos": pick.pos, "axis": pick.axis, "span": tile * 0.85, "phase": rng.randf()})
 	return out
 
 

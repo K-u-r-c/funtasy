@@ -78,6 +78,7 @@ func take_damage(amount: float, ctx: Dictionary) -> void:
 	if game == null:
 		return
 	game.dungeon.destroy_prop.rpc(prop_id)
+	game.on_prop_broken(self)
 	if def.has("explode"):
 		var ex: Dictionary = def.explode
 		# A barrel is a hazard: the blast hurts everyone in range (players included, whoever broke
@@ -125,4 +126,14 @@ func set_opened() -> void:
 	opened = true
 	if def.has("sprite_open"):
 		_sprite.texture = GameData.texture(str(def.sprite_open))
+	if def.has("light_open"):
+		# A lit shrine / brazier becomes a real light source.
+		var l := PointLight2D.new()
+		LightLayers.setup_light(l)
+		l.texture = GameData.texture("fx.light")
+		l.color = Color.from_string(str(def.light_open), Color.WHITE)
+		l.energy = 1.0
+		l.position = Vector2(0, -16)
+		LightLayers.register(l, 72.0)
+		add_child(l)
 	AudioManager.play_sfx_at("pickup", global_position)

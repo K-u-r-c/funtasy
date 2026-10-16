@@ -304,6 +304,8 @@ func cast_and_check(sid: String) -> void:
 		target.casting = {"skill": "cultist_bolt", "aim": p.global_position, "left": 5.0, "extra": {}}
 	if setup.has("self_cooldown"):
 		p.cooldowns[str(setup.self_cooldown)] = 30.0
+	if setup.has("self_torch"):
+		p.torch_left = float(setup.self_torch)
 	var proj_id := -1
 	if setup.get("hostile_projectile", false):
 		var mctx := Combat.instance.make_ctx(target, GameData.skill("skeleton_arrow"))
@@ -401,6 +403,8 @@ func _expect(ex: String, b: Dictionary, a: Dictionary, target: Enemy, proj_id: i
 			return not is_instance_valid(target) or not target.is_alive()
 		"self_lost":
 			return not p.status.has(arg)
+		"torch_out":
+			return p.torch_left <= 0.0
 		"caster_moved":
 			return a.p_pos.distance_to(b.p_pos) > 12.0
 		"target_moved":

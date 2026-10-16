@@ -201,7 +201,9 @@ func deal_damage(ctx: Dictionary, target: Actor, amount: float, opts: Dictionary
 		fx.number.rpc(pos, "Immune", "info")
 		return 0.0
 	var data := {"target": target, "attacker": caster, "amount": 0.0, "crit": false, "dot": dot,
-		"damage_type": dtype, "skill": ctx.get("skill", ""), "school": school, "ctx": ctx, "melee": melee_hit}
+		"damage_type": dtype, "skill": ctx.get("skill", ""), "school": school, "ctx": ctx, "melee": melee_hit,
+		"area": bool(opts.get("area", false))}
+	target.last_hit_area = data.area
 	var blocked := false
 	if not dot and not env:
 		# Accuracy, then the target's avoidance.

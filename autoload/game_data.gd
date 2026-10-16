@@ -247,8 +247,9 @@ func _validate() -> void:
 				errors.append("floor type '%s' references unknown monster '%s'" % [fid, m.id])
 		if not ft.has("boss") and not ft.has("bosses"):
 			errors.append("floor type '%s' has no boss" % fid)
-		if ft.has("boss") and not bosses.has(ft.boss):
-			errors.append("floor type '%s' references unknown boss '%s'" % [fid, ft.boss])
+		for bid in ft.get("bosses", [ft.get("boss", "")]):
+			if not bosses.has(bid):
+				errors.append("floor type '%s' references unknown boss '%s'" % [fid, bid])
 
 
 # --- Reference validation (full GDD content) --------------------------------------------------

@@ -31,6 +31,7 @@ var skill_charges: Dictionary = {}  ## host: skill id -> stored charges (skills 
 var lockout_element := ""  ## host: school locked by Counterspell
 var last_attacker: Actor = null  ## host: who hit this actor last (kill credit for procs)
 var last_attack_ctx: Dictionary = {}
+var last_hit_area := false  ## host: the last hit came from an area attack (bone piles break)
 var proc_cd: Dictionary = {}  ## host: proc key -> time it is ready again
 var static_procs: Array = []  ## host: procs from talents, passives, items, elite modifiers
 var _stats_dirty := true

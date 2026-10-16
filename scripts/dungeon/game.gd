@@ -29,6 +29,8 @@ var _corpse_counter := 0
 var _aura_left := 0.0
 var party_keys := 0  ## Gold Keys the party carries (D11), replicated by _sync_keys
 var _dyn_counter := 0
+var boss_id := ""  ## this floor's boss, picked from the floor type's list by the floor seed
+var floor_mechanics: Array = []  ## host: FloorMechanic modules of the floor type
 
 @onready var dungeon: Dungeon = $Dungeon
 @onready var entities: Node2D = $Entities
@@ -122,7 +124,7 @@ func start_floor(new_depth: int) -> void:
 	# A Gold Key belongs to its floor (D11): an unused one doesn't carry over.
 	if party_keys > 0:
 		add_party_key(-party_keys)
-	_build_floor.rpc(new_depth, floor_seed, ft_id)
+	_build_floor.rpc(new_depth, floor_seed, ft_id, pick_boss(GameData.floor_types[ft_id], floor_seed))
 	# Host-only: the spawn list depends on party size, so it is generated with that multiplier.
 	var n := players_root.get_child_count() if players_root.get_child_count() > 0 else GameState.roster.size()
 	var count_mult := 1.0 + float(GameData.bal("scaling.count_per_extra_player")) * (maxi(n, 1) - 1)
@@ -135,7 +137,13 @@ func start_floor(new_depth: int) -> void:
 		for mi in group.monsters.size():
 			var m: Dictionary = group.monsters[mi]
 			spawn_monster(str(m.id), m.pos, false, elites.get(Vector2i(gi, mi), {}))
-	spawn_monster(str(floor_def.boss), host_layout.boss_pos, true)
+	floor_mechanics.clear()
+	for md in floor_def.get("floor_mechanics", []):
+		var scr: Script = load(GameData.FLOOR_MECHANIC_DIR + str(md.id) + ".gd")
+		var fm: FloorMechanic = scr.new()
+		fm.setup(self, md)
+		floor_mechanics.append(fm)
+	spawn_monster(boss_id, host_layout.boss_pos, true)
 	boss_alive = true
 	boss_engaged = false
 	GameState.current_depth = new_depth
@@ -325,6 +333,9 @@ func host_interact(p: Player, node: Node) -> void:
 	var reach := float(GameData.bal("world.interact_range")) + 24.0
 	if node.has_method("interact_pos") and p.global_position.distance_to(node.interact_pos()) > reach:
 		return
+	for b in get_tree().get_nodes_in_group("boss"):
+		if b.has_method("on_mechanic_interact") and b.on_mechanic_interact(p, node):
+			return
 	if node is GroundItem:
 		loot.try_pickup(p, node)
 	elif node.get("def") is Dictionary and (node.def.has("npc") or node.def.has("gate")):
@@ -359,6 +370,8 @@ func _physics_process(delta: float) -> void:
 	floor_time += delta
 	for s in dungeon.spikes:
 		s.update_state(floor_time)
+	for pd in dungeon.pendulums:
+		pd.update_state(floor_time)
 	if not multiplayer.is_server() or depth == 0:
 		return
 	_clock_sync_left -= delta
@@ -368,6 +381,12 @@ func _physics_process(delta: float) -> void:
 	var actors := combat.all_actors()
 	for s in dungeon.spikes:
 		s.host_damage(actors)
+	for pl in dungeon.plates:
+		pl.host_tick(delta, actors, dungeon)
+	for pd in dungeon.pendulums:
+		pd.host_damage(actors, floor_time)
+	for fm in floor_mechanics:
+		fm.physics(delta)
 	var life := float(GameData.bal("corpses.lifetime", 20.0))
 	for cid in corpses.keys():
 		if floor_time - float(corpses[cid].t) > life:
@@ -470,10 +489,11 @@ func _on_peer_disconnected(id: int) -> void:
 
 
 @rpc("authority", "call_local", "reliable")
-func _build_floor(new_depth: int, floor_seed: int, ft_id: String) -> void:
+func _build_floor(new_depth: int, floor_seed: int, ft_id: String, floor_boss: String) -> void:
 	depth = new_depth
 	floor_time = 0.0
 	floor_def = GameData.floor_types[ft_id]
+	boss_id = floor_boss
 	layout = DungeonGenerator.new().generate(floor_seed, floor_def, 1.0, new_depth)
 	dungeon.build(layout, floor_def, entities)
 	visibility.reset_floor()
@@ -511,9 +531,22 @@ func _sync_clock(t: float) -> void:
 	floor_time = t
 
 
+## Host: the floor's boss, a seeded pick from the floor type's list ("force_boss" meta on
+## GameState pins one for tests and screenshots).
+static func pick_boss(ft: Dictionary, floor_seed: int) -> String:
+	var pool: Array = ft.get("bosses", [ft.get("boss", "")])
+	var forced := str(GameState.get_meta("force_boss", ""))
+	if forced != "" and pool.has(forced):
+		return forced
+	var rng := RandomNumberGenerator.new()
+	rng.seed = floor_seed + 211
+	return str(pool[rng.randi() % pool.size()])
+
+
 @rpc("authority", "call_local", "reliable")
 func _boss_music(on: bool) -> void:
-	AudioManager.play_music(str(floor_def.boss_music if on else floor_def.music))
+	var bdef: Dictionary = GameData.bosses.get(boss_id, {})
+	AudioManager.play_music(str(bdef.get("music", floor_def.get("boss_music", "")) if on else floor_def.music))
 	if on:
 		var b := get_tree().get_first_node_in_group("boss")
 		EventBus.boss_engaged.emit(b)
@@ -580,6 +613,12 @@ func _corpse_gone(corpse_id: int) -> void:
 
 
 ## Host: corpses within r of pos (optionally only bone piles / one creature type).
+## Host: a prop broke (floor mechanics react: grave urn miasma...).
+func on_prop_broken(prop: Node) -> void:
+	for fm in floor_mechanics:
+		fm.on_prop_broken(prop)
+
+
 func corpses_near(pos: Vector2, r: float, filter: Dictionary = {}) -> Array:
 	var out: Array = []
 	for c in corpses.values():

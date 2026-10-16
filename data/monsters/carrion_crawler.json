@@ -1,0 +1,45 @@
+{
+	"id": "carrion_crawler",
+	"creature_type": "beast",
+	"biome": "crypt",
+	"name": "Carrion Crawler",
+	"role": "ambush",
+	"sprite": "monsters.carrion_crawler",
+	"corpse": "flesh",
+	"ai": {
+		"type": "melee",
+		"aggro_radius": 260,
+		"preferred_range": [
+			0,
+			28
+		],
+		"abilities": [
+			"crawler_bite"
+		]
+	},
+	"base_stats": {
+		"hp": 50,
+		"damage": 7,
+		"armor": 20,
+		"move_speed": 96,
+		"crit_chance": 0.05,
+		"dodge": 0.05
+	},
+	"behaviors": [
+		{
+			"id": "burrow",
+			"surface": 6.0,
+			"speed_mult": 1.6,
+			"burst": "crawler_burst"
+		}
+	],
+	"behavior_visuals": {
+		"burrowed": {
+			"texture": "props.burrow_mound",
+			"hide_bar": true,
+			"untargetable": true
+		}
+	},
+	"collision_radius": 9,
+	"xp": 14
+}

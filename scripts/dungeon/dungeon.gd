@@ -9,6 +9,8 @@ const DOOR_SCRIPT := preload("res://scripts/dungeon/door.gd")
 const PROP_SCRIPT := preload("res://scripts/dungeon/prop.gd")
 const SPIKES_SCRIPT := preload("res://scripts/dungeon/spikes.gd")
 const TORCH_SCRIPT := preload("res://scripts/dungeon/torch.gd")
+const PLATE_SCRIPT := preload("res://scripts/dungeon/pressure_plate.gd")
+const PENDULUM_SCRIPT := preload("res://scripts/dungeon/pendulum.gd")
 
 var layout: Dictionary = {}
 var floor_def: Dictionary = {}
@@ -21,6 +23,9 @@ var props: Dictionary = {}  ## name -> Prop
 var torches: Dictionary = {}  ## torch id -> wall torch
 var debris: Array = []  ## destroyed props (still in the tree as rubble until the floor ends)
 var spikes: Array = []
+var plates: Array = []  ## pressure plates (Crypt)
+var plate_by_id: Dictionary = {}
+var pendulums: Array = []  ## pendulum scythes (Crypt)
 var lights: Array = []  ## torch / lava lights, culled by distance in Visibility
 var obstacles: Dictionary = {}  ## dynamic terrain id -> {node, cells}
 var safe_rect := Rect2i()  ## the merchant chamber (cells): monsters never path into it or target anyone inside
@@ -79,6 +84,19 @@ func build(new_layout: Dictionary, def: Dictionary, entity_root: Node2D) -> void
 		add_child(sp)
 		spikes.append(sp)
 	n = 0
+	for pd in layout.get("plates", []):
+		var plate: Node2D = PLATE_SCRIPT.new()
+		plate.setup(pd.cell, tile, "Plate_%d" % n)
+		add_child(plate)
+		plates.append(plate)
+		plate_by_id[plate.plate_id] = plate
+		n += 1
+	for pe in layout.get("pendulums", []):
+		var pend: Node2D = PENDULUM_SCRIPT.new()
+		pend.setup(pe.pos, pe.axis, float(pe.span), float(pe.phase))
+		entities.add_child(pend)
+		pendulums.append(pend)
+	n = 0
 	for t in layout.torches:
 		var torch: Node2D = TORCH_SCRIPT.new()
 		torch.name = "Torch_%d" % n
@@ -122,6 +140,13 @@ func clear() -> void:
 	for s in spikes:
 		_discard(s)
 	spikes.clear()
+	for pl in plates:
+		_discard(pl)
+	plates.clear()
+	plate_by_id.clear()
+	for pd in pendulums:
+		_discard(pd)
+	pendulums.clear()
 	for l in lights:
 		if is_instance_valid(l):
 			var torch: Node = l.get_parent()
@@ -460,6 +485,22 @@ func _add_prop(prop_name: String, type: String, pos: Vector2) -> void:
 	props[prop_name] = p
 	if p.blocks_path():
 		astar.set_point_solid(cell_of(pos), true)
+
+
+## Host -> all (unreliable, call_local): a pressure plate clicks under someone's feet.
+@rpc("authority", "call_local", "unreliable")
+func plate_click(plate_id: String) -> void:
+	var pl: Node = plate_by_id.get(plate_id)
+	if pl:
+		pl.click()
+
+
+## Host -> all (reliable, call_local): the plate's spikes erupt.
+@rpc("authority", "call_local", "reliable")
+func show_plate_spikes(plate_id: String) -> void:
+	var pl: Node = plate_by_id.get(plate_id)
+	if pl:
+		pl.show_spikes()
 
 
 ## Host -> all (reliable, call_local): a prop was destroyed.

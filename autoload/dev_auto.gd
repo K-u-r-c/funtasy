@@ -54,6 +54,8 @@ func _ready() -> void:
 			biome = v
 		elif a.begins_with("--tour="):
 			tour = v
+		elif a.begins_with("--boss="):
+			GameState.set_meta("force_boss", v)
 		elif a.begins_with("--window="):
 			window_size = Vector2i(int(v.get_slice("x", 0)), int(v.get_slice("x", 1)))
 	if window_size != Vector2i.ZERO:
@@ -215,6 +217,10 @@ func _run() -> void:
 				await SkillSuite.new(self).run_primitives()
 			"monsters":
 				await MonsterSuite.new(self).run(biome)
+			"bosses":
+				await BossSuite.new(self).run(biome)
+			"biomes":
+				await BiomeSuite.new(self).run(biome)
 			"economy":
 				await EconomySuite.new(self).run()
 			"economy_lan":
@@ -647,17 +653,23 @@ func _full_scenario() -> void:
 	host_p.iframe_left = 60.0
 	boss.health.hp = boss.health.max_hp * 0.45
 	await _wait(12.0)
-	check(boss.phase == 1 and boss.status.has("enrage"), "boss entered phase 2 (enraged)")
+	check(boss.phase == boss.def.phases.size() - 1, "%s entered its last phase" % boss.display_name)
 	var boss_uses: Array = []
 	for k in (Combat.instance.get_meta("uses", {}) as Dictionary):
 		if str(k).begins_with(boss.name + ":"):
 			boss_uses.append(str(k).get_slice(":", 1))
-	for sid in ["bone_lord_cleave", "bone_lord_nova", "bone_lord_summon", "bone_lord_slam"]:
+	var boss_abilities: Array = []
+	for ph in boss.def.phases:
+		for sid in ph.abilities:
+			if not boss_abilities.has(sid):
+				boss_abilities.append(sid)
+	for sid in boss_abilities:
 		check(boss_uses.has(sid), "boss used %s" % sid)
 	host_p.iframe_left = 0.0
 	_reset_player(host_p)
 	var ctx := Combat.instance.make_ctx(host_p, GameData.skill(host_p.skills[0]))
 	ctx.crit_chance = 0.0
+	ctx.school = "spell"  # reaches a flying boss too
 	var guard := 0
 	while is_instance_valid(boss) and boss.is_alive() and guard < 400:
 		guard += 1

@@ -27,6 +27,7 @@ var lifetime := -1.0  ## host: summoned minions and decoys expire
 var elite: Array = []  ## elite modifier ids (D10), from the spawn data on every peer
 var key_carrier := false  ## host: drops the floor's Gold Key (D11)
 var copy_peer := 0  ## replicated at spawn: draw this player's look instead of the monster art (D31)
+var _state_sprite: Sprite2D = null
 var behaviors: Array = []  ## host: MonsterBehavior modules from data (scripts/enemies/behaviors/)
 var behavior_state := "":  ## replicated: what the behaviours look like right now (bone pile, mound...)
 	set(v):
@@ -130,6 +131,16 @@ func _apply_behavior_visual() -> void:
 	sprite.set_layer("body", str(v.get("sprite", def.sprite)), Color.from_string(str(v.get("tint", def.get("tint", "#ffffff"))), Color.WHITE))
 	sprite.self_modulate.a = float(v.get("alpha", 1.0))
 	set_meta("hide_bar", bool(v.get("hide_bar", false)))
+	# "texture": a still image (bone pile, burrow mound) stands in for the animated body.
+	if _state_sprite:
+		_state_sprite.queue_free()
+		_state_sprite = null
+	sprite.visible = not v.has("texture")
+	if v.has("texture"):
+		_state_sprite = Sprite2D.new()
+		_state_sprite.texture = GameData.texture(str(v.texture))
+		_state_sprite.offset = Vector2(0, -_state_sprite.texture.get_height() * 0.5 + 2.0) if _state_sprite.texture else Vector2.ZERO
+		add_child(_state_sprite)
 
 
 func is_targetable() -> bool:

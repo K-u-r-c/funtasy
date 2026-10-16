@@ -3,27 +3,131 @@
 	"name": "Forgotten Crypt",
 	"tiles": "tiles.crypt",
 	"music": "crypt",
-	"boss_music": "boss_bone_lord",
-	"boss": "bone_lord",
+	"bosses": [
+		"morvath",
+		"vespera"
+	],
 	"ambient_color": "#07060a",
 	"torch_color": "#ff9944",
 	"lava_color": "#ff5511",
-	"grid": [96, 72],
-	"rooms": {"count": [9, 12], "min_size": [9, 8], "max_size": [15, 12], "boss_size": [19, 15]},
-	"monsters": [
-		{"id": "ghoul", "weight": 5},
-		{"id": "skeleton_archer", "weight": 3},
-		{"id": "cultist", "weight": 2}
+	"grid": [
+		96,
+		72
 	],
-	"enemies_per_room": [2, 4],
-	"props_per_room": [3, 7],
-	"prop_weights": {"table": 3, "chair": 4, "crate": 3, "barrel": 3, "barrel_explosive": 2, "pillar": 2},
-	"torches_per_room": [1, 3],
-	"chests": [1, 3],
+	"rooms": {
+		"count": [
+			9,
+			12
+		],
+		"min_size": [
+			9,
+			8
+		],
+		"max_size": [
+			15,
+			12
+		],
+		"boss_size": [
+			19,
+			15
+		]
+	},
+	"monsters": [
+		{
+			"id": "skeletal_footman",
+			"weight": 5
+		},
+		{
+			"id": "skeleton_archer",
+			"weight": 3
+		},
+		{
+			"id": "ghoul",
+			"weight": 3
+		},
+		{
+			"id": "cultist",
+			"weight": 2
+		},
+		{
+			"id": "dread_wight",
+			"weight": 2
+		},
+		{
+			"id": "carrion_crawler",
+			"weight": 2
+		},
+		{
+			"id": "banshee",
+			"weight": 2
+		}
+	],
+	"enemies_per_room": [
+		2,
+		4
+	],
+	"props_per_room": [
+		3,
+		7
+	],
+	"prop_weights": {
+		"sarcophagus": 3,
+		"grave_urn": 4,
+		"rotted_banner": 2,
+		"bone_pile": 3,
+		"crusader_remains": 2,
+		"crate": 1,
+		"barrel": 1,
+		"barrel_explosive": 1,
+		"pillar": 2
+	},
+	"torches_per_room": [
+		1,
+		3
+	],
+	"chests": [
+		1,
+		3
+	],
 	"lava_room_chance": 0.3,
-	"spikes_per_room": [0, 3],
-	"bookshelves_per_room": [0, 1],
-	"secret_containers": [1, 2],
+	"spikes_per_room": [
+		0,
+		3
+	],
+	"bookshelves_per_room": [
+		0,
+		1
+	],
+	"secret_containers": [
+		1,
+		2
+	],
 	"secret_container": "secret_sarcophagus",
-	"lore_origin": "crypt"
+	"lore_origin": "crypt",
+	"generator": {
+		"profile": "labyrinth_vaults",
+		"winding": true,
+		"extra_edges": 4,
+		"pillared_hall_chance": 0.4
+	},
+	"plates_per_room": [
+		0,
+		2
+	],
+	"pendulums": [
+		2,
+		4
+	],
+	"floor_mechanics": [
+		{
+			"id": "unlit_regen_penalty"
+		},
+		{
+			"id": "urn_miasma",
+			"chance": 0.15,
+			"pct": 0.04,
+			"duration": 4.0,
+			"radius": 56
+		}
+	]
 }

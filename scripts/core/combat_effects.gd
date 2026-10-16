@@ -167,6 +167,17 @@ func run_effect(eff: Dictionary, ctx: Dictionary, origin: Vector2, aim: Vector2)
 				if eff.has("refund"):
 					caster.resource.gain(float(eff.refund))
 				fire(caster, "on_cleanse", {"count": n, "ctx": ctx})
+		"extinguish":
+			# Snuffs wall torches and carried torches within `radius` (Banshee's shriek).
+			var er := float(eff.get("radius", 200))
+			if game:
+				for t in game.dungeon.torches.values():
+					if is_instance_valid(t) and t.is_lit() and t.global_position.distance_to(origin) <= er:
+						game.dungeon.set_torch_state.rpc(t.torch_id, t.State.BROKEN)
+				for pl in game.players_root.get_children():
+					if pl.torch_left > 0.0 and pl.global_position.distance_to(origin) <= er:
+						pl.torch_left = 0.0
+						pl.torch_sync = 0
 		"destroy_projectiles":
 			destroy_projectiles_in(ctx, origin, dir, float(eff.get("range", 120)), float(eff.get("arc", 360)))
 		"terrain":

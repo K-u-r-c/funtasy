@@ -67,6 +67,8 @@ if [ "$WHAT" = all ] || [ "$WHAT" = quick ]; then
 	run economy --auto=solo --class=warrior --name=Eco --scenario=economy --quit=200
 	run lore --auto=solo --class=priest --name=Lore --scenario=lore --quit=120
 	run monsters --auto=solo --class=warrior --name=Mon --scenario=monsters --quit=300
+	run bosses --auto=solo --class=mage --name=Bos --scenario=bosses --quit=300
+	run biomes --auto=solo --class=warrior --name=Bio --scenario=biomes --quit=120
 	run primitives --auto=solo --class=mage --name=Prim --scenario=primitives --quit=200
 	run ui-layout --auto=solo --class=priest --name=Layout --scenario=ui_layout --quit=90
 	run art-check --scenario=art_check --quit=120
@@ -80,9 +82,10 @@ if [ "$WHAT" = all ] || [ "$WHAT" = quick ]; then
 fi
 if [ "$WHAT" = all ] || [ "$WHAT" = lan ]; then
 	echo "== LAN (2 instances)"
-	pair full-wm "--class=warrior --name=HostW --scenario=full --quit=220" "--class=mage --name=ClientM --quit=220"
-	pair full-pr "--class=priest --name=HostP --scenario=full --quit=220" "--class=ranger --name=ClientR --quit=220"
-	pair boss "--class=warrior --name=HostB --scenario=boss --quit=300" "--class=priest --name=ClientB --quit=300"
+	pair full-wm "--class=warrior --name=HostW --scenario=full --boss=morvath --quit=220" "--class=mage --name=ClientM --quit=220"
+	pair full-pr "--class=priest --name=HostP --scenario=full --boss=vespera --quit=220" "--class=ranger --name=ClientR --quit=220"
+	pair boss "--class=warrior --name=HostB --scenario=boss --boss=morvath --quit=300" "--class=priest --name=ClientB --quit=300"
+	pair boss-vespera "--class=mage --name=HostV --scenario=boss --boss=vespera --quit=300" "--class=warrior --name=ClientV --quit=300"
 	pair tank "--class=warrior --name=HostT --scenario=tank --quit=120" "--class=mage --name=ClientT --quit=120"
 	pair host-leave "--class=mage --name=HostL --scenario=host_leave --quit=60" "--class=warrior --name=ClientL --quit=60"
 	pair client-leave "--class=ranger --name=HostC --scenario=client_leave --quit=60" "--class=priest --name=ClientC --quit=60"

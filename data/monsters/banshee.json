@@ -1,0 +1,40 @@
+{
+	"id": "banshee",
+	"creature_type": "undead",
+	"biome": "crypt",
+	"name": "Banshee of the Crypt",
+	"role": "controller",
+	"sprite": "monsters.banshee",
+	"corpse": "none",
+	"no_corpse": true,
+	"ai": {
+		"type": "caster",
+		"aggro_radius": 260,
+		"preferred_range": [
+			70,
+			140
+		],
+		"abilities": [
+			"banshee_shriek",
+			"banshee_wail"
+		]
+	},
+	"base_stats": {
+		"hp": 46,
+		"damage": 8,
+		"armor": 0,
+		"move_speed": 80,
+		"crit_chance": 0.05,
+		"dodge": 0.1,
+		"magic_resist": 0.15
+	},
+	"behaviors": [
+		{
+			"id": "incorporeal",
+			"reduction": 0.5
+		}
+	],
+	"tint": "#dfffff",
+	"collision_radius": 8,
+	"xp": 16
+}

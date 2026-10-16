@@ -699,5 +699,121 @@
 	"sfx.channel": {
 		"like": "sfx.cast",
 		"prompt": "rising magical hum while channelling a spell"
+	},
+	"props.sarcophagus": {
+		"color": "#5a6070",
+		"text": "Sarc",
+		"shape": "square",
+		"size": 48
+	},
+	"props.grave_urn": {
+		"color": "#6a7a5a",
+		"text": "Urn",
+		"shape": "circle",
+		"size": 24
+	},
+	"props.rotted_banner": {
+		"color": "#5a2030",
+		"text": "Ban",
+		"shape": "bar",
+		"size": 32
+	},
+	"props.bone_pile": {
+		"color": "#d8d0b8",
+		"text": "",
+		"shape": "circle",
+		"size": 28
+	},
+	"props.crusader_remains": {
+		"color": "#8a8a90",
+		"text": "Cr",
+		"shape": "square",
+		"size": 32
+	},
+	"props.bone_spears": {
+		"color": "#e8e0c8",
+		"text": "",
+		"shape": "diamond",
+		"size": 24
+	},
+	"props.consecrated_shrine": {
+		"color": "#7a7060",
+		"text": "Shr",
+		"shape": "square",
+		"size": 40
+	},
+	"props.consecrated_shrine_lit": {
+		"color": "#fff0a0",
+		"text": "Shr",
+		"shape": "square",
+		"size": 40
+	},
+	"props.lid": {
+		"color": "#6a6a72",
+		"text": "Lid",
+		"shape": "square",
+		"size": 32
+	},
+	"props.burrow_mound": {
+		"color": "#4a3a28",
+		"text": "",
+		"shape": "circle",
+		"size": 28
+	},
+	"props.pressure_plate": {
+		"color": "#3a3a44",
+		"text": "",
+		"shape": "square",
+		"size": 28
+	},
+	"props.pendulum": {
+		"color": "#9aa0a8",
+		"text": "",
+		"shape": "diamond",
+		"size": 28
+	},
+	"music.boss_morvath": {
+		"like": "music.boss_bone_lord",
+		"prompt": "Dark fantasy boss battle, giant skeletal king: pounding war drums, low brass, choir chanting in Latin, grinding bone percussion, 140 bpm, relentless and regal, loopable, instrumental"
+	},
+	"music.boss_vespera": {
+		"like": "music.boss_bone_lord",
+		"prompt": "Dark fantasy boss battle, plague nun: dissonant pipe organ, shrieking strings, whispered prayers, swarming insect textures, 130 bpm, frantic and unholy, loopable, instrumental"
+	},
+	"sfx.bone_collapse": {
+		"like": "sfx.break",
+		"prompt": "pile of dry bones clattering to a stone floor, short"
+	},
+	"sfx.bone_reassemble": {
+		"like": "sfx.pickup",
+		"prompt": "bones scraping and clicking back together, eerie, short"
+	},
+	"sfx.burrow": {
+		"like": "sfx.dash",
+		"prompt": "creature digging fast through gravel and loose flagstones, short"
+	},
+	"sfx.shriek": {
+		"like": "sfx.roar",
+		"prompt": "ghostly female banshee shriek with echo, piercing, 1 second"
+	},
+	"sfx.cage": {
+		"like": "sfx.break",
+		"prompt": "sharp bone spears bursting out of the ground and locking together, short"
+	},
+	"sfx.swarm": {
+		"like": "sfx.roar",
+		"prompt": "buzzing swarm of plague flies rushing in, 1.5 seconds"
+	},
+	"sfx.lid_fall": {
+		"like": "sfx.explosion",
+		"prompt": "heavy stone sarcophagus lid crashing onto a stone floor, deep thud with debris"
+	},
+	"sfx.plate_click": {
+		"like": "sfx.door",
+		"prompt": "stone pressure plate sinking with a mechanical click"
+	},
+	"sfx.stomp": {
+		"like": "sfx.explosion",
+		"prompt": "giant armored foot stomping, ground shockwave, deep boom"
 	}
 }

@@ -1,0 +1,44 @@
+{
+	"id": "skeletal_footman",
+	"creature_type": "undead",
+	"biome": "crypt",
+	"name": "Skeletal Footman",
+	"role": "melee",
+	"sprite": "monsters.skeletal_footman",
+	"corpse": "bones",
+	"ai": {
+		"type": "melee",
+		"aggro_radius": 230,
+		"preferred_range": [
+			0,
+			30
+		],
+		"abilities": [
+			"footman_slash"
+		]
+	},
+	"base_stats": {
+		"hp": 34,
+		"damage": 6,
+		"armor": 14,
+		"move_speed": 86,
+		"crit_chance": 0.05,
+		"dodge": 0.02
+	},
+	"behaviors": [
+		{
+			"id": "reassemble",
+			"delay": 4.0,
+			"hp": 0.3,
+			"test_wait": 5.5
+		}
+	],
+	"behavior_visuals": {
+		"pile": {
+			"texture": "props.bone_pile",
+			"hide_bar": true
+		}
+	},
+	"collision_radius": 8,
+	"xp": 7
+}

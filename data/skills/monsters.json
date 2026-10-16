@@ -1,76 +1,25 @@
 [
-	{
-		"id": "ghoul_claw", "name": "Claw", "icon": "slash", "school": "melee",
-		"cooldown": 1.3, "cost": 0, "cast_time": 0.25, "anim": "attack", "sfx": "swing",
-		"effects": [
-			{"type": "melee", "range": 44, "arc": 90, "max_targets": 1, "damage": {"base": 0, "coef": 1.0}, "fx": "slash"}
-		]
-	},
-	{
-		"id": "skeleton_arrow", "name": "Bone Arrow", "icon": "arrow", "school": "ranged",
-		"cooldown": 1.9, "cost": 0, "cast_time": 0.45, "anim": "attack", "sfx": "shoot",
-		"effects": [
-			{"type": "projectile", "sprite": "bone", "speed": 330, "range": 400, "radius": 6, "damage": {"base": 0, "coef": 1.0}}
-		]
-	},
-	{
-		"id": "cultist_bolt", "damage_type": "shadow", "name": "Shadow Bolt", "icon": "blink", "school": "spell",
-		"cooldown": 2.2, "cost": 0, "cast_time": 0.5, "anim": "cast", "sfx": "cast",
-		"effects": [
-			{"type": "projectile", "sprite": "shadow", "speed": 280, "range": 380, "radius": 8, "light": "#aa44cc", "damage": {"base": 0, "coef": 1.0}}
-		]
-	},
-	{
-		"id": "cultist_curse", "damage_type": "shadow", "name": "Dark Ritual", "icon": "blink", "school": "spell",
-		"cooldown": 7.0, "cost": 0, "cast_time": 0.4, "anim": "cast", "sfx": "cast",
-		"effects": [
-			{"type": "aoe", "at": "aim", "max_range": 360, "radius": 62, "delay": 1.3, "telegraph": true, "damage": {"base": 0, "coef": 1.8},
-				"color": "#aa44cc", "on_hit": [{"type": "status", "status": "slow", "duration": 3.0}]}
-		]
-	},
-	{
-		"id": "cultist_mend", "name": "Unholy Mend", "icon": "heal", "school": "spell",
-		"cooldown": 9.0, "cost": 0, "cast_time": 0.6, "anim": "cast", "sfx": "heal",
-		"effects": [
-			{"type": "heal", "target": "lowest_ally", "max_range": 260, "amount": {"base": 0, "coef": 2.5}}
-		]
-	},
-	{
-		"id": "bone_lord_cleave", "name": "Bone Cleave", "icon": "slash", "school": "melee",
-		"cooldown": 2.4, "cost": 0, "cast_time": 0.45, "anim": "attack", "sfx": "swing",
-		"effects": [
-			{"type": "melee", "range": 92, "arc": 150, "max_targets": 4, "damage": {"base": 0, "coef": 1.3}, "fx": "slash",
-				"on_hit": [{"type": "knockback", "force": 180}]}
-		]
-	},
-	{
-		"id": "bone_lord_nova", "name": "Bone Nova", "icon": "multishot", "school": "spell",
-		"cooldown": 6.0, "cost": 0, "cast_time": 0.7, "anim": "cast", "sfx": "roar",
-		"effects": [
-			{"type": "projectile", "sprite": "bone", "speed": 250, "range": 520, "radius": 7, "count": 14, "spread": 360,
-				"damage": {"base": 0, "coef": 0.8}}
-		]
-	},
-	{
-		"id": "bone_lord_slam", "name": "Grave Slam", "icon": "meteor", "school": "melee",
-		"cooldown": 7.0, "cost": 0, "cast_time": 0.3, "anim": "attack", "sfx": "explosion",
-		"effects": [
-			{"type": "aoe", "at": "aim", "max_range": 420, "radius": 96, "delay": 1.1, "telegraph": true, "damage": {"base": 0, "coef": 2.0},
-				"color": "#ff3322", "fx": "explosion", "shake": 5, "on_hit": [{"type": "status", "status": "stun", "duration": 0.6}]}
-		]
-	},
-	{
-		"id": "bone_lord_summon", "name": "Raise Dead", "icon": "shout", "school": "spell",
-		"cooldown": 18.0, "cost": 0, "cast_time": 1.0, "anim": "cast", "sfx": "roar",
-		"effects": [
-			{"type": "summon", "monster": "ghoul", "count": 2, "radius": 90}
-		]
-	},
-	{
-		"id": "bone_lord_enrage", "name": "Enrage", "icon": "shout", "school": "melee",
-		"cooldown": 999.0, "cost": 0, "anim": "cast", "sfx": "roar",
-		"effects": [
-			{"type": "status", "target": "self", "status": "enrage", "duration": 999.0}
-		]
-	}
+	{"id": "ghoul_claw", "name": "Claw", "icon": "slash", "school": "melee", "cooldown": 1.3, "cost": 0, "cast_time": 0.25, "anim": "attack", "sfx": "swing", "effects": [{"type": "melee", "range": 44, "arc": 90, "max_targets": 1, "damage": {"base": 0, "coef": 1.0}, "fx": "slash"}]},
+	{"id": "skeleton_arrow", "name": "Bone Arrow", "icon": "arrow", "school": "ranged", "cooldown": 1.9, "cost": 0, "cast_time": 0.45, "anim": "attack", "sfx": "shoot", "effects": [{"type": "projectile", "sprite": "bone", "speed": 330, "range": 400, "radius": 6, "damage": {"base": 0, "coef": 1.0}}]},
+	{"id": "cultist_bolt", "damage_type": "shadow", "name": "Shadow Bolt", "icon": "blink", "school": "spell", "cooldown": 2.2, "cost": 0, "cast_time": 0.5, "anim": "cast", "sfx": "cast", "effects": [{"type": "projectile", "sprite": "shadow", "speed": 280, "range": 380, "radius": 8, "light": "#aa44cc", "damage": {"base": 0, "coef": 1.0}}]},
+	{"id": "cultist_curse", "damage_type": "shadow", "name": "Dark Ritual", "icon": "blink", "school": "spell", "cooldown": 7.0, "cost": 0, "cast_time": 0.4, "anim": "cast", "sfx": "cast", "effects": [{"type": "aoe", "at": "aim", "max_range": 360, "radius": 62, "delay": 1.3, "telegraph": true, "damage": {"base": 0, "coef": 1.8}, "color": "#aa44cc", "on_hit": [{"type": "status", "status": "slow", "duration": 3.0}]}]},
+	{"id": "cultist_mend", "name": "Unholy Mend", "icon": "heal", "school": "spell", "cooldown": 9.0, "cost": 0, "cast_time": 0.6, "anim": "cast", "sfx": "heal", "effects": [{"type": "heal", "target": "lowest_ally", "max_range": 260, "amount": {"base": 0, "coef": 2.5}}]},
+	{"id": "bone_lord_cleave", "name": "Bone Cleave", "icon": "slash", "school": "melee", "cooldown": 2.4, "cost": 0, "cast_time": 0.45, "anim": "attack", "sfx": "swing", "effects": [{"type": "melee", "range": 92, "arc": 150, "max_targets": 4, "damage": {"base": 0, "coef": 1.3}, "fx": "slash", "on_hit": [{"type": "knockback", "force": 180}]}]},
+	{"id": "bone_lord_nova", "name": "Bone Nova", "icon": "multishot", "school": "spell", "cooldown": 6.0, "cost": 0, "cast_time": 0.7, "anim": "cast", "sfx": "roar", "effects": [{"type": "projectile", "sprite": "bone", "speed": 250, "range": 520, "radius": 7, "count": 14, "spread": 360, "damage": {"base": 0, "coef": 0.8}}]},
+	{"id": "bone_lord_slam", "name": "Grave Slam", "icon": "meteor", "school": "melee", "cooldown": 7.0, "cost": 0, "cast_time": 0.3, "anim": "attack", "sfx": "explosion", "effects": [{"type": "aoe", "at": "aim", "max_range": 420, "radius": 96, "delay": 1.1, "telegraph": true, "damage": {"base": 0, "coef": 2.0}, "color": "#ff3322", "fx": "explosion", "shake": 5, "on_hit": [{"type": "status", "status": "stun", "duration": 0.6}]}]},
+	{"id": "bone_lord_summon", "name": "Raise Dead", "icon": "shout", "school": "spell", "cooldown": 18.0, "cost": 0, "cast_time": 1.0, "anim": "cast", "sfx": "roar", "effects": [{"type": "summon", "monster": "ghoul", "count": 2, "radius": 90}]},
+	{"id": "bone_lord_enrage", "name": "Enrage", "icon": "shout", "school": "melee", "cooldown": 999.0, "cost": 0, "anim": "cast", "sfx": "roar", "effects": [{"type": "status", "target": "self", "status": "enrage", "duration": 999.0}]},
+	{"id": "footman_slash", "name": "Rusty Slash", "school": "melee", "cooldown": 1.3, "cost": 0, "anim": "attack", "sfx": "swing", "effects": [{"type": "melee", "range": 34, "arc": 90, "max_targets": 1, "damage": {"base": 2, "coef": 1.0}, "fx": "slash"}]},
+	{"id": "skeleton_splinter", "name": "Bone Splinter Shot", "school": "ranged", "cooldown": 7.0, "cost": 0, "anim": "attack", "sfx": "shoot", "armor_pen": 0.25, "effects": [{"type": "projectile", "sprite": "arrow", "speed": 380, "range": 320, "radius": 6, "damage": {"base": 3, "coef": 1.3}, "on_hit": [{"type": "status", "status": "splintered", "duration": 2.0}]}]},
+	{"id": "ghoul_pounce", "name": "Pounce", "school": "melee", "cooldown": 1.0, "cost": 0, "anim": "dash", "sfx": "dash", "ai": {"max_range": 300}, "effects": [{"type": "leap", "distance": 300, "duration": 0.45, "on_arrive": [{"type": "aoe", "at": "self", "radius": 36, "damage": {"base": 3, "coef": 1.2}, "color": "#a04040", "on_hit": [{"type": "status", "status": "stun", "duration": 0.6}]}]}]},
+	{"id": "wight_shield_charge", "name": "Shield Charge", "school": "melee", "cooldown": 9.0, "cost": 0, "anim": "dash", "sfx": "dash", "ai": {"min_range": 60, "max_range": 200}, "effects": [{"type": "charge", "distance": 200, "speed": 520, "path_damage": {"base": 3, "coef": 0.8}, "path_on_hit": [{"type": "status", "status": "stun", "duration": 1.5}, {"type": "knockback", "force": 100}]}]},
+	{"id": "wight_smash", "name": "Door Smash", "school": "melee", "cooldown": 1.8, "cost": 0, "anim": "attack", "sfx": "hit", "effects": [{"type": "melee", "range": 38, "arc": 100, "max_targets": 2, "damage": {"base": 3, "coef": 1.2}, "fx": "slash"}]},
+	{"id": "crawler_bite", "name": "Venomous Bite", "school": "melee", "cooldown": 1.2, "cost": 0, "anim": "attack", "sfx": "hit", "effects": [{"type": "melee", "range": 30, "arc": 90, "max_targets": 1, "damage": {"base": 2, "coef": 0.9}, "fx": "slash", "on_hit": [{"type": "status", "status": "paralyzing_venom", "duration": 5.0}]}]},
+	{"id": "crawler_burst", "name": "Burst from Below", "school": "melee", "cooldown": 0.5, "cost": 0, "anim": "attack", "sfx": "burrow", "ai": {"max_range": 9999}, "effects": [{"type": "aoe", "at": "self", "radius": 44, "damage": {"base": 4, "coef": 1.4}, "color": "#88aa33", "shake": 3, "on_hit": [{"type": "status", "status": "paralyzing_venom", "duration": 5.0, "stacks": 2}, {"type": "knockback", "force": 60}]}]},
+	{"id": "banshee_shriek", "name": "Mournful Shriek", "school": "spell", "damage_type": "shadow", "cooldown": 10.0, "cost": 0, "anim": "cast", "sfx": "shriek", "ai": {"max_range": 190, "ignore_los": true}, "effects": [{"type": "aoe", "at": "self", "radius": 200, "damage": {"base": 2, "coef": 0.6}, "color": "#a0e0ff", "on_hit": [{"type": "status", "status": "silence", "duration": 2.5}]}, {"type": "extinguish", "radius": 200}]},
+	{"id": "banshee_wail", "name": "Grave Wail", "school": "spell", "damage_type": "shadow", "cooldown": 2.2, "cost": 0, "anim": "cast", "sfx": "cast", "effects": [{"type": "projectile", "sprite": "magic", "speed": 300, "range": 300, "radius": 7, "light": "#a0e0ff", "damage": {"base": 2, "coef": 1.0}}]},
+	{"id": "morvath_stomp", "name": "Crushing Stomp", "school": "melee", "cooldown": 7.0, "cost": 0, "anim": "attack", "sfx": "stomp", "ai": {"max_range": 160, "ignore_los": true}, "effects": [{"type": "aoe", "at": "self", "radius": 70, "delay": 0.4, "damage": {"base": 5, "coef": 1.0}, "color": "#c0b090", "shake": 4}, {"type": "aoe", "at": "self", "radius": 130, "delay": 0.8, "damage": {"base": 4, "coef": 0.8}, "color": "#c0b090", "shake": 3}, {"type": "aoe", "at": "self", "radius": 190, "delay": 1.2, "damage": {"base": 3, "coef": 0.6}, "color": "#c0b090", "shake": 2}]},
+	{"id": "vespera_aspergillum", "name": "Aspergillum Spikes", "school": "melee", "cooldown": 1.6, "cost": 0, "anim": "attack", "sfx": "swing", "effects": [{"type": "melee", "range": 48, "arc": 120, "max_targets": 2, "damage": {"base": 4, "coef": 1.3}, "fx": "slash", "on_hit": [{"type": "status", "status": "bleed", "duration": 4.0, "magnitude": {"base": 1, "coef": 0.2}}]}]},
+	{"id": "vespera_plague_bolt", "name": "Plague Bolt", "school": "spell", "damage_type": "shadow", "cooldown": 3.0, "cost": 0, "anim": "cast", "sfx": "cast", "effects": [{"type": "projectile", "sprite": "magic", "speed": 330, "range": 340, "radius": 8, "light": "#80ff60", "damage": {"base": 4, "coef": 1.1}, "on_hit": [{"type": "status", "status": "disease", "duration": 6.0, "magnitude": {"base": 1, "coef": 0.15}}]}]},
+	{"id": "morvath_raise", "name": "Raise the Legion", "icon": "shout", "school": "spell", "cooldown": 18.0, "cost": 0, "cast_time": 1.0, "anim": "cast", "sfx": "roar", "effects": [{"type": "summon", "monster": "skeletal_footman", "count": 3, "radius": 90}]}
 ]

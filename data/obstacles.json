@@ -49,5 +49,11 @@
 		"color": "#b080ff",
 		"light": "#8855ff",
 		"style": "block"
+	},
+	"lid": {
+		"name": "Fallen Sarcophagus Lid",
+		"color": "#6a6a72",
+		"style": "block",
+		"sprite": "props.lid"
 	}
 }

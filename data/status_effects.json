@@ -143,5 +143,13 @@
 	"apotheosis": {"name": "Apotheosis", "kind": "transform", "stats": {"spell_cost_mult": 0.5, "cooldown_mult": 0.4}, "color": "#fff6c0", "visual": {"tint": "#fff0c0", "scale": 1.1}},
 	"martyrdom": {"name": "Martyrdom", "kind": "reactive", "redirect": 0.4, "color": "#e0c0a0"},
 	"citadel": {"name": "Unwavering Citadel", "kind": "stat", "stack_stats": {"damage_taken_mult": 0.99}, "max_stacks": 30, "flags": ["uninterruptible"], "color": "#c0a050"},
-	"ecstasy": {"name": "Ecstasy in Torment", "kind": "stat", "stack_stats": {"melee_damage_mult": 1.02}, "max_stacks": 15, "color": "#a040a0"}
+	"ecstasy": {"name": "Ecstasy in Torment", "kind": "stat", "stack_stats": {"melee_damage_mult": 1.02}, "max_stacks": 15, "color": "#a040a0"},
+	"splintered": {"name": "Splintered", "kind": "stat", "stats": {"move_speed_mult": 0.7}, "color": "#e8e0c8", "debuff": true, "cleanse": "movement"},
+	"ghoul_frenzy": {"name": "Feeding Frenzy", "kind": "stat", "stats": {"haste": 0.4, "damage_mult": 1.1}, "color": "#c02020", "cleanse": "enrage", "visual": {"tint": "#ffa0a0"}},
+	"caged": {"name": "Caged", "kind": "cc", "flags": ["rooted"], "color": "#e8e0c8", "debuff": true},
+	"death_brand": {"name": "Black Anointing", "kind": "mark", "color": "#a020a0", "debuff": true, "visual": {"tint": "#d080ff"}},
+	"airborne": {"name": "Airborne", "kind": "stat", "flags": ["knockback_immune", "cc_immune"], "color": "#e0d0ff", "visual": {"scale": 1.15, "alpha": 0.85}},
+	"chant_of_the_damned": {"name": "Chant of the Damned", "kind": "dot", "tick": 1.0, "ramp": 0.15, "damage_type": "shadow", "color": "#8040c0", "debuff": true},
+	"bone_whirlwind": {"name": "Bone Whirlwind", "kind": "stat", "flags": ["reflect_projectiles", "knockback_immune"], "color": "#e8e0c8"},
+	"unlit_chill": {"name": "Chilling Breath", "kind": "stat", "stats": {"resource_regen_mult": 0.5, "resource_gen_mult": 0.5}, "color": "#506080", "debuff": true}
 }

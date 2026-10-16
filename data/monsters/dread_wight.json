@@ -1,0 +1,38 @@
+{
+	"id": "dread_wight",
+	"creature_type": "undead",
+	"biome": "crypt",
+	"name": "Dread Wight",
+	"role": "tank",
+	"sprite": "monsters.dread_wight",
+	"corpse": "bones",
+	"ai": {
+		"type": "melee",
+		"aggro_radius": 220,
+		"preferred_range": [
+			0,
+			34
+		],
+		"abilities": [
+			"wight_shield_charge",
+			"wight_smash"
+		]
+	},
+	"base_stats": {
+		"hp": 120,
+		"damage": 9,
+		"armor": 60,
+		"move_speed": 62,
+		"crit_chance": 0.03,
+		"dodge": 0.0
+	},
+	"behaviors": [
+		{
+			"id": "frontal_shield",
+			"reduction": 0.7,
+			"arc": 120
+		}
+	],
+	"collision_radius": 11,
+	"xp": 22
+}

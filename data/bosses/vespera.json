@@ -1,0 +1,98 @@
+{
+	"id": "vespera",
+	"creature_type": "undead",
+	"biome": "crypt",
+	"name": "Prioress Vespera",
+	"sprite": "monsters.vespera",
+	"music": "boss_vespera",
+	"corpse": "flesh",
+	"base_stats": {
+		"hp": 880,
+		"damage": 11,
+		"armor": 20,
+		"move_speed": 78,
+		"crit_chance": 0.05,
+		"dodge": 0.05,
+		"magic_resist": 0.15
+	},
+	"collision_radius": 14,
+	"xp": 300,
+	"aggro_radius": 340,
+	"phases": [
+		{
+			"hp_above": 0.4,
+			"abilities": [
+				"vespera_aspergillum",
+				"vespera_plague_bolt"
+			],
+			"preferred_range": [
+				0,
+				60
+			],
+			"mechanics": [
+				{
+					"id": "death_brand",
+					"every": 12,
+					"first": 6,
+					"delay": 5,
+					"radius": 80,
+					"damage": {
+						"base": 10,
+						"coef": 1.4
+					},
+					"test_wait": 6.5
+				},
+				{
+					"id": "vermin_swarm",
+					"every": 15,
+					"first": 10,
+					"blind": 3
+				}
+			]
+		},
+		{
+			"hp_above": 0.0,
+			"abilities": [
+				"vespera_aspergillum",
+				"vespera_plague_bolt"
+			],
+			"preferred_range": [
+				0,
+				60
+			],
+			"message": "Vespera unfolds leathery wings!",
+			"mechanics": [
+				{
+					"id": "airborne_shrines",
+					"every": 40,
+					"duration": 20,
+					"stun": 3,
+					"chant": {
+						"base": 1,
+						"coef": 0.12
+					},
+					"test_wait": 3
+				},
+				{
+					"id": "death_brand",
+					"every": 14,
+					"first": 8,
+					"delay": 5,
+					"radius": 80,
+					"damage": {
+						"base": 10,
+						"coef": 1.4
+					},
+					"test_wait": 6.5
+				}
+			]
+		}
+	],
+	"loot": {
+		"drops": [
+			4,
+			5
+		],
+		"min_rarity": 3
+	}
+}

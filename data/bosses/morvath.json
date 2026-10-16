@@ -1,0 +1,98 @@
+{
+	"id": "morvath",
+	"creature_type": "undead",
+	"biome": "crypt",
+	"name": "Morvath the Bone Sovereign",
+	"sprite": "monsters.bone_lord",
+	"music": "boss_morvath",
+	"corpse": "bones",
+	"base_stats": {
+		"hp": 1000,
+		"damage": 12,
+		"armor": 40,
+		"move_speed": 70,
+		"crit_chance": 0.05,
+		"dodge": 0.0
+	},
+	"collision_radius": 16,
+	"xp": 300,
+	"aggro_radius": 340,
+	"phases": [
+		{
+			"hp_above": 0.5,
+			"abilities": [
+				"morvath_stomp",
+				"bone_lord_cleave",
+				"morvath_raise"
+			],
+			"preferred_range": [
+				0,
+				70
+			],
+			"mechanics": [
+				{
+					"id": "ossuary_cage",
+					"every": 16,
+					"first": 8,
+					"timer": 6,
+					"spears": 4,
+					"execute": 0.6,
+					"test_wait": 8
+				}
+			]
+		},
+		{
+			"hp_above": 0.0,
+			"abilities": [
+				"morvath_stomp",
+				"bone_lord_cleave",
+				"morvath_raise"
+			],
+			"preferred_range": [
+				0,
+				70
+			],
+			"message": "Morvath absorbs the bones of the fallen!",
+			"mechanics": [
+				{
+					"id": "bone_shield",
+					"base": 0.25,
+					"per_corpse": 0.03
+				},
+				{
+					"id": "falling_objects",
+					"every": 8,
+					"first": 3,
+					"delay": 1.5,
+					"radius": 40,
+					"cover": "lid",
+					"cover_time": 8,
+					"damage": {
+						"base": 12,
+						"coef": 1.6
+					},
+					"sfx": "lid_fall"
+				},
+				{
+					"id": "spin_pull",
+					"every": 14,
+					"first": 6,
+					"duration": 4,
+					"radius": 110,
+					"pull": 90,
+					"damage": {
+						"base": 4,
+						"coef": 0.6
+					}
+				}
+			]
+		}
+	],
+	"loot": {
+		"drops": [
+			4,
+			5
+		],
+		"min_rarity": 3
+	}
+}

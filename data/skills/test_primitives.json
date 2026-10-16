@@ -125,5 +125,8 @@
 		"effects": [{"type": "fetch", "target": "aim_ally", "range": 280}]},
 	{"id": "test_prevent_death", "name": "Test Cheat Death", "school": "spell", "cooldown": 1, "cost": 0,
 		"test": {"then": "fatal", "expect": ["self_status:test_undying", "self_alive"]},
-		"effects": [{"type": "status", "target": "self", "status": "test_undying", "duration": 3}]}
+		"effects": [{"type": "status", "target": "self", "status": "test_undying", "duration": 3}]},
+	{"id": "test_extinguish", "name": "Test Extinguish", "school": "spell", "cooldown": 1, "cost": 0,
+		"test": {"expect": ["torch_out"], "setup": {"self_torch": 30}},
+		"effects": [{"type": "extinguish", "radius": 200}]}
 ]
