@@ -211,6 +211,10 @@ func check_live_floor() -> void:
 	for fm in g.floor_mechanics:
 		_ready_hero()
 		p.iframe_left = 9999.0
+		# Checks that need the dark start with the hero's carried torch burnt out (only the burn-out
+		# time ends it in play, #3).
+		p.torch_left = 0.0
+		p.torch_sync = 0
 		await fm.test_trigger(self)
 		var mt := 0.0
 		var err := "not checked"

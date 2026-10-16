@@ -23,10 +23,8 @@ var _phase := 0
 
 
 func test_trigger(suite: RefCounted) -> void:
-	# Somewhere dark first (test harness only: the hero puts the torch away).
+	# Somewhere dark first (the suite starts the check without a carried torch).
 	var pl: Player = suite.p
-	pl.torch_left = 0.0
-	pl.torch_sync = 0
 	var dark: Vector2 = suite.find_spot(func(pos: Vector2) -> bool: return not _lit_near(pos, 48.0))
 	pl.host_teleport(dark)
 	_phase = 0
