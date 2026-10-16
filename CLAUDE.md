@@ -141,7 +141,7 @@ Implementation rules:
 
 - **Common**: only Armor (armor pieces) or DPS (weapons). Higher tiers: progressively more stats (primary, and from a certain tier also crit dmg / haste / dodge / leech) — counts and ranges in data.
 - Every item has an **item level / required level** (level limit on the item). Exact rules in `docs/DECISIONS.md`.
-- Characters **start in their underwear** (no equipment, base stats).
+- Characters **start in their underwear** plus one Common class weapon (base stats; see `docs/DECISIONS.md` #10).
 - **Slots**: head, chest, legs, boots, gloves, left-hand weapon, right-hand weapon, ring ×2, necklace. A 2H weapon occupies both weapon slots.
 - **Anyone can equip any item.** If a weapon is **not from the character's class**, the character gets **−80% damage** and **longer cooldowns** (values in data).
 - **Backpack**: inventory as a slot grid/list with limited capacity. Larger backpacks can be **found** (monster drops).

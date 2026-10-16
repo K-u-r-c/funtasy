@@ -68,6 +68,8 @@ screenshot review at 1920x1080 and 3440x1440.
       and pacing probes, `biomes`, `economy`)
 - [x] #9 Priest primary is the melee Holy Strike (Intellect-powered); melee swings burst doors open;
       Smite learnable (`classes-*`, `skills-priest`, `ui-layout`, `skills-lan`, `full-pr`)
+- [x] #10 Every class starts with a Common class weapon, drawn on the sprite (`classes-*`, `wipe`,
+      `continue*`, `full-wm`)
 
 ## PixelLab ledger
 

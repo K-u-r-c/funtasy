@@ -10,6 +10,7 @@
 	"base_stats": {"strength": 12, "stamina": 12, "agility": 6, "intellect": 3},
 	"per_level": {"strength": 1, "stamina": 1, "agility": 0.25, "intellect": 0.1},
 	"primary_attack": "warrior_strike",
+	"starting_weapon": {"base": "sword", "name": "Worn Sword"},
 	"skills": ["warrior_cleave"],
 	"preview_gear": ["plate_helm", "plate_chest", "greaves", "boots", "gloves", "sword", "shield"]
 }

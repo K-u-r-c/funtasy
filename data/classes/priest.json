@@ -10,6 +10,7 @@
 	"base_stats": {"strength": 7, "stamina": 11, "agility": 4, "intellect": 12},
 	"per_level": {"strength": 0.5, "stamina": 0.85, "agility": 0.15, "intellect": 0.9},
 	"primary_attack": "priest_holy_strike",
+	"starting_weapon": {"base": "holy_staff", "name": "Acolyte Staff"},
 	"skills": ["priest_heal"],
 	"preview_gear": ["robe", "greaves", "boots", "gloves", "holy_wand", "shield"]
 }

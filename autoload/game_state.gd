@@ -41,12 +41,26 @@ const KIT_VERSION := 2
 static func new_character(char_name: String, class_id: String, gender: String = "") -> Dictionary:
 	return {
 		"name": char_name, "class_id": class_id, "gender": CharacterSprite.valid_gender(gender), "level": 1, "xp": 0,
-		"talents": {}, "equipment": {}, "backpack": [],
+		"talents": {}, "equipment": starting_equipment(class_id), "backpack": [],
 		"backpack_capacity": int(GameData.bal("inventory.start_capacity", 12)),
 		"quick": {"q": "", "e": ""},
 		"allocated": {}, "run_mods": [], "gold": 0, "bonus_stat_points": 0, "bonus_talent_points": 0, "loadout": [],
 		"kit": KIT_VERSION,
 	}
+
+
+## A new hero's gear (#10): only the class's Common starting weapon (class data
+## "starting_weapon": {base, name}) in the main hand; everything else is underwear.
+static func starting_equipment(class_id: String) -> Dictionary:
+	var sw: Dictionary = GameData.classes.get(class_id, {}).get("starting_weapon", {})
+	if sw.is_empty() or not GameData.item_bases.has(str(sw.get("base", ""))):
+		return {}
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(class_id)
+	var item := ItemGenerator.generate_equipment(str(sw.base), 1, 1, rng)
+	item.name = str(sw.get("name", item.name))
+	item.uid = ItemGenerator.new_uid(RandomNumberGenerator.new())
+	return {"main_hand": item}
 
 
 func is_continuing() -> bool:

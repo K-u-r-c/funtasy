@@ -1370,7 +1370,8 @@ func _wipe_scenario() -> void:
 	if again:
 		await _wait(1.0)
 		var p2 := _local()
-		check(p2 != null and p2.inv.equipment.is_empty() and p2.is_alive(), "host starts the new run alive, in underwear")
+		check(p2 != null and p2.inv.equipment.keys() == ["main_hand"] and int(p2.inv.equipment.main_hand.rarity) == 1 and p2.is_alive(),
+				"host starts the new run alive, in underwear with only the class's starting weapon")
 		check(not _game()._wiped, "wipe flag reset for the new run")
 	if NetworkManager.has_remote_peers():
 		NetworkManager.to_clients("DevAuto", "client_cmd", ["done", null])
@@ -1468,6 +1469,14 @@ func _starting_kit_checks(p: Player) -> void:
 			and str(p.skills[1]) == str(cdef.skills[0]), "new %s starts with the primary + one skill: %s" % [p.class_id, p.skills])
 	check(p.unlocked_skills().size() == 2, "only the primary and the basic skill are known (%s)" % [p.unlocked_skills()])
 	check(int(p.to_character().get("kit", 0)) == GameState.KIT_VERSION, "a new hero is saved with the simple-start kit")
+	# Starting weapon (#10): the class's Common weapon in the main hand, drawn on the sprite.
+	var sw: Dictionary = cdef.get("starting_weapon", {})
+	var wpn: Dictionary = p.inv.equipment.get("main_hand", {})
+	var ok_w: bool = not sw.is_empty() and str(wpn.get("base", "")) == str(sw.base) and int(wpn.get("rarity", 0)) == 1 \
+			and Array(GameData.item_bases[str(sw.base)].get("classes", [])).has(p.class_id) and p.inv.equipment.size() == 1
+	check(ok_w, "new %s starts with %s (%s) equipped" % [p.class_id, sw.get("name", "?"), wpn.get("name", "nothing")])
+	check(p.appearance.has("weapon") and str(p.appearance.weapon[0]) == str(GameData.item_bases[str(sw.base)].appearance),
+			"the starting weapon is drawn on the sprite (%s)" % [p.appearance.get("weapon", "none")])
 	var old_lo: Array = [cdef.primary_attack]
 	for nd in p.talent_tree().get("nodes", []):
 		if nd.get("legacy_starter", false) or (nd.get("starter", false) and str(nd.skill) != str(cdef.primary_attack)):

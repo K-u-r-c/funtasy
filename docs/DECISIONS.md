@@ -399,3 +399,13 @@ uses an additive material (the additive ones are particles, the portal and item 
 | Known from the start | A class's primary attack is always known (`Player.unlocked_skills`), so Holy Strike needs no talent node; the priest's tree keeps its 30 skills. |
 | Smite | Smite stays a tier-0 Dark Inquisitor skill node, now learned for one point (`legacy_starter`: free for priests saved before, so their loadouts with Smite as the primary keep working). It is still `primary_ok`. |
 | Doors | A hero's melee swing (any class) bursts a closed door in its arc open, so a melee primary meets props, barrels and doors alike; rusted floodgates stay shut and monsters' swings don't open doors. |
+
+### #10 Starting weapons
+
+A new hero (`GameState.new_character` -> `starting_equipment`) wears only underwear plus the class's
+Common starting weapon from class data `starting_weapon` {base, name}, item level 1, in the main hand:
+warrior Worn Sword (1H `sword`), ranger Short Bow (2H `bow`), mage Apprentice Wand (2H `arcane_wand`),
+priest Acolyte Staff (2H `holy_staff`). Their worn art (`weapon_sword`, `weapon_bow`, `weapon_wand`,
+`weapon_staff`) already exists, so the weapon shows on the sprite at once. Heroes saved before keep
+their saved equipment. CLAUDE.md's "characters start in their underwear" now means underwear plus this
+one weapon.
