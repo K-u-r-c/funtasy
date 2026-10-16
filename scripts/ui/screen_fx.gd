@@ -24,9 +24,10 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	var game := get_tree().get_first_node_in_group("game")
-	var p: Node = game.local_player if game else null
-	var want_mono := 1.0 if p and is_instance_valid(p) and p.status.has_flag("monochrome") else 0.0
-	var want_ink := 1.0 if p and is_instance_valid(p) and p.status.has_flag("ink_obscure") else 0.0
+	var lp: Variant = game.local_player if game else null
+	var alive: bool = is_instance_valid(lp) and lp.is_inside_tree()
+	var want_mono := 1.0 if alive and lp.status.has_flag("monochrome") else 0.0
+	var want_ink := 1.0 if alive and lp.status.has_flag("ink_obscure") else 0.0
 	if want_ink > 0.0 and _ink <= 0.01:
 		_mat.set_shader_parameter("seed", randf() * 100.0)
 	_mono = move_toward(_mono, want_mono, delta * 2.0)

@@ -16,10 +16,7 @@ func physics(delta: float) -> void:
 		var down: bool = pl.life_state == Player.Life.DOWNED
 		if down and not _known_down.has(pl):
 			_known_down[pl] = true
-			var nm := "Prism_%d_%d" % [pl.peer_id, made]
-			g.dungeon.spawn_prop.rpc(nm, "temporal_prism", pl.global_position + Vector2(0, 4))
-			_prisms[nm] = float(p("fuse", 6.0))
-			made += 1
+			crystallize(pl)
 		elif not down:
 			_known_down.erase(pl)
 	for nm in _prisms.keys():
@@ -39,6 +36,14 @@ func physics(delta: float) -> void:
 	if _grid <= 0.0:
 		_grid = float(p("grid_every", 9.0))
 		_laser_grid()
+
+
+## A fallen hero becomes a temporal prism that blasts the party unless shattered in time.
+func crystallize(pl: Node) -> void:
+	var nm := "Prism_%d_%d" % [pl.peer_id, made]
+	game().dungeon.spawn_prop.rpc(nm, "temporal_prism", pl.global_position + Vector2(0, 4))
+	_prisms[nm] = float(p("fuse", 6.0))
+	made += 1
 
 
 func _laser_grid() -> void:
@@ -69,14 +74,13 @@ func stop() -> void:
 
 func test_trigger(suite: RefCounted) -> void:
 	_grid = 0.0
-	# A downed hero crystallises; the test then shatters the prism.
-	suite.p.iframe_left = 0.0
-	Combat.instance.deal_damage(Combat.instance.env_ctx(0.0), suite.p, suite.p.health.hp + 9999.0)
+	# A fallen hero crystallises (simulated: a solo test party can't lose its only hero), then the
+	# party shatters the prism.
+	crystallize(suite.p)
 	await suite.da._wait(0.3)
 	var g := game()
 	for nm in _prisms.keys():
 		g.dungeon.props[nm].take_damage(9999.0, Combat.instance.test_ctx(suite.p, {"id": "t", "school": "melee"}))
-	suite.p.revive(1.0)
 
 
 func test_check(_suite: RefCounted) -> String:

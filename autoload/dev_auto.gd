@@ -832,7 +832,7 @@ func _floor2_props_check(g: Node, host_p: Player) -> void:
 		var pr: Node = g.dungeon.props[id]
 		if target == null and pr.destructible() and not pr.def.has("explode"):
 			target = pr
-		if chest == null and pr.interactable():
+		if chest == null and pr.interactable() and pr.type == "chest":
 			chest = pr
 	if target:
 		var tid: String = target.prop_id
@@ -1145,7 +1145,13 @@ func _darkness_scenario() -> void:
 		var tc: Vector2i = g.dungeon.cell_of(t.global_position - Vector2(0, 8))  # the wall cell it hangs on
 		if tc.x >= start_room.position.x and tc.x < start_room.end.x and tc.y == start_room.position.y - 1:
 			start_torches.append(t)
-	check(start_torches.size() >= 2, "start room has wall torches (%d)" % start_torches.size())
+	check(start_torches.size() >= 1, "start room has wall torches (%d)" % start_torches.size())
+	# A second torch for the projectile check: the start room's, or the nearest one elsewhere.
+	if start_torches.size() < 2:
+		var rest: Array = g.dungeon.torches.values().filter(func(t): return not start_torches.has(t))
+		rest.sort_custom(func(a, b): return a.global_position.distance_to(host_p.global_position) < b.global_position.distance_to(host_p.global_position))
+		if not rest.is_empty():
+			start_torches.append(rest[0])
 	# 2. The client takes one.
 	var torch: Node = start_torches[0]
 	client_p.host_teleport(torch.interact_pos() + Vector2(0, 18))
