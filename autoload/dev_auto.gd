@@ -1025,6 +1025,8 @@ func _tank_scenario() -> void:
 				switches += 1
 				if last_switch.has(e) and t - float(last_switch[e]) < 2.0:
 					rapid += 1
+					log_line("rapid switch %s at %.1f s -> %s; threat tank %.0f dps %.0f, taunt %.1f s, state '%s'" % [e.name, t,
+						e.target.name, e.threat.value_of(tank), e.threat.value_of(dps), e.threat._taunt_left, e.behavior_state])
 				last_switch[e] = t
 			last[e] = e.target
 		var alive := 0

@@ -2,14 +2,16 @@ class_name ThreatTable
 extends Node
 ## Host-only aggro table for one enemy. Threat comes from damage, healing, buffs, taunts and
 ## proximity. The enemy attacks the highest-threat target, but only switches when a challenger
-## exceeds the current target by `switch_ratio` (hysteresis), so it doesn't flicker between
-## targets. Taunt forces the target for a duration.
+## exceeds the current target by `switch_ratio` (hysteresis) and then keeps the new target for at
+## least `min_target_time`, so it doesn't flicker between targets. Taunt forces the target for a
+## duration.
 
 var threat: Dictionary = {}  ## Actor -> float
 var last_seen: Dictionary = {}  ## Actor -> seconds since the actor last added threat
 var current: Node = null
 var _taunt_by: Node = null
 var _taunt_left := 0.0
+var _hold_left := 0.0  ## after a threat switch the new target is kept this long (no ping-pong)
 
 
 func add(actor: Node, amount: float) -> void:
@@ -75,10 +77,12 @@ func update(delta: float, valid: Callable) -> Node:
 		if threat[a] > best_v:
 			best_v = threat[a]
 			best = a
+	_hold_left -= delta
 	if current == null or not threat.has(current):
 		current = best
-	elif best != current and best_v > threat[current] * _switch_ratio(best):
+	elif best != current and best_v > threat[current] * _switch_ratio(best) and _hold_left <= 0.0:
 		current = best
+		_hold_left = float(GameData.bal("threat.min_target_time", 2.0))
 	return current
 
 
