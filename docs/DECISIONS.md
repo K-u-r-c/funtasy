@@ -198,6 +198,18 @@ proposal left a choice open, the chosen option is stated, and any change to a pr
 | Krazik | P1: rides an ellipse along the arena edge; a green fog rises over time (party DoT by level, up to 8) and venting any of 3 exhaust valves clears it; every 20 s the Bell of Heresy sends a tinted phantom copy of every hero (12 s). P2 at 30%: the mount falls (on-foot sprite, +25% speed, +20% haste), incendiary flasks, a horde of 8 plague rats every 12 s. |
 | Floor order (D21) | Floor types carry an `order` (Crypt 1, Sewers 2, ...); depth cycles in that order. Tests and tours pin a first floor with `--biome=<id>`. |
 
+### The Foundry (phase 6) - readings of the GDD
+
+| Topic | Decision |
+| --- | --- |
+| Architecture (D22) | Profile `platforms`: 55% of normal rooms become a molten lake (walkable lava that burns, A* weight 25) with a central platform, a platform at every door and 2-cell railing-less metal bridges from each door to the centre. Lava stays walkable on purpose: a knockback or a missed step lands you in it (the GDD's "knocked into the lava"). |
+| Hazards | Collapsing grates (0-2 per normal room): a hero standing 0.8 s on one drops it - the cell turns to lava for 6 s (replicated by `Dungeon.set_cells`). Wall flame jets share the spout code with the Sewers' acid spouts (`wall_spout.gd`, numbers per kind in `balance.hazards.spouts`). Boiling cauldrons splash 56 px every 6 s. |
+| Abyssal Heat (D35) | -3% armor per stack, a stack every 10 s while a monster with aggro is within 360 px, up to 10 stacks (-26%); 5 s out of combat clears it. |
+| Magma Geysers | Every 6-10 s the lava nearest a hero (8 cells) lobs 3 globs at them: 1 s telegraphs, then burning floor for 5 s. |
+| Monsters | Ash Imp blinks 140 px away when a hero gets within 56 px (5 s cooldown); its bolts leave burning patches. Magma Carapace: -60% physical until frost damage or a melee blow from a mace, warhammer or shield shatters the shell for good. Taskmaster: a red-hot hook pulls the hero in (negative knockback) and brands them. Brimstone Hound: leap + a fire cone stacking Scorched Armor (-15% armor per stack). Iron Punisher: permanently CC immune, its hammer (250%) shatters absorb shields. Hellfire Cultist: magma glyphs (2.5 s) and a heat shockwave when it dies. Flame Revenant: no wall collision, flies straight at its target, leaves a 4 s fire wall every 2.5 s, lava doesn't hurt it. |
+| Ignis | P1: Anvil of Doom drops 4 white-hot ingots (obstacles that block everything, cover for 18 s); Slag Overflow telegraphs half of the arena and burns it for 6 s - standing next to an ingot ("high ground") is safe. P2 at 50%: White Heat (+50% haste) and 30% of every melee blow sears the attacker; a permanent fissure (burning terrain) opens under his target every 7 s. |
+| Vulkania | P1: she dives (untargetable) for 7 s and surfaces for 7 s; while under, geysers erupt under every hero; Tail Sweep is a 180 degree cone with a big knockback. P2 at 60%: every 10 s boulders turn another outer ring of the arena into lava (2 rings, about 30% of a 19x15 arena); Molten Stare inflicts Molten Blood, a strong burn that drinking any potion (or a magic cleanse) puts out. Her lake is read as the arena itself: she rises and dives in place. |
+
 ### Skill groups per talent branch (D1)
 
 Tier in brackets. **Bold** = starter (free) skill.

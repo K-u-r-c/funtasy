@@ -1,0 +1,34 @@
+{
+	"id": "brimstone_hound",
+	"creature_type": "demon",
+	"biome": "foundry",
+	"name": "Brimstone Hound",
+	"role": "flanker",
+	"sprite": "monsters.brimstone_hound",
+	"corpse": "flesh",
+	"ai": {
+		"type": "melee",
+		"aggro_radius": 280,
+		"preferred_range": [
+			0,
+			28
+		],
+		"abilities": [
+			"hound_leap",
+			"hound_breath",
+			"hound_bite"
+		]
+	},
+	"base_stats": {
+		"hp": 48,
+		"damage": 7,
+		"armor": 10,
+		"move_speed": 108,
+		"crit_chance": 0.06,
+		"dodge": 0.06,
+		"fire_resist": 0.5
+	},
+	"collision_radius": 9,
+	"xp": 14,
+	"tint": "#ff6a3a"
+}

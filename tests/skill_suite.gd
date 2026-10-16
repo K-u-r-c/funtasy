@@ -304,6 +304,9 @@ func cast_and_check(sid: String) -> void:
 		target.casting = {"skill": "cultist_bolt", "aim": p.global_position, "left": 5.0, "extra": {}}
 	if setup.has("self_cooldown"):
 		p.cooldowns[str(setup.self_cooldown)] = 30.0
+	if setup.has("target_absorb"):
+		target.health.absorb = float(setup.target_absorb)
+		target.health.absorb_time = 99.0
 	if setup.has("self_torch"):
 		p.torch_left = float(setup.self_torch)
 	var proj_id := -1
@@ -405,6 +408,8 @@ func _expect(ex: String, b: Dictionary, a: Dictionary, target: Enemy, proj_id: i
 			return not p.status.has(arg)
 		"torch_out":
 			return p.torch_left <= 0.0
+		"target_absorb_gone":
+			return target.health.absorb <= 0.0
 		"caster_moved":
 			return a.p_pos.distance_to(b.p_pos) > 12.0
 		"target_moved":

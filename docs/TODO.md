@@ -31,7 +31,9 @@ screenshot review at 1920x1080 and 3440x1440.
       (verified: `biomes-sewers`, `monsters`, `bosses`, `boss-amalgam` + `boss-krazik` LAN pairs, sewers
       tour screenshots). **Art: placeholders** (recoloured Crypt tiles, existing monster sheets with tints,
       generated prop icons) until the checkpoint answer.
-- [ ] **6. Foundry** (... Ignis + Vulkania ...)
+- [x] **6. Foundry** (platforms over molten lakes, grates, flame jets, cauldrons, heat armor loss, magma
+      geysers, 7 monsters, Ignis + Vulkania) (verified: `biomes-foundry`, `monsters`, `bosses`, `primitives`,
+      `boss-ignis` + `boss-vulkania` LAN pairs, foundry tour screenshots). **Art: placeholders.**
 - [ ] **7. Archives** (... Malazar + Memory Devourer ...)
 - [ ] **8. Kurgan** (... Cernunnos + Isolde ...)
 - [ ] **9. Legendaries**: 108 items + affix hooks + icons + drop rules + tooltips

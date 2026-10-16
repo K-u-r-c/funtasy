@@ -1,0 +1,49 @@
+{
+	"id": "magma_carapace",
+	"creature_type": "elemental",
+	"biome": "foundry",
+	"name": "Magma Carapace",
+	"role": "juggernaut",
+	"sprite": "monsters.magma_carapace",
+	"corpse": "none",
+	"no_corpse": true,
+	"ai": {
+		"type": "melee",
+		"aggro_radius": 220,
+		"preferred_range": [
+			0,
+			34
+		],
+		"abilities": [
+			"carapace_crush"
+		]
+	},
+	"base_stats": {
+		"hp": 110,
+		"damage": 9,
+		"armor": 40,
+		"move_speed": 58,
+		"crit_chance": 0.03,
+		"dodge": 0.0,
+		"fire_resist": 0.6
+	},
+	"behaviors": [
+		{
+			"id": "shell",
+			"reduction": 0.6,
+			"blunt": [
+				"mace",
+				"warhammer",
+				"shield"
+			]
+		}
+	],
+	"behavior_visuals": {
+		"shelled": {
+			"tint": "#6a4a3a"
+		}
+	},
+	"collision_radius": 11,
+	"xp": 20,
+	"tint": "#ff8a5a"
+}

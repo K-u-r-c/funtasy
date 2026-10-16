@@ -1,0 +1,38 @@
+{
+	"id": "hellfire_cultist",
+	"creature_type": "humanoid",
+	"biome": "foundry",
+	"name": "Hellfire Cultist",
+	"role": "nuker",
+	"sprite": "monsters.hellfire_cultist",
+	"corpse": "flesh",
+	"ai": {
+		"type": "caster",
+		"aggro_radius": 300,
+		"preferred_range": [
+			160,
+			280
+		],
+		"abilities": [
+			"cultist_glyph",
+			"cultist_firebolt"
+		]
+	},
+	"base_stats": {
+		"hp": 40,
+		"damage": 8,
+		"armor": 4,
+		"move_speed": 72,
+		"crit_chance": 0.05,
+		"dodge": 0.04
+	},
+	"behaviors": [
+		{
+			"id": "death_burst",
+			"skill": "cultist_heatwave"
+		}
+	],
+	"collision_radius": 8,
+	"xp": 14,
+	"tint": "#ff7040"
+}

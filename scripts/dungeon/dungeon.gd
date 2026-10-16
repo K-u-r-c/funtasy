@@ -11,7 +11,8 @@ const SPIKES_SCRIPT := preload("res://scripts/dungeon/spikes.gd")
 const TORCH_SCRIPT := preload("res://scripts/dungeon/torch.gd")
 const PLATE_SCRIPT := preload("res://scripts/dungeon/pressure_plate.gd")
 const PENDULUM_SCRIPT := preload("res://scripts/dungeon/pendulum.gd")
-const SPOUT_SCRIPT := preload("res://scripts/dungeon/acid_spout.gd")
+const SPOUT_SCRIPT := preload("res://scripts/dungeon/wall_spout.gd")
+const GRATE_SCRIPT := preload("res://scripts/dungeon/grate.gd")
 
 var layout: Dictionary = {}
 var floor_def: Dictionary = {}
@@ -27,7 +28,10 @@ var spikes: Array = []
 var plates: Array = []  ## pressure plates (Crypt)
 var plate_by_id: Dictionary = {}
 var pendulums: Array = []  ## pendulum scythes (Crypt)
-var spouts: Array = []  ## acid spouts (Sewers)
+var spouts: Array = []  ## wall spouts: acid (Sewers), flame jets (Foundry)
+var grates: Array = []  ## collapsing grates (Foundry)
+var grate_by_id: Dictionary = {}
+var pulse_props: Array = []  ## props that pulse damage around them (boiling cauldrons)
 var proximity_props: Array = []  ## host: props that go off when a hero comes close (gas pockets)
 var lights: Array = []  ## torch / lava lights, culled by distance in Visibility
 var obstacles: Dictionary = {}  ## dynamic terrain id -> {node, cells}
@@ -98,9 +102,17 @@ func build(new_layout: Dictionary, def: Dictionary, entity_root: Node2D) -> void
 		n += 1
 	for sp2 in layout.get("spouts", []):
 		var spout: Node2D = SPOUT_SCRIPT.new()
-		spout.setup(sp2.cell, sp2.dir, tile, float(sp2.phase))
+		spout.setup(sp2.cell, sp2.dir, tile, float(sp2.phase), str(sp2.get("kind", "acid")))
 		entities.add_child(spout)
 		spouts.append(spout)
+	n = 0
+	for gr in layout.get("grates", []):
+		var grate: Node2D = GRATE_SCRIPT.new()
+		grate.setup(gr.cell, tile, "Grate_%d" % n)
+		add_child(grate)
+		grates.append(grate)
+		grate_by_id[grate.grate_id] = grate
+		n += 1
 	for pe in layout.get("pendulums", []):
 		var pend: Node2D = PENDULUM_SCRIPT.new()
 		pend.setup(pe.pos, pe.axis, float(pe.span), float(pe.phase))
@@ -160,6 +172,11 @@ func clear() -> void:
 	for sp in spouts:
 		_discard(sp)
 	spouts.clear()
+	for gr in grates:
+		_discard(gr)
+	grates.clear()
+	grate_by_id.clear()
+	pulse_props.clear()
 	proximity_props.clear()
 	for l in lights:
 		if is_instance_valid(l):
@@ -231,7 +248,7 @@ func _build_tiles() -> void:
 
 ## Cell kinds drawn from a named tile of the biome's atlas ("water", "sludge", ...).
 const SPECIAL_TILES := {DungeonGenerator.CELL_WATER: "water", DungeonGenerator.CELL_SLUDGE: "sludge",
-	DungeonGenerator.CELL_CANAL: "canal", DungeonGenerator.CELL_BRIDGE: "bridge"}
+	DungeonGenerator.CELL_CANAL: "canal", DungeonGenerator.CELL_BRIDGE: "bridge", DungeonGenerator.CELL_GRATE: "lava"}
 
 
 func _near_floor(c: Vector2i) -> bool:
@@ -429,7 +446,7 @@ func add_obstacle(id: int, kind: String, cell_list: Array, lifetime: float, bloc
 		body.add_child(l)
 	if entities:
 		entities.add_child(body)
-	obstacles[id] = {"node": body, "cells": cell_list, "blocks": blocks}
+	obstacles[id] = {"node": body, "cells": cell_list, "blocks": blocks, "kind": kind}
 	if lifetime > 0.0:
 		get_tree().create_timer(lifetime).timeout.connect(remove_obstacle.bind(id))
 
@@ -524,8 +541,34 @@ func _add_prop(prop_name: String, type: String, pos: Vector2) -> void:
 	props[prop_name] = p
 	if p.def.has("proximity"):
 		proximity_props.append(p)
+	if p.def.has("pulse"):
+		pulse_props.append(p)
 	if p.blocks_path():
 		astar.set_point_solid(cell_of(pos), true)
+
+
+## Host -> all (reliable, call_local): cells change kind at runtime (a grate collapses into lava,
+## boulders smash the arena edge). Updates the grid, the floor tiles and the A* weights.
+@rpc("authority", "call_local", "reliable")
+func set_cells(cell_list: Array, kind: int) -> void:
+	var entry := GameData.asset_entry(str(floor_def.tiles))
+	for c in cell_list:
+		if c.x < 0 or c.y < 0 or c.x >= size.x or c.y >= size.y:
+			continue
+		cells[c.y * size.x + c.x] = kind
+		var key := "lava" if kind == DungeonGenerator.CELL_LAVA else str(SPECIAL_TILES.get(kind, "floor"))
+		var t: Array = entry.get(key, entry.floor[0]) if key != "floor" else entry.floor[0]
+		floor_layer.set_cell(c, 0, Vector2i(int(t[0]), int(t[1])))
+		astar.set_point_solid(c, not DungeonGenerator.walkable(kind))
+		astar.set_point_weight_scale(c, 25.0 if kind == DungeonGenerator.CELL_LAVA else 1.0)
+
+
+## Host -> all (reliable, call_local): a grate fell in or swung back.
+@rpc("authority", "call_local", "reliable")
+func grate_state(grate_id: String, up: bool) -> void:
+	var gr: Node = grate_by_id.get(grate_id)
+	if gr:
+		gr.show_state(up)
 
 
 ## Host -> all (unreliable, call_local): a pressure plate clicks under someone's feet.

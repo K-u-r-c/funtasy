@@ -937,5 +937,93 @@
 	"sfx.wave": {
 		"like": "sfx.explosion",
 		"prompt": "wall of sewer water crashing across a stone chamber"
+	},
+	"props.anvil": {
+		"color": "#4a4a50",
+		"text": "An",
+		"shape": "square",
+		"size": 28
+	},
+	"props.slag_heap": {
+		"color": "#3a2a20",
+		"text": "",
+		"shape": "circle",
+		"size": 24
+	},
+	"props.hanging_chains": {
+		"color": "#6a6a70",
+		"text": "Ch",
+		"shape": "bar",
+		"size": 24
+	},
+	"props.blast_furnace": {
+		"color": "#5a2a1a",
+		"text": "BF",
+		"shape": "square",
+		"size": 44
+	},
+	"props.boiling_cauldron": {
+		"color": "#7a3a1a",
+		"text": "Ca",
+		"shape": "circle",
+		"size": 28
+	},
+	"props.ore_cart": {
+		"color": "#5a4a3a",
+		"text": "Or",
+		"shape": "square",
+		"size": 28
+	},
+	"props.slag_safe": {
+		"color": "#3a3a3a",
+		"text": "Sf",
+		"shape": "square",
+		"size": 28
+	},
+	"props.slag_safe_open": {
+		"color": "#6a6a6a",
+		"text": "Op",
+		"shape": "square",
+		"size": 28
+	},
+	"props.grate": {
+		"color": "#2a2a2a",
+		"text": "",
+		"shape": "square",
+		"size": 32
+	},
+	"props.flame_jet": {
+		"color": "#ff7a2a",
+		"text": "",
+		"shape": "diamond",
+		"size": 20
+	},
+	"music.foundry": {
+		"like": "music.crypt",
+		"prompt": "Dark fantasy dungeon ambience, infernal foundry: rhythmic distant hammer strikes, roaring furnaces, deep industrial drones, metallic clangs, 85 bpm, oppressive heat, loopable, instrumental"
+	},
+	"music.boss_ignis": {
+		"like": "music.boss_bone_lord",
+		"prompt": "Dark fantasy boss battle, demonic forgemaster: anvil percussion, pounding taiko, distorted low brass, molten choir, 140 bpm, relentless, loopable, instrumental"
+	},
+	"music.boss_vulkania": {
+		"like": "music.boss_bone_lord",
+		"prompt": "Dark fantasy boss battle, magma wyrm: rumbling volcanic bass, serpentine strings, eruptive drums, 125 bpm, colossal, loopable, instrumental"
+	},
+	"sfx.blink": {
+		"like": "sfx.dash",
+		"prompt": "short demonic teleport pop with a puff of ash"
+	},
+	"sfx.grate": {
+		"like": "sfx.break",
+		"prompt": "iron grate snapping and falling into molten metal with a sizzle"
+	},
+	"sfx.flame_jet": {
+		"like": "sfx.fire",
+		"prompt": "wall-mounted flame jet roaring for one second"
+	},
+	"sfx.cauldron": {
+		"like": "sfx.fire",
+		"prompt": "boiling metal cauldron bubbling over and splashing"
 	}
 }

@@ -1,0 +1,32 @@
+{
+	"id": "foundry_taskmaster",
+	"creature_type": "humanoid",
+	"biome": "foundry",
+	"name": "Foundry Taskmaster",
+	"role": "disrupter",
+	"sprite": "monsters.foundry_taskmaster",
+	"corpse": "flesh",
+	"ai": {
+		"type": "melee",
+		"aggro_radius": 260,
+		"preferred_range": [
+			0,
+			34
+		],
+		"abilities": [
+			"taskmaster_hook",
+			"taskmaster_brand"
+		]
+	},
+	"base_stats": {
+		"hp": 70,
+		"damage": 8,
+		"armor": 22,
+		"move_speed": 74,
+		"crit_chance": 0.05,
+		"dodge": 0.03
+	},
+	"collision_radius": 9,
+	"xp": 16,
+	"tint": "#d08060"
+}

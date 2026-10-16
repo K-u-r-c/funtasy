@@ -252,9 +252,33 @@
 		"pendulum_period": 2.4,
 		"pendulum_damage": 18,
 		"pendulum_hit_cooldown": 0.8,
-		"acid_period": 5.0,
-		"acid_on_fraction": 0.35,
-		"acid_damage": 8
+		"spouts": {
+			"acid": {
+				"sprite": "props.acid_spout",
+				"damage": 8,
+				"damage_type": "nature",
+				"status": "corroded",
+				"status_time": 4.0,
+				"color": "#b3ff4d",
+				"period": 5.0,
+				"on_fraction": 0.35,
+				"sfx": "acid_hiss"
+			},
+			"flame": {
+				"sprite": "props.flame_jet",
+				"damage": 10,
+				"damage_type": "fire",
+				"status": "burn",
+				"status_time": 3.0,
+				"magnitude": 2.0,
+				"color": "#ff7a2a",
+				"period": 4.0,
+				"on_fraction": 0.3,
+				"sfx": "flame_jet"
+			}
+		},
+		"grate_hold": 0.8,
+		"grate_down": 6.0
 	},
 	"audio": {
 		"music_crossfade": 1.5

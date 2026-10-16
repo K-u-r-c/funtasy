@@ -399,6 +399,10 @@ func _physics_process(delta: float) -> void:
 		pd.host_damage(actors, floor_time)
 	for sp in dungeon.spouts:
 		sp.host_damage(actors, floor_time)
+	for gr in dungeon.grates:
+		gr.host_tick(delta, actors, dungeon)
+	for pp in dungeon.pulse_props.duplicate():
+		_pulse_prop(pp, delta)
 	_prox_left -= delta
 	if _prox_left <= 0.0:
 		_prox_left = 0.2
@@ -419,8 +423,8 @@ func _physics_process(delta: float) -> void:
 	if _hazard_left <= 0.0:
 		_hazard_left = float(GameData.bal("hazards.lava_tick"))
 		for a in actors:
-			if a.is_targetable() and dungeon.is_lava(a.global_position):
-				combat.deal_damage(combat.env_ctx(0.0), a, float(GameData.bal("hazards.lava_damage")), {"dot": true})
+			if a.is_targetable() and dungeon.is_lava(a.global_position) and not a.has_meta("ignores_hazards"):
+				combat.deal_damage(combat.env_ctx(0.0), a, float(GameData.bal("hazards.lava_damage")), {"dot": true, "damage_type": "fire"})
 	if portal:
 		_portal_left -= delta
 		if _portal_left <= 0.0:
@@ -644,6 +648,23 @@ func _corpse_gone(corpse_id: int) -> void:
 
 
 ## Host: corpses within r of pos (optionally only bone piles / one creature type).
+## Host: boiling cauldrons and the like splash everyone around them every few seconds.
+func _pulse_prop(pr: Node, delta: float) -> void:
+	if not is_instance_valid(pr):
+		dungeon.pulse_props.erase(pr)
+		return
+	var pd: Dictionary = pr.def.pulse
+	var left := float(pr.get_meta("pulse_left", randf() * float(pd.get("every", 6.0)))) - delta
+	if left > 0.0:
+		pr.set_meta("pulse_left", left)
+		return
+	pr.set_meta("pulse_left", float(pd.get("every", 6.0)))
+	var ctx := combat.env_ctx(float(pd.get("damage", 10)))
+	combat.apply_aoe({"type": "aoe", "radius": float(pd.get("radius", 56)), "damage": {"base": 0, "coef": 1.0}, "damage_type": str(pd.get("damage_type", "fire")),
+		"color": str(pd.get("color", "#ff9a3a"))}, ctx, pr.global_position)
+	combat.fx.sound.rpc("cauldron", pr.global_position)
+
+
 ## Host: gas pockets and the like go off when a hero walks up to them.
 func _check_proximity_props() -> void:
 	for pr in dungeon.proximity_props.duplicate():

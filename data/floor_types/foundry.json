@@ -1,0 +1,145 @@
+{
+	"id": "foundry",
+	"order": 3,
+	"name": "Infernal Foundry",
+	"tiles": "tiles.foundry",
+	"music": "foundry",
+	"bosses": [
+		"ignis",
+		"vulkania"
+	],
+	"ambient_color": "#1a0505",
+	"torch_color": "#ff7a2a",
+	"lava_color": "#ff5511",
+	"grid": [
+		96,
+		72
+	],
+	"rooms": {
+		"count": [
+			9,
+			12
+		],
+		"min_size": [
+			10,
+			9
+		],
+		"max_size": [
+			16,
+			12
+		],
+		"boss_size": [
+			19,
+			15
+		]
+	},
+	"generator": {
+		"profile": "platforms",
+		"winding": false,
+		"extra_edges": 2,
+		"platform_room_chance": 0.55,
+		"grates_per_room": [
+			0,
+			2
+		]
+	},
+	"monsters": [
+		{
+			"id": "ash_imp",
+			"weight": 4
+		},
+		{
+			"id": "magma_carapace",
+			"weight": 2
+		},
+		{
+			"id": "foundry_taskmaster",
+			"weight": 3
+		},
+		{
+			"id": "brimstone_hound",
+			"weight": 4
+		},
+		{
+			"id": "iron_punisher",
+			"weight": 1
+		},
+		{
+			"id": "hellfire_cultist",
+			"weight": 2
+		},
+		{
+			"id": "flame_revenant",
+			"weight": 2
+		}
+	],
+	"enemies_per_room": [
+		2,
+		4
+	],
+	"props_per_room": [
+		3,
+		6
+	],
+	"prop_weights": {
+		"anvil": 2,
+		"slag_heap": 3,
+		"hanging_chains": 2,
+		"blast_furnace": 1,
+		"boiling_cauldron": 1,
+		"ore_cart": 2,
+		"barrel_explosive": 2,
+		"crate": 1
+	},
+	"torches_per_room": [
+		1,
+		2
+	],
+	"chests": [
+		1,
+		3
+	],
+	"lava_room_chance": 0.5,
+	"spikes_per_room": [
+		0,
+		0
+	],
+	"wall_spouts": {
+		"kind": "flame",
+		"count": [
+			3,
+			6
+		]
+	},
+	"bookshelves_per_room": [
+		0,
+		0
+	],
+	"bookshelf_chance": 0.1,
+	"secret_containers": [
+		1,
+		2
+	],
+	"secret_container": "slag_safe",
+	"lore_origin": "foundry",
+	"floor_mechanics": [
+		{
+			"id": "heat_armor_loss",
+			"every": 10,
+			"status": "heat_exhaustion",
+			"max": 10,
+			"cool": 5,
+			"test_wait": 3
+		},
+		{
+			"id": "magma_eruptions",
+			"every": [
+				6,
+				10
+			],
+			"globs": 3,
+			"radius": 34,
+			"test_wait": 3
+		}
+	]
+}

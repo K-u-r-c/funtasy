@@ -969,6 +969,10 @@ func _use_consumable(base_id: String) -> void:
 				status.apply(str(e.status), float(e.duration), mag, ctx)
 			"torch":
 				host_take_torch()
+	# Drinking anything puts out burns that only a potion cures (Molten Blood).
+	for st in status.effects.duplicate():
+		if st.def.get("cured_by_potion", false):
+			status.remove(st.id)
 	Combat.instance.fx.sound.rpc(str(def.get("sfx", "potion")), global_position)
 	_inventory_changed()
 

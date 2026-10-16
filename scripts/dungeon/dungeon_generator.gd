@@ -19,11 +19,12 @@ const CELL_WATER := 3  ## shallow sewage: walkable, slows (Sewers)
 const CELL_SLUDGE := 4  ## deep sludge: walkable, slows + Blighted Taint (Sewers)
 const CELL_CANAL := 5  ## toxic canal: blocks movement, not sight or projectiles
 const CELL_BRIDGE := 6  ## catwalk over a canal: walkable
+const CELL_GRATE := 7  ## iron grate over molten rock: walkable until it collapses (Foundry)
 
 
 ## Can heroes and monsters stand on this cell kind?
 static func walkable(v: int) -> bool:
-	return v == CELL_FLOOR or v == CELL_LAVA or v == CELL_WATER or v == CELL_SLUDGE or v == CELL_BRIDGE
+	return v == CELL_FLOOR or v == CELL_LAVA or v == CELL_WATER or v == CELL_SLUDGE or v == CELL_BRIDGE or v == CELL_GRATE
 
 var rng := RandomNumberGenerator.new()
 var w := 0
@@ -60,6 +61,7 @@ func generate(seed_value: int, floor_def: Dictionary, count_mult: float = 1.0, d
 	layout.lava_pools = _place_lava(rooms, floor_def, door_zone)
 	_place_pools(rooms, door_zone)
 	_place_canals(rooms, door_zone)
+	_place_platforms(rooms, doors, door_zone)
 	var used := door_zone.duplicate()
 	layout.props = _place_props(rooms, floor_def, used)
 	layout.props.append_array(_place_lore_props(rooms, floor_def, used))
@@ -68,6 +70,7 @@ func generate(seed_value: int, floor_def: Dictionary, count_mult: float = 1.0, d
 	layout.plates = _place_plates(rooms, floor_def, used)
 	layout.pendulums = _place_pendulums(rooms, floor_def, used)
 	layout.spouts = _place_spouts(rooms, floor_def)
+	layout.grates = _place_grates(rooms, floor_def, used)
 	layout.props.append_array(_place_floodgates(doors, rooms, used))
 	layout.torches = _place_torches(rooms, floor_def, depth)
 	layout.spawns = _place_spawns(rooms, floor_def, used, count_mult)
@@ -493,10 +496,77 @@ func _place_canals(rooms: Array, door_zone: Dictionary) -> void:
 			door_zone[c] = true
 
 
-## Acid spouts (Sewers): pipes in the north wall of normal rooms spraying down on a timer.
+## Platforms (Foundry): some rooms become a molten lake (walkable, burning lava) with a central
+## platform, a platform at every door and railing-less 2-cell metal bridges joining them.
+func _place_platforms(rooms: Array, doors: Array, door_zone: Dictionary) -> void:
+	var chance := float(gen.get("platform_room_chance", 0.0))
+	if chance <= 0.0:
+		return
+	for room in rooms:
+		if room.role != "normal" or rng.randf() > chance:
+			continue
+		var r: Rect2i = room.rect
+		if r.size.x < 10 or r.size.y < 9:
+			continue
+		var core := Rect2i(r.get_center() - Vector2i(r.size.x / 5, r.size.y / 5), Vector2i(maxi(3, r.size.x * 2 / 5), maxi(3, r.size.y * 2 / 5)))
+		for x in range(r.position.x, r.end.x):
+			for y in range(r.position.y, r.end.y):
+				var c := Vector2i(x, y)
+				if core.has_point(c) or door_zone.has(c) or get_cell(c) != CELL_FLOOR:
+					continue
+				_set_cell(c, CELL_LAVA)
+		# Bridges from each door of this room to the core.
+		for d in doors:
+			var dc: Vector2i = d.cells[0]
+			if not r.grow(1).has_point(dc):
+				continue
+			var inside: Vector2i = dc.clamp(r.position, r.end - Vector2i.ONE)
+			var goal := core.get_center()
+			var p := inside
+			var step_x := signi(goal.x - p.x)
+			var step_y := signi(goal.y - p.y)
+			var guard := 0
+			while p != goal and guard < 64:
+				guard += 1
+				for o in [Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 1), Vector2i(1, 1)]:
+					if get_cell(p + o) == CELL_LAVA and r.has_point(p + o):
+						_set_cell(p + o, CELL_BRIDGE)
+				if p.x != goal.x and (d.vertical or p.y == goal.y):
+					p.x += step_x
+				elif p.y != goal.y:
+					p.y += step_y
+				else:
+					p.x += step_x
+		room.platforms = true
+
+
+## Collapsing grates (Foundry): grates over lava in normal rooms.
+func _place_grates(rooms: Array, fd: Dictionary, used: Dictionary) -> Array:
+	var out: Array = []
+	if not gen.has("grates_per_room"):
+		return out
+	var span: Array = gen.grates_per_room
+	for room in rooms:
+		if room.role != "normal":
+			continue
+		for i in rng.randi_range(int(span[0]), int(span[1])):
+			var c := _free_cell(room.rect, 2, used, false)
+			if c.x < 0:
+				continue
+			used[c] = true
+			_set_cell(c, CELL_GRATE)
+			out.append({"cell": c})
+	return out
+
+
+## Wall spouts: acid spouts (Sewers) and flame jets (Foundry) in the north walls of normal rooms,
+## spraying down on a timer.
 func _place_spouts(rooms: Array, fd: Dictionary) -> Array:
 	var out: Array = []
-	if not fd.has("acid_spouts"):
+	var spec: Dictionary = fd.get("wall_spouts", {})
+	if fd.has("acid_spouts"):
+		spec = {"kind": "acid", "count": fd.acid_spouts}
+	if spec.is_empty():
 		return out
 	var cands: Array = []
 	for room in rooms:
@@ -507,7 +577,7 @@ func _place_spouts(rooms: Array, fd: Dictionary) -> Array:
 			var w := Vector2i(x, r.position.y - 1)
 			if get_cell(w) == CELL_WALL and walkable(get_cell(w + Vector2i(0, 1))) and walkable(get_cell(w + Vector2i(0, 2))):
 				cands.append(w)
-	var n := rng.randi_range(int(fd.acid_spouts[0]), int(fd.acid_spouts[1]))
+	var n := rng.randi_range(int(spec.count[0]), int(spec.count[1]))
 	while out.size() < n and not cands.is_empty():
 		var c: Vector2i = cands.pop_at(rng.randi_range(0, cands.size() - 1))
 		var clash := false
@@ -515,7 +585,7 @@ func _place_spouts(rooms: Array, fd: Dictionary) -> Array:
 			if Vector2(o.cell - c).length() < 4.0:
 				clash = true
 		if not clash:
-			out.append({"cell": c, "dir": Vector2i.DOWN, "phase": rng.randf()})
+			out.append({"cell": c, "dir": Vector2i.DOWN, "phase": rng.randf(), "kind": str(spec.kind)})
 	return out
 
 

@@ -82,8 +82,12 @@ func check_layouts(fid: String) -> void:
 		da.check(kinds.has(DungeonGenerator.CELL_CANAL) and kinds.has(DungeonGenerator.CELL_BRIDGE), "%s layouts have toxic canals with catwalks" % fid)
 	if gen.has("floodgate_chance"):
 		da.check(gates > 0 and gate_bad.is_empty(), "%s floodgates each have two levers (%d gates%s)" % [fid, gates, "" if gate_bad.is_empty() else ", " + gate_bad])
-	if fd.has("acid_spouts"):
-		da.check(spouts > 0, "%s layouts have acid spouts (%d over 6 floors)" % [fid, spouts])
+	if fd.has("acid_spouts") or fd.has("wall_spouts"):
+		da.check(spouts > 0, "%s layouts have wall spouts (%d over 6 floors)" % [fid, spouts])
+	if gen.has("platform_room_chance"):
+		da.check(kinds.has(DungeonGenerator.CELL_LAVA) and kinds.has(DungeonGenerator.CELL_BRIDGE), "%s layouts have molten lakes with bridges" % fid)
+	if gen.has("grates_per_room"):
+		da.check(kinds.has(DungeonGenerator.CELL_GRATE), "%s layouts have collapsing grates" % fid)
 	var picked := {}
 	for s in 60:
 		picked[g.pick_boss(fd, s * 31 + 7)] = true
@@ -123,7 +127,7 @@ func check_live_floor() -> void:
 			p.host_teleport(sp.spray_rect().get_center())
 			await da.get_tree().physics_frame
 			t3 += 1.0 / 60.0
-		da.check(p.health.hp < hp3, "an acid spout burns the hero")
+		da.check(p.health.hp < hp3, "a wall spout (acid / flame) burns the hero")
 	if not g.dungeon.proximity_props.is_empty():
 		var pr: Node2D = g.dungeon.proximity_props[0]
 		_ready_hero()
@@ -131,6 +135,21 @@ func check_live_floor() -> void:
 		p.host_teleport(pr.global_position + Vector2(0, 20))
 		await da._wait(0.6)
 		da.check(not g.dungeon.props.values().has(pr), "a gas pocket goes off when a hero comes close")
+	if not g.dungeon.grates.is_empty():
+		var gr: Node2D = g.dungeon.grates[0]
+		_ready_hero()
+		p.iframe_left = 9999.0
+		p.host_teleport(gr.global_position)
+		await da._wait(1.2)
+		da.check(g.dungeon.cell_at(gr.cell) == DungeonGenerator.CELL_LAVA, "a grate collapses under a hero")
+	if not g.dungeon.pulse_props.is_empty():
+		var pp: Node2D = g.dungeon.pulse_props[0]
+		_ready_hero()
+		p.host_teleport(pp.global_position + Vector2(0, 24))
+		var hp4 := p.health.hp
+		pp.set_meta("pulse_left", 0.05)
+		await da._wait(0.5)
+		da.check(p.health.hp < hp4, "a boiling cauldron splashes the hero")
 	var gate := -1
 	for di in g.dungeon.doors.size():
 		if g.dungeon.doors[di].floodgate:

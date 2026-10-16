@@ -1,0 +1,39 @@
+{
+	"id": "iron_punisher",
+	"creature_type": "construct",
+	"biome": "foundry",
+	"name": "Iron Punisher",
+	"role": "behemoth",
+	"sprite": "monsters.iron_punisher",
+	"corpse": "none",
+	"no_corpse": true,
+	"ai": {
+		"type": "melee",
+		"aggro_radius": 220,
+		"preferred_range": [
+			0,
+			44
+		],
+		"abilities": [
+			"punisher_hammer"
+		]
+	},
+	"base_stats": {
+		"hp": 190,
+		"damage": 10,
+		"armor": 70,
+		"move_speed": 46,
+		"crit_chance": 0.02,
+		"dodge": 0.0
+	},
+	"behaviors": [
+		{
+			"id": "permanent_status",
+			"status": "cc_immune"
+		}
+	],
+	"collision_radius": 14,
+	"xp": 30,
+	"tint": "#9aa0b0",
+	"scale": 1.3
+}

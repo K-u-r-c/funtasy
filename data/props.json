@@ -28,5 +28,12 @@
 	"sewer_strongbox": {"name": "Sewer Strongbox", "sprite": "props.sewer_strongbox", "sprite_open": "props.sewer_strongbox_open", "hp": 0, "size": [28, 12], "blocks_sight": false, "interactable": true, "verb": "Pry open", "loot": "secret"},
 	"rusty_lever": {"name": "Rusty Lever", "sprite": "props.rusty_lever", "sprite_open": "props.rusty_lever_on", "hp": 0, "size": [10, 6], "blocks_sight": false, "interactable": true, "verb": "Pull", "loot": "none", "lever": true},
 	"exhaust_valve": {"name": "Exhaust Valve", "sprite": "props.exhaust_valve", "hp": 0, "size": [16, 8], "blocks_sight": false, "interactable": true, "verb": "Vent", "loot": "none", "reusable": true},
-	"sewer_platform": {"name": "Raised Platform", "sprite": "props.sewer_platform", "hp": 0, "size": [0, 0], "blocks_sight": false, "flat": true}
+	"sewer_platform": {"name": "Raised Platform", "sprite": "props.sewer_platform", "hp": 0, "size": [0, 0], "blocks_sight": false, "flat": true},
+	"anvil": {"name": "Anvil", "sprite": "props.anvil", "hp": 80, "size": [26, 10], "blocks_sight": false, "debris": true, "sfx": "break"},
+	"slag_heap": {"name": "Slag Heap", "sprite": "props.slag_heap", "hp": 20, "size": [22, 8], "blocks_sight": false, "debris": true, "sfx": "break", "drop_chance": 0.1},
+	"hanging_chains": {"name": "Hanging Chains", "sprite": "props.hanging_chains", "hp": 10, "size": [10, 6], "blocks_sight": false, "debris": true, "sfx": "break"},
+	"blast_furnace": {"name": "Blast Furnace", "sprite": "props.blast_furnace", "hp": 120, "size": [36, 14], "blocks_sight": true, "debris": true, "sfx": "break", "light": "#ff7a2a", "light_radius": 90},
+	"boiling_cauldron": {"name": "Boiling Cauldron", "sprite": "props.boiling_cauldron", "hp": 0, "size": [24, 10], "blocks_sight": false, "pulse": {"every": 6.0, "radius": 56, "damage": 10, "damage_type": "fire", "color": "#ff9a3a"}, "light": "#ff9a3a"},
+	"ore_cart": {"name": "Ore Cart", "sprite": "props.ore_cart", "hp": 30, "size": [24, 10], "blocks_sight": true, "debris": true, "sfx": "break", "drop_chance": 0.15},
+	"slag_safe": {"name": "Slag Safe", "sprite": "props.slag_safe", "sprite_open": "props.slag_safe_open", "hp": 0, "size": [26, 12], "blocks_sight": false, "interactable": true, "verb": "Crack open", "loot": "secret"}
 }

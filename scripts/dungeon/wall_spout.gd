@@ -1,7 +1,7 @@
 extends Node2D
-## Sewers acid spout (GDD 1.2): a corroded pipe in a wall that sprays acid `length` cells into
-## the room on a timer from the shared floor clock (deterministic on every peer). The host
-## damages actors inside the spray while it is on.
+## Wall spout: a pipe or nozzle in a wall that sprays `length` cells into the room on a timer from
+## the shared floor clock (deterministic on every peer): Sewers acid spouts, Foundry flame jets.
+## The kind's numbers live in balance `hazards.spouts.<kind>`. The host damages actors in the spray.
 
 var cell := Vector2i.ZERO
 var dir := Vector2i.DOWN
@@ -12,16 +12,20 @@ var _pipe: Sprite2D
 var _spray: CPUParticles2D
 var _on := false
 var _hit: Dictionary = {}
+var kind := "acid"
+var cfg: Dictionary = {}
 
 
-func setup(c: Vector2i, d: Vector2i, tile: int, p: float) -> void:
+func setup(c: Vector2i, d: Vector2i, tile: int, p: float, spout_kind: String = "acid") -> void:
+	kind = spout_kind
+	cfg = GameData.bal("hazards.spouts").get(kind, {})
 	cell = c
 	dir = d
 	_tile = tile
 	phase = p
 	position = Vector2(c * tile) + Vector2(tile, tile) / 2.0
 	_pipe = Sprite2D.new()
-	_pipe.texture = GameData.texture("props.acid_spout")
+	_pipe.texture = GameData.texture(str(cfg.get("sprite", "props.acid_spout")))
 	_pipe.light_mask = LightLayers.SELF_LIT
 	add_child(_pipe)
 	_spray = CPUParticles2D.new()
@@ -35,14 +39,14 @@ func setup(c: Vector2i, d: Vector2i, tile: int, p: float) -> void:
 	_spray.initial_velocity_max = float(length * tile) * 2.0
 	_spray.scale_amount_min = 1.0
 	_spray.scale_amount_max = 2.0
-	_spray.color = Color(0.7, 1.2, 0.3)
+	_spray.color = Color.from_string(str(cfg.get("color", "#b3ff4d")), Color.GREEN) * 1.3
 	add_child(_spray)
 
 
 func is_on(floor_time: float) -> bool:
-	var period := float(GameData.bal("hazards.acid_period", 5.0))
+	var period := float(cfg.get("period", 5.0))
 	var t := fposmod(floor_time / period + phase, 1.0)
-	return t < float(GameData.bal("hazards.acid_on_fraction", 0.35))
+	return t < float(cfg.get("on_fraction", 0.35))
 
 
 func update_state(floor_time: float) -> void:
@@ -51,7 +55,7 @@ func update_state(floor_time: float) -> void:
 		_on = on
 		_spray.emitting = on
 		if on:
-			AudioManager.play_sfx_at("acid_hiss", position)
+			AudioManager.play_sfx_at(str(cfg.get("sfx", "acid_hiss")), position)
 
 
 ## The spray covers `length` cells in front of the pipe.
@@ -73,6 +77,6 @@ func host_damage(actors: Array, floor_time: float) -> void:
 		if floor_time < float(_hit.get(a, -99.0)) + 0.5:
 			continue
 		_hit[a] = floor_time
-		Combat.instance.deal_damage(Combat.instance.env_ctx(0.0), a, float(GameData.bal("hazards.acid_damage", 8)), {"damage_type": "nature"})
-		if a.status:
-			Combat.instance.apply_status(Combat.instance.env_ctx(0.0), a, "corroded", 4.0, 0.0)
+		Combat.instance.deal_damage(Combat.instance.env_ctx(0.0), a, float(cfg.get("damage", 8)), {"damage_type": str(cfg.get("damage_type", "nature"))})
+		if a.status and cfg.has("status"):
+			Combat.instance.apply_status(Combat.instance.env_ctx(0.0), a, str(cfg.status), float(cfg.get("status_time", 4.0)), float(cfg.get("magnitude", 0.0)))

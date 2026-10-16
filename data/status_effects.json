@@ -161,5 +161,11 @@
 	"engulfed": {"name": "Engulfed", "kind": "cc", "flags": ["stunned", "rooted", "untargetable"], "color": "#5a7a2a", "debuff": true},
 	"green_fog": {"name": "Lethal Green Fog", "kind": "dot", "tick": 1.0, "ramp": 0.25, "damage_type": "nature", "color": "#7fd94a", "debuff": true},
 	"krazik_frenzy": {"name": "Frenzied Agility", "kind": "stat", "stats": {"move_speed_mult": 1.25, "haste": 0.2}, "color": "#c0ff60"},
-	"split_hidden": {"name": "Divided", "kind": "stat", "flags": ["untargetable", "invulnerable"], "color": "#5a7a2a", "visual": {"alpha": 0.0}}
+	"split_hidden": {"name": "Divided", "kind": "stat", "flags": ["untargetable", "invulnerable"], "color": "#5a7a2a", "visual": {"alpha": 0.0}},
+	"branded": {"name": "Branded", "kind": "dot", "tick": 1.0, "damage_type": "fire", "color": "#ff5511", "debuff": true, "cleanse": "magic"},
+	"scorched_armor": {"name": "Scorched Armor", "kind": "stat", "stack_stats": {"armor_mult": 0.85}, "max_stacks": 4, "color": "#ff7a2a", "debuff": true},
+	"heat_exhaustion": {"name": "Abyssal Heat", "kind": "stat", "stack_stats": {"armor_mult": 0.97}, "max_stacks": 10, "color": "#ff5511", "debuff": true},
+	"white_heat": {"name": "White Heat", "kind": "stat", "stats": {"haste": 0.5}, "color": "#fff0c0", "visual": {"tint": "#ffe0a0", "scale": 1.05}},
+	"submerged_lava": {"name": "Submerged", "kind": "stat", "flags": ["untargetable", "invulnerable"], "color": "#ff5511", "visual": {"alpha": 0.25}},
+	"molten_blood": {"name": "Molten Blood", "kind": "dot", "tick": 1.0, "damage_type": "fire", "color": "#ff2200", "debuff": true, "cleanse": "magic", "cured_by_potion": true}
 }

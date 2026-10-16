@@ -1,0 +1,75 @@
+{
+	"id": "vulkania",
+	"creature_type": "beast",
+	"biome": "foundry",
+	"name": "Vulkania the Magma Wyrm",
+	"sprite": "monsters.vulkania",
+	"music": "boss_vulkania",
+	"corpse": "none",
+	"base_stats": {
+		"hp": 1100,
+		"damage": 12,
+		"armor": 40,
+		"move_speed": 40,
+		"crit_chance": 0.05,
+		"dodge": 0.0,
+		"fire_resist": 0.8
+	},
+	"collision_radius": 20,
+	"xp": 340,
+	"aggro_radius": 400,
+	"scale": 1.4,
+	"tint": "#ff8a6a",
+	"phases": [
+		{
+			"hp_above": 0.6,
+			"abilities": [
+				"vulkania_bite",
+				"vulkania_tail"
+			],
+			"preferred_range": [
+				0,
+				60
+			],
+			"mechanics": [
+				{
+					"id": "submerge",
+					"under": 7,
+					"over": 7,
+					"geyser_every": 1.6,
+					"test_wait": 3
+				}
+			]
+		},
+		{
+			"hp_above": 0.0,
+			"abilities": [
+				"vulkania_bite",
+				"vulkania_tail",
+				"vulkania_stare"
+			],
+			"preferred_range": [
+				0,
+				60
+			],
+			"title": "Boulder Storm",
+			"message": "Vulkania hurls volcanic boulders!",
+			"mechanics": [
+				{
+					"id": "arena_shrink",
+					"every": 10,
+					"first": 2,
+					"max_rings": 2,
+					"test_wait": 3
+				}
+			]
+		}
+	],
+	"loot": {
+		"drops": [
+			4,
+			5
+		],
+		"min_rarity": 3
+	}
+}

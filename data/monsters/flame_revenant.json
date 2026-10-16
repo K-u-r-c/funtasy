@@ -1,0 +1,40 @@
+{
+	"id": "flame_revenant",
+	"creature_type": "elemental",
+	"biome": "foundry",
+	"name": "Flame Revenant",
+	"role": "phaser",
+	"sprite": "monsters.flame_revenant",
+	"corpse": "none",
+	"no_corpse": true,
+	"ai": {
+		"type": "melee",
+		"aggro_radius": 300,
+		"preferred_range": [
+			0,
+			30
+		],
+		"abilities": [
+			"revenant_touch"
+		]
+	},
+	"base_stats": {
+		"hp": 52,
+		"damage": 8,
+		"armor": 0,
+		"move_speed": 82,
+		"crit_chance": 0.05,
+		"dodge": 0.08,
+		"fire_resist": 0.9
+	},
+	"behaviors": [
+		{
+			"id": "lava_glide",
+			"every": 2.5,
+			"lifetime": 4
+		}
+	],
+	"collision_radius": 8,
+	"xp": 16,
+	"tint": "#ffb060"
+}

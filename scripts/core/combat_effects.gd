@@ -167,6 +167,12 @@ func run_effect(eff: Dictionary, ctx: Dictionary, origin: Vector2, aim: Vector2)
 				if eff.has("refund"):
 					caster.resource.gain(float(eff.refund))
 				fire(caster, "on_cleanse", {"count": n, "ctx": ctx})
+		"break_absorb":
+			# Shatters damage-absorbing wards (Iron Punisher's forging hammer).
+			for t in select_targets(eff, ctx, origin, aim, "aim_enemy"):
+				if t.health.absorb > 0.0:
+					t.health.absorb = 0.0
+					fx.number.rpc(t.global_position, "Ward shattered", "info")
 		"extinguish":
 			# Snuffs wall torches and carried torches within `radius` (Banshee's shriek).
 			var er := float(eff.get("radius", 200))
