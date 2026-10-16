@@ -368,6 +368,9 @@ func cast_and_check(sid: String) -> void:
 		target.status.apply(str(st), 6.0, 5.0, ctx)
 	for st2 in setup.get("self_status", []):
 		p.status.apply(str(st2), 6.0, 1.0, Combat.instance.env_ctx(1.0))
+	# Status stats land on the next physics frame; the cast below reads them now.
+	p.recompute_stats()
+	target.recompute_stats()
 	if setup.has("target_hp"):
 		target.health.hp = target.health.max_hp * float(setup.target_hp)
 	if setup.has("self_hp"):

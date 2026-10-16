@@ -501,6 +501,13 @@ func _full_scenario() -> void:
 	check(client_uses >= 4, "client used %d different skills through host validation" % client_uses)
 	check(client_p.cooldowns.size() > 0 or client_uses > 0, "host tracks client cooldowns")
 	check(not is_instance_valid(target) or target.health.hp < target.health.max_hp, "client damaged the monster (host authority)")
+	if client_p.xp + client_p.level * 100000 <= xp_before and not (is_instance_valid(target) and target.is_alive()):
+		# The host's cleave can finish the target before the client touches it: any XP monster will do.
+		target = null
+		for e in g.enemies_root.get_children():
+			if e is Enemy and not e.is_boss and e.is_alive() and int(e.def.get("xp", 0)) > 0:
+				if target == null or e.global_position.distance_to(client_p.global_position) < target.global_position.distance_to(client_p.global_position):
+					target = e
 	if client_p.xp + client_p.level * 100000 <= xp_before and is_instance_valid(target) and target.is_alive():
 		# The pack outlasted the 9 s fight (reassembling footmen, burrowed crawlers): the client
 		# lands the killing blow so kill credit is still what gets checked.
