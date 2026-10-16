@@ -72,6 +72,8 @@ screenshot review at 1920x1080 and 3440x1440.
       `continue*`, `full-wm`)
 - [x] #11 Item card compares against every item equipping would take off (2H vs both hands, off-hand vs
       2H; `economy`, `ui-layout`)
+- [x] #12 Amalgam grab: held state (status, look, Burst it down bar), 4 s max, released on death; boss
+      arena guard (`boss-amalgam` LAN pair, `bosses`, `boss-krazik`)
 
 ## PixelLab ledger
 

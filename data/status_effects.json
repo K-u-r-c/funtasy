@@ -158,7 +158,7 @@
 	"mud_grasp": {"name": "Grasping Mud", "kind": "cc", "flags": ["rooted"], "color": "#6a5a2a", "debuff": true, "cleanse": "movement", "dr_category": "root"},
 	"leeched": {"name": "Leeched", "kind": "stat", "flags": ["no_dash"], "color": "#6a1a2a", "debuff": true},
 	"sewage_slow": {"name": "Wading", "kind": "stat", "stats": {"move_speed_mult": 0.75}, "color": "#4a6a3a", "debuff": true},
-	"engulfed": {"name": "Engulfed", "kind": "cc", "flags": ["stunned", "rooted", "untargetable"], "color": "#5a7a2a", "debuff": true},
+	"engulfed": {"name": "Engulfed", "kind": "cc", "flags": ["stunned", "rooted"], "color": "#5a7a2a", "debuff": true, "visual": {"tint": "#7fd94a", "alpha": 0.8, "scale": 0.85, "lift": 10}},
 	"green_fog": {"name": "Lethal Green Fog", "kind": "dot", "tick": 1.0, "ramp": 0.25, "damage_type": "nature", "color": "#7fd94a", "debuff": true},
 	"krazik_frenzy": {"name": "Frenzied Agility", "kind": "stat", "stats": {"move_speed_mult": 1.25, "haste": 0.2}, "color": "#c0ff60"},
 	"split_hidden": {"name": "Divided", "kind": "stat", "flags": ["untargetable", "invulnerable"], "color": "#5a7a2a", "visual": {"alpha": 0.0}},

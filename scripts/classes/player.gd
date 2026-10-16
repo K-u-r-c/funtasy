@@ -23,6 +23,14 @@ var skills: Array = []:  ## the loadout: slot 0 = primary attack, 1..5 = skills 
 # Replicated by the host (StateSync).
 var life_state: int = Life.ALIVE
 var torch_sync := 0  ## whole seconds left on the carried torch (host-driven, 0 = none)
+var held_by := NodePath():  ## a boss holding this hero (the Amalgam's engulf, #12); replicated
+	set(v):
+		held_by = v
+		# Held inside the boss: no collision (it would shove the boss around), pinned to it.
+		collision_layer = 0 if not v.is_empty() else 2
+		collision_mask = 0 if not v.is_empty() else (1 | 4 | 8 | 16 | 32 | 64 | 128)
+		# Drawn over the boss, green and see-through (the Engulfed look), so the party sees who is held.
+		z_index = 1 if not v.is_empty() else 0
 var still_time := 0.0  ## host: seconds without moving
 var downed_left := 0.0
 var revive_progress := 0.0
@@ -105,7 +113,7 @@ func setup(data: Dictionary) -> void:
 		"Health:hp", "Health:max_hp", "Health:absorb", "Resource:value", "Resource:max_value", "Resource:kind",
 		"Status:shown", "Stats:final", ".:life_state", ".:downed_left", ".:revive_progress", ".:level",
 		".:xp", ".:talent_points", ".:talents", ".:appearance", ".:torch_sync",
-		".:stat_points", ".:allocated", ".:run_mods", ".:gold", ".:skills", ".:legacy_kit",
+		".:stat_points", ".:allocated", ".:run_mods", ".:gold", ".:skills", ".:legacy_kit", ".:held_by",
 	], [], 0.1)
 	var owner_sync := NetSync.make(self, "OwnerSync", [], [".:net_pos", ".:facing", ".:aim_pos"], 0.05)
 	owner_sync.set_multiplayer_authority(peer_id)
@@ -420,9 +428,18 @@ func _process(delta: float) -> void:
 	item_cd_left = maxf(item_cd_left - delta, 0.0)
 
 
+## The boss holding this hero, or null.
+func holder() -> Node2D:
+	return get_node_or_null(held_by) as Node2D if not held_by.is_empty() else null
+
+
 ## Host: remote players' positions follow what the owner streams, limited to plausible speed.
 func _host_follow(delta: float) -> void:
 	_move_allowance = maxf(_move_allowance - delta, 0.0)
+	var h := holder()
+	if h:
+		position = h.global_position
+		return
 	var limit := move_speed() * float(GameData.bal("player.movement_tolerance")) * delta + 2.0
 	if _move_allowance > 0.0 or life_state == Life.GHOST:
 		limit = 2000.0 * delta + 40.0
@@ -446,6 +463,15 @@ func _owner_tick(delta: float) -> void:
 		_dodge_left = 0.0
 		if life_state == Life.GHOST:
 			net_pos = position
+		return
+	var h := holder()
+	if h:
+		# Held by a boss: carried along, no input (the host pins the hero too).
+		position = h.global_position
+		net_pos = position
+		velocity = Vector2.ZERO
+		_dodge_left = 0.0
+		_release_quick_holds()
 		return
 	var speed := move_speed()
 	dir = _cc_move(dir, delta)

@@ -23,6 +23,9 @@ var _strafe := 1.0
 var _abilities: Array = []
 var _preferred: Array = [0, 40]
 var _aggro_radius := 220.0
+var _arena := Rect2()  ## host: the boss room a boss spawned in (world px); empty when spawned elsewhere
+var _guard_left := 0.0
+var arena_returns := 0  ## host: times the arena guard put this boss back (tests)
 var _aggro_since := -1.0  ## host: when this monster first noticed a hero (seconds)
 var lifetime := -1.0  ## host: summoned minions and decoys expire
 var elite: Array = []  ## elite modifier ids (D10), from the spawn data on every peer
@@ -336,6 +339,8 @@ func _opponents(game: Node) -> Array:
 func _host_ai(delta: float) -> void:
 	if not is_alive():
 		return
+	if not is_boss and str(def.get("role", "")) == "boss_part":
+		_arena_guard(delta)
 	# Charmed monsters change sides while it lasts and pick a fresh target either way.
 	var charmed_now := status.has_flag("charmed") and not is_boss  # bosses keep their side (arena mechanics)
 	if charmed_now and not _charmed and team == Team.MONSTERS or _charmed and not charmed_now:
@@ -357,6 +362,36 @@ func _host_ai(delta: float) -> void:
 		if not skip:
 			_think(game)
 	_move(game, delta)
+
+
+## Host (#12): a floor boss (and its boss parts, the Amalgam twins) never leaves its arena. Outside the boss room (one tile of slack) or
+## off walkable ground it is put back in the middle of the room, whatever moved it there.
+func _arena_guard(delta: float) -> void:
+	var game := get_tree().get_first_node_in_group("game")
+	if game == null or game.layout.is_empty():
+		return
+	if _arena.size == Vector2.ZERO:
+		var r: Rect2i = game.layout.rooms[int(game.layout.boss_room)].rect
+		var t := float(game.dungeon.tile)
+		var room := Rect2(Vector2(r.position) * t, Vector2(r.size) * t)
+		if not room.has_point(global_position):
+			_arena = Rect2(-1, -1, 0, 0)  # spawned elsewhere (tests, summons): no guard
+			return
+		_arena = room
+	if _arena.size.x <= 0.0:
+		return
+	_guard_left -= delta
+	if _guard_left > 0.0:
+		return
+	_guard_left = 0.25
+	var inside := _arena.grow(float(game.dungeon.tile)).has_point(global_position)
+	if inside and DungeonGenerator.walkable(game.dungeon.cell_at(game.dungeon.cell_of(global_position))):
+		return
+	var back: Vector2 = game.nearest_floor(_arena.get_center())
+	host_teleport(back)
+	velocity = Vector2.ZERO
+	arena_returns += 1
+	print("[boss] %s was outside its arena: back to the centre" % display_name)
 
 
 func _think(game: Node) -> void:

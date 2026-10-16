@@ -417,3 +417,13 @@ The backpack item card compares an item with everything equipping it would take 
 off hand together (their DPS, armor and stats are summed, so the off-hand relic's stats show as red
 losses), an off-hand item against a worn 2H weapon, a 1H weapon against the 2H weapon it would replace
 and against nothing when it goes into the empty left hand. The header reads "vs A + B".
+
+### #12 The Amalgam's grab and the arena guard
+
+| Topic | Decision |
+| --- | --- |
+| Cause | Engulf teleported the victim onto the boss every frame (a reliable RPC to the owner each frame) while both kept their collision: the physics kept shoving the boss, which jumped around and could be pushed through walls out of the map, leaving the floor unfinishable. |
+| Held | The victim gets `Player.held_by` (the boss's path, replicated): the host and the owner pin the hero to the boss locally, collision is off while held, no per-frame RPCs. The Engulfed status (stunned + rooted, no longer untargetable, so it is never removed and re-added) shows as a status icon and gives the hero a green, see-through, lifted look drawn over the boss. |
+| Burst it down | `Boss.burst_bar` (replicated: progress, seconds left) drives a green bar under the boss bar on every screen: "You are held / X is held - Burst it down! 3.4 s". The burst needed is now 300 (x the boss's HP multiplier). |
+| Time limit | At most 4 s (`duration` 4 in data, capped at 4 in code). The hero is released when the time is up (taking the `fail` damage), when the party bursts the boss, when the hero falls, when the phase ends and when the boss dies (its mechanics stop). |
+| Arena guard | Every 0.25 s the host checks a floor boss (and the Amalgam's twins, `role` boss_part) against the boss room it spawned in (one tile of slack) and walkable ground; outside, it is put back in the middle of the room. Bosses spawned elsewhere (tests, previews) are not guarded. Krazik needed no change (his mechanics never move him out of the room). |

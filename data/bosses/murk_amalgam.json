@@ -47,8 +47,8 @@
 					"id": "engulf",
 					"every": 22,
 					"first": 14,
-					"duration": 8,
-					"burst": 500,
+					"duration": 4,
+					"burst": 300,
 					"dot": {
 						"base": 2,
 						"coef": 0.5

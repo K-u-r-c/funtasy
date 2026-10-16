@@ -46,6 +46,8 @@ var _party_box: VBoxContainer
 var _boss_panel: GlassWindow
 var _boss_bar: StatBar
 var _boss_name: Label
+var _burst_label: Label  ## "Burst it down" bar of a boss grab (#12)
+var _burst_bar: StatBar
 var _messages: VBoxContainer
 var _prompt_row: HBoxContainer
 var _prompt: Label
@@ -193,6 +195,13 @@ func _build_center() -> void:
 	_boss_bar.ticks = 10
 	_boss_bar.flash_on_damage = true
 	bv.add_child(_boss_bar)
+	_burst_label = UITheme.label("", Color("b8ff7a"), UITheme.FONT_SMALL)
+	_burst_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_burst_label.visible = false
+	bv.add_child(_burst_label)
+	_burst_bar = StatBar.new(Color("7fd94a"), Vector2(360, 8))
+	_burst_bar.visible = false
+	bv.add_child(_burst_bar)
 	_messages = VBoxContainer.new()
 	_messages.add_theme_constant_override("separation", 3)
 	_messages.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -501,6 +510,16 @@ func _update_boss() -> void:
 			title = "  - " + str(phases[b.phase].get("title", "Phase %d" % (b.phase + 1)))
 		_boss_name.text = b.display_name + title
 		_boss_bar.set_values(b.health.fraction(), 0.0, "%d%%" % ceili(b.health.fraction() * 100.0))
+		var bb: Vector2 = b.get("burst_bar") if b.get("burst_bar") != null else Vector2.ZERO
+		_burst_label.visible = bb.y > 0.0
+		_burst_bar.visible = bb.y > 0.0
+		if bb.y > 0.0:
+			var held := ""
+			for p2 in get_tree().get_nodes_in_group("players"):
+				if not p2.held_by.is_empty():
+					held = "You are held" if p2 == player else "%s is held" % p2.display_name
+			_burst_label.text = "%s - Burst it down! %.1f s" % [held, bb.y] if not held.is_empty() else "Burst it down! %.1f s" % bb.y
+			_burst_bar.set_values(bb.x, 0.0, "%d%%" % roundi(bb.x * 100.0))
 	else:
 		_boss_panel.visible = false
 

@@ -397,6 +397,19 @@ func client_cmd(cmd: String, arg: Variant) -> void:
 				await _wait(1.2)
 				p.request_skill_release.rpc_id(1, int(slot), aim_at)
 				await _wait(0.4)
+		"check_boss_arena":
+			await _wait(0.3)
+			var bn: Node = _game().enemies_root.get_node_or_null(str(arg[0]))
+			check(bn != null and Rect2(arg[1]).has_point(bn.global_position), "client sees the boss back in its arena")
+		"check_grab":
+			var hud_g: Node = get_tree().get_first_node_in_group("hud")
+			var bg: Node = _game().enemies_root.get_node_or_null(str(arg))
+			check(not p.held_by.is_empty() and p.status.shown.any(func(x): return str(x[0]) == "engulfed"), "client: held by the boss with the Engulfed status icon")
+			check(bg != null and p.global_position.distance_to(bg.global_position) < 16.0, "client: carried inside the boss (%.0f px)" % (p.global_position.distance_to(bg.global_position) if bg else -1.0))
+			check(hud_g._burst_bar.visible and str(hud_g._burst_label.text).contains("Burst it down"), "client: the Burst it down bar shows (%s)" % hud_g._burst_label.text)
+		"check_released":
+			await _wait(0.3)
+			check(p.held_by.is_empty() and not get_tree().get_first_node_in_group("hud")._burst_bar.visible, "client: released, the bar is gone")
 		"check_windup":
 			var lp: Node = _game().enemies_root.get_node_or_null(str(arg))
 			check(int(Combat.instance.fx.get_meta("windup_markers", 0)) > 0 and lp != null and lp.has_meta("cast_end"),
@@ -1005,6 +1018,7 @@ func _boss_scenario() -> void:
 	for p in g.players_root.get_children():
 		p.host_teleport(spot + Vector2(randf_range(-30, 30), 0))
 	await _wait(0.6)
+	await _boss_guard_and_grab_checks(g, boss)
 	if NetworkManager.has_remote_peers():
 		NetworkManager.to_clients("DevAuto", "client_cmd", ["fight", true])
 	_fight = true
@@ -1040,6 +1054,57 @@ func _boss_scenario() -> void:
 		await _wait(0.5)
 		NetworkManager.to_clients("DevAuto", "client_cmd", ["done", null])
 	await _wait(1.0)
+
+
+## #12: the arena guard puts a boss that left its arena back in the middle; the Amalgam's grab
+## holds a hero visibly (status, pinned to the boss, "Burst it down" bar on every screen) for at
+## most 4 s and lets go when it ends or the boss dies.
+func _boss_guard_and_grab_checks(g: Node, boss: Enemy) -> void:
+	var r: Rect2i = g.layout.rooms[int(g.layout.boss_room)].rect
+	var t := float(g.dungeon.tile)
+	var arena := Rect2(Vector2(r.position) * t, Vector2(r.size) * t).grow(t)
+	var back_before: int = boss.arena_returns
+	boss.host_teleport(g.layout.start)
+	await _wait(0.8)
+	check(arena.has_point(boss.global_position) and boss.arena_returns > back_before, "a boss outside its arena is put back in the middle (%s)" % boss.def_id)
+	if NetworkManager.has_remote_peers():
+		NetworkManager.to_clients("DevAuto", "client_cmd", ["check_boss_arena", [boss.name, arena]])
+		await _wait(0.6)
+	var eng: BossMechanic = null
+	for m in boss.mechanics:
+		if str(m.get_script().resource_path).ends_with("engulf.gd"):
+			eng = m
+	var victim := _other_player()
+	if eng == null or victim == null:
+		return
+	victim.iframe_left = 30.0
+	boss.target = victim
+	eng.trigger()
+	check(eng.victim == victim and victim.held_by == boss.get_path() and boss.burst_bar.y > 0.0 and victim.status.has("engulfed"),
+			"the Amalgam grabs the client: held, Engulfed, a Burst it down bar")
+	await _wait(0.6)
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["check_grab", str(boss.name)])
+	var held := 0.0
+	var stayed := true
+	while eng.victim != null and held < 6.0:
+		stayed = stayed and arena.has_point(boss.global_position)
+		await _wait(0.1)
+		held += 0.1
+	check(stayed, "the boss stays in its arena during the grab")
+	check(eng.victim == null and victim.held_by.is_empty() and eng.longest <= 4.05 and boss.burst_bar == Vector2.ZERO,
+			"the grab lets go after at most 4 s (%.2f s)" % eng.longest)
+	check(arena.has_point(boss.global_position), "the boss is still in its arena after the grab")
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["check_released", null])
+	await _wait(0.4)
+	# The boss dying (its mechanics stop) releases a held hero at once.
+	boss.target = victim
+	eng.trigger()
+	await _wait(0.3)
+	eng.stop()
+	check(victim.held_by.is_empty() and not victim.status.has("engulfed"), "a held hero is released when the boss dies")
+	if not victim.is_alive():
+		victim.revive(1.0)
+	await _wait(0.3)
 
 
 ## Real aggro check: the host (tank class) and a damage dealer both fight a monster pack with

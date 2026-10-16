@@ -377,3 +377,22 @@ func _lighting(_arg: String) -> void:
 		await da._wait(1.2)
 		await snap("lighting_%s_prop" % fid)
 
+
+## The Murk Amalgam's grab (#12): the held hero, the Engulfed icon and the Burst it down bar.
+func _grab(_arg: String) -> void:
+	for e in g.enemies_root.get_children():
+		e.queue_free()
+	await da._wait(0.3)
+	p.iframe_left = 9999.0
+	p.host_take_torch()
+	var boss: Enemy = g.spawn_monster("murk_amalgam", g.nearest_floor(p.global_position + Vector2(50, 0)), true)
+	await da._wait(0.5)
+	boss.add_threat(p, 50.0)
+	boss.target = p
+	await da._wait(0.3)
+	for m in boss.mechanics:
+		if str(m.get_script().resource_path).ends_with("engulf.gd"):
+			m.trigger()
+	await da._wait(1.0)
+	await snap("boss_grab")
+

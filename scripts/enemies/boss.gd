@@ -9,15 +9,17 @@ var phase := -1:  ## replicated for the HUD; a phase can change the boss's look
 		phase = v
 		_apply_phase_look()
 var mechanics: Array = []  ## host: BossMechanic modules of the current phase
+var burst_bar := Vector2.ZERO  ## replicated: a "Burst it down" bar (x = progress, y = seconds left; 0 = none, #12)
 
 
 func setup(data: Dictionary) -> void:
 	super.setup(data)
 	var sync: MultiplayerSynchronizer = get_node("StateSync")
 	var cfg := sync.replication_config
-	cfg.add_property(NodePath(".:phase"))
-	cfg.property_set_spawn(NodePath(".:phase"), true)
-	cfg.property_set_replication_mode(NodePath(".:phase"), SceneReplicationConfig.REPLICATION_MODE_ON_CHANGE)
+	for prop in [".:phase", ".:burst_bar"]:
+		cfg.add_property(NodePath(prop))
+		cfg.property_set_spawn(NodePath(prop), true)
+		cfg.property_set_replication_mode(NodePath(prop), SceneReplicationConfig.REPLICATION_MODE_ON_CHANGE)
 
 
 func _configure_ai() -> void:
@@ -43,6 +45,7 @@ func _check_phase() -> void:
 func _host_ai(delta: float) -> void:
 	if not is_alive():
 		return
+	_arena_guard(delta)
 	if aggro:  # arena mechanics run once the fight is on
 		for m in mechanics:
 			m.physics(delta)
