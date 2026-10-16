@@ -40,6 +40,7 @@ Goal cap: 2500 generations, and never more than the remaining allowance. Spend =
 | Date | Batch | Used before | Used after | Spend | Total spend |
 | --- | --- | --- | --- | --- | --- |
 | 2026-10-15 | (start) | 1081 | 1081 | 0 | 0 |
+| 2026-10-16 | Skill icon sheets: 8 Pixen 128x128 sheets of 16 icons (96 skills, 24 keystones, 6 items, 2 statuses), cut by `tools/cut_icon_sheet.py` | 1081 | 1089 | 8 | 8 |
 
 ## Done (MVP)
 

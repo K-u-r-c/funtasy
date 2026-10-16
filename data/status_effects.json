@@ -127,6 +127,21 @@
 	"time_warp": {"name": "Time Warp", "kind": "stat", "stats": {"haste": 0.4, "move_speed_mult": 1.3}, "color": "#b060e0"},
 	"light_charge": {"name": "Light Charge", "kind": "stat", "max_stacks": 5, "color": "#ffe680"},
 	"dark_charge": {"name": "Dark Charge", "kind": "stat", "max_stacks": 5, "color": "#7040a0"},
-	"eclipse": {"name": "Eclipse", "kind": "proc", "stats": {"spell_damage_mult": 2.0}, "color": "#c0a0ff", "procs": [{"event": "on_hit", "if": {"school": "spell"}, "do": [{"type": "remove_status", "target": "self", "status": "eclipse"}]}]},
-	"permafrost_chill": {"name": "Permafrost", "kind": "stat", "max_stacks": 3, "color": "#c0f0ff", "debuff": true, "threshold": {"stacks": 3, "apply": "freeze", "duration": 2.0}}
+	"eclipse": {"name": "Eclipse", "kind": "proc", "stats": {"spell_damage_mult": 2.0}, "color": "#c0a0ff", "procs": [{"event": "on_hit", "if": {"school": "spell", "dot": false}, "do": [{"type": "remove_status", "target": "self", "status": "eclipse"}]}]},
+	"permafrost_chill": {"name": "Permafrost", "kind": "stat", "max_stacks": 3, "color": "#c0f0ff", "debuff": true, "threshold": {"stacks": 3, "apply": "freeze", "duration": 2.0}},
+	"pw_shield": {"name": "Power Word: Shield", "kind": "absorb", "color": "#ffe680"},
+	"blessing_of_might": {"name": "Blessing of Might", "kind": "stat", "stats": {"strength_mult": 1.1, "agility_mult": 1.1, "intellect_mult": 1.1}, "color": "#ffd060"},
+	"divine_aegis": {"name": "Divine Aegis", "kind": "stat", "stats": {"armor_mult": 1.6, "block_chance": 0.3, "block_value": 8}, "color": "#ffe080", "procs": [{"event": "on_block", "do": [{"type": "heal", "target": "self", "amount": {"base": 0, "coef": 0, "pct_caster_max_hp": 0.03}}]}]},
+	"judgement": {"name": "Judgement", "kind": "mark", "stats": {"melee_damage_taken_mult": 1.2}, "color": "#ffe680", "debuff": true},
+	"sw_pain": {"name": "Shadow Word: Pain", "kind": "dot", "tick": 1.0, "max_stacks": 1, "ramp": 0.15, "damage_type": "shadow", "color": "#9050d0", "debuff": true, "cleanse": "curse"},
+	"crown_of_thorns": {"name": "Crown of Thorns", "kind": "reactive", "stats": {"reflect_all": 0.4}, "color": "#e0c080"},
+	"leap_of_faith": {"name": "Leap of Faith", "kind": "reactive", "cheat_death": 0.3, "color": "#ffe9a0"},
+	"bastion": {"name": "Bastion Sigil", "kind": "stat", "stats": {"damage_taken_mult": 0.75}, "color": "#ffd890"},
+	"guardian_spirit": {"name": "Guardian Spirit", "kind": "reactive", "stats": {"healing_taken_mult": 1.4}, "cheat_death": 0.5, "color": "#ffffff"},
+	"vampiric_embrace": {"name": "Vampiric Embrace", "kind": "stat", "color": "#8030a0", "procs": [{"event": "on_hit", "if": {"damage_type": "shadow"}, "do": [{"type": "heal", "target": "party", "radius": 99999, "amount": {"base": 0, "coef": 0, "event_pct": 0.35, "split": true}}]}]},
+	"zeal": {"name": "Crusader's Zeal", "kind": "stat", "stack_stats": {"haste": 0.05}, "max_stacks": 5, "color": "#ffc040"},
+	"apotheosis": {"name": "Apotheosis", "kind": "transform", "stats": {"spell_cost_mult": 0.5, "cooldown_mult": 0.4}, "color": "#fff6c0", "visual": {"tint": "#fff0c0", "scale": 1.1}},
+	"martyrdom": {"name": "Martyrdom", "kind": "reactive", "redirect": 0.4, "color": "#e0c0a0"},
+	"citadel": {"name": "Unwavering Citadel", "kind": "stat", "stack_stats": {"damage_taken_mult": 0.99}, "max_stacks": 30, "flags": ["uninterruptible"], "color": "#c0a050"},
+	"ecstasy": {"name": "Ecstasy in Torment", "kind": "stat", "stack_stats": {"melee_damage_mult": 1.02}, "max_stacks": 15, "color": "#a040a0"}
 }

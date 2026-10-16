@@ -541,5 +541,131 @@
 		"color": "#e8c040",
 		"text": "TS",
 		"shape": "diamond"
+	},
+	"icons.p_renew": {
+		"color": "#e8d070",
+		"text": "Re"
+	},
+	"icons.p_blessing_of_might": {
+		"color": "#c0a050",
+		"text": "BO"
+	},
+	"icons.p_divine_aegis": {
+		"color": "#c0a050",
+		"text": "DA"
+	},
+	"icons.p_purify": {
+		"color": "#e8d070",
+		"text": "Pu"
+	},
+	"icons.p_judgement": {
+		"color": "#c0a050",
+		"text": "Ju"
+	},
+	"icons.p_holy_nova": {
+		"color": "#e8d070",
+		"text": "HN"
+	},
+	"icons.p_shadow_word_pain": {
+		"color": "#6a3a8a",
+		"text": "SW"
+	},
+	"icons.p_crown_of_thorns": {
+		"color": "#c0a050",
+		"text": "CO"
+	},
+	"icons.p_leap_of_faith": {
+		"color": "#e8d070",
+		"text": "LO"
+	},
+	"icons.p_holy_fire": {
+		"color": "#6a3a8a",
+		"text": "HF"
+	},
+	"icons.p_penance": {
+		"color": "#6a3a8a",
+		"text": "Pe"
+	},
+	"icons.p_bastion_sigil": {
+		"color": "#c0a050",
+		"text": "BS"
+	},
+	"icons.p_chastise": {
+		"color": "#6a3a8a",
+		"text": "Ch"
+	},
+	"icons.p_guardian_spirit": {
+		"color": "#e8d070",
+		"text": "GS"
+	},
+	"icons.p_hammer_of_the_righteous": {
+		"color": "#c0a050",
+		"text": "HO"
+	},
+	"icons.p_mind_blast": {
+		"color": "#6a3a8a",
+		"text": "MB"
+	},
+	"icons.p_lightwell": {
+		"color": "#e8d070",
+		"text": "Li"
+	},
+	"icons.p_exorcism": {
+		"color": "#6a3a8a",
+		"text": "Ex"
+	},
+	"icons.p_vampiric_embrace": {
+		"color": "#6a3a8a",
+		"text": "VE"
+	},
+	"icons.p_crusaders_zeal": {
+		"color": "#c0a050",
+		"text": "CS"
+	},
+	"icons.p_shackle_undead": {
+		"color": "#6a3a8a",
+		"text": "SU"
+	},
+	"icons.p_martyrdom": {
+		"color": "#c0a050",
+		"text": "Ma"
+	},
+	"icons.p_shadow_word_death": {
+		"color": "#6a3a8a",
+		"text": "SW"
+	},
+	"icons.p_apotheosis": {
+		"color": "#e8d070",
+		"text": "Ap"
+	},
+	"icons.pk_overflowing": {
+		"color": "#e8c040",
+		"text": "OG",
+		"shape": "diamond"
+	},
+	"icons.pk_primordial": {
+		"color": "#e8c040",
+		"text": "PR",
+		"shape": "diamond"
+	},
+	"icons.pk_retribution": {
+		"color": "#e8c040",
+		"text": "RR",
+		"shape": "diamond"
+	},
+	"icons.pk_citadel": {
+		"color": "#e8c040",
+		"text": "UC",
+		"shape": "diamond"
+	},
+	"icons.pk_ecstasy": {
+		"color": "#e8c040",
+		"text": "EI",
+		"shape": "diamond"
+	},
+	"icons.pk_twilight": {
+		"color": "#e8c040",
+		"text": "TC",
+		"shape": "diamond"
 	}
 }

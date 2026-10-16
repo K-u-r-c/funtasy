@@ -36,6 +36,15 @@ func run_class(class_id: String) -> void:
 	for sid in ids:
 		await cast_and_check(str(sid))
 	await run_keystones()
+	# Tooltips: every skill describes what it does with the host formulas.
+	var bare: Array = []
+	for sid2 in ids:
+		var sk: Dictionary = GameData.skill(str(sid2))
+		var rows := SkillInfo.rows(p, sk)
+		var useful := rows.any(func(r): return int(r.kind) in [SkillInfo.Kind.DAMAGE, SkillInfo.Kind.HEAL, SkillInfo.Kind.STATUS])
+		if not useful and not sk.get("passive", false) and not sk.has("toggle"):
+			bare.append(sid2)
+	da.check(bare.is_empty(), "every %s skill tooltip shows damage, healing or a status (missing: %s)" % [class_id, bare])
 
 
 ## Every skill node learned (their procs compile), no passive talents or keystones.
@@ -66,6 +75,7 @@ func run_keystones() -> void:
 		p.talents = talents
 		p.recompute_stats()
 		await da._wait(0.2)
+		p.health.hp = p.health.max_hp * 0.5
 		if t.has("stat_above"):
 			da.check(p.stats.get_stat(str(t.stat_above[0]), 1.0) > float(t.stat_above[1]), "keystone %s raises %s (%.2f)" % [nd.id, t.stat_above[0], p.stats.get_stat(str(t.stat_above[0]), 1.0)])
 		if t.has("stat_flag"):
@@ -108,8 +118,11 @@ func _trigger(what: String) -> void:
 			if kind == "fatal_later":
 				await da._wait(1.0)  # some history to rewind to
 			Combat.instance.deal_damage(Combat.instance.make_ctx(d0, {"id": "test", "school": "spell"}), p, p.health.max_hp * 3.0, {"damage_type": "true"})
-		"permafrost":
-			pass  # the aura ticks on its own; the dummy stands within reach
+		"permafrost", "wait":
+			pass  # auras tick on their own
+		"overheal":
+			ally.health.hp = ally.health.max_hp * 0.9
+			Combat.instance.heal(Combat.instance.make_ctx(p, {"id": "test", "school": "spell"}), ally, ally.health.max_hp * 0.5)
 		"kill":
 			var victim: Enemy = g.spawn_monster("ghoul", g.nearest_floor(_start + Vector2(40, 30)), false)
 			await da._wait(0.2)
@@ -119,7 +132,6 @@ func _trigger(what: String) -> void:
 		"block":
 			Combat.instance.fire(p, "on_block", {"target": p, "attacker": d0, "amount": 10.0, "blocked_amount": 10.0})
 		"heal":
-			p.health.hp = p.health.max_hp * 0.5
 			ally.health.hp = ally.health.max_hp * 0.5
 			Combat.instance.heal(Combat.instance.make_ctx(p, {"id": "test", "school": "spell"}), ally, ally.health.max_hp * 0.8)
 		"cast_skill":
@@ -182,7 +194,7 @@ func _prepare() -> void:
 		d.set_meta("test_seen_status", [])
 		dummies.append(d)
 	warded = g.spawn_monster("training_dummy_warded", g.nearest_floor(_start + Vector2(0, 70)), false)
-	ally = g.spawn_monster("training_dummy", g.nearest_floor(_start + Vector2(-50, 0)), false, {"team": Actor.Team.PLAYERS})
+	ally = g.spawn_monster("training_dummy", g.nearest_floor(_start + Vector2(-110, 0)), false, {"team": Actor.Team.PLAYERS})
 	await da._wait(0.6)
 
 
@@ -217,7 +229,7 @@ func _reset() -> void:
 	ally.status.clear_all()
 	ally.health.hp = ally.health.max_hp * 0.5
 	ally.health.absorb = 0.0
-	ally.host_teleport(g.nearest_floor(_start + Vector2(-50, 0)))
+	ally.host_teleport(g.nearest_floor(_start + Vector2(-110, 0)))
 	ally.set_meta("test_seen_status", [])
 	p.set_meta("test_seen_status", [])
 	warded.host_teleport(g.nearest_floor(_start + Vector2(0, 70)))
@@ -363,6 +375,8 @@ func _expect(ex: String, b: Dictionary, a: Dictionary, target: Enemy, proj_id: i
 	match ex.get_slice(":", 0):
 		"target_damaged":
 			return a.d0_hp < b.d0_hp
+		"any_target_damaged":
+			return a.d0_hp < b.d0_hp or a.d1_hp < b.d1_hp or a.d2_hp < b.d2_hp
 		"all_targets_damaged":
 			return a.d0_hp < b.d0_hp and a.d1_hp < b.d1_hp and a.d2_hp < b.d2_hp
 		"target_status":

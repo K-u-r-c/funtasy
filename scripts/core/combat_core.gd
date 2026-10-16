@@ -383,7 +383,8 @@ func deal_damage(ctx: Dictionary, target: Actor, amount: float, opts: Dictionary
 	if not opts.get("no_procs", false):
 		if blocked:
 			fire(target, "on_block", data)
-		if caster and not dot:
+		if caster:
+			# DoT ticks fire on_hit too (data.dot), for procs like Ecstasy in Torment.
 			fire(caster, "on_hit", data)
 			if crit:
 				fire(caster, "on_crit", data)
