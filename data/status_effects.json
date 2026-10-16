@@ -116,5 +116,17 @@
 	"death_mark_ready": {"name": "Death Mark", "kind": "proc", "flags": ["next_hit_crit"], "stats": {"crit_damage_bonus_next": 1.5}, "color": "#ff3030"},
 	"corrosive": {"name": "Corrosive Rot", "kind": "stat", "stack_stats": {"armor_mult": 0.97, "magic_resist": -0.03}, "max_stacks": 6, "color": "#88aa22", "debuff": true, "cleanse": "poison"},
 	"phantasmal_step": {"name": "Phantasmal Step", "kind": "stat", "stats": {"move_speed_mult": 1.2}, "color": "#a0a0ff"},
-	"dance_of_shadows": {"name": "Dance of Shadows", "kind": "stat", "stats": {"dodge_uncapped": 1.0}, "color": "#6060a0", "visual": {"alpha": 0.75}}
+	"dance_of_shadows": {"name": "Dance of Shadows", "kind": "stat", "stats": {"dodge_uncapped": 1.0}, "color": "#6060a0", "visual": {"alpha": 0.75}},
+	"living_bomb": {"name": "Living Bomb", "kind": "mark", "debuff": true, "color": "#ff7722", "cleanse": "magic", "on_expire": [{"type": "aoe", "at": "self", "radius": 80, "damage": {"base": 6, "coef": 1.4}, "damage_type": "fire", "color": "#ff7722", "fx": "explosion"}, {"type": "spread", "status": "living_bomb", "count": 1, "radius": 140, "duration": 5.0}]},
+	"ice_barrier": {"name": "Ice Barrier", "kind": "absorb", "color": "#aee8ff", "procs": [{"event": "on_damaged", "if": {"melee": true}, "do": [{"type": "status", "target": "event_attacker", "status": "chill", "duration": 4.0}]}]},
+	"deep_freeze": {"name": "Deep Freeze", "kind": "cc", "flags": ["rooted", "stunned", "frozen"], "stats": {"crit_damage_taken": 0.5}, "color": "#bbeeff", "debuff": true, "dr_category": "stun", "cleanse": "control", "visual": {"tint": "#aee8ff"}},
+	"granite_armor": {"name": "Granite Armor", "kind": "transform", "stats": {"armor": 100}, "flags": ["knockback_immune"], "charges": 3, "absorb_melee": true, "color": "#a08060", "visual": {"tint": "#c8b090"}},
+	"static_charge": {"name": "Static Charge", "kind": "mark", "debuff": true, "color": "#fff26a", "cleanse": "magic", "procs": [{"event": "on_damaged", "icd": 0.3, "if": {"school": "spell"}, "do": [{"type": "aoe", "at": "self", "radius": 60, "damage": {"base": 2, "coef": 0.4}, "damage_type": "lightning", "color": "#fff26a"}]}]},
+	"dark_bargain": {"name": "Dark Bargain", "kind": "stat", "stats": {"spell_damage_mult": 1.25}, "color": "#7040a0"},
+	"mana_shield": {"name": "Mana Shield", "kind": "reactive", "mana_shield": {"pct": 0.5, "ratio": 1.2}, "color": "#8888ff"},
+	"time_warp": {"name": "Time Warp", "kind": "stat", "stats": {"haste": 0.4, "move_speed_mult": 1.3}, "color": "#b060e0"},
+	"light_charge": {"name": "Light Charge", "kind": "stat", "max_stacks": 5, "color": "#ffe680"},
+	"dark_charge": {"name": "Dark Charge", "kind": "stat", "max_stacks": 5, "color": "#7040a0"},
+	"eclipse": {"name": "Eclipse", "kind": "proc", "stats": {"spell_damage_mult": 2.0}, "color": "#c0a0ff", "procs": [{"event": "on_hit", "if": {"school": "spell"}, "do": [{"type": "remove_status", "target": "self", "status": "eclipse"}]}]},
+	"permafrost_chill": {"name": "Permafrost", "kind": "stat", "max_stacks": 3, "color": "#c0f0ff", "debuff": true, "threshold": {"stacks": 3, "apply": "freeze", "duration": 2.0}}
 }

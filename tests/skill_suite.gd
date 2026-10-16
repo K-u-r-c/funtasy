@@ -70,6 +70,8 @@ func run_keystones() -> void:
 			da.check(p.stats.get_stat(str(t.stat_above[0]), 1.0) > float(t.stat_above[1]), "keystone %s raises %s (%.2f)" % [nd.id, t.stat_above[0], p.stats.get_stat(str(t.stat_above[0]), 1.0)])
 		if t.has("stat_flag"):
 			da.check(p.stats.has_flag(str(t.stat_flag)), "keystone %s sets %s" % [nd.id, t.stat_flag])
+		for stt in t.get("setup_target", []):
+			Combat.instance.apply_status(Combat.instance.make_ctx(p, {"id": "test", "school": "spell"}), dummies[0], str(stt), 8.0, 2.0)
 		if t.has("trigger") or t.has("cast"):
 			var before := _snapshot()
 			if t.has("cast"):
@@ -102,8 +104,12 @@ func _trigger(what: String) -> void:
 			for i in (1 if kind == "crit" else 3):
 				Combat.instance.deal_damage(ctx, d0, 5.0)
 				await da._wait(0.05)
-		"fatal":
+		"fatal", "fatal_later":
+			if kind == "fatal_later":
+				await da._wait(1.0)  # some history to rewind to
 			Combat.instance.deal_damage(Combat.instance.make_ctx(d0, {"id": "test", "school": "spell"}), p, p.health.max_hp * 3.0, {"damage_type": "true"})
+		"permafrost":
+			pass  # the aura ticks on its own; the dummy stands within reach
 		"kill":
 			var victim: Enemy = g.spawn_monster("ghoul", g.nearest_floor(_start + Vector2(40, 30)), false)
 			await da._wait(0.2)

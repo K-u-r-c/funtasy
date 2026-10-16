@@ -415,5 +415,131 @@
 		"color": "#e8c040",
 		"text": "DO",
 		"shape": "diamond"
+	},
+	"icons.m_flame_wave": {
+		"color": "#e0601a",
+		"text": "FW"
+	},
+	"icons.m_combustion": {
+		"color": "#e0601a",
+		"text": "Co"
+	},
+	"icons.m_living_bomb": {
+		"color": "#e0601a",
+		"text": "LB"
+	},
+	"icons.m_ice_barrier": {
+		"color": "#60b0e0",
+		"text": "IB"
+	},
+	"icons.m_deep_freeze": {
+		"color": "#60b0e0",
+		"text": "DF"
+	},
+	"icons.m_blizzard": {
+		"color": "#60b0e0",
+		"text": "Bl"
+	},
+	"icons.m_earth_spike": {
+		"color": "#a07040",
+		"text": "ES"
+	},
+	"icons.m_granite_armor": {
+		"color": "#a07040",
+		"text": "GA"
+	},
+	"icons.m_tremor": {
+		"color": "#a07040",
+		"text": "Tr"
+	},
+	"icons.m_boulder_crush": {
+		"color": "#a07040",
+		"text": "BC"
+	},
+	"icons.m_lightning_orb": {
+		"color": "#d0c020",
+		"text": "LO"
+	},
+	"icons.m_static_charge": {
+		"color": "#d0c020",
+		"text": "SC"
+	},
+	"icons.m_thunderstorm": {
+		"color": "#d0c020",
+		"text": "Th"
+	},
+	"icons.m_luminance": {
+		"color": "#e8d070",
+		"text": "Lu"
+	},
+	"icons.m_blinding_radiance": {
+		"color": "#e8d070",
+		"text": "BR"
+	},
+	"icons.m_solar_prism": {
+		"color": "#e8d070",
+		"text": "SP"
+	},
+	"icons.m_shadow_bolt": {
+		"color": "#7040a0",
+		"text": "SB"
+	},
+	"icons.m_drain_soul": {
+		"color": "#7040a0",
+		"text": "DS"
+	},
+	"icons.m_grasp_of_the_void": {
+		"color": "#7040a0",
+		"text": "GO"
+	},
+	"icons.m_dark_bargain": {
+		"color": "#7040a0",
+		"text": "DB"
+	},
+	"icons.m_mana_shield": {
+		"color": "#b060e0",
+		"text": "MS"
+	},
+	"icons.m_counterspell": {
+		"color": "#b060e0",
+		"text": "Co"
+	},
+	"icons.m_time_warp": {
+		"color": "#b060e0",
+		"text": "TW"
+	},
+	"icons.m_singularity": {
+		"color": "#b060e0",
+		"text": "Si"
+	},
+	"icons.mk_plasma": {
+		"color": "#e8c040",
+		"text": "PO",
+		"shape": "diamond"
+	},
+	"icons.mk_cataclysm": {
+		"color": "#e8c040",
+		"text": "EC",
+		"shape": "diamond"
+	},
+	"icons.mk_shatterstone": {
+		"color": "#e8c040",
+		"text": "Sh",
+		"shape": "diamond"
+	},
+	"icons.mk_permafrost": {
+		"color": "#e8c040",
+		"text": "PA",
+		"shape": "diamond"
+	},
+	"icons.mk_eclipse": {
+		"color": "#e8c040",
+		"text": "Ec",
+		"shape": "diamond"
+	},
+	"icons.mk_temporal": {
+		"color": "#e8c040",
+		"text": "TS",
+		"shape": "diamond"
 	}
 }

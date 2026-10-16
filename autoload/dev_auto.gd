@@ -1586,7 +1586,8 @@ func _skill_tooltip_checks(hud: Node, win: Window) -> void:
 	var talent := ""
 	for node in GameData.talents.get(p0.class_id, {}).get("nodes", []):
 		for m in node.get("mods", []):
-			if m.get("skill", "") == sk.id:
+			var ms: Variant = m.get("skill", "")
+			if (ms is Array and ms.has(sk.id)) or (ms is String and ms == sk.id):
 				talent = node.id
 	if talent != "":
 		var saved: Dictionary = p0.talents.duplicate()
