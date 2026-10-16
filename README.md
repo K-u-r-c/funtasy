@@ -112,7 +112,7 @@ scripts/classes/ Player
 scripts/enemies/ Enemy AI, Boss phases, behaviors/ (monster modules), boss_mechanics/ (arena mechanics)
 scripts/items/   ItemGenerator, LootTable, Inventory, GroundItem, LootManager, LegendaryAffixes
 scripts/dungeon/ DungeonGenerator, Dungeon, Door, Prop, Spikes, Torch, Portal, Visibility, Game,
-                 Merchants, hazards (plates, pendulums, spouts, grates), mechanics/ (biome rules)
+                 Merchants, hazards (plates, spouts, grates), mechanics/ (biome rules)
 scripts/ui/      theme, menus, lobby, options, HUD, overlays
 scripts/net/     NetSync (synchronizer helper)
 data/            balance, classes, skills, talents, items (bases, affixes, legendaries), monsters, bosses,

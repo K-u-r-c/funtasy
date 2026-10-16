@@ -115,10 +115,6 @@
 		0,
 		2
 	],
-	"pendulums": [
-		2,
-		4
-	],
 	"floor_mechanics": [
 		{
 			"id": "unlit_regen_penalty"

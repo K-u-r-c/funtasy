@@ -402,8 +402,6 @@ func _physics_process(delta: float) -> void:
 	floor_time += delta
 	for s in dungeon.spikes:
 		s.update_state(floor_time)
-	for pd in dungeon.pendulums:
-		pd.update_state(floor_time)
 	for sp in dungeon.spouts:
 		sp.update_state(floor_time)
 	if not multiplayer.is_server() or depth == 0:
@@ -417,8 +415,6 @@ func _physics_process(delta: float) -> void:
 		s.host_damage(actors)
 	for pl in dungeon.plates:
 		pl.host_tick(delta, actors, dungeon)
-	for pd in dungeon.pendulums:
-		pd.host_damage(actors, floor_time)
 	for sp in dungeon.spouts:
 		sp.host_damage(actors, floor_time)
 	for gr in dungeon.grates:

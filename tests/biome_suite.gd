@@ -68,7 +68,7 @@ func check_layouts(fid: String) -> void:
 		if lay.get("merchant", {}).is_empty():
 			bad = "no merchant chamber (seed %d)" % seed_value
 		plates += lay.get("plates", []).size()
-		pendulums += lay.get("pendulums", []).size()
+		pendulums += lay.get("pendulums", []).size() + lay.props.filter(func(pr): return str(pr.type).contains("pendulum")).size()
 		spouts += lay.get("spouts", []).size()
 		arenas += 1 if lay.has("side_arena") else 0
 		anomalies += lay.get("anomalies", []).size()
@@ -87,8 +87,7 @@ func check_layouts(fid: String) -> void:
 	da.check(bad.is_empty(), "%s layouts are connected and use the biome's monsters and props%s" % [fid, "" if bad.is_empty() else ": " + bad])
 	if fd.has("plates_per_room"):
 		da.check(plates > 0, "%s layouts have pressure plates (%d over 6 floors)" % [fid, plates])
-	if fd.has("pendulums"):
-		da.check(pendulums > 0, "%s layouts have pendulums (%d over 6 floors)" % [fid, pendulums])
+	da.check(pendulums == 0 and not fd.has("pendulums"), "%s layouts have no pendulum traps (#5)" % fid)
 	var gen: Dictionary = fd.get("generator", {})
 	if gen.has("water_room_chance"):
 		da.check(kinds.has(DungeonGenerator.CELL_WATER) and kinds.has(DungeonGenerator.CELL_SLUDGE), "%s layouts have sewage pools and deep sludge" % fid)
@@ -132,16 +131,6 @@ func check_live_floor() -> void:
 		var hp := p.health.hp
 		await da._wait(1.2)
 		da.check(p.health.hp < hp, "a pressure plate raises spikes under the hero (%.0f -> %.0f)" % [hp, p.health.hp])
-	if not g.dungeon.pendulums.is_empty():
-		var pend: Node2D = g.dungeon.pendulums[0]
-		_ready_hero()
-		var hp2 := p.health.hp
-		var t := 0.0
-		while t < 3.0 and p.health.hp >= hp2:
-			p.host_teleport(pend.global_position + pend.blade_offset(g.floor_time))
-			await da.get_tree().physics_frame
-			t += 1.0 / 60.0
-		da.check(p.health.hp < hp2, "the pendulum blade cuts the hero")
 	if not g.dungeon.spouts.is_empty():
 		var sp: Node2D = g.dungeon.spouts[0]
 		_ready_hero()

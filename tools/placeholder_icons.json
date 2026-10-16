@@ -766,12 +766,6 @@
 		"shape": "square",
 		"size": 28
 	},
-	"props.pendulum": {
-		"color": "#9aa0a8",
-		"text": "",
-		"shape": "diamond",
-		"size": 28
-	},
 	"music.boss_morvath": {
 		"like": "music.boss_bone_lord",
 		"prompt": "Dark fantasy boss battle, giant skeletal king: pounding war drums, low brass, choir chanting in Latin, grinding bone percussion, 140 bpm, relentless and regal, loopable, instrumental"

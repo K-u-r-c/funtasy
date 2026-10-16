@@ -250,9 +250,6 @@
 		"explosion_radius": 80,
 		"plate_delay": 0.35,
 		"plate_cooldown": 4.0,
-		"pendulum_period": 2.4,
-		"pendulum_damage": 18,
-		"pendulum_hit_cooldown": 0.8,
 		"spouts": {
 			"acid": {
 				"sprite": "props.acid_spout",

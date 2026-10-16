@@ -23,7 +23,7 @@ screenshot review at 1920x1080 and 3440x1440.
       (verified: `skills-warrior/ranger/mage/priest`, `skills-lan` suites, full suite green, screenshots
       of skills, talents, Skill Book)
 - [x] **4. Crypt complete**: 4 new + 3 extended monsters, Morvath + Vespera, hazards (pressure
-      plates, pendulums), props, mechanics (unlit regen, urn miasma), lore drops (verified: `monsters`,
+      plates; pendulums removed in #5), props, mechanics (unlit regen, urn miasma), lore drops (verified: `monsters`,
       `bosses`, `biomes`, `boss` + `boss-vespera` LAN pairs, full suite green, biome tour screenshots at
       1920x1080 and 3440x1440). Visual checkpoint asked on 2026-10-16 and **approved by the user** (look, scale,
       method), then the other four biomes got PixelLab art.
@@ -58,6 +58,7 @@ screenshot review at 1920x1080 and 3440x1440.
       `primitives`, `darkness`, `boss-vespera`)
 - [x] #4 Burrowers / hidden monsters: 2.5 s per dive, walk speed, surfacing telegraph, 4 s+ above
       (`monsters`, `biomes-sewers`, `biomes-kurgan`)
+- [x] #5 Pendulum traps removed (PNG kept; `biomes*` suites check every biome has none)
 
 ## PixelLab ledger
 

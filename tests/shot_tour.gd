@@ -220,11 +220,6 @@ func _biome(_arg: String) -> void:
 		p.host_teleport(g.nearest_floor(g.dungeon.cell_center(Vector2i(g.layout.rooms[best].rect.get_center()))))
 		await da._wait(1.2)
 		await snap("%s_room" % fid)
-	if not g.dungeon.pendulums.is_empty():
-		var pend: Node2D = g.dungeon.pendulums[0]
-		p.host_teleport(g.nearest_floor(pend.global_position + Vector2(0, 70)))
-		await da._wait(1.0)
-		await snap("%s_pendulum" % fid)
 	if not g.dungeon.plates.is_empty():
 		var plate: Node2D = g.dungeon.plates[0]
 		p.host_teleport(plate.global_position + Vector2(0, -4))

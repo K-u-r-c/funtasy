@@ -6,7 +6,7 @@ extends RefCounted
 ## Layout keys: size, cells (PackedByteArray, see CELL_*), rooms [{rect, role}], doors
 ## [{cells, vertical, rect}], props [{type, pos}], chests [pos], spikes [{cell, phase}],
 ## torches [{cell}], lava_pools [Rect2i], spawns [{room, monsters: [{id, pos}]}],
-## plates [{cell}], pendulums [{pos, axis, span, phase}],
+## plates [{cell}],
 ## start (Vector2), boss_pos (Vector2), boss_room (int), portal_pos (Vector2).
 ##
 ## A floor type's "generator" block picks the architecture profile, e.g. the Crypt's
@@ -70,7 +70,6 @@ func generate(seed_value: int, floor_def: Dictionary, count_mult: float = 1.0, d
 	layout.chests = _place_chests(rooms, floor_def, used)
 	layout.spikes = _place_spikes(rooms, floor_def, used)
 	layout.plates = _place_plates(rooms, floor_def, used)
-	layout.pendulums = _place_pendulums(rooms, floor_def, used)
 	layout.spouts = _place_spouts(rooms, floor_def)
 	layout.grates = _place_grates(rooms, floor_def, used)
 	layout.props.append_array(_place_shelf_rows(rooms, used))
@@ -828,54 +827,6 @@ func _place_plates(rooms: Array, fd: Dictionary, used: Dictionary) -> Array:
 				for dy in range(-1, 2):
 					used[c + Vector2i(dx, dy)] = true
 			out.append({"cell": c})
-	return out
-
-
-## Pendulum scythes (Crypt) across straight 2-wide corridor stretches, away from rooms and doors.
-func _place_pendulums(rooms: Array, fd: Dictionary, used: Dictionary) -> Array:
-	var out: Array = []
-	if not fd.has("pendulums"):
-		return out
-	var in_room := func(c: Vector2i) -> bool:
-		for room in rooms:
-			if room.rect.grow(2).has_point(c):
-				return true
-		return false
-	var cands: Array = []
-	for y in range(2, h - 3):
-		for x in range(2, w - 3):
-			var c := Vector2i(x, y)
-			if used.has(c) or in_room.call(c):
-				continue
-			# Horizontal stretch: rows y and y+1 open, walls above and below, for 5 cells.
-			var hor := true
-			var ver := true
-			for k in range(-2, 3):
-				var hc := c + Vector2i(k, 0)
-				if not (get_cell(hc) == CELL_FLOOR and get_cell(hc + Vector2i(0, 1)) == CELL_FLOOR
-						and get_cell(hc + Vector2i(0, -1)) == CELL_WALL and get_cell(hc + Vector2i(0, 2)) == CELL_WALL):
-					hor = false
-				var vc := c + Vector2i(0, k)
-				if not (get_cell(vc) == CELL_FLOOR and get_cell(vc + Vector2i(1, 0)) == CELL_FLOOR
-						and get_cell(vc + Vector2i(-1, 0)) == CELL_WALL and get_cell(vc + Vector2i(2, 0)) == CELL_WALL):
-					ver = false
-			if hor:
-				cands.append({"cell": c, "axis": Vector2.DOWN, "pos": _cell_center(c) + Vector2(0, tile * 0.5)})
-			elif ver:
-				cands.append({"cell": c, "axis": Vector2.RIGHT, "pos": _cell_center(c) + Vector2(tile * 0.5, 0)})
-	var n := rng.randi_range(int(fd.pendulums[0]), int(fd.pendulums[1]))
-	while out.size() < n and not cands.is_empty():
-		var pick: Dictionary = cands.pop_at(rng.randi_range(0, cands.size() - 1))
-		var clash := false
-		for o in out:
-			if Vector2(o.cell - pick.cell).length() < 8.0:
-				clash = true
-		if clash:
-			continue
-		for k in range(-2, 3):
-			used[pick.cell + Vector2i(k, 0)] = true
-			used[pick.cell + Vector2i(0, k)] = true
-		out.append({"cell": pick.cell, "pos": pick.pos, "axis": pick.axis, "span": tile * 0.85, "phase": rng.randf()})
 	return out
 
 

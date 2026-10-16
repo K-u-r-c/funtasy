@@ -10,7 +10,6 @@ const PROP_SCRIPT := preload("res://scripts/dungeon/prop.gd")
 const SPIKES_SCRIPT := preload("res://scripts/dungeon/spikes.gd")
 const TORCH_SCRIPT := preload("res://scripts/dungeon/torch.gd")
 const PLATE_SCRIPT := preload("res://scripts/dungeon/pressure_plate.gd")
-const PENDULUM_SCRIPT := preload("res://scripts/dungeon/pendulum.gd")
 const SPOUT_SCRIPT := preload("res://scripts/dungeon/wall_spout.gd")
 const GRATE_SCRIPT := preload("res://scripts/dungeon/grate.gd")
 
@@ -27,7 +26,6 @@ var debris: Array = []  ## destroyed props (still in the tree as rubble until th
 var spikes: Array = []
 var plates: Array = []  ## pressure plates (Crypt)
 var plate_by_id: Dictionary = {}
-var pendulums: Array = []  ## pendulum scythes (Crypt)
 var spouts: Array = []  ## wall spouts: acid (Sewers), flame jets (Foundry)
 var grates: Array = []  ## collapsing grates (Foundry)
 var grate_by_id: Dictionary = {}
@@ -117,11 +115,6 @@ func build(new_layout: Dictionary, def: Dictionary, entity_root: Node2D) -> void
 		grates.append(grate)
 		grate_by_id[grate.grate_id] = grate
 		n += 1
-	for pe in layout.get("pendulums", []):
-		var pend: Node2D = PENDULUM_SCRIPT.new()
-		pend.setup(pe.pos, pe.axis, float(pe.span), float(pe.phase))
-		entities.add_child(pend)
-		pendulums.append(pend)
 	n = 0
 	for t in layout.torches:
 		var torch: Node2D = TORCH_SCRIPT.new()
@@ -170,9 +163,6 @@ func clear() -> void:
 		_discard(pl)
 	plates.clear()
 	plate_by_id.clear()
-	for pd in pendulums:
-		_discard(pd)
-	pendulums.clear()
 	for sp in spouts:
 		_discard(sp)
 	spouts.clear()

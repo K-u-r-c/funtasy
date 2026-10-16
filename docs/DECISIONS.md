@@ -172,7 +172,7 @@ proposal left a choice open, the chosen option is stated, and any change to a pr
 | Topic | Decision |
 | --- | --- |
 | Architecture | Profile `labyrinth_vaults` (`generator` block of the floor type): corridors bend through a jittered midpoint, 4 extra loops, 40% of normal rooms are pillared halls (a pillar every 3 cells). Corridors stay 2 cells wide: doors need 2-3 cell openings and the 48 px monsters must pass. |
-| Hazards | The Crypt has no lava pools and no cyclic floor spikes (MVP hazards; lava moves to the Foundry); explosive barrels stay as a rare prop. Pressure plates: 0-2 per normal room, only players trigger them, 0.35 s click, spikes on the 3x3 cells around (`spikes_damage` 14), 4 s re-arm. Pendulum scythes: 2-4 per floor on straight corridor stretches, swing from the shared floor clock (deterministic on every peer), 18 damage + a shove, one hit per 0.8 s. |
+| Hazards | The Crypt has no lava pools and no cyclic floor spikes (MVP hazards; lava moves to the Foundry); explosive barrels stay as a rare prop. Pressure plates: 0-2 per normal room, only players trigger them, 0.35 s click, spikes on the 3x3 cells around (`spikes_damage` 14), 4 s re-arm. Pendulum scythes were removed after the playtest (#5). |
 | Chilling Breath (D36) | "Unlit" = outside every gameplay light (wall / carried torches, lava, spell lights, lit shrines) except the hero's own faint vision glow, which exists on one machine only. Checked twice a second; halves Mana / Fury regeneration and generation. |
 | Grave urns | 15% to release a 56 px miasma cloud: 4% of max HP per second for 4 s, nature damage, hurts monsters too (D37). |
 | Skeletal Footman | Collapses into a bone pile at 0 HP and stands up after 4 s with 30% HP; only area damage (AoE, zones, explosions) breaks a pile, and a killing blow from an area attack leaves no pile. |
@@ -343,3 +343,12 @@ Vespera mechanic check (the swarm leaves the torch burning) and the `test_exting
 | Carrion Crawler (`burrow`) | While it hunts a target it stays underground for at most `under` 2.5 s per dive (the clock includes the `warn` 0.6 s surfacing telegraph; a crawler with no target lies dormant and its clock waits). It moves at its walk speed (`speed_mult` 1.0, capped at 1), surfaces next to its target or when the time is up after a ground marker (the same `windup_marker` as #2), bursts out, and stays up for `surface` 5 s (never below 4) before the next dive. |
 | Gutter Stalker / Bramble Warden (`submerged_stealth`) | The same rules for their stealth statuses: at most `under` 2.5 s hidden while hunting, a `warn` 0.6 s marker before they surface (in reach of their target or when the time is up), then their first ability - still a critical strike from stealth - and at least `surface` 4 s above before they can hide again (plus the old `rest` 6 s with no hero within 120 px). While hidden and hunting they neither attack nor switch targets; a hit reveals them at once. |
 | Vulkania | Her magma dive is a boss phase mechanic (she stays in place, geysers telegraph), not a burrowing behaviour, and is unchanged. |
+
+### #5 No pendulum traps
+
+The Crypt's pendulum scythes are removed completely: `pendulum.gd`, the generator placement, the
+dungeon / game wiring, the floor data (`pendulums`), the balance keys (`hazards.pendulum_*`), the
+`props.pendulum` asset key and placeholder, and their tests and screenshot. The PixelLab PNG stays on
+disk (`assets/sprites/pixellab/props/pendulum.png`, user assets are never deleted). The biome suite
+checks that the generated floors of every biome have none. Crypt layouts differ from before for the same
+seed because the generator no longer draws random numbers for pendulums.
