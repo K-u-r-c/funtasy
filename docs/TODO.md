@@ -142,7 +142,9 @@ Goal cap: 2500 generations, and never more than the remaining allowance. Spend =
 - [x] Test hardening after the GDD runs (2026-10-16): the LAN door check picks a reachable door with an empty
       doorway (an open door never closes on someone standing in it), the blood tick's 3 s fuse gets a 5.5 s
       test window, the foundry splash check allows three pulses (one can be dodged), and the warded-dummy
-      resist check prints both numbers if it ever misses (not reproduced in 8 reruns).
+      resist check prints both numbers if it ever misses (not reproduced in 8 reruns). The darkness check picks its dark spot with
+      the same physics ray Visibility uses (a destructible prop could block sight while the grid check was
+      clear), the tank check ignores taunt pulls, and the runner writes line-buffered logs.
 
 ## Known limitations
 

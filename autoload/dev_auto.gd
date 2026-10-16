@@ -1215,6 +1215,11 @@ func _darkness_scenario() -> void:
 		check(not m.visible, "a monster in line of sight but in the dark is hidden")
 		Combat.instance.fx.ring.rpc(m.global_position, 70.0, "#ff7722", "")
 		await _wait(0.15)
+		if not m.visible:
+			var q2 := PhysicsRayQueryParameters2D.create(host_p.global_position + Vector2(0, -6), m.global_position + Vector2(0, -6), Combat.LOS_MASK)
+			var hit := get_viewport().world_2d.direct_space_state.intersect_ray(q2)
+			log_line("flash missed: host %s monster %s (%.0f px), ray hit %s" % [host_p.global_position, m.global_position,
+				host_p.global_position.distance_to(m.global_position), hit.get("collider", "nothing")])
 		check(m.visible, "a spell's flash reveals it")
 		await _wait(1.0)
 		check(not m.visible, "it is hidden again when the flash fades")
@@ -1253,7 +1258,9 @@ func _dark_pair(g: Node) -> Array:
 				if l.global_position.distance_to(a) < rad or l.global_position.distance_to(b) < rad:
 					dark = false
 					break
-			if dark and Combat.instance.has_los(a, b):
+			# The same physics ray Visibility uses (props block it, the grid check doesn't see them).
+			var q := PhysicsRayQueryParameters2D.create(a + Vector2(0, -6), b + Vector2(0, -6), Combat.LOS_MASK)
+			if dark and Combat.instance.has_los(a, b) and get_viewport().world_2d.direct_space_state.intersect_ray(q).is_empty():
 				return [a, b]
 	return []
 
