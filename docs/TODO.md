@@ -128,7 +128,9 @@ Goal cap: 2500 generations, and never more than the remaining allowance. Spend =
       capped modals, camera view clamp (verified: `ui-layout` test at 720x720 .. 3840x1080; screenshots at
       720x720, 960x540, 1920x1080, 2560x1080 and a 32:9 window)
 - [x] Export presets (Windows/Linux/macOS): all three export with the official 4.7.2 templates; the Linux
-      release build runs headless (class test) and windowed with no errors
+      release build runs headless (class test) and windowed with no errors. Re-exported 2026-10-16 after the playtest
+      fixes (#1-#14): the presets keep `tests/` (the DevAuto autoload needs the suites), the Linux build
+      passes `classes` and the `full` LAN pair
 - [x] Steam: lobby creation, tagged lobby listing and SteamMultiplayerPeer hosting (automated, `run_tests.sh steam`)
 - [x] Exported Linux release binary passes the LAN pair scenarios (full, real boss fight, wipe + second run,
       host ends session, client leaves) with no engine/script errors; ~60 FPS in the boss room (35 monsters)
