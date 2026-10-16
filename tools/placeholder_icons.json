@@ -1207,5 +1207,93 @@
 	"sfx.totem": {
 		"like": "sfx.roar",
 		"prompt": "a dread totem pulsing with a low terrifying hum"
+	},
+	"sfx.devour": {
+		"like": "sfx.hit",
+		"prompt": "ghoul tearing and gulping at a corpse, wet crunching, 1 second"
+	},
+	"sfx.chant": {
+		"like": "sfx.cast",
+		"prompt": "low guttural necromantic chant of three voices, rising, 1.5 seconds"
+	},
+	"sfx.slime_split": {
+		"like": "sfx.break",
+		"prompt": "wet slime blob splitting in two with a squelch"
+	},
+	"sfx.drowner_burst": {
+		"like": "sfx.explosion",
+		"prompt": "bloated drowned corpse bursting in a spray of foul water"
+	},
+	"sfx.leech_latch": {
+		"like": "sfx.hit",
+		"prompt": "giant leech latching onto flesh, wet sucking bite"
+	},
+	"sfx.hook_chain": {
+		"like": "sfx.shoot",
+		"prompt": "iron chain hook flung through the air and snapping taut"
+	},
+	"sfx.flame_breath": {
+		"like": "sfx.fire",
+		"prompt": "hellhound exhaling a short cone of roaring flame"
+	},
+	"sfx.hammer_slam": {
+		"like": "sfx.explosion",
+		"prompt": "huge iron hammer slamming stone, metallic boom with sparks"
+	},
+	"sfx.glyph_arm": {
+		"like": "sfx.cast",
+		"prompt": "arcane fire glyph etching itself into the floor, rising hum then a click"
+	},
+	"sfx.fire_wall": {
+		"like": "sfx.fire",
+		"prompt": "wall of fire whooshing up from the ground and roaring"
+	},
+	"sfx.mimic_snap": {
+		"like": "sfx.hit",
+		"prompt": "wooden chest lid snapping shut like jaws, teeth crunch"
+	},
+	"sfx.ink_slosh": {
+		"like": "sfx.hit",
+		"prompt": "thick ink tendril lashing and splattering wetly"
+	},
+	"sfx.gargoyle_dive": {
+		"like": "sfx.dash",
+		"prompt": "stone gargoyle diving with leathery wing flap and a heavy landing"
+	},
+	"sfx.thorn_burst": {
+		"like": "sfx.break",
+		"prompt": "ring of thorns bursting outward from a dying body, woody crack"
+	},
+	"sfx.hex": {
+		"like": "sfx.cast",
+		"prompt": "witch hex, whispered curse with a dissonant sting"
+	},
+	"sfx.root_stakes": {
+		"like": "sfx.explosion",
+		"prompt": "line of wooden stakes erupting from the earth, cracking roots"
+	},
+	"sfx.javelin": {
+		"like": "sfx.shoot",
+		"prompt": "barbed javelin thrown hard, whistling then thudding"
+	},
+	"sfx.anvil": {
+		"like": "sfx.explosion",
+		"prompt": "giant anvil struck by a demonic hammer, ringing clang and boom"
+	},
+	"sfx.tail_sweep": {
+		"like": "sfx.swing",
+		"prompt": "massive scaled tail sweeping the ground, heavy whoosh and scrape"
+	},
+	"sfx.stampede": {
+		"like": "sfx.dash",
+		"prompt": "giant stag charging, thundering hooves and a bellow"
+	},
+	"sfx.laser": {
+		"like": "sfx.lightning",
+		"prompt": "searing cosmic beam firing, high pitched hum and crackle"
+	},
+	"sfx.shell_shatter": {
+		"like": "sfx.break",
+		"prompt": "hard chitin carapace cracking apart, crunchy shatter"
 	}
 }

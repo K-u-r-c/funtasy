@@ -24,6 +24,7 @@ func modify_damage_taken(amount: float, data: Dictionary) -> float:
 		set_state("")
 		Combat.instance.fx.ring.rpc(enemy.global_position, 26.0, "#202020", "explosion")
 		Combat.instance.fx.number.rpc(enemy.global_position, "Shell shattered!", "info")
+		Combat.instance.fx.sound.rpc("shell_shatter", enemy.global_position)
 		return amount
 	return amount * (1.0 - float(p("reduction", 0.6))) if str(data.get("damage_type", "")) == "physical" else amount
 

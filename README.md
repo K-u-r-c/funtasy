@@ -4,8 +4,13 @@ A dark fantasy co-op (1-4 players) 2D dungeon crawler for Godot 4: light 3/4 vie
 8-direction 64x64 characters, dynamic lighting and fog of war, an infinite procedural dungeon
 with a boss on every floor, shared random loot, four classes and talent trees.
 
-This is the **MVP**: the full loop works (menu -> lobby -> dungeon -> combat -> loot -> boss ->
-next floor) with placeholder art and silent placeholder music.
+The game implements the full Game Design Document: 5 biomes, 35 monsters with behaviour modules,
+elites and altars, 10 bosses with phases and arena mechanics, 120 class skills, 3-branch talent trees
+with keystones and a Skill Book loadout, damage types and resistances, gold, merchants (Archibald's
+shared shop, Malphas's tithe, contracts and pact potions), 108 legendaries and 105 lore books with a
+permanent codex. Art that is not finished yet uses placeholders (recoloured tiles, tinted monster
+sheets, drawn icons) and every sound is a placeholder until the Suno files are dropped in (see
+`docs/SUNO_PROMPTS.md`).
 
 ## Requirements
 
@@ -64,6 +69,7 @@ ends the game for good (its save is deleted). Only the host can change the game 
 | Quick items Q / E (tap: use, hold: radial menu) | Q / E | LB / D-pad Right |
 | Interact / revive (hold): the target under the cursor, or the one you face on a pad | F | D-pad Down |
 | Character / Inventory / Talents / Map | C / I / T / M | R-Stick click / View / D-pad Left / D-pad Up |
+| Skill Book / Codex | K / L | (menu tabs, LB / RB) |
 | Switch menu tab (while a menu is open) | Q / E | LB / RB |
 | Menu | Esc | Menu |
 
@@ -74,7 +80,16 @@ on the ground (that's how you give items to teammates), R / Y = put a potion on 
 ## Gameplay summary
 
 - **Classes**: Warrior (Fury, melee tank/DPS), Ranger (Mana, ranged, traps, poison),
-  Mage (Mana, elemental spells), Priest (Mana, holy tank/healer). 5 skills each, all on cooldown.
+  Mage (Mana, elemental spells), Priest (Mana, holy tank/healer). 30 skills per class: talent
+  nodes unlock them, the Skill Book picks which 5 sit on keys 1-5. Three talent branches of 6 tiers
+  each, with keystones at tiers 2 and 5. Every level also gives 5 stat points.
+- **Biomes** (one per floor type, picked by depth): the Forgotten Crypt, the Sewers, the Infernal
+  Foundry, the Shrouded Archives and the Blighted Kurgan, each with its own architecture, hazards,
+  environment mechanics, 7 monsters and 2 bosses (one is picked per floor from the seed).
+- **Merchant chamber** on every floor: Archibald sells (prices in gold, shared stock), Malphas takes
+  a tithe of your power for contracts and pact potions; a Gold Key opens the gilded portal.
+- **Elites** carry modifiers and guard altars; **legendaries** (orange) have unique affixes.
+- **Lore**: books drop in the dungeon; reading one adds it to the permanent Codex (all heroes).
 - **Death**: at 0 HP you are downed for 10 s; a teammate holds Interact next to you to revive.
   Otherwise you become a ghost and spectate until the next floor. If nobody is left standing
   the party is wiped and that game is over (its save is deleted).
@@ -94,18 +109,22 @@ autoload/        EventBus, GameData, SaveSystem, Settings, InputSettings, AudioM
 scenes/          menus/, dungeon/game.tscn (everything else is built from scripts + data)
 scripts/core/    Actor, Stats, Health, ResourcePool, StatusEffects, ThreatTable, Combat, CombatFx, ...
 scripts/classes/ Player
-scripts/enemies/ Enemy AI, Boss phases
-scripts/items/   ItemGenerator, LootTable, Inventory, GroundItem, LootManager
-scripts/dungeon/ DungeonGenerator, Dungeon, Door, Prop, Spikes, Torch, Portal, Visibility, Game
+scripts/enemies/ Enemy AI, Boss phases, behaviors/ (monster modules), boss_mechanics/ (arena mechanics)
+scripts/items/   ItemGenerator, LootTable, Inventory, GroundItem, LootManager, LegendaryAffixes
+scripts/dungeon/ DungeonGenerator, Dungeon, Door, Prop, Spikes, Torch, Portal, Visibility, Game,
+                 Merchants, hazards (plates, pendulums, spouts, grates), mechanics/ (biome rules)
 scripts/ui/      theme, menus, lobby, options, HUD, overlays
 scripts/net/     NetSync (synchronizer helper)
-data/            balance, classes, skills, talents, items, monsters, bosses, floor types, settings, assets
+data/            balance, classes, skills, talents, items (bases, affixes, legendaries), monsters, bosses,
+                 floor types, statuses, damage types, elites, merchants, lore books, settings, assets
+tests/           test suites driven by DevAuto (skills, legendaries, monsters, bosses, biomes, economy,
+                 lore) and the screenshot tours
 assets/          placeholder sprites/audio + shaders
 tools/           gen_placeholders.gd, check_scripts.gd, run_tests.sh,
                  pixellab_import.gd / pixellab_build_char.py (PixelLab art -> sheets),
                  build_hero.py + hero_<gender>[_sources].json (hero body + worn gear:
                  gear_cut.gd, body_regions.gd, bake_gear.gd), build_monster.py
-docs/            DECISIONS.md, TODO.md
+docs/            DECISIONS.md, TODO.md, DATA.md, SUNO_PROMPTS.md
 ```
 
 Everything tunable (stats, formulas, drop rates, scaling, skills, talents, monsters, boss
@@ -129,9 +148,11 @@ All assets are referenced by key in **`data/assets.json`**; nothing else needs t
   `docs/DECISIONS.md` "Character art pipeline"); verify with the `art-check` test.
 - **Tiles**: one atlas per floor type (`tiles.crypt`), cell coordinates listed in the registry.
 - **Props, items, projectiles, icons, FX**: single PNGs (sheets for animated ones: `frames`).
-- **Music / SFX** (Suno): drop `.ogg`/`.wav` files in `assets/audio/` and point `music.*` /
-  `sfx.*` at them. Music always loops. Floor music and boss music are chosen per floor type in
-  `data/floor_types/*.json`.
+- **Music / SFX** (Suno): save each file as `assets/audio/music/<key>.ogg` or
+  `assets/audio/sfx/<key>.ogg` (`.mp3` / `.wav` work too) and run `python3 tools/register_audio.py`.
+  The keys, paths and a prompt for each are in `docs/SUNO_PROMPTS.md` (regenerate it with
+  `python3 tools/gen_suno_prompts.py`). Music always loops; floor music is set per floor type in
+  `data/floor_types/*.json` and boss music per boss in `data/bosses/*.json`.
 - Keep user-provided files next to the placeholders; `tools/gen_placeholders.gd` only writes
   into `placeholder/` folders.
 
@@ -148,12 +169,19 @@ tools/run_tests.sh lan      # only the 2-instance LAN scenarios
 tools/run_tests.sh steam    # Steam lobby smoke test (Steam client must be running)
 ```
 
-LAN pairs: full feature walk-through, a real boss fight, aggro (tank vs DPS), continuing a saved
-2-player game, wipe + second run,
+Solo suites: every class's 30 skills and keystones, every legendary's affix, every monster's
+behaviour, every boss phase and arena mechanic, every biome's hazards and mechanics, economy
+(gold, shop, tithe, contracts, pacts, altars), lore and codex, UI layout and gamepad focus at
+aspect ratios 1:1 to 32:9.
+
+LAN pairs: full feature walk-through, a real fight against each of the 10 bosses, aggro (tank vs DPS),
+skills and economy over the network, continuing a saved 2-player game, darkness, wipe + second run,
 host ending the session, client leaving mid-run.
 
 Visual tour (windowed): `godot --path . -- --scenario=shots --shot=/tmp/shots --class=mage` saves
-screenshots of every screen.
+screenshots of every screen. Feature tours: `godot --path . -- --nosteam --auto=solo --class=mage
+--scenario=tour --tour=<combat|menus|merchants|lore|skills|biome|statuses|legendaries> [--biome=<id>]
+[--boss=<id>] --window=1920x1080 --shot=/tmp/tour`.
 
 The tests drive real game instances headless through `autoload/dev_auto.gd`
 (`--auto=host|join|solo --scenario=...`); see that file for the scenarios. Note that test runs

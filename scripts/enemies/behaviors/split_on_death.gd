@@ -17,7 +17,7 @@ func on_death() -> bool:
 			spawned += 1
 			if enemy.target and is_instance_valid(enemy.target):
 				e.add_threat(enemy.target, 5.0)
-	Combat.instance.fx.sound.rpc("splash", enemy.global_position)
+	Combat.instance.fx.sound.rpc("slime_split", enemy.global_position)
 	return false
 
 
