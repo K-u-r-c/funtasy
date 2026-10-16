@@ -61,6 +61,57 @@
 		},
 		"krazik_foot": {
 			"same_as": "plague_ratman"
+		},
+		"ash_imp": {
+			"zip": "b853d71e-db1f-4b17-a9d4-3a65c085e319",
+			"cell": 64,
+			"attack_template": "fireball"
+		},
+		"flame_revenant": {
+			"zip": "26fc3bfd-482b-483f-b8a8-2b656d7e08f4",
+			"cell": 64
+		},
+		"foundry_taskmaster": {
+			"zip": "60f0dce2-9f48-4b93-b545-2aa852917aa1",
+			"cell": 64
+		},
+		"iron_punisher": {
+			"zip": "7bd13cce-4ef4-4cb6-a983-99f482d7e5f0",
+			"cell": 64
+		},
+		"ignis": {
+			"zip": "f0be2066-e035-4766-918e-82eae25561e6",
+			"cell": 112
+		},
+		"magma_carapace": {
+			"blob": "d3d32434-3ac4-443a-9257-c68c24767655",
+			"cell": 64,
+			"args": [
+				"--faces-left"
+			]
+		},
+		"brimstone_hound": {
+			"blob": "d52b9902-1e36-495b-b5f6-dd66f79d7851",
+			"cell": 64,
+			"args": [
+				"--faces-left"
+			]
+		},
+		"barrow_bloodhound": {
+			"same_as": "brimstone_hound",
+			"note": "tinted in its monster data"
+		},
+		"vulkania": {
+			"blob": "51689e0d-ec5b-4539-9e18-d124f55eba9e",
+			"cell": 136,
+			"args": [
+				"--faces-left",
+				"--scale=85"
+			]
+		},
+		"hellfire_cultist": {
+			"same_as": "cultist",
+			"note": "tinted in its monster data"
 		}
 	},
 	"props": {
@@ -82,6 +133,10 @@
 		"boiling_cauldron": "11d17757-15d9-4318-9f2a-1a1e08d7a63c",
 		"hanging_chains": "b82610a9-9651-46e0-a500-2bcc3e171b1f",
 		"ore_cart": "b3fce6e1-bd99-4469-a982-2890b38e9e93",
-		"slag_heap": "34237e3b-a4c6-423f-a609-f2e4e0315afd"
+		"slag_heap": "34237e3b-a4c6-423f-a609-f2e4e0315afd",
+		"slag_safe": "f32a6fc0-9f7c-45f0-9249-0425aa6f4df0",
+		"slag_safe_open": "98eb4605-2cd0-4da4-b162-9be892e55318",
+		"flame_jet": "b4b76aaf-2aa0-4238-83af-ee81a78012ae",
+		"grate": "6f9f0f40-2772-4083-b222-0e4e93542a5a"
 	}
 }

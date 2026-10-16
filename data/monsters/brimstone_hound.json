@@ -29,6 +29,5 @@
 		"fire_resist": 0.5
 	},
 	"collision_radius": 9,
-	"xp": 14,
-	"tint": "#ff6a3a"
+	"xp": 14
 }

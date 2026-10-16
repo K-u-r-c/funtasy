@@ -18,8 +18,7 @@
 	"collision_radius": 18,
 	"xp": 340,
 	"aggro_radius": 360,
-	"scale": 1.2,
-	"tint": "#ffb080",
+	"scale": 1.4,
 	"phases": [
 		{
 			"hp_above": 0.5,
