@@ -184,6 +184,8 @@
 		"archibald": "res://assets/sprites/pixellab/props/archibald.png",
 		"burrow_mound": "res://assets/sprites/pixellab/props/burrow_mound.png",
 		"lid": "res://assets/sprites/pixellab/props/lid.png",
+		"ingot": "res://assets/sprites/pixellab/props/ingot.png",
+		"prism": "res://assets/sprites/pixellab/props/prism.png",
 		"bone_spears": "res://assets/sprites/pixellab/props/bone_spears.png",
 		"pendulum": "res://assets/sprites/pixellab/props/pendulum.png",
 		"consecrated_shrine_lit": "res://assets/sprites/pixellab/props/consecrated_shrine_lit.png",

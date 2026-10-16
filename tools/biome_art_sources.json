@@ -209,6 +209,8 @@
 		}
 	},
 	"props": {
+		"ingot": "7f930fd9-32fd-41c3-9ed2-6b9da3cae518",
+		"prism": "d43e46fe-74ec-45de-837b-3935062510c4",
 		"sewer_strongbox": "c0c799b6-3736-415d-90b6-fa25cf854b57",
 		"gas_pocket": "d9bcddc4-03a0-4656-a151-67e96f1e64e0",
 		"fungal_bloom": "16fde01c-8ea0-4d4a-9540-dc85a6d81796",

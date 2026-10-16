@@ -26,7 +26,8 @@
 		"name": "Iron Ingot",
 		"color": "#c86a3a",
 		"light": "#ff7a2a",
-		"style": "block"
+		"style": "block",
+		"sprite": "props.ingot"
 	},
 	"bone_spears": {
 		"name": "Bone Spears",
@@ -48,7 +49,8 @@
 		"name": "Arcane Prism",
 		"color": "#b080ff",
 		"light": "#8855ff",
-		"style": "block"
+		"style": "block",
+		"sprite": "props.prism"
 	},
 	"lid": {
 		"name": "Fallen Sarcophagus Lid",
