@@ -106,7 +106,7 @@ func _row(text: String, item: Dictionary, dim: bool) -> Button:
 	b.add_theme_font_size_override("font_size", UITheme.FONT_SMALL)
 	b.custom_minimum_size = Vector2(250, 30)
 	if GameData.asset_exists(str(item.get("icon", ""))):
-		b.icon = GameData.texture(str(item.icon))
+		b.icon = ItemLooks.icon(item)
 		b.expand_icon = true
 		b.add_theme_constant_override("icon_max_width", 24)
 	var rar := GameData.rarity(int(item.get("rarity", 1)))

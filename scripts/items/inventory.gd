@@ -161,9 +161,15 @@ func appearance() -> Dictionary:
 		# A one-handed weapon in the left hand is drawn as the off-hand layer.
 		if slot == "off_hand" and it.get("kind") == "weapon":
 			layer = "offhand"
+		# The colour variant (#20) recolours the worn art; items without one keep the old soft tint.
+		var variant: Variant = it.get("look", {}).get("variant", null) if it.has("look") else null
+		if variant == null:
+			variant = ItemLooks.variant_of(it)
+		if not str(variant).is_empty():
+			out[layer] = [str(it.appearance), "#ffffff", variant]
+			continue
 		var rar := GameData.rarity(int(it.get("rarity", 1)))
 		var tint := Color.from_string(str(it.get("tint", "#ffffff")), Color.WHITE).lerp(Color.from_string(rar.color, Color.WHITE), 0.3)
-		# The worn art has its own colours; the tint (a multiply) only shades it.
 		tint = Color.WHITE.lerp(tint, float(GameData.bal("inventory.appearance_tint", 0.4)))
 		out[layer] = [str(it.appearance), tint.to_html(false)]
 	return out

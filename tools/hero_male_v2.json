@@ -1,0 +1,325 @@
+{
+	"_comment": "PixelLab sources of the male hero, animation set v2 (DECISIONS '#16 / #18 / #19'). Rebuild: python3 tools/build_hero_v2.py tools/hero_male_v2.json <work dir> frames|upload|sheets",
+	"config": "tools/hero_male.json",
+	"character": "07917d03-3dff-497d-9a72-8a895951376b",
+	"cell": 64,
+	"drawn": [
+		"south",
+		"south-east",
+		"east",
+		"north-east",
+		"north"
+	],
+	"mirror": {
+		"west": "east",
+		"north-west": "north-east",
+		"south-west": "south-east"
+	},
+	"clips": {
+		"idle": {
+			"from": "idle",
+			"pick": [
+				0,
+				1,
+				2,
+				3
+			]
+		},
+		"walk": {
+			"from": "walk",
+			"pick": [
+				0,
+				1,
+				2,
+				3,
+				4,
+				5,
+				6,
+				7
+			]
+		},
+		"dash": {
+			"from": "dash",
+			"pick": [
+				0,
+				1,
+				2,
+				3
+			]
+		},
+		"hit": {
+			"from": "hit",
+			"pick": [
+				0,
+				2,
+				4
+			]
+		},
+		"death": {
+			"from": "death",
+			"pick": [
+				1,
+				2,
+				3,
+				5,
+				6
+			]
+		},
+		"slash": {
+			"from": "slash",
+			"pick": [
+				3,
+				4,
+				5,
+				6,
+				7,
+				8
+			]
+		},
+		"cleave": {
+			"from": "cleave",
+			"pick": [
+				2,
+				3,
+				4,
+				5,
+				6,
+				8
+			]
+		},
+		"bash": {
+			"from": "bash",
+			"pick": [
+				2,
+				4,
+				5,
+				7
+			]
+		},
+		"shoot_bow": {
+			"from": "shoot_bow_pm",
+			"pick": [
+				2,
+				4,
+				5,
+				6,
+				7,
+				8
+			],
+			"pick_dir": {
+				"south": [
+					2,
+					3,
+					4,
+					4,
+					7,
+					8
+				],
+				"north": [
+					2,
+					3,
+					4,
+					4,
+					8,
+					8
+				]
+			}
+		},
+		"shoot_crossbow": {
+			"from": "shoot_crossbow",
+			"pick": [
+				4,
+				6,
+				8
+			]
+		},
+		"sling": {
+			"from": "sling",
+			"pick": [
+				2,
+				3,
+				4,
+				5,
+				7,
+				8
+			]
+		},
+		"cast": {
+			"from": "cast",
+			"pick": [
+				0,
+				2,
+				3,
+				5,
+				7,
+				8
+			],
+			"pick_dir": {
+				"south": [
+					0,
+					1,
+					2,
+					3,
+					7,
+					8
+				]
+			}
+		},
+		"flick": {
+			"from": "flick",
+			"pick": [
+				2,
+				4,
+				5,
+				6,
+				8
+			]
+		},
+		"empower": {
+			"from": "empower",
+			"pick": [
+				2,
+				4,
+				5,
+				6,
+				8
+			]
+		},
+		"throw": {
+			"from": "throw",
+			"pick": [
+				1,
+				2,
+				3,
+				5
+			]
+		}
+	},
+	"batches": [
+		[
+			"walk",
+			"idle",
+			"hit"
+		],
+		[
+			"slash",
+			"death",
+			"dash"
+		],
+		[
+			"cleave",
+			"bash",
+			"empower"
+		],
+		[
+			"shoot_bow",
+			"shoot_crossbow",
+			"cast"
+		],
+		[
+			"sling",
+			"flick",
+			"throw"
+		]
+	],
+	"strip_glow": [
+		"cast",
+		"flick",
+		"empower",
+		"shoot_bow"
+	],
+	"ghost": {
+		"from": "ghost",
+		"state": "Ghost",
+		"pick": [
+			0,
+			1,
+			2,
+			3
+		]
+	},
+	"outfits": {
+		"plate": {
+			"state": "Plate",
+			"src_dir": "res://assets/sprites/pixellab/gear_src/male_plate",
+			"jobs": {
+				"0": {
+					"south": "569ae674-ee4c-413b-a86c-34a975394ed3",
+					"south-east": "1e207387-7b1f-47d1-b2c5-91b2ea4d6f30",
+					"east": "23d085fd-0860-459d-b3fb-2c796add471c",
+					"north-east": "c9c24c90-1dfc-4642-87c5-398e0013868e",
+					"north": "cd6bb11b-33a0-4756-82db-d75df0021f1e"
+				},
+				"1": {
+					"south": "2e3e04cb-184a-40f1-a332-b07f59753f86",
+					"south-east": "8f9b9547-1e27-4ed7-a026-ceb86dc94cea",
+					"east": "9a1b6123-c936-4c8f-b455-5e54f832505d",
+					"north-east": "5b66ac6f-4e71-4abc-bc1f-70d41561b0b5",
+					"north": "5f0a00a6-84e3-46f4-9676-5f5e2f39ac2e"
+				},
+				"2": {
+					"south": "add7e8ba-5168-4315-bf50-ae2435481ab7",
+					"south-east": "a59527da-9f11-4d73-bfe1-86ece223eebb",
+					"east": "bc27907f-699c-414e-8741-4433697e1164",
+					"north-east": "b20795cb-c2a8-4843-a5f0-732b3608f26d",
+					"north": "9f0c9216-e52b-4d2c-a06d-057e0c3c3720"
+				},
+				"3": {
+					"south": "9b9c14fa-9cfa-41cd-8ae0-f4dbf9076b37",
+					"south-east": "b4aaa2ea-1ea8-4f14-acf6-ea5acd892bf4",
+					"east": "63648d75-0a4f-4bde-902d-c4ef2f69da75",
+					"north-east": "949c7bc1-9b6e-42e0-a47f-e79c67f5cf20",
+					"north": "1e96f02a-ef35-456d-971e-1465d9bc93b0"
+				},
+				"4": {
+					"south": "c35e1952-d48a-4602-b891-3875b1352fd7",
+					"south-east": "ae4ff455-72cc-4ff2-95d1-d83822ede9a6",
+					"east": "b579100e-fc13-4278-9844-31ce4b0dc7a5",
+					"north-east": "a7f47eed-0a18-4919-bb16-1d3ffbe7708a",
+					"north": "83c387f8-6b97-471b-a3ce-d4996d559adf"
+				}
+			}
+		},
+		"cloth": {
+			"state": "Robe",
+			"src_dir": "res://assets/sprites/pixellab/gear_src/male_cloth",
+			"jobs": {
+				"0": {
+					"south": "0fd18ede-8dcb-41d7-a2d1-ba7e97d00d3a",
+					"south-east": "879176b6-c823-4915-a490-e63c58a90e6d",
+					"east": "ab4aa76f-bf1c-4676-b22b-9e7d4fdd1910",
+					"north-east": "bfd140fb-203e-4d73-90ee-dd79ca8b6ba5",
+					"north": "6e8a018b-f558-4f1b-8d0d-3a90a60f131d"
+				},
+				"1": {
+					"south": "e306efd6-d74c-462e-ab88-8ab5da431dbb",
+					"south-east": "19180a4c-ac9f-41d6-8867-851a3ed3640d",
+					"east": "2b2d98b4-d16b-4692-9144-be83d0016799",
+					"north-east": "722fc73d-1fde-4f97-9a73-6b1c1cc17073",
+					"north": "be4579d2-5ede-4c6c-9719-69e4634d4367"
+				},
+				"2": {
+					"south": "6d0813d8-a6a7-4e38-891d-b796f7320b9a",
+					"south-east": "c38698bf-3524-4f9f-9ad6-c66cd59b7ceb",
+					"east": "2518116f-f3fb-46ed-9be6-8f0a32689be7",
+					"north-east": "35a56422-0e9e-4080-b10e-f4f25ec02867",
+					"north": "2ca68c8d-c833-4dad-b379-865fe6732584"
+				},
+				"3": {
+					"south": "14cbde26-f2c4-4a1b-848d-d4678961bbf7",
+					"south-east": "00a3f946-a86a-40ac-9faf-354ae51890e1",
+					"east": "a5d9570b-5be5-433a-9262-431f80f03c55",
+					"north-east": "f6a5b9f2-cbc5-43a2-a21c-ea439f362c50",
+					"north": "46ec44d1-0f56-4f47-b356-e1dfd7a2dd9d"
+				},
+				"4": {
+					"south": "60ff0449-4ce6-4d53-b1df-60e147965777",
+					"south-east": "519e766d-4e2e-4c8e-9bb9-1916324fdc2e",
+					"east": "be6dc9fe-e482-42cf-aa2a-ec0cc544dac5",
+					"north-east": "b860e7de-c3bb-4656-bb9b-78f1666724cc",
+					"north": "db35a506-b986-45ea-90ea-420a4256a81a"
+				}
+			}
+		}
+	}
+}

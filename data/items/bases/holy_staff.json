@@ -1,1 +1,1 @@
-{"id": "holy_staff", "name": "Holy Staff", "kind": "weapon", "slot": "weapon", "hands": 2, "classes": ["priest"], "icon": "items.holy_staff", "appearance": "weapon_staff", "tint": "#f0d890", "dps": [7, 10], "dps_per_level": 1.1, "base_stats": {"intellect": [1, 2]}}
+{"id": "holy_staff", "name": "Holy Staff", "kind": "weapon", "slot": "weapon", "hands": 2, "classes": ["priest"], "icon": "items.holy_staff", "appearance": "weapon_staff", "tint": "#f0d890", "dps": [7, 10], "dps_per_level": 1.1, "base_stats": {"intellect": [1, 2]}, "attack_anim": "cleave", "cast_anim": "cast"}

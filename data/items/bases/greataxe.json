@@ -1,1 +1,1 @@
-{"id": "greataxe", "name": "Greataxe", "kind": "weapon", "slot": "weapon", "hands": 2, "classes": ["warrior"], "icon": "items.greataxe", "appearance": "weapon_greataxe", "tint": "#c8ccd6", "dps": [8, 12], "dps_per_level": 1.2}
+{"id": "greataxe", "name": "Greataxe", "kind": "weapon", "slot": "weapon", "hands": 2, "classes": ["warrior"], "icon": "items.greataxe", "appearance": "weapon_greataxe", "tint": "#c8ccd6", "dps": [8, 12], "dps_per_level": 1.2, "attack_anim": "cleave", "cast_anim": "cast"}

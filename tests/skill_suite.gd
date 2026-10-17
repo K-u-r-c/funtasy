@@ -40,6 +40,7 @@ func run_class(class_id: String) -> void:
 	da.check(tree_ids.size() == 30 and (extra.is_empty() or extra == [str(GameData.classes[class_id].primary_attack)]),
 			"%s has 30 tree skills (%d) plus at most its primary (%s)" % [class_id, tree_ids.size(), extra])
 	_unlock_all_skills()
+	await anim_rules(class_id)
 	for sid in ids:
 		await cast_and_check(str(sid))
 	await run_keystones()
@@ -52,6 +53,50 @@ func run_class(class_id: String) -> void:
 		if not useful and not sk.get("passive", false) and not sk.has("toggle"):
 			bare.append(sid2)
 	da.check(bare.is_empty(), "every %s skill tooltip shows damage, healing or a status (missing: %s)" % [class_id, bare])
+
+
+## #19: the animation of every skill comes from data (a skill's anim, the weapon's attack / cast
+## animation), and an instant hero skill lands on its animation's impact frame, not before.
+func anim_rules(class_id: String) -> void:
+	var anims: Dictionary = GameData.assets.characters.anims
+	var bad: Array = []
+	for sid in GameData.skills:
+		if str(sid).begins_with(class_id + "_") and not anims.has(str(GameData.skills[sid].get("anim", "attack"))):
+			bad.append(sid)
+	da.check(bad.is_empty(), "every %s skill names a known animation (%s)" % [class_id, bad])
+	var saved: Dictionary = p.inv.equipment.get("main_hand", {})
+	var want := {"sword": ["slash", "cast"], "greatsword": ["cleave", "cast"], "warhammer": ["cleave", "cast"], "bow": ["shoot_bow", "cast"],
+		"crossbow": ["shoot_crossbow", "cast"], "sling": ["sling", "cast"], "arcane_wand": ["flick", "flick"], "holy_wand": ["slash", "flick"],
+		"battle_staff": ["cleave", "cast"], "": ["bash", "cast"]}
+	var wrong: Array = []
+	for base in want:
+		if str(base).is_empty():
+			p.inv.equipment.erase("main_hand")
+		else:
+			p.inv.equipment["main_hand"] = {"base": base}
+		var got := [Combat.anim_for(p, {"anim": "attack"}), Combat.anim_for(p, {"anim": "cast"})]
+		if got != want[base]:
+			wrong.append("%s: %s" % [base, got])
+	if saved.is_empty():
+		p.inv.equipment.erase("main_hand")
+	else:
+		p.inv.equipment["main_hand"] = saved
+	da.check(wrong.is_empty(), "the main-hand weapon picks the attack and cast animations (%s)" % [wrong])
+	da.check(Combat.anim_for(p, {"anim": "spin"}) == "spin" and Combat.anim_for(p, {"anim": "empower"}) == "empower", "a skill's own animation overrides the weapon's")
+	_reset()
+	var sid := str(GameData.classes[class_id].primary_attack)
+	var sk := GameData.skill(sid)
+	var anim := Combat.anim_for(p, sk)
+	var delay := Combat.instance.impact_delay(p, sk, anim)
+	var d0: Enemy = dummies[0]
+	d0.health.hp = d0.health.max_hp
+	var hp0 := d0.health.hp
+	var err := Combat.instance.try_use_skill(p, sid, d0.global_position)
+	var early := not p.impact_pending.is_empty() and is_equal_approx(d0.health.hp, hp0)
+	await da._wait(delay + 0.7)
+	da.check(err.is_empty() and delay > 0.05 and early and d0.health.hp < hp0,
+			"%s (%s) lands on its impact frame after %.2f s, not at the press" % [sid, anim, delay])
+	_reset()
 
 
 ## Every skill node learned (their procs compile), no passive talents or keystones.
@@ -280,6 +325,7 @@ func _prepare() -> void:
 
 func _reset() -> void:
 	p.casting = {}
+	p.impact_pending = {}
 	p.channel = {}
 	p.charging = {}
 	p.cooldowns.clear()
@@ -429,7 +475,8 @@ func cast_and_check(sid: String) -> void:
 		var err2 := Combat.instance.try_use_skill(p, sid, aim)
 		da.check(err2.is_empty(), "%s second charge cast%s" % [sid, "" if err2.is_empty() else ": " + err2])
 	if t.has("then"):
-		await da._wait(0.2)
+		# The skill lands on its animation's impact frame (#19).
+		await da._wait(0.2 + CharacterSprite.impact_time(CharacterSprite.body_key(p.gender), Combat.anim_for(p, sk)))
 		await _trigger(str(t.then))
 	await da._wait(wait)
 	var after := _snapshot()

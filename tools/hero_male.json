@@ -6,11 +6,19 @@
 	"anims": [
 		"idle",
 		"walk",
-		"attack",
-		"death",
-		"cast",
 		"dash",
-		"hit"
+		"hit",
+		"death",
+		"slash",
+		"cleave",
+		"bash",
+		"shoot_bow",
+		"shoot_crossbow",
+		"sling",
+		"cast",
+		"flick",
+		"empower",
+		"throw"
 	],
 	"palette": {
 		"outline": [
@@ -124,18 +132,27 @@
 		"downed": {
 			"from": "death",
 			"pick": [
-				3,
-				3
-			]
+				4,
+				4
+			],
+			"breathe": true
 		}
 	},
 	"held_anims": [
 		"idle",
 		"walk",
-		"attack",
-		"cast",
 		"dash",
-		"hit"
+		"hit",
+		"slash",
+		"cleave",
+		"bash",
+		"shoot_bow",
+		"shoot_crossbow",
+		"sling",
+		"cast",
+		"flick",
+		"empower",
+		"throw"
 	],
 	"hand_vectors": {
 		"main": [
@@ -226,11 +243,16 @@
 			],
 			"scale": 0.54,
 			"hand": "main",
-			"swing": [
-				-150,
-				-60
-			],
-			"pose": "down"
+			"angles": {
+				"rest": [
+					"fixed",
+					75
+				],
+				"attack": [
+					"radial",
+					0
+				]
+			}
 		},
 		"weapon_greatsword": {
 			"picture": "res://assets/sprites/pixellab/items/greatsword.png",
@@ -240,11 +262,16 @@
 			],
 			"scale": 0.68,
 			"hand": "main",
-			"swing": [
-				-150,
-				-60
-			],
-			"pose": "down"
+			"angles": {
+				"rest": [
+					"fixed",
+					75
+				],
+				"attack": [
+					"radial",
+					0
+				]
+			}
 		},
 		"weapon_axe": {
 			"picture": "res://assets/sprites/pixellab/items/axe.png",
@@ -254,11 +281,16 @@
 			],
 			"scale": 0.54,
 			"hand": "main",
-			"swing": [
-				-150,
-				-60
-			],
-			"pose": "down"
+			"angles": {
+				"rest": [
+					"fixed",
+					75
+				],
+				"attack": [
+					"radial",
+					0
+				]
+			}
 		},
 		"weapon_greataxe": {
 			"picture": "res://assets/sprites/pixellab/items/greataxe.png",
@@ -268,11 +300,16 @@
 			],
 			"scale": 0.68,
 			"hand": "main",
-			"swing": [
-				-150,
-				-60
-			],
-			"pose": "down"
+			"angles": {
+				"rest": [
+					"fixed",
+					75
+				],
+				"attack": [
+					"radial",
+					0
+				]
+			}
 		},
 		"weapon_mace": {
 			"picture": "res://assets/sprites/pixellab/items/mace.png",
@@ -282,11 +319,16 @@
 			],
 			"scale": 0.54,
 			"hand": "main",
-			"swing": [
-				-150,
-				-60
-			],
-			"pose": "down"
+			"angles": {
+				"rest": [
+					"fixed",
+					75
+				],
+				"attack": [
+					"radial",
+					0
+				]
+			}
 		},
 		"weapon_warhammer": {
 			"picture": "res://assets/sprites/pixellab/items/warhammer.png",
@@ -296,11 +338,16 @@
 			],
 			"scale": 0.68,
 			"hand": "main",
-			"swing": [
-				-150,
-				-60
-			],
-			"pose": "down"
+			"angles": {
+				"rest": [
+					"fixed",
+					75
+				],
+				"attack": [
+					"radial",
+					0
+				]
+			}
 		},
 		"weapon_bow": {
 			"picture": "res://assets/sprites/pixellab/items/bow.png",
@@ -309,12 +356,21 @@
 				0.5
 			],
 			"scale": 0.58,
-			"hand": "main",
-			"swing": [
-				0,
-				0
-			],
-			"pose": "up"
+			"hand": "off",
+			"angles": {
+				"rest": [
+					"fixed",
+					-90
+				],
+				"attack": [
+					"radial",
+					0
+				],
+				"shoot_bow": [
+					"follow",
+					90
+				]
+			}
 		},
 		"weapon_crossbow": {
 			"picture": "res://assets/sprites/pixellab/items/crossbow.png",
@@ -324,11 +380,16 @@
 			],
 			"scale": 0.54,
 			"hand": "main",
-			"swing": [
-				0,
-				0
-			],
-			"pose": "up"
+			"angles": {
+				"rest": [
+					"fixed",
+					30
+				],
+				"attack": [
+					"radial",
+					0
+				]
+			}
 		},
 		"weapon_sling": {
 			"picture": "res://assets/sprites/pixellab/items/sling.png",
@@ -338,11 +399,16 @@
 			],
 			"scale": 0.48,
 			"hand": "main",
-			"swing": [
-				-140,
-				-90
-			],
-			"pose": "down"
+			"angles": {
+				"rest": [
+					"fixed",
+					90
+				],
+				"attack": [
+					"radial",
+					0
+				]
+			}
 		},
 		"weapon_wand": {
 			"picture": "res://assets/sprites/pixellab/items/wand.png",
@@ -352,11 +418,16 @@
 			],
 			"scale": 0.48,
 			"hand": "main",
-			"swing": [
-				-140,
-				-90
-			],
-			"pose": "down"
+			"angles": {
+				"rest": [
+					"fixed",
+					75
+				],
+				"attack": [
+					"radial",
+					0
+				]
+			}
 		},
 		"weapon_staff": {
 			"picture": "res://assets/sprites/pixellab/items/staff.png",
@@ -366,11 +437,24 @@
 			],
 			"scale": 0.68,
 			"hand": "main",
-			"swing": [
-				-20,
-				30
-			],
-			"pose": "up"
+			"angles": {
+				"rest": [
+					"fixed",
+					-80
+				],
+				"attack": [
+					"fixed",
+					-80
+				],
+				"cleave": [
+					"radial",
+					0
+				],
+				"slash": [
+					"radial",
+					0
+				]
+			}
 		},
 		"offhand_shield": {
 			"picture": "res://assets/sprites/pixellab/items/shield.png",
@@ -380,11 +464,16 @@
 			],
 			"scale": 0.5,
 			"hand": "off",
-			"swing": [
-				0,
-				0
-			],
-			"pose": "flat"
+			"angles": {
+				"rest": [
+					"fixed",
+					-45
+				],
+				"attack": [
+					"fixed",
+					-45
+				]
+			}
 		},
 		"offhand_trinket": {
 			"picture": "res://assets/sprites/pixellab/items/trinket.png",
@@ -394,11 +483,16 @@
 			],
 			"scale": 0.31,
 			"hand": "off",
-			"swing": [
-				0,
-				0
-			],
-			"pose": "flat"
+			"angles": {
+				"rest": [
+					"fixed",
+					-45
+				],
+				"attack": [
+					"fixed",
+					-45
+				]
+			}
 		}
 	},
 	"held_poses": {
@@ -408,20 +502,50 @@
 	},
 	"align": {
 		"idle": "walk",
-		"attack": "walk",
-		"cast": "walk",
 		"dash": "walk",
-		"hit": "walk"
+		"hit": "walk",
+		"slash": "walk",
+		"cleave": "walk",
+		"bash": "walk",
+		"shoot_bow": "walk",
+		"shoot_crossbow": "walk",
+		"sling": "walk",
+		"cast": "walk",
+		"flick": "walk",
+		"empower": "walk",
+		"throw": "walk"
 	},
-	"patches": [
-		{
-			"anim": "death",
-			"dir": "south",
-			"frame": 0,
-			"from": [
-				"death",
-				1
-			]
-		}
-	]
+	"near_hand": {
+		"main": [
+			1,
+			1,
+			1,
+			1,
+			1,
+			1,
+			0,
+			1
+		],
+		"off": [
+			0,
+			0,
+			1,
+			0,
+			0,
+			0,
+			0,
+			0
+		]
+	},
+	"active_hand": {
+		"slash": "main",
+		"cleave": "main",
+		"bash": "off",
+		"shoot_bow": "main",
+		"shoot_crossbow": "main",
+		"sling": "main",
+		"flick": "main",
+		"throw": "main"
+	},
+	"weapon_side_clip": "slash"
 }

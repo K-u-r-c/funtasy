@@ -58,7 +58,7 @@ func _rebuild() -> void:
 	for layer in ["head", "chest", "legs", "boots", "gloves", "weapon", "offhand"]:
 		if look.has(layer):
 			var a: Array = look[layer]
-			sprite.set_layer(layer, CharacterSprite.gear_key(str(a[0]), gender), Color.from_string(str(a[1]), Color.WHITE))
+			sprite.set_look_layer(layer, a, gender)
 		else:
 			sprite.set_layer(layer, "")
 	sprite.play("idle", Vector2.RIGHT.rotated(dir_index * PI / 4.0), true)

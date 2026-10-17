@@ -30,7 +30,7 @@ static func vs_fresh(hero: Node, tree: SceneTree) -> int:
 	fresh.set_layer("body", CharacterSprite.body_key(hero.gender))
 	for layer in hero.appearance:
 		var a: Array = hero.appearance[layer]
-		fresh.set_layer(layer, CharacterSprite.gear_key(str(a[0]), hero.gender), Color.from_string(str(a[1]), Color.WHITE))
+		fresh.set_look_layer(layer, a, hero.gender)
 	fresh.play(cs.anim, Vector2.RIGHT.rotated(cs.dir_index * PI / 4.0), true)
 	var body: AnimatedSprite2D = cs.get_node_or_null("body")
 	if body == null:
@@ -44,7 +44,7 @@ static func vs_fresh(hero: Node, tree: SceneTree) -> int:
 	var n := diff(cs.compose(), fresh.compose())
 	cs.modulate = saved
 	for c in cs.get_children():
-		if c is AnimatedSprite2D:
+		if c is AnimatedSprite2D and c.sprite_frames and c.sprite_frames.has_animation(c.animation):
 			c.play()
 	fresh.free()
 	return n
@@ -138,7 +138,7 @@ func switch_test() -> void:
 		_hold(hp.sprite, f)
 		_hold(fresh.sprite, f)
 		var dn := diff(hp.sprite.compose(), fresh.sprite.compose())
-		var stale := hp.sprite.get_children().filter(func(c): return not c is AnimatedSprite2D or not c.name in ["body", "head", "chest", "legs", "boots", "gloves", "weapon", "offhand"])
+		var stale := hp.sprite.get_children().filter(func(c): return not c is AnimatedSprite2D or not c.name in ["body", "head", "chest", "legs", "boots", "gloves", "weapon", "offhand", "weapon_back", "offhand_back"])
 		if not stale.is_empty():
 			dn += 1000
 		if dn > worst:
@@ -146,7 +146,7 @@ func switch_test() -> void:
 			worst_at = "switch %d %s dir %d frame %d" % [i, lk, hp.dir_index, f]
 		fresh.queue_free()
 		for c in hp.sprite.get_children():
-			if c is AnimatedSprite2D:
+			if c is AnimatedSprite2D and c.sprite_frames and c.sprite_frames.has_animation(c.animation):
 				c.play()
 	da.check(unsync.is_empty(), "every layer of the switched preview stays on the body's frame (%s)" % unsync)
 	da.check(worst == 0, "%d class / gender switches always compose like a fresh preview (worst %d px, %s)" % [n, worst, worst_at])
@@ -197,6 +197,9 @@ func audit() -> void:
 				continue
 			for anim in chars.anims:
 				var sheet := _img(str(entry.path) + anim + ".png")
+				var adef: Dictionary = chars.anims[anim]
+				if sheet == null and (adef.has("from") or adef.has("fallback")):
+					continue  # derived from another sheet (spin, revive) or drawn as its fallback
 				if sheet == null:
 					# Gear isn't drawn on ghosts; held items aren't drawn lying down.
 					var held := str(key).contains("weapon") or str(key).contains("offhand")
@@ -204,11 +207,12 @@ func audit() -> void:
 						missing.append("%s %s" % [key, anim])
 					continue
 				var mask := _img(str(entry.path) + "hide/" + anim + ".png") if entry.get("hide", false) else null
+				var back := _img(str(entry.path) + "back/" + anim + ".png") if entry.get("back", false) else null
 				for d in sheet.get_height() / cell:
 					for f in sheet.get_width() / cell:
 						checked += 1
 						var r := Rect2i(f * cell, d * cell, cell, cell)
-						if sheet.get_region(r).get_used_rect().size == Vector2i.ZERO:
+						if sheet.get_region(r).get_used_rect().size == Vector2i.ZERO and (back == null or back.get_region(r).get_used_rect().size == Vector2i.ZERO):
 							if mask == null or mask.get_region(r).get_used_rect().size != Vector2i.ZERO:
 								empty.append("%s %s dir %d frame %d" % [key, anim, d, f])
 	da.check(missing.is_empty(), "every layer has a sheet for every animation it is drawn in (%s)" % [missing.slice(0, 6)])

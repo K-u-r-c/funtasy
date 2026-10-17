@@ -1,0 +1,268 @@
+{
+	"_comment": "PixelLab sources of the female hero, animation set v2 (DECISIONS '#16 / #18 / #19'). Rebuild: python3 tools/build_hero_v2.py tools/hero_female_v2.json <work dir> frames|upload|sheets",
+	"config": "tools/hero_female.json",
+	"character": "b20ba156-9faa-4c6b-adf8-a2c1b64fe244",
+	"cell": 64,
+	"drawn": [
+		"south",
+		"south-east",
+		"east",
+		"north-east",
+		"north"
+	],
+	"mirror": {
+		"west": "east",
+		"north-west": "north-east",
+		"south-west": "south-east"
+	},
+	"clips": {
+		"idle": {
+			"from": "idle",
+			"pick": [
+				0,
+				1,
+				2,
+				3
+			]
+		},
+		"walk": {
+			"from": "walk",
+			"pick": [
+				0,
+				1,
+				2,
+				3,
+				4,
+				5,
+				6,
+				7
+			]
+		},
+		"dash": {
+			"from": "dash",
+			"pick": [
+				0,
+				1,
+				2,
+				3
+			]
+		},
+		"hit": {
+			"from": "hit",
+			"pick": [
+				0,
+				2,
+				4
+			]
+		},
+		"death": {
+			"from": "death",
+			"pick": [
+				1,
+				2,
+				3,
+				5,
+				6
+			]
+		},
+		"slash": {
+			"from": "slash",
+			"pick": [
+				3,
+				4,
+				5,
+				6,
+				7,
+				8
+			]
+		},
+		"cleave": {
+			"from": "cleave",
+			"pick": [
+				2,
+				3,
+				4,
+				5,
+				6,
+				8
+			]
+		},
+		"bash": {
+			"from": "bash",
+			"pick": [
+				2,
+				4,
+				5,
+				7
+			],
+			"from_dir": {
+				"south-east": "bash2"
+			}
+		},
+		"shoot_bow": {
+			"from": "shoot_bow_pm",
+			"pick": [
+				2,
+				4,
+				5,
+				6,
+				7,
+				8
+			],
+			"pick_dir": {
+				"south-east": [
+					2,
+					3,
+					4,
+					6,
+					7,
+					8
+				],
+				"east": [
+					2,
+					3,
+					4,
+					5,
+					7,
+					8
+				]
+			}
+		},
+		"shoot_crossbow": {
+			"from": "shoot_crossbow",
+			"pick": [
+				4,
+				6,
+				8
+			]
+		},
+		"sling": {
+			"from": "sling",
+			"pick": [
+				2,
+				3,
+				4,
+				5,
+				7,
+				8
+			]
+		},
+		"cast": {
+			"from": "cast",
+			"pick": [
+				0,
+				2,
+				3,
+				5,
+				7,
+				8
+			],
+			"pick_dir": {
+				"east": [
+					0,
+					1,
+					2,
+					3,
+					8,
+					8
+				]
+			}
+		},
+		"flick": {
+			"from": "flick",
+			"pick": [
+				2,
+				4,
+				5,
+				6,
+				8
+			]
+		},
+		"empower": {
+			"from": "empower",
+			"pick": [
+				2,
+				4,
+				5,
+				6,
+				8
+			]
+		},
+		"throw": {
+			"from": "throw",
+			"pick": [
+				1,
+				2,
+				3,
+				5
+			],
+			"pick_dir": {
+				"south": [
+					2,
+					3,
+					4,
+					5
+				]
+			}
+		}
+	},
+	"batches": [
+		[
+			"walk",
+			"idle",
+			"hit"
+		],
+		[
+			"slash",
+			"death",
+			"dash"
+		],
+		[
+			"cleave",
+			"bash",
+			"empower"
+		],
+		[
+			"shoot_bow",
+			"shoot_crossbow",
+			"cast"
+		],
+		[
+			"sling",
+			"flick",
+			"throw"
+		]
+	],
+	"strip_glow": [
+		"cast",
+		"flick",
+		"empower",
+		"shoot_bow",
+		"slash"
+	],
+	"ghost": {
+		"from": "ghost",
+		"state": "Ghost",
+		"pick": [
+			0,
+			1,
+			2,
+			3
+		],
+		"fix_colors": [
+			"#a5496c"
+		]
+	},
+	"outfits": {
+		"plate": {
+			"state": "Plate",
+			"src_dir": "res://assets/sprites/pixellab/gear_src/female_plate",
+			"jobs": {}
+		},
+		"cloth": {
+			"state": "Robe",
+			"src_dir": "res://assets/sprites/pixellab/gear_src/female_cloth",
+			"jobs": {}
+		}
+	}
+}

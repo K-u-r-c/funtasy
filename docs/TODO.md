@@ -112,6 +112,10 @@ Goal cap: 2800 generations, never above the remaining allowance, 150 kept in res
 | --- | --- | --- | --- | --- | --- |
 | 2026-10-17 | (goal start) | 1738 | 1738 | 0 | 0 |
 | 2026-10-17 | Cost probes: v3 slash on the male base (1 direction), plate transfer_outfit onto it (9 frames); flesh stitcher walk east (missing direction, audit) | 1738 | 1750 | 12 | 12 |
+| 2026-10-17 | Male body attacks (vertical slice): 9 v3 + 1 template animations x 5 directions, re-rolls (bow twice, then PixMiniMax; crossbow, sling once) | 1750 | 1812 | 62 | 74 |
+| 2026-10-17 | Male plate outfit: 25 transfer_outfit calls (5 batches of 15 frames x 5 directions) | 1812 | 2062 | 250 | 324 |
+| 2026-10-17 | Male cloth (hood + robe) outfit: 25 transfer_outfit calls | 2062 | 2312 | 250 | 574 |
+| 2026-10-17 | Female body attacks: 10 animations x 5 directions (empower re-run after a failed job, bash SE re-roll) | 2312 | 2356 | 44 | 618 |
 
 ## Done (MVP)
 

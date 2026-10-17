@@ -1,1 +1,1 @@
-{"id": "arcane_wand", "name": "Arcane Wand", "kind": "weapon", "slot": "weapon", "hands": 2, "classes": ["mage"], "icon": "items.arcane_wand", "appearance": "weapon_wand", "tint": "#b48ce0", "dps": [7, 10], "dps_per_level": 1.1, "base_stats": {"intellect": [1, 2]}}
+{"id": "arcane_wand", "name": "Arcane Wand", "kind": "weapon", "slot": "weapon", "hands": 2, "classes": ["mage"], "icon": "items.arcane_wand", "appearance": "weapon_wand", "tint": "#b48ce0", "dps": [7, 10], "dps_per_level": 1.1, "base_stats": {"intellect": [1, 2]}, "attack_anim": "flick", "cast_anim": "flick"}

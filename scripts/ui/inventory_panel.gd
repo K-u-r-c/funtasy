@@ -198,7 +198,7 @@ func _rebuild() -> void:
 		var item: Dictionary = inv.equipment.get(slot, {})
 		b.ghost_icon = null
 		if slot == "off_hand" and item.is_empty() and int(inv.equipment.get("main_hand", {}).get("hands", 1)) == 2:
-			b.ghost_icon = GameData.texture(str(inv.equipment.main_hand.icon))
+			b.ghost_icon = ItemLooks.icon(inv.equipment.main_hand)
 		b.set_item(item)
 	# Backpack slots are recreated only when the capacity changes.
 	if _bag_grid.get_child_count() != inv.capacity:

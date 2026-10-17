@@ -198,7 +198,7 @@ func _op_strip_glow(op: Dictionary) -> bool:
 		img.set_pixelv(p, Color(0, 0, 0, 0))
 	for p in fringe:
 		img.set_pixelv(p, Color(0, 0, 0, 0))
-	_drop_specks(img, int(op.get("cell", 64)), 12)
+	_drop_specks(img, int(op.get("cell", 64)), int(op.get("specks", 12)))
 	return _save(img, op.get("dst", op.src))
 
 

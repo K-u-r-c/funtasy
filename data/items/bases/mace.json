@@ -1,1 +1,1 @@
-{"id": "mace", "name": "Mace", "kind": "weapon", "slot": "weapon", "hands": 1, "classes": ["warrior"], "icon": "items.mace", "appearance": "weapon_mace", "tint": "#b9bcc6", "dps": [4, 6], "dps_per_level": 0.7}
+{"id": "mace", "name": "Mace", "kind": "weapon", "slot": "weapon", "hands": 1, "classes": ["warrior"], "icon": "items.mace", "appearance": "weapon_mace", "tint": "#b9bcc6", "dps": [4, 6], "dps_per_level": 0.7, "attack_anim": "slash", "cast_anim": "cast"}

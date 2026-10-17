@@ -26,7 +26,7 @@ func _ready() -> void:
 	shadow.scale = Vector2(0.6, 0.6)
 	add_child(shadow)
 	_icon = Sprite2D.new()
-	_icon.texture = GameData.texture(str(item.get("icon", "items.backpack")))
+	_icon.texture = ItemLooks.icon(item) if GameData.asset_exists(str(item.get("icon", ""))) else GameData.texture("items.backpack")
 	_icon.scale = Vector2(0.75, 0.75)
 	var mat := ShaderMaterial.new()
 	mat.shader = GLOW_SHADER

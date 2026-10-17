@@ -1,1 +1,1 @@
-{"id": "battle_staff", "name": "Battle Staff", "kind": "weapon", "slot": "weapon", "hands": 1, "classes": ["mage"], "icon": "items.staff", "appearance": "weapon_staff", "tint": "#7aa0e0", "dps": [4, 6], "dps_per_level": 0.7}
+{"id": "battle_staff", "name": "Battle Staff", "kind": "weapon", "slot": "weapon", "hands": 1, "classes": ["mage"], "icon": "items.staff", "appearance": "weapon_staff", "tint": "#7aa0e0", "dps": [4, 6], "dps_per_level": 0.7, "attack_anim": "cleave", "cast_anim": "cast"}

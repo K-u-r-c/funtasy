@@ -128,8 +128,11 @@ func run_lan() -> void:
 	_hit(p)
 	await da._wait(0.6)
 	_stop_rec()
-	da.check(_starts("attack") == 1, "the host's own attack plays once, not restarted by its echo (%d)" % _starts("attack"))
-	NetworkManager.to_clients("DevAuto", "client_cmd", ["an_expect", [["attack", "dash", "hit"], {"attack": 2}]])
+	# Attack / cast names come from the weapons (#19): warrior sword -> slash, mage wand -> flick.
+	var atk := Combat.anim_for(p, GameData.skill(str(GameData.classes[p.class_id].primary_attack)))
+	var cst := Combat.anim_for(c, GameData.skill(str(GameData.classes[c.class_id].primary_attack)))
+	da.check(_starts(atk) == 1, "the host's own %s plays once, not restarted by its echo (%d)" % [atk, _starts(atk)])
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["an_expect", [[atk, "dash", "hit"], {atk: 2}]])
 	await da._wait(0.6)
 
 	# --- a monster attacks, the client watches --------------------------------------------
@@ -148,23 +151,23 @@ func run_lan() -> void:
 
 	# --- the client acts, the host watches ----------------------------------------------
 	_start_rec(c)
-	NetworkManager.to_clients("DevAuto", "client_cmd", ["an_act", c.global_position + Vector2(-60, 0)])
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["an_act", [c.global_position + Vector2(-60, 0), cst]])
 	await da._wait(1.9)
 	_hit(c)
 	await da._wait(0.7)
 	_stop_rec()
 	var seq := _seq()
-	da.check(in_order(seq, ["cast", "dash", "hit"]), "the host sees the client's cast, dash and hit in order (%s)" % [seq])
-	da.check(_dirs_of("cast").has(4), "the host sees the client's cast facing W (%s)" % [_dirs_of("cast")])
+	da.check(in_order(seq, [cst, "dash", "hit"]), "the host sees the client's %s, dash and hit in order (%s)" % [cst, seq])
+	da.check(_dirs_of(cst).has(4), "the host sees the client's %s facing W (%s)" % [cst, _dirs_of(cst)])
 
 	# --- a cast-time pose is held on both sides ------------------------------------------
 	_start_rec(c)
 	c.casting = {"skill": "mage_bolt", "aim": c.global_position + Vector2(-60, 0), "left": 1.0, "extra": {}}
-	NetworkManager.to_clients("DevAuto", "client_cmd", ["an_held", "cast"])
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["an_held", cst])
 	await da._wait(1.3)
 	_stop_rec()
-	var cast_rows := _rec.filter(func(r): return r[0] == "cast").size()
-	da.check(cast_rows > 0 and _rec.back()[0] != "cast", "the host holds the client's cast pose and drops it after (%s)" % [_seq()])
+	var cast_rows := _rec.filter(func(r): return r[0] == cst).size()
+	da.check(cast_rows > 0 and _rec.back()[0] != cst, "the host holds the client's %s pose and drops it after (%s)" % [cst, _seq()])
 
 	# --- #15: both heroes in full class gear look the same on both sides as a fresh sprite ---
 	var lobby := preload("res://scripts/ui/lobby.gd")
@@ -217,7 +220,8 @@ func client_cmd(cmd: String, arg: Variant) -> void:
 				da.check(rec._dirs_of(a).has(int(arg[1][a])), "the client sees %s facing dir %d (%s)" % [a, int(arg[1][a]), rec._dirs_of(a)])
 		"an_act":
 			_start_rec(p)
-			p.auto_aim = arg  # cast facing W
+			var cst: String = arg[1]
+			p.auto_aim = arg[0]  # cast facing W
 			Input.action_press("attack")
 			await da._wait(0.12)
 			Input.action_release("attack")
@@ -227,8 +231,8 @@ func client_cmd(cmd: String, arg: Variant) -> void:
 			Input.action_release("dodge")
 			await da._wait(1.6)
 			_stop_rec()
-			da.check(_starts("cast") == 1, "the client's own cast plays once, not restarted by the host's echo (%d)" % _starts("cast"))
-			da.check(in_order(_seq(), ["cast", "dash", "hit"]), "the client sees its own cast, dash and hit (%s)" % [_seq()])
+			da.check(_starts(cst) == 1, "the client's own %s plays once, not restarted by the host's echo (%d)" % [cst, _starts(cst)])
+			da.check(in_order(_seq(), [cst, "dash", "hit"]), "the client sees its own %s, dash and hit (%s)" % [cst, _seq()])
 			p.auto_aim = Vector2.INF
 		"an_look":
 			var bad := []

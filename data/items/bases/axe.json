@@ -1,1 +1,1 @@
-{"id": "axe", "name": "Axe", "kind": "weapon", "slot": "weapon", "hands": 1, "classes": ["warrior"], "icon": "items.axe", "appearance": "weapon_axe", "tint": "#c8ccd6", "dps": [4, 7], "dps_per_level": 0.7}
+{"id": "axe", "name": "Axe", "kind": "weapon", "slot": "weapon", "hands": 1, "classes": ["warrior"], "icon": "items.axe", "appearance": "weapon_axe", "tint": "#c8ccd6", "dps": [4, 7], "dps_per_level": 0.7, "attack_anim": "slash", "cast_anim": "cast"}

@@ -13,6 +13,8 @@ const LOOKS := {
 	"bare": [],
 	"plate": ["head_helm", "chest_armor", "legs_armor", "boots_armor", "gloves_armor"],
 	"cloth": ["head_hood", "chest_robe"],
+	"warrior": ["head_helm", "chest_armor", "legs_armor", "boots_armor", "gloves_armor", "weapon_sword", "offhand_shield"],
+	"warrior_2h": ["head_helm", "chest_armor", "legs_armor", "boots_armor", "gloves_armor", "weapon_greatsword"],
 	"sword_shield": ["weapon_sword", "offhand_shield"],
 	"greatsword": ["weapon_greatsword"],
 	"axe_trinket": ["weapon_axe", "offhand_trinket"],
@@ -74,8 +76,11 @@ func _init() -> void:
 			for a in anims:
 				var body := _img(str(body_entry.path) + a + ".png")
 				var gear: Array = []
+				var backs: Array = []
 				for l in layers:
 					gear.append([l[0], _img(str(l[1].path) + a + ".png"), _img(str(l[1].path) + "hide/" + a + ".png") if l[1].get("hide", false) else null])
+					if l[1].get("back", false):
+						backs.append(_img(str(l[1].path) + "back/" + a + ".png"))
 				for d in 8:
 					# Checker band per animation to read the rows.
 					var band := Color("22252e") if anims.find(a) % 2 == 0 else Color("1b1d24")
@@ -84,7 +89,11 @@ func _init() -> void:
 						for f in body.get_width() / cell:
 							var r := Rect2i(f * cell, d * cell, cell, cell)
 							var dst := Vector2i(f * cell, row * cell)
-							var covered := {}
+							# Held items' back parts first, under the body.
+							for bk in backs:
+								if bk:
+									var bsrc: Image = (bk as Image).get_region(r)
+									sheet.blend_rect(bsrc, Rect2i(Vector2i.ZERO, bsrc.get_size()), dst)
 							for gl in gear:
 								if gl[1]:
 									var used := (gl[1] as Image).get_region(r).get_used_rect()
@@ -109,7 +118,6 @@ func _init() -> void:
 										holes += 1
 									elif not hidden:
 										sheet.set_pixelv(dst + Vector2i(x, y), c)
-							# Weapons behind the body when facing away (as _sort_layers did).
 							for gl in gear:
 								if gl[1] == null:
 									continue

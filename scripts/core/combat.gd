@@ -57,7 +57,7 @@ func try_use_skill(caster: Actor, skill_id: String, aim: Vector2, opts: Dictiona
 		return "Passive"
 	if not caster.can_act() and not (skill.get("usable_while_cc", false) and caster.is_alive()):
 		return "Can't act now"
-	if not caster.casting.is_empty() or not caster.channel.is_empty() or not caster.charging.is_empty():
+	if not caster.casting.is_empty() or not caster.channel.is_empty() or not caster.charging.is_empty() or not caster.impact_pending.is_empty():
 		return "Busy"
 	var school := str(skill.get("school", "melee"))
 	if caster.status.has_flag("silenced") and (school == "spell" or not opts.get("primary", false)):
@@ -144,9 +144,11 @@ func try_use_skill(caster: Actor, skill_id: String, aim: Vector2, opts: Dictiona
 	if dir == Vector2.ZERO:
 		dir = caster.facing
 	caster.facing = dir
-	caster.play_action.rpc(str(skill.get("anim", "attack")), dir)
-	if skill.has("sfx"):
-		fx.sound.rpc(skill.sfx, caster.global_position)
+	var anim := anim_for(caster, skill)
+	caster.play_action.rpc(anim, dir)
+	var impact := impact_delay(caster, skill, anim)
+	if skill.has("sfx") and impact <= 0.0:
+		fx.sound.rpc(skill.sfx, caster.global_position)  # delayed swings play it on impact
 	fire(caster, "on_skill_cast", {"skill": skill_id, "school": school, "target": null, "ctx": {}})
 	if skill.has("channel"):
 		var ch: Dictionary = skill.channel
@@ -170,9 +172,45 @@ func try_use_skill(caster: Actor, skill_id: String, aim: Vector2, opts: Dictiona
 		fx.cast_bar.rpc(caster.get_path(), cast_time)
 		if skill.has("windup"):
 			_windup_marker(caster, skill, aim, cast_time)
+	elif impact > 0.0:
+		# #19: the hit / shot lands on the animation's impact frame (aim taken now).
+		caster.impact_pending = {"skill": skill_id, "aim": aim, "left": impact, "extra": extra}
 	else:
 		finish_cast(caster, skill_id, aim, extra)
 	return ""
+
+
+## Seconds until a hero's instant skill lands: its animation's impact frame (#19). 0 for monsters,
+## cast-time / channel / charge skills (they have their own timing) and CC breakers.
+func impact_delay(caster: Actor, skill: Dictionary, anim: String) -> float:
+	if not caster is Player or skill.has("channel") or skill.has("charge_time") or skill.get("usable_while_cc", false):
+		return 0.0
+	if maxf(cast_time_for(caster.stats, skill), float(skill.get("windup", 0.0))) > 0.01:
+		return 0.0
+	var t := CharacterSprite.impact_time(CharacterSprite.body_key(caster.gender), anim)
+	return t if t > 0.01 else 0.0
+
+
+## Host: a delayed swing reaches its impact frame.
+func land_impact(caster: Actor, pending: Dictionary) -> void:
+	var skill := GameData.skill(str(pending.skill))
+	if skill.has("sfx"):
+		fx.sound.rpc(skill.sfx, caster.global_position)
+	finish_cast(caster, str(pending.skill), pending.aim, pending.extra)
+
+
+## The hero animation a skill plays (#19, data-driven): "attack" is the main-hand weapon's
+## `attack_anim` (unarmed: bash), "cast" its `cast_anim` (default cast), any other name as is.
+## Monsters play the skill's anim unchanged.
+static func anim_for(caster: Actor, skill: Dictionary) -> String:
+	var a := str(skill.get("anim", "attack"))
+	if not caster is Player or not a in ["attack", "cast"]:
+		return a
+	var main: Dictionary = caster.inv.equipment.get("main_hand", {})
+	var base: Dictionary = GameData.item_bases.get(str(main.get("base", "")), {})
+	if a == "attack":
+		return str(base.get("attack_anim", "bash"))
+	return str(base.get("cast_anim", "cast"))
 
 
 ## Leaps and charges: the moves that need a wind-up and a grace period on monsters (#2).

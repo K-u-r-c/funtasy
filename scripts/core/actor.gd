@@ -27,6 +27,7 @@ var cooldowns: Dictionary = {}  ## host: skill id -> seconds left
 var casting: Dictionary = {}  ## host: {skill, aim, left} while a cast time runs
 var channel: Dictionary = {}  ## host: {skill, left, tick_left, aim, start} while channelling
 var charging: Dictionary = {}  ## host: {skill, t, max, aim} while a charge-up skill is held
+var impact_pending: Dictionary = {}  ## host: {skill, aim, left, extra} until the swing's impact frame (#19)
 var skill_charges: Dictionary = {}  ## host: skill id -> stored charges (skills with "charges")
 var lockout_element := ""  ## host: school locked by Counterspell
 var last_attacker: Actor = null  ## host: who hit this actor last (kill credit for procs)
@@ -39,6 +40,7 @@ var held_anim := ""  ## replicated: pose held while casting / channelling / char
 var _action_anim := ""
 var _action_left := 0.0
 var _last_visual_pos := Vector2.ZERO
+var _turn_rate := 0.0  ## spin animations turn the facing this fast (rad/s) while they play
 var _moving_hold := 0.0  ## walk keeps playing this long after the last visible step (no flicker)
 var _flash := 0.0
 var _shadow: Sprite2D
@@ -170,10 +172,19 @@ func host_tick(delta: float) -> void:
 				var c := casting
 				casting = {}
 				Combat.instance.finish_cast(self, c.skill, c.aim)
+	if not impact_pending.is_empty():
+		if not can_act():
+			impact_pending = {}  # stunned mid-swing: the blow never lands
+		else:
+			impact_pending.left -= delta
+			if impact_pending.left <= 0.0:
+				var ip := impact_pending
+				impact_pending = {}
+				Combat.instance.land_impact(self, ip)
 	var held := ""
 	for st in [channel, charging, casting]:
 		if not st.is_empty():
-			held = str(GameData.skills.get(str(st.skill), {}).get("anim", "cast"))
+			held = Combat.anim_for(self, GameData.skills.get(str(st.skill), {"anim": "cast"}))
 			break
 	if held != held_anim:
 		held_anim = held
@@ -225,6 +236,7 @@ func play_action(anim_name: String, dir: Vector2) -> void:
 		_action_left = float(anim_def.frames) / float(anim_def.fps)
 	if anim_name == "hit":
 		_flash = 0.12
+	_turn_rate = float(GameData.assets.characters.anims.get(anim_name, {}).get("turn", 0.0)) * TAU / maxf(_action_left, 0.05)
 	if sprite:
 		sprite.play(anim_name, facing, true)
 
@@ -247,6 +259,8 @@ func update_visuals(delta: float) -> void:
 	var anim_name := base_anim(moving)
 	if _action_left > 0.0 and anim_name in ["idle", "walk"]:
 		anim_name = _action_anim
+		if _turn_rate != 0.0:
+			facing = facing.rotated(_turn_rate * delta)
 	elif not held_anim.is_empty() and anim_name in ["idle", "walk"]:
 		anim_name = held_anim
 	sprite.play(anim_name, facing)

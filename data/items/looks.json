@@ -1,0 +1,347 @@
+{
+	"_comment": "Item looks (#20, DECISIONS '#20 Item look variety'). An armour item gets a worn family (seeded from its uid among the families its base allows at its rarity) and a colour variant (from its rarity, or the legendary's own). families: family -> slot -> worn appearance (a key of data/assets.json characters.layers without the gender prefix) and icon. fallback: appearance used while a family's art isn't drawn yet. variants: gear_variant.gdshader parameters; the item icon is recoloured the same way. legendary_families: class -> slot ('*' = any) -> family of its legendaries; their colours come from their icon.",
+	"families": {
+		"plate": {
+			"head": [
+				"head_helm",
+				"items.helm"
+			],
+			"chest": [
+				"chest_armor",
+				"items.chest"
+			],
+			"legs": [
+				"legs_armor",
+				"items.legs"
+			],
+			"boots": [
+				"boots_armor",
+				"items.boots"
+			],
+			"gloves": [
+				"gloves_armor",
+				"items.gloves"
+			]
+		},
+		"mail": {
+			"head": [
+				"head_mail",
+				"items.helm_mail"
+			],
+			"chest": [
+				"chest_mail",
+				"items.chest_mail"
+			],
+			"legs": [
+				"legs_mail",
+				"items.legs_mail"
+			],
+			"boots": [
+				"boots_mail",
+				"items.boots_mail"
+			],
+			"gloves": [
+				"gloves_mail",
+				"items.gloves_mail"
+			]
+		},
+		"leather": {
+			"head": [
+				"head_leather",
+				"items.hood_leather"
+			],
+			"chest": [
+				"chest_leather",
+				"items.chest_leather"
+			],
+			"legs": [
+				"legs_leather",
+				"items.legs_leather"
+			],
+			"boots": [
+				"boots_leather",
+				"items.boots_leather"
+			],
+			"gloves": [
+				"gloves_leather",
+				"items.gloves_leather"
+			]
+		},
+		"cloth": {
+			"head": [
+				"head_hood",
+				"items.hood"
+			],
+			"chest": [
+				"chest_robe",
+				"items.robe"
+			]
+		}
+	},
+	"fallback": {
+		"head_mail": "head_helm",
+		"chest_mail": "chest_armor",
+		"legs_mail": "legs_armor",
+		"boots_mail": "boots_armor",
+		"gloves_mail": "gloves_armor",
+		"head_leather": "head_hood",
+		"chest_leather": "chest_armor",
+		"legs_leather": "legs_armor",
+		"boots_leather": "boots_armor",
+		"gloves_leather": "gloves_armor"
+	},
+	"bases": {
+		"plate_helm": [
+			[
+				"mail",
+				1,
+				3
+			],
+			[
+				"plate",
+				2,
+				5
+			]
+		],
+		"plate_chest": [
+			[
+				"mail",
+				1,
+				3
+			],
+			[
+				"plate",
+				2,
+				5
+			]
+		],
+		"hood": [
+			[
+				"leather",
+				1,
+				5
+			],
+			[
+				"cloth",
+				1,
+				5
+			]
+		],
+		"robe": [
+			[
+				"cloth",
+				1,
+				5
+			]
+		],
+		"greaves": [
+			[
+				"leather",
+				1,
+				2
+			],
+			[
+				"mail",
+				2,
+				4
+			],
+			[
+				"plate",
+				3,
+				5
+			]
+		],
+		"boots": [
+			[
+				"leather",
+				1,
+				2
+			],
+			[
+				"mail",
+				2,
+				4
+			],
+			[
+				"plate",
+				3,
+				5
+			]
+		],
+		"gloves": [
+			[
+				"leather",
+				1,
+				2
+			],
+			[
+				"mail",
+				2,
+				4
+			],
+			[
+				"plate",
+				3,
+				5
+			]
+		]
+	},
+	"family_variants": {
+		"plate": [
+			"rusty",
+			"iron",
+			"steel",
+			"blackened",
+			"gilded"
+		],
+		"mail": [
+			"rusty",
+			"iron",
+			"steel",
+			"blackened",
+			"gilded"
+		],
+		"leather": [
+			"worn",
+			"oiled",
+			"dyed",
+			"nightdyed",
+			"embossed"
+		],
+		"cloth": [
+			"worn",
+			"oiled",
+			"dyed",
+			"nightdyed",
+			"embossed"
+		],
+		"weapon": [
+			"rusty",
+			"iron",
+			"steel",
+			"blackened",
+			"gilded"
+		]
+	},
+	"variants": {
+		"rusty": {
+			"ramp": [
+				"#24170f",
+				"#6a4630",
+				"#a9835c"
+			],
+			"metal_mix": 0.8,
+			"sat_mult": 0.75,
+			"val_mult": 0.85
+		},
+		"iron": {
+			"ramp": [
+				"#1d2024",
+				"#535960",
+				"#9ba2ab"
+			],
+			"metal_mix": 0.55,
+			"sat_mult": 0.9,
+			"val_mult": 0.95
+		},
+		"steel": {
+			"ramp": [
+				"#1f2735",
+				"#6b7e9a",
+				"#dfe7f2"
+			],
+			"metal_mix": 0.75,
+			"sat_mult": 1.0,
+			"val_mult": 1.05
+		},
+		"blackened": {
+			"ramp": [
+				"#0e0b12",
+				"#3a3145",
+				"#9a88ab"
+			],
+			"metal_mix": 0.85,
+			"hue_shift": 0.0,
+			"sat_mult": 1.15,
+			"val_mult": 0.8
+		},
+		"gilded": {
+			"ramp": [
+				"#3b2006",
+				"#b37a1c",
+				"#ffe596"
+			],
+			"metal_mix": 0.9,
+			"sat_mult": 1.2,
+			"val_mult": 1.05,
+			"glow": "#ffcf6a40"
+		},
+		"worn": {
+			"metal_mix": 0.0,
+			"sat_mult": 0.65,
+			"val_mult": 0.85
+		},
+		"oiled": {
+			"metal_mix": 0.3,
+			"ramp": [
+				"#1a1410",
+				"#4d3c2e",
+				"#8f7a64"
+			],
+			"sat_mult": 0.95,
+			"val_mult": 0.8
+		},
+		"dyed": {
+			"metal_mix": 0.4,
+			"ramp": [
+				"#1c2330",
+				"#56637a",
+				"#b8c3d6"
+			],
+			"hue_shift": 0.55,
+			"sat_mult": 1.05,
+			"val_mult": 0.95
+		},
+		"nightdyed": {
+			"metal_mix": 0.6,
+			"ramp": [
+				"#120d18",
+				"#3f3352",
+				"#a58fc0"
+			],
+			"hue_shift": 0.72,
+			"sat_mult": 1.2,
+			"val_mult": 0.85
+		},
+		"embossed": {
+			"metal_mix": 0.85,
+			"ramp": [
+				"#3b2006",
+				"#b37a1c",
+				"#ffe596"
+			],
+			"hue_shift": 0.95,
+			"sat_mult": 1.25,
+			"val_mult": 1.0,
+			"glow": "#ffcf6a30"
+		}
+	},
+	"legendary_families": {
+		"warrior": {
+			"*": "plate"
+		},
+		"priest": {
+			"*": "mail",
+			"head": "cloth",
+			"chest": "cloth"
+		},
+		"ranger": {
+			"*": "leather"
+		},
+		"mage": {
+			"*": "leather",
+			"head": "cloth",
+			"chest": "cloth"
+		}
+	}
+}

@@ -136,7 +136,7 @@ func _copy_look() -> void:
 	sprite.set_layer("body", CharacterSprite.body_key(p.gender))
 	for layer in p.appearance:
 		var a: Array = p.appearance[layer]
-		sprite.set_layer(layer, CharacterSprite.gear_key(str(a[0]), p.gender), Color.from_string(a[1], Color.WHITE))
+		sprite.set_look_layer(layer, a, p.gender)
 	sprite.self_modulate = Color.from_string(str(def.get("copy_tint", "#b9a8ff")), Color.WHITE)
 
 

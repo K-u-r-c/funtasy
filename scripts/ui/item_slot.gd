@@ -61,7 +61,7 @@ func _ready() -> void:
 
 func set_item(it: Dictionary) -> void:
 	item = it
-	_tex = GameData.texture(str(item.icon)) if item.has("icon") else null
+	_tex = ItemLooks.icon(item) if item.has("icon") else null
 	if _mat == null:
 		return
 	var has := not item.is_empty() and item.has("uid")

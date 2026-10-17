@@ -2131,9 +2131,11 @@ func _held_check(g: String, br: RefCounted, body_entry: Dictionary) -> void:
 		if body == null:
 			continue
 		var sheets := {}
+		var backs := {}
 		for layer in cfg.held:
 			var key := CharacterSprite.gear_key(layer, g)
 			sheets[layer] = _img(str(GameData.asset_entry(key).path) + anim + ".png") if not key.is_empty() else null
+			backs[layer] = _img(str(GameData.asset_entry(key).path) + "back/" + anim + ".png") if not key.is_empty() else null
 		for fy in body.get_height() / cell:
 			for fx in body.get_width() / cell:
 				var reg: Dictionary = br.segment(body.get_region(Rect2i(fx * cell, fy * cell, cell, cell)))
@@ -2145,12 +2147,14 @@ func _held_check(g: String, br: RefCounted, body_entry: Dictionary) -> void:
 				for layer in sheets:
 					var sh: Image = sheets[layer]
 					var pix: Array = []
-					if sh:
-						var fr := sh.get_region(Rect2i(fx * cell, fy * cell, cell, cell))
-						for y in cell:
-							for x in cell:
-								if fr.get_pixel(x, y).a >= 0.5:
-									pix.append(Vector2i(x, y))
+					# Front and back parts together (#16: the part the body hides is in back/).
+					for part in [sh, backs.get(layer)]:
+						if part:
+							var fr: Image = (part as Image).get_region(Rect2i(fx * cell, fy * cell, cell, cell))
+							for y in cell:
+								for x in cell:
+									if fr.get_pixel(x, y).a >= 0.5:
+										pix.append(Vector2i(x, y))
 					checked += 1
 					if pix.is_empty():
 						missing += 1
@@ -2163,6 +2167,19 @@ func _held_check(g: String, br: RefCounted, body_entry: Dictionary) -> void:
 							best = minf(best, maxf(absf(q.x - h.x), absf(q.y - h.y)))
 						if best <= 0.0:
 							break
+					# Held in the hand the body hides (#16): the item goes behind the body and rests
+					# against it (torso / arm) instead of touching a visible hand.
+					var bk: Image = backs.get(layer)
+					if best > 2.0 and bk and bk.get_region(Rect2i(fx * cell, fy * cell, cell, cell)).get_used_rect().size != Vector2i.ZERO:
+						var body_px: Array = reg.keys().filter(func(q2): return reg[q2] in ["torso", "arms"])
+						var near := 999.0
+						for q in pix:
+							for h in body_px:
+								near = minf(near, maxf(absf(q.x - h.x), absf(q.y - h.y)))
+							if near <= 1.0:
+								break
+						if near <= 1.0:
+							best = near
 					if best > worst and missing == 0:
 						worst = best
 						worst_at = "%s %s dir %d frame %d" % [layer, anim, fy, fx]
@@ -2254,7 +2271,7 @@ func _hero_shots_flow() -> void:
 			cs.set_layer("body", CharacterSprite.body_key(gender))
 			for layer in rows[r][1]:
 				var a: Array = rows[r][1][layer]
-				cs.set_layer(layer, CharacterSprite.gear_key(str(a[0]), gender), Color.from_string(str(a[1]), Color.WHITE))
+				cs.set_look_layer(layer, a, gender)
 			cs.play(rows[r][0], Vector2.RIGHT.rotated(d * PI / 4.0), true)
 	g.camera.global_position = lineup.global_position + Vector2(140, 200)
 	await _wait(0.6)
@@ -2282,7 +2299,7 @@ func _hero_shots_flow() -> void:
 			cs.set_layer("body", CharacterSprite.body_key(gender))
 			for layer in scale_row[i][1]:
 				var a2: Array = scale_row[i][1][layer]
-				cs.set_layer(layer, CharacterSprite.gear_key(str(a2[0]), gender), Color.from_string(str(a2[1]), Color.WHITE))
+				cs.set_look_layer(layer, a2, gender)
 		else:
 			cs.set_layer("body", str(scale_row[i][0]))
 		cs.play("idle", Vector2.DOWN, true)
@@ -2341,7 +2358,7 @@ func _hero_shots_flow() -> void:
 			cs.set_layer("body", CharacterSprite.body_key(gender))
 			for layer in end_rows[r][1]:
 				var a3: Array = end_rows[r][1][layer]
-				cs.set_layer(layer, CharacterSprite.gear_key(str(a3[0]), gender), Color.from_string(str(a3[1]), Color.WHITE))
+				cs.set_look_layer(layer, a3, gender)
 			cs.play(end_rows[r][0], Vector2.RIGHT.rotated(d * PI / 4.0), true)
 			if end_rows[r][0] == "ghost":
 				cs.modulate.a = 0.45  # as Player draws its own ghost

@@ -1,1 +1,1 @@
-{"id": "bow", "name": "Bow", "kind": "weapon", "slot": "weapon", "hands": 2, "classes": ["ranger"], "icon": "items.bow", "appearance": "weapon_bow", "tint": "#9b6a40", "dps": [7, 10], "dps_per_level": 1.1}
+{"id": "bow", "name": "Bow", "kind": "weapon", "slot": "weapon", "hands": 2, "classes": ["ranger"], "icon": "items.bow", "appearance": "weapon_bow", "tint": "#9b6a40", "dps": [7, 10], "dps_per_level": 1.1, "attack_anim": "shoot_bow", "cast_anim": "cast"}

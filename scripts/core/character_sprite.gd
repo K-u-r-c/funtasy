@@ -8,6 +8,7 @@ extends Node2D
 ## layout): the body layer's shader drops the body pixels they cover (tools/gear_cut.gd).
 
 const HIDE_SLOTS := ["head", "chest", "legs", "boots", "gloves"]
+const BACK := "_back"  ## suffix of a held item's under-the-body layer (and of its frames key)
 const BODY_HIDE_SHADER := preload("res://assets/shaders/body_hide.gdshader")
 
 static var _frames_cache: Dictionary = {}
@@ -26,6 +27,18 @@ func _init() -> void:
 	_order = GameData.assets.get("characters", {}).get("layer_order", ["body"])
 
 
+## One worn / held piece from a look entry [appearance, tint html, variant?] (Inventory.appearance
+## format): the gender's art for it (or its fallback while the family isn't drawn), tinted and
+## recoloured by its variant (#20).
+func set_look_layer(slot: String, entry: Array, gender: String) -> void:
+	var app := ItemLooks.drawn_appearance(str(entry[0]), gender)
+	set_layer(slot, gear_key(app, gender), Color.from_string(str(entry[1]), Color.WHITE) if entry.size() > 1 else Color.WHITE)
+	var mat: ShaderMaterial = ItemLooks.material(entry[2]) if entry.size() > 2 else null
+	for s2 in [slot, slot + BACK]:
+		if _layers.has(s2):
+			_layers[s2].material = mat
+
+
 ## Sets (or clears with "") the art of one layer. `key` is a path into data/assets.json such as
 ## "characters.layers.weapon_sword" or "monsters.ghoul".
 func set_layer(slot: String, key: String, tint: Color = Color.WHITE) -> void:
@@ -33,11 +46,13 @@ func set_layer(slot: String, key: String, tint: Color = Color.WHITE) -> void:
 		if _layers.has(slot):
 			# Out of the tree at once: a queued node would still draw this frame, and a layer
 			# re-added in the same frame would get a renamed node next to it (#15).
-			var old: AnimatedSprite2D = _layers[slot]
-			remove_child(old)
-			old.queue_free()
-			_layers.erase(slot)
-			_layer_keys.erase(slot)
+			for s2 in [slot, slot + BACK]:
+				if _layers.has(s2):
+					var old: AnimatedSprite2D = _layers[s2]
+					remove_child(old)
+					old.queue_free()
+					_layers.erase(s2)
+					_layer_keys.erase(s2)
 			_update_hide()
 		return
 	var spr: AnimatedSprite2D = _layers.get(slot)
@@ -66,6 +81,37 @@ func set_layer(slot: String, key: String, tint: Color = Color.WHITE) -> void:
 	_sync_to_body(spr)
 	if slot != "body":
 		_update_hide()
+		_set_back_layer(slot, key, tint)
+
+
+## Held items come as two sheets (#16): the part over the body and, in "back/", the part the body
+## hides (`tools/bake_gear.gd`). The back part is a second layer under the body.
+func _set_back_layer(slot: String, key: String, tint: Color) -> void:
+	var back := slot + BACK
+	var has_back := bool(GameData.asset_entry(key).get("back", false))
+	if not has_back:
+		if _layers.has(back):
+			var old: AnimatedSprite2D = _layers[back]
+			remove_child(old)
+			old.queue_free()
+			_layers.erase(back)
+			_layer_keys.erase(back)
+		return
+	var spr: AnimatedSprite2D = _layers.get(back)
+	if spr == null:
+		spr = AnimatedSprite2D.new()
+		spr.name = back
+		spr.light_mask = LightLayers.SELF_LIT
+		add_child(spr)
+		_layers[back] = spr
+	spr.modulate = tint
+	if _layer_keys.get(back, "") != key + BACK:
+		_layer_keys[back] = key + BACK
+		spr.sprite_frames = _frames_for(key + BACK)
+		spr.offset = _layers[slot].offset
+	_sort_layers()
+	_play_layer(spr)
+	_sync_to_body(spr)
 
 
 ## Points the body shader at the current animation's hide masks of the worn pieces.
@@ -78,7 +124,8 @@ func _update_hide() -> void:
 		var tex: Texture2D = null
 		if _layers.has(slot):
 			var entry := GameData.asset_entry(_layer_keys[slot])
-			var path := str(entry.get("path", "")) + "hide/" + anim + ".png"
+			var src := str(GameData.assets.characters.anims.get(anim, {}).get("from", anim))
+			var path := str(entry.get("path", "")) + "hide/" + src + ".png"
 			if bool(entry.get("hide", false)) and ResourceLoader.exists(path):
 				tex = load(path)
 		mat.set_shader_parameter("hide_" + slot, tex)
@@ -91,9 +138,26 @@ func clear_gear() -> void:
 			set_layer(slot, "")
 
 
+## The animation actually drawn for `a_name`: itself when the body has it, else its data
+## "fallback" chain (e.g. a weapon attack the art doesn't have yet -> "attack").
+func resolve(a_name: String) -> String:
+	var body: AnimatedSprite2D = _layers.get("body")
+	var anims: Dictionary = GameData.assets.characters.anims
+	var a := a_name
+	for i in 4:
+		if body == null or body.sprite_frames == null or body.sprite_frames.has_animation("%s_%d" % [a, dir_index]):
+			return a
+		var fb := str(anims.get(a, {}).get("fallback", ""))
+		if fb.is_empty():
+			return a
+		a = fb
+	return a
+
+
 ## Plays `new_anim` facing `facing`. Looping animations restart only when changed.
 func play(new_anim: String, facing: Vector2, force := false) -> void:
 	var new_dir := dir_from_vector(facing) if facing != Vector2.ZERO else dir_index
+	new_anim = resolve(new_anim)
 	if new_anim == anim and new_dir == dir_index and not force:
 		return
 	var changed_dir := new_dir != dir_index
@@ -108,7 +172,7 @@ func play(new_anim: String, facing: Vector2, force := false) -> void:
 ## Seconds one play of `a_name` takes on the body layer (its entry's frames / fps), 0 if missing.
 func anim_length(a_name: String) -> float:
 	var body: AnimatedSprite2D = _layers.get("body")
-	var an := "%s_%d" % [a_name, dir_index]
+	var an := "%s_%d" % [resolve(a_name), dir_index]
 	if body == null or body.sprite_frames == null or not body.sprite_frames.has_animation(an):
 		return 0.0
 	return body.sprite_frames.get_frame_count(an) / maxf(body.sprite_frames.get_animation_speed(an), 0.01)
@@ -123,14 +187,11 @@ func visual_height() -> float:
 ## [[texture, modulate], ...].
 func portrait_layers() -> Array:
 	var out: Array = []
-	var slots: Array = _order.duplicate()
-	for slot in _layers:
-		if not slots.has(slot):
-			slots.append(slot)
-	for slot in slots:
-		if not _layers.has(slot):
+	for child in get_children():  # drawing order (held items' back parts first)
+		var spr := child as AnimatedSprite2D
+		if spr == null or not _layers.values().has(spr):
 			continue
-		var spr: AnimatedSprite2D = _layers[slot]
+		var slot := str(_layers.find_key(spr))
 		var an := "idle_2"
 		if spr.sprite_frames and spr.sprite_frames.has_animation(an):
 			var tex := spr.sprite_frames.get_frame_texture(an, 0)
@@ -207,6 +268,24 @@ static func gear_key(appearance: String, gender: String) -> String:
 func body_entry() -> Dictionary:
 	var key: String = _layer_keys.get("body", "")
 	return GameData.asset_entry(key) if not key.is_empty() else {}
+
+
+## Seconds from the start of `a_name` on body `body_key_` to its impact frame (data "impact",
+## following the "fallback" chain when the body has no sheet for it); 0 without one.
+static func impact_time(body_key_: String, a_name: String) -> float:
+	var anims: Dictionary = GameData.assets.characters.anims
+	var entry := GameData.asset_entry(body_key_)
+	var a := a_name
+	for i in 4:
+		var src := str(anims.get(a, {}).get("from", a))
+		if ResourceLoader.exists(str(entry.get("path", "")) + src + ".png") or not anims.get(a, {}).has("fallback"):
+			break
+		a = str(anims[a].fallback)
+	var def: Dictionary = anims.get(a, {}).duplicate()
+	def.merge(entry.get("anims", {}).get(a, {}), true)
+	if not def.has("impact"):
+		return 0.0
+	return float(def.impact) / maxf(float(def.get("fps", 10)), 1.0)
 
 
 static func dir_from_vector(v: Vector2) -> int:
@@ -314,22 +393,20 @@ func _play_layer(spr: AnimatedSprite2D, keep_frame := false) -> void:
 		spr.set_frame_and_progress(mini(frame, spr.sprite_frames.get_frame_count(name_) - 1), progress)
 
 
-## Weapons and off-hands are drawn behind the body when facing away from the camera.
+## Layer order from data; the held items' back parts go under the body (#16: which pixels are
+## behind is baked per frame, not decided by the direction here).
 func _sort_layers() -> void:
-	var behind := dir_index in [5, 6, 7]
 	var idx := 0
 	var ordered: Array = []
+	for slot in _layers:
+		if str(slot).ends_with(BACK):
+			ordered.append(slot)
 	for slot in _order:
 		if _layers.has(slot):
 			ordered.append(slot)
 	for slot in _layers:
 		if not ordered.has(slot):
 			ordered.append(slot)
-	if behind:
-		for s in ["offhand", "weapon"]:
-			if ordered.has(s):
-				ordered.erase(s)
-				ordered.push_front(s)
 	for slot in ordered:
 		move_child(_layers[slot], idx)
 		idx += 1
@@ -338,8 +415,9 @@ func _sort_layers() -> void:
 static func _frames_for(key: String) -> SpriteFrames:
 	if _frames_cache.has(key):
 		return _frames_cache[key]
-	var entry := GameData.asset_entry(key)
-	var folder: String = entry.get("path", "")
+	var is_back := key.ends_with(BACK)
+	var entry := GameData.asset_entry(key.trim_suffix(BACK) if is_back else key)
+	var folder: String = str(entry.get("path", "")) + ("back/" if is_back else "")
 	var size := int(entry.get("frame_size", GameData.assets.characters.frame_size))
 	var anims: Dictionary = GameData.assets.characters.anims.duplicate(true)
 	if entry.has("anims"):
@@ -352,23 +430,28 @@ static func _frames_for(key: String) -> SpriteFrames:
 	var sf := SpriteFrames.new()
 	sf.remove_animation("default")
 	for a in anims:
-		var path: String = folder + a + ".png"
-		if not ResourceLoader.exists(path):
+		# "from": the frames of another sheet (spin = slash, revive = death backwards).
+		var src := str(anims[a].get("from", a))
+		var path: String = folder + src + ".png"
+		if not ResourceLoader.exists(path) or not anims.has(src):
 			continue
 		var tex: Texture2D = load(path)
 		# Optional normal maps (e.g. from Pixellab): same layout in entry.normal.
-		if entry.has("normal") and ResourceLoader.exists(str(entry.normal) + a + ".png"):
+		if entry.has("normal") and ResourceLoader.exists(str(entry.normal) + src + ".png"):
 			var ct := CanvasTexture.new()
 			ct.diffuse_texture = tex
-			ct.normal_texture = load(str(entry.normal) + a + ".png")
+			ct.normal_texture = load(str(entry.normal) + src + ".png")
 			tex = ct
-		var frames := int(anims[a].frames)
+		var frames := int(anims[src].frames)
+		var order: Array = range(frames)
+		if anims[a].get("reverse", false):
+			order.reverse()
 		for d in 8:
 			var an := "%s_%d" % [a, d]
 			sf.add_animation(an)
 			sf.set_animation_speed(an, float(anims[a].fps))
 			sf.set_animation_loop(an, bool(anims[a].loop))
-			for f in frames:
+			for f in order:
 				var at := AtlasTexture.new()
 				at.atlas = tex
 				at.region = Rect2(f * size, d * size, size, size)

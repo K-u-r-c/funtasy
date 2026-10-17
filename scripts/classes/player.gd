@@ -1102,6 +1102,7 @@ func on_death() -> void:
 	downed_left = float(GameData.bal("player.downed_time"))
 	revive_progress = 0.0
 	casting = {}
+	impact_pending = {}
 	status.clear_all()
 	Combat.instance.fx.sound.rpc("death", global_position)
 	died_signal.emit(self)
@@ -1229,7 +1230,7 @@ func _apply_appearance() -> void:
 	var keep := {"body": true}
 	for layer in appearance:
 		var a: Array = appearance[layer]
-		sprite.set_layer(layer, CharacterSprite.gear_key(str(a[0]), gender), Color.from_string(a[1], Color.WHITE))
+		sprite.set_look_layer(layer, a, gender)
 		keep[layer] = true
 	for layer in ["head", "chest", "legs", "boots", "gloves", "weapon", "offhand"]:
 		if not keep.has(layer):

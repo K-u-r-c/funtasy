@@ -36,6 +36,7 @@ static func generate_equipment(base_id: String, item_level: int, tier: int, rng:
 		"classes": base.get("classes", []), "appearance": base.get("appearance", ""),
 		"tint": base.get("tint", "#ffffff"), "icon": base.icon, "stats": {},
 	}
+	ItemLooks.apply(item, rng)  # worn family, icon and colour variant (#20)
 	if base.has("dps"):
 		var d: Array = base.dps
 		item.dps = snappedf((rng.randf_range(float(d[0]), float(d[1])) + float(base.get("dps_per_level", 0.0)) * (lvl - 1)) * mult, 0.1)
@@ -80,13 +81,14 @@ static func make_legendary(id: String, item_level: int, rng: RandomNumberGenerat
 	var item := {
 		"uid": new_uid(rng), "base": str(lg.base), "legendary": id, "kind": base.get("kind", "armor"), "slot": base.get("slot", lg.slot),
 		"hands": int(base.get("hands", 1)), "rarity": 5, "ilvl": lvl, "req": lvl, "classes": [lg["class"]],
-		"appearance": base.get("appearance", ""), "tint": "#ffb040", "name": lg.name,
+		"appearance": base.get("appearance", ""), "tint": "#ffffff", "name": lg.name,
 		"icon": lg.icon if GameData.asset_exists(str(lg.icon)) else base.get("icon", "items.ring"),
 		"stats": {}, "mods": lg.get("mods", []).duplicate(true), "flags": lg.get("flags", []).duplicate(), "procs": lg.get("procs", []).duplicate(true),
 		"affix": lg.affix,
 	}
 	if base.get("with_two_hand", false):
 		item.with_two_hand = true
+	ItemLooks.apply_legendary(item, lg)  # its own worn look and colours (#20)
 	var pct: Array = GameData.affixes.percent_stats
 	for k in lg.get("stats", {}):
 		var v := float(lg.stats[k])

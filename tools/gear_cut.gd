@@ -295,6 +295,15 @@ func _derive(anim: String, spec: Dictionary) -> void:
 		for layer in cfg.outfits[oname].layers:
 			dirs.append(str(cfg.out_root).path_join(layer))
 			dirs.append(str(cfg.out_root).path_join(layer).path_join("hide"))
+	# "breathe": the second frame lifts the upper half of the body 1 px (a lying hero breathing);
+	# the rows come from the body sheet so every layer and mask moves the same pixels.
+	var lift_rows := {}
+	if spec.get("breathe", false):
+		var bsrc := _load(str(cfg.body_dir).path_join(str(spec.from) + ".png"))
+		var bf := mini(int(spec.get("pick", [0])[0]), bsrc.get_width() / cell - 1)
+		for d in DIRS:
+			var u := bsrc.get_region(Rect2i(bf * cell, d * cell, cell, cell)).get_used_rect()
+			lift_rows[d] = [u.position.y, u.position.y + u.size.y / 2]
 	for dir in dirs:
 		var src := _load(dir.path_join(str(spec.from) + ".png"))
 		if src == null:
@@ -307,6 +316,13 @@ func _derive(anim: String, spec: Dictionary) -> void:
 		for i in pick.size():
 			var f := mini(int(pick[i]), n - 1)
 			out.blit_rect(src, Rect2i(f * cell, 0, cell, cell * DIRS), Vector2i(i * cell, 0))
+		if not lift_rows.is_empty() and pick.size() > 1:
+			for d in DIRS:
+				var r: Array = lift_rows[d]
+				var top := maxi(int(r[0]), 1)
+				var band := out.get_region(Rect2i(cell, d * cell + top, cell, int(r[1]) - top))
+				out.fill_rect(Rect2i(cell, d * cell + top, cell, int(r[1]) - top), Color(0, 0, 0, 0))
+				out.blit_rect(band, Rect2i(Vector2i.ZERO, band.get_size()), Vector2i(cell, d * cell + top - 1))
 		_save(out, dir.path_join(anim + ".png"))
 	print("gear_cut: derived %s from %s" % [anim, spec.from])
 
