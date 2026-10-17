@@ -492,6 +492,18 @@
 					"radial",
 					0
 				]
+			},
+			"hand_anim": {
+				"flick": [
+					"main",
+					"extended",
+					"main",
+					"extended",
+					"extended",
+					"extended",
+					"extended",
+					"main"
+				]
 			}
 		},
 		"weapon_staff": {

@@ -187,7 +187,13 @@
 				5,
 				6,
 				8
-			]
+			],
+			"dup": {
+				"east": {
+					"1": 0,
+					"2": 3
+				}
+			}
 		},
 		"empower": {
 			"from": "empower",
@@ -370,7 +376,22 @@
 					"south": "ad5d5a76-8a72-4e79-8289-cfc48810556e",
 					"south-east": "93de19c6-4f11-4fa9-a1f6-44b134adc1e9",
 					"east": "158ea1c0-4931-4fd9-b8dd-400882fc6ac0",
-					"north-east": "5d2c8a10-7f63-4701-9b84-0414f1cfbcfa"
+					"north-east": "5d2c8a10-7f63-4701-9b84-0414f1cfbcfa",
+					"north": "eb1cfb35-1310-4ba8-80f1-08e5d7553b3d"
+				},
+				"3": {
+					"south": "cb8b3d9b-1319-4f81-a30a-00eabcf76c05",
+					"south-east": "f2c80433-9c43-4326-9426-ace221705bf3",
+					"east": "b2db9a93-4317-4a6d-93eb-065b431954dd",
+					"north-east": "f2e4654a-668f-44dc-a3dd-6f1911033f8a",
+					"north": "8eaabf09-4798-4502-8238-aa98f5751d65"
+				},
+				"4": {
+					"south": "21d8f544-c43a-4013-9692-14c88fc356fe",
+					"south-east": "41737af9-3205-4611-9bab-4f84275f085d",
+					"east": "bbee7236-25d3-4b03-ac65-39cdd9b04ee9",
+					"north-east": "df16e8fb-363f-4108-8480-dee984303d20",
+					"north": "eb0f22e6-7470-4dbe-8066-ab75b6612e85"
 				}
 			}
 		},
@@ -380,7 +401,28 @@
 			"src_dir": "res://assets/sprites/pixellab/gear_src/female_mail",
 			"jobs": {
 				"0": {
-					"south": "3dc22129-3d5a-404d-9386-db5ee2cc9717"
+					"south": "3dc22129-3d5a-404d-9386-db5ee2cc9717",
+					"south-east": "3cf7c2c8-2f50-4f87-8938-93af6c605f28",
+					"east": "05c33568-416c-40f7-b59a-77a3239d56c5",
+					"north-east": "136b99eb-8bee-49ff-a86d-22e65655beec",
+					"north": "79825857-6cfd-4f93-8c98-7e0048a01cb9"
+				},
+				"1": {
+					"south": "84004992-d3aa-41c8-96da-fb845c28e571",
+					"south-east": "b0e2d888-efd8-469b-9dd9-5bb7eb53b816",
+					"east": "0e6e735d-212a-4610-87a0-403f1645fff4",
+					"north-east": "0e43c881-b45a-4f89-8ade-98ef6861b8a3",
+					"north": "c5f52d3b-1f87-4a01-aabf-07cea99db1e5"
+				},
+				"2": {
+					"south": "ae4438c0-f759-4d4a-a1ae-03e25f6e5041",
+					"south-east": "8a2fdd76-771f-4ae7-a37b-869a2abbcac0",
+					"east": "2e5344d9-a73e-40fe-8016-0b9c93461bce",
+					"north-east": "04968ce6-4176-46b3-9f24-503f67f296c1",
+					"north": "2cc7a41e-647d-4510-9f6b-5d03b9c3e2cd"
+				},
+				"3": {
+					"south": "495f289d-fafa-4d62-8244-52dc5977d3ab"
 				}
 			}
 		}
