@@ -3,7 +3,8 @@ extends SceneTree
 ## redrawn wearing a set of gear (PixelLab transfer_outfit on the base body's own frames, so both
 ## line up pixel for pixel). Writes, per layer, a sheet with only that slot's gear and a hide mask
 ## (the body pixels the piece covers; CharacterSprite hides them so no skin shows under gear).
-##   godot --headless --path . -s tools/gear_cut.gd -- <config.json> [debug_dir]
+##   godot --headless --path . -s tools/gear_cut.gd -- <config.json> [debug_dir | --refill]
+## (--refill only runs the last step on the finished sheets: see _refill_all.)
 ## Body regions (head, torso, arms, hands, legs, feet) come from tools/body_regions.gd. An outfit pixel belongs to the region of the
 ## base pixel under it (or the nearest one). A layer keeps the outfit pixels of its "regions"
 ## that differ from the naked body (or lie in a "hide" region, which the piece replaces whole).
@@ -32,6 +33,10 @@ func _init() -> void:
 	debug_dir = args[1] if args.size() > 1 else ""
 	cell = int(cfg.get("cell", 64))
 	regions_tool = BodyRegions.new(cfg)
+	if debug_dir == "--refill":
+		_refill_all()
+		quit()
+		return
 	for anim in cfg.anims:
 		_cut_anim(str(anim))
 	for patch in cfg.get("patches", []):
@@ -40,6 +45,7 @@ func _init() -> void:
 		_align(str(anim), str(cfg.align[anim]))
 	for anim in cfg.get("derive", {}):
 		_derive(str(anim), cfg.derive[anim])
+	_refill_all()
 	for layer in report:
 		print("gear_cut: %s max %d body pixels hidden but not drawn over per frame" % [layer, report[layer]])
 	quit()
@@ -224,6 +230,62 @@ func _align(anim: String, ref: String) -> void:
 				img.blit_rect(fr, Rect2i(0, maxi(0, -dy), cell, cell - absi(dy)), Vector2i(f * cell, d * cell + maxi(0, dy)))
 		_save(img, path)
 	print("gear_cut: aligned %s feet to %s %s" % [anim, ref, shifts])
+
+
+## Last step (#15), on the finished, aligned sheets: a body pixel a piece's mask hides but the piece
+## doesn't draw would show as a hole or a trimmed outline, so the piece draws it in the colour of
+## its nearest own pixel. Hidden hair (and the outline around it) stays hidden unless it is an
+## interior hole. Idempotent.
+func _refill_all() -> void:
+	var anims: Array = cfg.anims.duplicate()
+	for a in cfg.get("derive", {}):
+		anims.append(str(a))
+	for anim in anims:
+		var body := _load(str(cfg.body_dir).path_join(anim + ".png"))
+		if body == null:
+			continue
+		var cls_of := {}
+		for oname in cfg.outfits:
+			for layer in cfg.outfits[oname].layers:
+				var lpath := str(cfg.out_root).path_join(layer).path_join(anim + ".png")
+				var sheet := _load(lpath)
+				var mask := _load(str(cfg.out_root).path_join(layer).path_join("hide").path_join(anim + ".png"))
+				if sheet == null or mask == null:
+					continue
+				var filled := 0
+				for d in DIRS:
+					for f in body.get_width() / cell:
+						var o := Vector2i(f * cell, d * cell)
+						if not cls_of.has(o):
+							cls_of[o] = regions_tool.class_map(body.get_region(Rect2i(o, Vector2i(cell, cell))))
+						var cls: Dictionary = cls_of[o]
+						var mine: Array = []
+						var holes: Array = []
+						for y in cell:
+							for x in cell:
+								var p := o + Vector2i(x, y)
+								if sheet.get_pixelv(p).a >= 0.5:
+									mine.append(p)
+								elif mask.get_pixelv(p).a > 0.5 and body.get_pixelv(p).a >= 0.5:
+									holes.append(p)
+						if mine.is_empty():
+							continue
+						for h in holes:
+							var q: Vector2i = h - o
+							# Interior: every neighbour stays drawn (gear, or body that isn't hidden hair).
+							var inner := N4.all(func(n): return sheet.get_pixelv(h + n).a >= 0.5 or (body.get_pixelv(h + n).a >= 0.5 \
+									and not (mask.get_pixelv(h + n).a > 0.5 and BodyRegions.is_hairish(cls, q + n))))
+							if BodyRegions.is_hairish(cls, q) and not inner:
+								continue
+							var best: Vector2i = mine[0]
+							for m in mine:
+								if (m - h).length_squared() < (best - h).length_squared():
+									best = m
+							sheet.set_pixelv(h, sheet.get_pixelv(best))
+							filled += 1
+				if filled > 0:
+					_save(sheet, lpath)
+					print("gear_cut: refilled %s %s (%d px)" % [layer, anim, filled])
 
 
 ## Derived animations from frames of cut ones, for the body, every layer and its hide mask.

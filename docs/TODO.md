@@ -80,7 +80,7 @@ screenshot review at 1920x1080 and 3440x1440.
 
 ## Visual polish issues (GitHub #15-#21)
 
-- [ ] #15 Hero pieces lose pixels / wrong colours
+- [x] #15 Hero pieces lose pixels / wrong colours: layers start on the body's frame, removed layers leave at once, mask refill, preview fit (`hero-art`, `art-check`, `anim-lan`)
 - [ ] #16 Weapon placement in every direction
 - [x] #17 Co-op animation sync: reliable one-shots, replicated dash / held poses, downed fall (`anim-lan`)
 - [ ] #18 Hero animation audit and fixes

@@ -41,6 +41,21 @@ func class_map(img: Image) -> Dictionary:
 	return cls
 
 
+## Hair, or the dark outline / shading right around it (a ponytail's edge): the pixels a helmet
+## or hood may hide without drawing over them (#15).
+static func is_hairish(cls: Dictionary, p: Vector2i) -> bool:
+	var c := str(cls.get(p, ""))
+	if c == "hair":
+		return true
+	if c != "outline":
+		return false
+	for dy in range(-2, 3):
+		for dx in range(-2, 3):
+			if str(cls.get(p + Vector2i(dx, dy), "")) == "hair":
+				return true
+	return false
+
+
 ## Keeps the biggest blob of class `k`, blobs touching it and (with `keep_big`) any blob of at
 ## least min_blob px; the rest becomes `other`.
 func _keep_main(cls: Dictionary, k: String, other: String, keep_big: bool) -> void:

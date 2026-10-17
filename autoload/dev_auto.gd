@@ -149,6 +149,9 @@ func _run() -> void:
 		"hero_shots":
 			await _hero_shots_flow()
 			return
+		"preview_grid":
+			await _preview_grid_flow()
+			return
 		"monster_shots":
 			await _monster_shots_flow()
 			return
@@ -173,6 +176,10 @@ func _run() -> void:
 		"art_check":
 			_art_check()
 			_finish("art check")
+			return
+		"hero_art":
+			await HeroArtSuite.new(self).run()
+			_finish("hero art")
 			return
 	match mode:
 		"solo":
@@ -2173,6 +2180,42 @@ func _img(path: String) -> Image:
 
 ## Character art review: the lobby preview, then the hero in the start room next to a line-up
 ## of CharacterSprites (bare / full kit, idle / walk / attack, 8 directions) and zoomed crops.
+## Lobby preview of every class x gender in all 8 directions, cropped into one grid image
+## (#15 review): rows = class x gender (gear on), columns = directions E..NE.
+##   godot --path . -- --scenario=preview_grid --shot=/tmp/grid.png
+func _preview_grid_flow() -> void:
+	NetworkManager.host_solo()
+	await _wait_until(func(): return get_tree().current_scene.name == "Lobby", 10.0)
+	await _wait(0.8)
+	var lobby: Node = get_tree().current_scene
+	var pv: HeroPreview = lobby._preview
+	var grid: Image = null
+	var row := 0
+	var classes := ["warrior", "ranger", "mage", "priest"]
+	for cid in classes:
+		for g in CharacterSprite.genders():
+			lobby._select_gender(g)
+			lobby._select_class(cid)
+			await _wait(0.2)
+			for d in 8:
+				pv.dir_index = d
+				pv.rotate_by(0)
+				await get_tree().process_frame
+				await get_tree().process_frame
+				var img := get_viewport().get_texture().get_image()
+				var sc := Vector2(img.get_size()) / get_viewport().get_visible_rect().size
+				var r := Rect2i(Vector2i(pv.get_global_rect().position * sc), Vector2i(pv.get_global_rect().size * sc))
+				var crop := img.get_region(r)
+				if grid == null:
+					grid = Image.create(crop.get_width() * 8, crop.get_height() * classes.size() * CharacterSprite.genders().size(), false, crop.get_format())
+				grid.blit_rect(crop, Rect2i(Vector2i.ZERO, crop.get_size()), Vector2i(d * crop.get_width(), row * crop.get_height()))
+			row += 1
+	var out := shot if not shot.is_empty() else OS.get_user_data_dir().path_join("preview_grid.png")
+	grid.save_png(out)
+	log_line("preview grid " + out)
+	_finish("preview grid")
+
+
 func _hero_shots_flow() -> void:
 	var dir := shot if not shot.is_empty() else OS.get_user_data_dir().path_join("shots")
 	DirAccess.make_dir_recursive_absolute(dir)

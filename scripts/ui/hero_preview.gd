@@ -12,6 +12,7 @@ var dir_index := 2  ## 0..7 = E, SE, S, SW, W, NW, N, NE (starts facing the came
 var pixel_scale := 3
 var sprite: CharacterSprite
 var _drag_x := 0.0
+var _feet_y := 0.0
 
 
 func _init() -> void:
@@ -64,12 +65,23 @@ func _rebuild() -> void:
 	_place()
 
 
-## Feet near the bottom of the plate; the scale is the largest integer that fits the body.
+## Feet near the bottom of the plate; the scale is the largest integer at which everything the
+## hero draws in any direction (held weapons too) fits the plate (#15: a fixed height-only scale
+## cut swords, shields and bows off at the plate's edges).
 func _place() -> void:
-	var h := maxf(sprite.visual_height(), 1.0)
-	pixel_scale = maxi(1, int((size.y - 24.0) / (h + 6.0)))
+	var u := sprite.used_rect("idle")
+	if u.size == Vector2i.ZERO:
+		u = Rect2i(16, 8, 32, 56)
+	var top := sprite.frame_top()
+	var half := maxf(32.0 - u.position.x, u.end.x - 32.0) + 2.0
+	var above := -(top + u.position.y) + 3.0
+	var below := maxf(top + u.end.y, 0.0)
+	var sc_x := (size.x / 2.0 - 4.0) / half
+	var sc_y := (size.y - 16.0) / (above + below)
+	pixel_scale = maxi(1, int(minf(sc_x, sc_y)))
+	_feet_y = roundf(size.y - 10.0 - below * pixel_scale)
 	sprite.scale = Vector2.ONE * pixel_scale
-	sprite.position = Vector2(roundf(size.x / 2.0), roundf(size.y - 12.0))
+	sprite.position = Vector2(roundf(size.x / 2.0), _feet_y)
 
 
 func _gui_input(ev: InputEvent) -> void:
@@ -87,7 +99,7 @@ func _gui_input(ev: InputEvent) -> void:
 func _draw() -> void:
 	var r := Rect2(Vector2.ZERO, size.round())
 	draw_style_box(UITheme.cached_glass(Color("05070bf2"), UITheme.GOLD_DIM, 1, 0), r)
-	var c := Vector2(r.size.x / 2.0, r.size.y - 12.0)
+	var c := Vector2(r.size.x / 2.0, _feet_y if _feet_y > 0.0 else r.size.y - 12.0)
 	# Floor shadow + soft backlight in stepped rings (pixel look).
 	draw_circle(Vector2(r.size.x / 2.0, r.size.y * 0.45), r.size.x * 0.42, Color(UITheme.CYAN, 0.04))
 	draw_circle(Vector2(r.size.x / 2.0, r.size.y * 0.45), r.size.x * 0.28, Color(UITheme.CYAN, 0.04))

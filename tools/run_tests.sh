@@ -85,6 +85,7 @@ if [ "$WHAT" = all ] || [ "$WHAT" = quick ]; then
 	done
 	run ui-layout --auto=solo --class=priest --name=Layout --scenario=ui_layout --quit=90
 	run art-check --scenario=art_check --quit=120
+	run hero-art --scenario=hero_art --quit=300
 	run gamepad-menu --scenario=gamepad_menu --quit=60
 	run gamepad --auto=solo --class=warrior --name=PadTester --scenario=gamepad --quit=60
 	run continue --auto=solo --class=ranger --gender=female --name=Saver --scenario=continue --quit=60

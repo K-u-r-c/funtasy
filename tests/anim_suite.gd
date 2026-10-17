@@ -166,6 +166,16 @@ func run_lan() -> void:
 	var cast_rows := _rec.filter(func(r): return r[0] == "cast").size()
 	da.check(cast_rows > 0 and _rec.back()[0] != "cast", "the host holds the client's cast pose and drops it after (%s)" % [_seq()])
 
+	# --- #15: both heroes in full class gear look the same on both sides as a fresh sprite ---
+	var lobby := preload("res://scripts/ui/lobby.gd")
+	p.appearance = lobby.class_look("warrior")
+	c.appearance = lobby.class_look("priest")
+	await da._wait(0.8)
+	da.check(HeroArtSuite.vs_fresh(p, da.get_tree()) == 0 and HeroArtSuite.vs_fresh(c, da.get_tree()) == 0,
+			"the host draws both geared heroes exactly like fresh sprites (#15)")
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["an_look", null])
+	await da._wait(0.6)
+
 	# --- downed fall, downed loop, ghost: derived from the replicated life state ----------
 	NetworkManager.to_clients("DevAuto", "client_cmd", ["an_watch", 1])
 	await da._wait(0.3)
@@ -220,6 +230,13 @@ func client_cmd(cmd: String, arg: Variant) -> void:
 			da.check(_starts("cast") == 1, "the client's own cast plays once, not restarted by the host's echo (%d)" % _starts("cast"))
 			da.check(in_order(_seq(), ["cast", "dash", "hit"]), "the client sees its own cast, dash and hit (%s)" % [_seq()])
 			p.auto_aim = Vector2.INF
+		"an_look":
+			var bad := []
+			for hero in g.players_root.get_children():
+				var n := HeroArtSuite.vs_fresh(hero, da.get_tree())
+				if n != 0:
+					bad.append("%s: %d px" % [hero.display_name, n])
+			da.check(bad.is_empty() and g.players_root.get_child_count() == 2, "the client draws both geared heroes exactly like fresh sprites (#15) %s" % [bad])
 		"an_held":
 			var ok: bool = await da._wait_until(func(): return p.held_anim == str(arg) and p.sprite.anim == str(arg), 0.6)
 			da.check(ok, "the client sees its own held %s pose from the replicated state" % arg)

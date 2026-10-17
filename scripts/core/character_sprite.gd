@@ -31,7 +31,11 @@ func _init() -> void:
 func set_layer(slot: String, key: String, tint: Color = Color.WHITE) -> void:
 	if key.is_empty():
 		if _layers.has(slot):
-			_layers[slot].queue_free()
+			# Out of the tree at once: a queued node would still draw this frame, and a layer
+			# re-added in the same frame would get a renamed node next to it (#15).
+			var old: AnimatedSprite2D = _layers[slot]
+			remove_child(old)
+			old.queue_free()
 			_layers.erase(slot)
 			_layer_keys.erase(slot)
 			_update_hide()
@@ -59,6 +63,7 @@ func set_layer(slot: String, key: String, tint: Color = Color.WHITE) -> void:
 		if slot == "body" or _height <= 0.0:
 			_height = float(entry.get("height", (_frame_size - feet) * 0.75))
 	_play_layer(spr)
+	_sync_to_body(spr)
 	if slot != "body":
 		_update_hide()
 
@@ -206,6 +211,92 @@ func body_entry() -> Dictionary:
 
 static func dir_from_vector(v: Vector2) -> int:
 	return wrapi(roundi(v.angle() / (PI / 4.0)), 0, 8)
+
+
+## A layer added or swapped mid-animation starts on the body's frame (#15): the body shader cuts
+## the body with the masks of the body's current frame, so a piece one frame off leaves holes.
+func _sync_to_body(spr: AnimatedSprite2D) -> void:
+	var body: AnimatedSprite2D = _layers.get("body")
+	if body == null or spr == body or not spr.visible or body.sprite_frames == null:
+		return
+	if spr.animation == body.animation and spr.sprite_frames.get_frame_count(spr.animation) > body.frame:
+		spr.set_frame_and_progress(body.frame, body.frame_progress)
+
+
+## Software composite of what is drawn right now (layer order, visibility, frame, tint and the
+## body's hide masks), feet at (size / 2, size - 1 - feet offset). For tests and art audits.
+func compose() -> Image:
+	var out := Image.create(_frame_size, _frame_size, false, Image.FORMAT_RGBA8)
+	for child in get_children():
+		var spr := child as AnimatedSprite2D
+		if spr == null or not spr.visible or spr.sprite_frames == null or not spr.sprite_frames.has_animation(spr.animation):
+			continue
+		var at := spr.sprite_frames.get_frame_texture(spr.animation, spr.frame) as AtlasTexture
+		if at == null:
+			continue
+		var region := Rect2i(at.region)
+		var src := _image_of(at.atlas).get_region(region)
+		var masks: Array = []
+		if spr == _layers.get("body") and spr.material is ShaderMaterial:
+			for slot in HIDE_SLOTS:
+				var mt: Variant = spr.material.get_shader_parameter("hide_" + slot)
+				if spr.material.get_shader_parameter("on_" + slot) and mt is Texture2D:
+					masks.append(_image_of(mt).get_region(region))
+		var tint: Color = spr.modulate * modulate
+		var shift := Vector2i(spr.offset - _layers.get("body", spr).offset)
+		for y in src.get_height():
+			for x in src.get_width():
+				var c := src.get_pixel(x, y)
+				if c.a <= 0.0 or masks.any(func(m: Image) -> bool: return m.get_pixel(x, y).a > 0.5):
+					continue
+				var q := Vector2i(x, y) + shift
+				if q.x < 0 or q.y < 0 or q.x >= _frame_size or q.y >= _frame_size:
+					continue
+				c *= tint
+				var d := out.get_pixelv(q)
+				var a := c.a + d.a * (1.0 - c.a)
+				out.set_pixelv(q, Color((c.r * c.a + d.r * d.a * (1.0 - c.a)) / a, (c.g * c.a + d.g * d.a * (1.0 - c.a)) / a, (c.b * c.a + d.b * d.a * (1.0 - c.a)) / a, a) if a > 0.0 else Color(0, 0, 0, 0))
+	return out
+
+
+## Pixels any layer draws in `a_name` over every direction and frame, in frame coordinates
+## (used by the lobby preview to fit held weapons and wide poses).
+func used_rect(a_name: String) -> Rect2i:
+	var out := Rect2i()
+	for spr in _layers.values():
+		if spr.sprite_frames == null:
+			continue
+		for d in 8:
+			var an := "%s_%d" % [a_name, d]
+			if not spr.sprite_frames.has_animation(an):
+				continue
+			for f in spr.sprite_frames.get_frame_count(an):
+				var at := spr.sprite_frames.get_frame_texture(an, f) as AtlasTexture
+				if at == null:
+					continue
+				var u := _image_of(at.atlas).get_region(Rect2i(at.region)).get_used_rect()
+				if u.size != Vector2i.ZERO:
+					out = u if out.size == Vector2i.ZERO else out.merge(u)
+	return out
+
+
+## Where frame row 0 is drawn relative to the node (feet) at scale 1.
+func frame_top() -> float:
+	var body: AnimatedSprite2D = _layers.get("body")
+	return (body.offset.y if body else -_frame_size / 2.0) - _frame_size / 2.0
+
+
+static var _image_cache: Dictionary = {}
+
+
+static func _image_of(tex: Texture2D) -> Image:
+	var key: Variant = tex.resource_path if not tex.resource_path.is_empty() else tex.get_instance_id()
+	if not _image_cache.has(key):
+		var t2: Texture2D = (tex as CanvasTexture).diffuse_texture if tex is CanvasTexture else tex
+		var img: Image = t2.get_image()
+		img.convert(Image.FORMAT_RGBA8)
+		_image_cache[key] = img
+	return _image_cache[key]
 
 
 func _play_layer(spr: AnimatedSprite2D, keep_frame := false) -> void:
