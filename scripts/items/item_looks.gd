@@ -12,7 +12,7 @@ static var _material_cache: Dictionary = {}
 
 
 ## Picks the family, appearance, icon and variant of a freshly generated armour / weapon item
-## (seeded by `rng`, so the host's roll replicates with the item).
+## (`rng` is seeded from the item's uid, so the host's roll replicates with the item).
 static func apply(item: Dictionary, rng: RandomNumberGenerator) -> void:
 	var looks: Dictionary = GameData.item_looks
 	var rarity := int(item.get("rarity", 1))

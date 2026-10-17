@@ -36,7 +36,11 @@ static func generate_equipment(base_id: String, item_level: int, tier: int, rng:
 		"classes": base.get("classes", []), "appearance": base.get("appearance", ""),
 		"tint": base.get("tint", "#ffffff"), "icon": base.icon, "stats": {},
 	}
-	ItemLooks.apply(item, rng)  # worn family, icon and colour variant (#20)
+	# Worn family, icon and colour variant (#20), from the item's own uid: the look never shifts the
+	# caller's stat rolls.
+	var look_rng := RandomNumberGenerator.new()
+	look_rng.seed = hash(str(item.uid))
+	ItemLooks.apply(item, look_rng)
 	if base.has("dps"):
 		var d: Array = base.dps
 		item.dps = snappedf((rng.randf_range(float(d[0]), float(d[1])) + float(base.get("dps_per_level", 0.0)) * (lvl - 1)) * mult, 0.1)
