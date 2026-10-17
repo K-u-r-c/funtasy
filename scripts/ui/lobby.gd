@@ -344,16 +344,23 @@ func _update_preview() -> void:
 ## Inventory.appearance format: layer -> [appearance, tint].
 static func class_look(cid: String) -> Dictionary:
 	var out := {}
+	# Armour shows the class's own worn family (looks.json legendary_families, #20).
+	var looks: Dictionary = GameData.item_looks
+	var fams: Dictionary = looks.get("legendary_families", {}).get(cid, {})
 	for base_id in GameData.classes.get(cid, {}).get("preview_gear", []):
 		var base: Dictionary = GameData.item_bases.get(base_id, {})
 		if str(base.get("appearance", "")).is_empty():
 			continue
 		var layer := str(base.slot)
+		var app := str(base.appearance)
+		var spec: Array = looks.get("families", {}).get(str(fams.get(layer, fams.get("*", ""))), {}).get(layer, [])
+		if not spec.is_empty():
+			app = str(spec[0])
 		if layer == "weapon":
 			layer = "offhand" if out.has("weapon") else "weapon"
 		elif layer == "off_hand" or base.get("kind") == "offhand":
 			layer = "offhand"
-		out[layer] = [str(base.appearance), str(base.get("tint", "#ffffff"))]
+		out[layer] = [app, str(base.get("tint", "#ffffff"))]
 	return out
 
 

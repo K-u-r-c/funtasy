@@ -12,5 +12,5 @@
 	"primary_attack": "ranger_shot",
 	"starting_weapon": {"base": "bow", "name": "Short Bow"},
 	"skills": ["ranger_power_shot"],
-	"preview_gear": ["hood", "plate_chest", "greaves", "boots", "gloves", "bow"]
+	"preview_gear": ["hood", "plate_chest", "greaves", "boots", "gloves", "bow", "quiver"]
 }
