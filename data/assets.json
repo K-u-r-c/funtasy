@@ -31,9 +31,10 @@
 			"female": {"name": "Female", "body": "body_female", "prefix": "f_"}
 		},
 		"default_gender": "male",
+		"walk_pace_max": 2.3,
 		"layer_order": ["body", "legs", "boots", "chest", "gloves", "head", "offhand", "weapon"],
 		"layers": {
-			"body_male": {"path": "res://assets/sprites/pixellab/characters/male/body/", "frame_size": 64, "feet_offset": 9, "height": 43, "portrait_crop": [16, 10, 32, 32], "full_crop": [12, 10, 40, 46]},
+			"body_male": {"path": "res://assets/sprites/pixellab/characters/male/body/", "frame_size": 64, "feet_offset": 9, "height": 43, "stride": 28, "portrait_crop": [16, 10, 32, 32], "full_crop": [12, 10, 40, 46]},
 			"m_head_helm": {"path": "res://assets/sprites/pixellab/characters/male/head_helm/", "frame_size": 64, "feet_offset": 9, "height": 43, "hide": true},
 			"m_chest_armor": {"path": "res://assets/sprites/pixellab/characters/male/chest_armor/", "frame_size": 64, "feet_offset": 9, "height": 43, "hide": true},
 			"m_legs_armor": {"path": "res://assets/sprites/pixellab/characters/male/legs_armor/", "frame_size": 64, "feet_offset": 9, "height": 43, "hide": true},

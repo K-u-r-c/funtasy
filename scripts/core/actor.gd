@@ -41,8 +41,8 @@ var _action_anim := ""
 var _action_left := 0.0
 var _last_visual_pos := Vector2.ZERO
 var _turn_rate := 0.0  ## spin animations turn the facing this fast (rad/s) while they play
-var _moving_hold := 0.0
-var _speed_avg := 0.0  ## smoothed visible speed (px/s), for the walk pace  ## walk keeps playing this long after the last visible step (no flicker)
+var _moving_hold := 0.0  ## walk keeps playing this long after the last visible step (no flicker)
+var _speed_avg := 0.0  ## smoothed visible speed (px/s), for the walk pace
 var _flash := 0.0
 var _shadow: Sprite2D
 

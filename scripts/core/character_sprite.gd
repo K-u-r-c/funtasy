@@ -169,6 +169,20 @@ func play(new_anim: String, facing: Vector2, force := false) -> void:
 		_play_layer(spr, not force and changed_dir)
 
 
+## Walk pace from the actor's speed (px/s; < 0 = normal speed): the body entry's "stride" is the
+## ground one walk cycle covers, so the cycle plays at speed / stride cycles per second (capped).
+func set_walk_pace(speed: float) -> void:
+	var sc := 1.0
+	var entry := body_entry()
+	if speed > 0.0 and entry.has("stride"):
+		var anims: Dictionary = GameData.assets.characters.anims
+		var frames := float(anims.walk.frames)
+		var fps := float(anims.walk.fps)
+		sc = clampf(speed / float(entry.stride) * frames / fps, 0.6, float(GameData.assets.characters.get("walk_pace_max", 2.3)))
+	for spr in _layers.values():
+		spr.speed_scale = sc
+
+
 ## Seconds one play of `a_name` takes on the body layer (its entry's frames / fps), 0 if missing.
 func anim_length(a_name: String) -> float:
 	var body: AnimatedSprite2D = _layers.get("body")
