@@ -162,6 +162,22 @@ func elites_and_key() -> void:
 		g.host_interact(p, altar)
 		await da._wait(0.3)
 		da.check(altar.opened and g.items_root.get_child_count() > n, "praying at the altar gives loot once")
+	# #21 chest fallback: the chest named by key_chest drops the Gold Key when opened.
+	var chest: Node = null
+	for k in g.dungeon.props:
+		if str(k).begins_with("Chest_") and g.dungeon.props[k].interactable():
+			chest = g.dungeon.props[k]
+			break
+	if chest == null:
+		da.check(false, "the floor has an unopened chest for the key fallback")
+		return
+	g.key_chest = chest.prop_id
+	p.host_teleport(g.nearest_floor(chest.interact_pos()))
+	await da._wait(0.3)
+	g.host_interact(p, chest)
+	await da._wait(0.4)
+	var chest_key: Array = g.items_root.get_children().filter(func(it): return it.item.get("kind", "") == "gold_key")
+	da.check(chest_key.size() == 1 and g.key_chest.is_empty(), "the key chest drops the Gold Key once (%d)" % chest_key.size())
 
 
 ## Item card comparison (#11): a 2H weapon against the main AND off hand together (the off-hand
@@ -243,6 +259,7 @@ func upgrade_drops() -> void:
 func merchants() -> void:
 	await upgrade_drops()
 	await merchant_rules()
+	merchant_odds()
 	await _force_merchant("archibald")
 	var m: Dictionary = g.layout.get("merchant", {})
 	da.check(not m.is_empty() and str(m.npc) == "archibald", "the floor has a merchant room (%s)" % m.get("npc", "none"))
@@ -370,15 +387,60 @@ func merchant_rules() -> void:
 		if lay.props.any(func(pr): return str(pr.type) in ["gilded_portal", "demon_altar", "archibald", "malphas"]):
 			bad = "seed %d: a portal / altarpiece / second merchant in the props" % seed_value
 		var elites: Dictionary = g._pick_elites(lay, seed_value, npc == "archibald")
-		for k in elites:
-			if elites[k].get("key", false):
-				keys[npc] += 1
+		if not g.pick_key_carrier(lay, seed_value, npc == "archibald", elites.keys()).is_empty():
+			keys[npc] += 1
 	da.check(bad.is_empty(), "every floor has exactly one merchant in its own room%s" % ("" if bad.is_empty() else ": " + bad))
 	da.check(seen.has("archibald") and seen.has("malphas"), "both merchants appear across seeds (%s)" % [seen.keys()])
 	da.check(keys.malphas == 0 and keys.archibald > 0, "the Gold Key drops only on Archibald floors (%s)" % [keys])
 	var live: Array = g.dungeon.props.keys().filter(func(k): return str(k).begins_with("Merchant"))
 	da.check(live == ["Merchant"] and not g.dungeon.props.has("Merchant_Portal") and not g.dungeon.props.has("Merchant_Altar"),
 			"the live floor has one merchant and no portal or altarpiece (%s)" % [live])
+
+
+## #21: over 2000 seeds the merchant is Archibald ~80% of the time, an Archibald floor has the Gold
+## Key ~80% of the time (elite, or a chest / the boss when the floor has no elite), Malphas floors
+## never have one, and the same seed always gives the same merchant and carrier.
+func merchant_odds() -> void:
+	var fd: Dictionary = g.floor_def
+	var n := 2000
+	var archi := 0
+	var keyed := 0
+	var malphas_keys := 0
+	var no_elite_bad := 0
+	var t0 := Time.get_ticks_msec()
+	for i in n:
+		var seed_value := 9001 + i * 104729
+		var npc: String = g.pick_merchant(seed_value)
+		var key_floor := npc == "archibald"
+		var lay: Dictionary = DungeonGenerator.new().generate(seed_value, fd, 1.0, 1, npc)
+		var elites: Dictionary = g._pick_elites(lay, seed_value, key_floor)
+		var carrier: Dictionary = g.pick_key_carrier(lay, seed_value, key_floor, elites.keys())
+		if carrier != g.pick_key_carrier(lay, seed_value, key_floor, elites.keys()) or npc != g.pick_merchant(seed_value):
+			da.check(false, "seed %d: merchant / key carrier is not deterministic" % seed_value)
+			return
+		var elite_key := elites.values().filter(func(e): return e.get("key", false)).size()
+		if elite_key != (1 if carrier.get("kind", "") == "elite" else 0):
+			da.check(false, "seed %d: elite key flags %d disagree with the carrier %s" % [seed_value, elite_key, carrier])
+			return
+		if key_floor:
+			archi += 1
+			keyed += 0 if carrier.is_empty() else 1
+		elif not carrier.is_empty():
+			malphas_keys += 1
+		# The same floor stripped of its elites must still get the key (chest fallback).
+		var bare: Dictionary = g.pick_key_carrier(lay, seed_value, key_floor, [])
+		if bare.is_empty() != carrier.is_empty() or (not bare.is_empty() and bare.kind != "chest"):
+			no_elite_bad += 1
+	var share := float(archi) / n
+	var key_rate := float(keyed) / maxi(archi, 1)
+	da.check(absf(share - 0.8) <= 0.03, "Archibald is the merchant on %.1f%% of %d floors (80%% +-3)" % [share * 100.0, n])
+	da.check(absf(key_rate - 0.8) <= 0.03, "the Gold Key is on %.1f%% of Archibald floors (80%% +-3)" % [key_rate * 100.0])
+	da.check(malphas_keys == 0, "no Gold Key on Malphas floors (%d)" % malphas_keys)
+	da.check(no_elite_bad == 0, "without elites the same floors get the key from a chest (%d mismatches, %d ms)" % [no_elite_bad, Time.get_ticks_msec() - t0])
+	var c1: Dictionary = g.pick_key_carrier({"spawns": [], "chests": []}, 77, true, [])
+	var c2: Dictionary = g.pick_key_carrier({"spawns": [], "chests": [Vector2.ONE, Vector2.ZERO]}, 77, true, [])
+	da.check(c1.is_empty() or c1.kind == "boss", "no elite and no chest -> the boss carries the key (%s)" % [c1])
+	da.check(c2.is_empty() or (c2.kind == "chest" and int(c2.index) in [0, 1]), "no elite -> a chest carries the key (%s)" % [c2])
 
 
 ## Host: rebuilds the current floor with `npc` as its merchant (test hook "force_merchant").

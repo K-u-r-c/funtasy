@@ -28,6 +28,7 @@ var corpses: Dictionary = {}  ## host: corpse id -> {id, def_id, pos, t, creatur
 var _corpse_counter := 0
 var _aura_left := 0.0
 var party_keys := 0  ## Gold Keys the party carries (D11), replicated by _sync_keys
+var key_chest := ""  ## host: the chest prop holding the floor's Gold Key when no elite carries it (#21)
 var merchant_id := ""  ## every peer: this floor's merchant (archibald / malphas, #6)
 var _dyn_counter := 0
 var boss_id := ""  ## this floor's boss, picked from the floor type's list by the floor seed
@@ -141,6 +142,8 @@ func start_floor(new_depth: int) -> void:
 	_place_players()
 	merchants.host_new_floor(floor_seed, item_level())
 	var elites := _pick_elites(host_layout, floor_seed, merchant_id == "archibald")
+	var carrier := pick_key_carrier(host_layout, floor_seed, merchant_id == "archibald", elites.keys())
+	key_chest = "Chest_%d" % int(carrier.index) if carrier.get("kind", "") == "chest" else ""
 	for gi in host_layout.spawns.size():
 		var group: Dictionary = host_layout.spawns[gi]
 		for mi in group.monsters.size():
@@ -152,7 +155,7 @@ func start_floor(new_depth: int) -> void:
 		var fm: FloorMechanic = scr.new()
 		fm.setup(self, md)
 		floor_mechanics.append(fm)
-	spawn_monster(boss_id, host_layout.boss_pos, true)
+	spawn_monster(boss_id, host_layout.boss_pos, true, {"key": true} if carrier.get("kind", "") == "boss" else {})
 	_spawn_floor_hazards(host_layout)
 	boss_alive = true
 	boss_engaged = false
@@ -182,8 +185,8 @@ func _place_players() -> void:
 		i += 1
 
 
-## Host: D10 / D11 - 1-3 spawn groups get an elite (1-2 modifiers); with the floor's 50% roll
-## (seeded) one elite carries the Gold Key - only on floors whose merchant is Archibald (#6).
+## Host: D10 / D11 - 1-3 spawn groups get an elite (1-2 modifiers); when the floor's key roll
+## passes (pick_key_carrier) one elite carries the Gold Key - only on Archibald floors (#6, #21).
 ## Returns {Vector2i(group, monster): spawn extra}.
 func _pick_elites(host_layout: Dictionary, floor_seed: int, key_floor: bool = true) -> Dictionary:
 	var rng := RandomNumberGenerator.new()
@@ -207,10 +210,29 @@ func _pick_elites(host_layout: Dictionary, floor_seed: int, key_floor: bool = tr
 			if not picked.has(m):
 				picked.append(m)
 		out[Vector2i(gi2, mi)] = {"elite": picked}
-	if not out.is_empty() and rng.randf() < float(GameData.bal("elite.key_chance")) and key_floor:
-		var keys: Array = out.keys()
-		out[keys[rng.randi_range(0, keys.size() - 1)]].key = true
+	var carrier := pick_key_carrier(host_layout, floor_seed, key_floor, out.keys())
+	if carrier.get("kind", "") == "elite":
+		out[carrier.at].key = true
 	return out
+
+
+## D11 / #21: the floor's Gold Key roll, seeded and independent of how many elites the floor got.
+## On a key floor (Archibald) it passes with elite.key_chance; the key then goes to one elite, or a
+## chest when the floor has no elite, or the boss when it has neither.
+## Returns {} (no key), {kind: "elite", at: Vector2i}, {kind: "chest", index} or {kind: "boss"}.
+static func pick_key_carrier(host_layout: Dictionary, floor_seed: int, key_floor: bool, elites: Array) -> Dictionary:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = floor_seed + 211
+	if not key_floor or rng.randf() >= float(GameData.bal("elite.key_chance")):
+		return {}
+	if not elites.is_empty():
+		var sorted := elites.duplicate()
+		sorted.sort()
+		return {"kind": "elite", "at": sorted[rng.randi_range(0, sorted.size() - 1)]}
+	var chests: Array = host_layout.get("chests", [])
+	if not chests.is_empty():
+		return {"kind": "chest", "index": rng.randi_range(0, chests.size() - 1)}
+	return {"kind": "boss"}
 
 
 ## extra (optional spawn data): team ("players" for player summons), lifetime, copy_peer,
@@ -427,6 +449,9 @@ func host_interact(p: Player, node: Node) -> void:
 	elif node.has_method("interactable") and node.interactable():
 		dungeon.open_chest.rpc(node.prop_id)
 		loot.roll_and_drop(str(node.def.get("loot", "chest")), node.global_position + Vector2(0, 18))
+		if not key_chest.is_empty() and node.prop_id == key_chest:
+			key_chest = ""
+			loot.drop_item(gold_key_item(), node.global_position + Vector2(-12, 18))
 	elif node == portal:
 		# The portal never pulls anyone in: every living player opts in with Interact.
 		# Once the countdown runs the choice is locked, so extra presses can't toggle it.

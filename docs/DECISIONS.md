@@ -116,7 +116,7 @@ proposal left a choice open, the chosen option is stated, and any change to a pr
 | D8 | Ring slots | Keep **2 ring slots**. Ring legendaries are unique: two copies of the same one cannot be worn. | `inventory.gd` |
 | D9 | New weapon kinds | New bases: **quiver** (Ranger off-hand), **athame** (Mage 1H, main hand only), **scythe** (Priest 2H). Crosier = holy staff art. The Priest can use maces (Rebuke and Hammer of the Righteous are mace strikes). Grip of the Titan sets `two_hand_and_shield`. | `data/items/bases/` |
 | D10 | Elites | Every floor rolls 1-3 **elite packs**: a named elite (+15% scale, x3 HP, +30% damage, 1-2 modifiers from `data/monsters/_elite_modifiers.json`), gold nameplate and glow. An **elite altar** appears where the elite dies (interact = book or loot). | `game.gd`, `enemy.gd` |
-| D11 | Gold Key | At generation the floor rolls 50% from the seed. If it passes, exactly one elite (or a chest, if the floor has no elite) carries the key. It is a shared party item: Archibald trades with everyone once he gets it, and it is consumed. Since #6 the roll only happens on floors whose merchant is Archibald. | `dungeon_generator.gd`, `game.gd` |
+| D11 | Gold Key | Only on floors whose merchant is Archibald (#6): the floor rolls `elite.key_chance` (80% since #21) from the seed, on its own random stream (`Game.pick_key_carrier`), independent of how many elites the floor got. If it passes, exactly one elite carries the key; with no elite a chest does (the host remembers it in `key_chest` and drops the key when it is opened); with neither, the boss. So about 0.8 x 0.8 = 64% of all floors have a key (reading of #21: "80%" is per Archibald floor, since the key only matters there). It is a shared party item: Archibald trades with everyone once he gets it, and it is consumed. | `dungeon_generator.gd`, `game.gd` |
 | D12 | Gold sharing | Every player has their **own wallet**. A gold pile picked up is split equally among all living party members. Saved with the hero. | `player.gd` |
 | D13 | Demonic tithe | Paid **once per player per floor**, on the first entry, after a confirmation dialog. The loss is a run-permanent modifier (`run_mods`). | `merchant.gd` |
 | D14 | Pact potion durations | The text duration where one is given (Void-Eye 45 s, Phantasmal 30 s, Serum 20 s), otherwise 60 s. | `data/items/pact_consumables.json` |
@@ -358,10 +358,10 @@ seed because the generator no longer draws random numbers for pendulums.
 
 | Topic | Decision |
 | --- | --- |
-| Pick | Every floor has exactly one merchant, Archibald or Malphas: a seeded pick (`DungeonGenerator.pick_merchant`, its own random stream) weighted by `merchants.json` `floor_pick` (1 : 1). The host sends it with the floor (`Game._build_floor`), so every peer builds the same one; tests pin it with the `force_merchant` meta. |
+| Pick | Every floor has exactly one merchant, Archibald or Malphas: a seeded pick (`DungeonGenerator.pick_merchant`, its own random stream) weighted by `merchants.json` `floor_pick` (4 : 1, i.e. 80% Archibald / 20% Malphas since #21; was 1 : 1). The host sends it with the floor (`Game._build_floor`), so every peer builds the same one; tests pin it with the `force_merchant` meta. |
 | Room | The generator places one extra room per floor and makes it the merchant room (the candidate closest to 11 x 9 that has an ordinary door; a candidate without a 2-3 cell door is skipped). The merchant stands in its middle. It stays safe ground: no monsters, hazards or loose props, monsters never path in or target a hero inside, and its doors are ordinary doors that monsters don't open. |
 | No portal, no altarpiece | The Gilded Portal and the Demon Altarpiece are gone (their props; the PNGs stay on disk). Archibald trades once the party hands him the floor's Gold Key (talking to him uses it up); Malphas asks for the tithe when a hero first talks to him. Buying / selling only works on an Archibald floor, the tithe, contracts and pacts only on a Malphas floor. |
-| Gold Key | The key carrier (still 50% from the seed) only exists on Archibald floors. |
+| Gold Key | The key carrier only exists on Archibald floors (80% of them since #21, see D11). |
 | Cave rooms | Building the extra room exposed a generator bug: Kurgan cave rooms could wall off a corridor that entered through a wide opening. The cells where a corridor enters a cave room now stay open. |
 
 ### #7 Doors and props in the light
@@ -440,3 +440,11 @@ are still disabled when Steam isn't running).
 The character preview's arrows turn the hero toward the screen side they point at: from facing the
 camera, ">" shows the hero looking right and "<" looking left (`HeroPreview.turn`; the direction index
 counts clockwise on screen, so turning right steps it back). The gamepad menu test presses both arrows.
+
+### #21 Merchant and Gold Key odds
+
+| Topic | Decision |
+| --- | --- |
+| Merchant pick | `floor_pick` archibald 4 / malphas 1: Archibald on 80% of floors. |
+| Key chance | `elite.key_chance` 0.8, rolled per Archibald floor (D11). The old roll only ran when the floor had an elite and shared the elite picker's random stream; it now has its own stream (seed + 211) and falls back to a chest, then the boss, so the rate is exactly the data value. Real floors always roll 1-3 elites, so the fallback is a safety net. |
+| Test | `EconomySuite.merchant_odds`: 2000 seeded floors (real layouts): Archibald share 82.5%, key on 80.9% of Archibald floors, 0 keys on Malphas floors, deterministic per seed, and the same floors stripped of elites get the key from a chest. A live chest marked as the key chest drops the key once. |

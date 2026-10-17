@@ -175,7 +175,7 @@
 		"damage_mult": 1.3,
 		"scale": 1.15,
 		"xp_mult": 3.0,
-		"key_chance": 0.5
+		"key_chance": 0.8
 	},
 	"merchant": {
 		"_comment": "Item value = tier_value[rarity - 1] x (1 + per_item_level x (item level - 1)); Archibald sells at buy_mult and buys at sell_mult.",

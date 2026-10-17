@@ -78,6 +78,17 @@ screenshot review at 1920x1080 and 3440x1440.
       `ui-layout`, screenshot)
 - [x] #14 Character preview arrows turn the way they point (`gamepad-menu`)
 
+## Visual polish issues (GitHub #15-#21)
+
+- [ ] #15 Hero pieces lose pixels / wrong colours
+- [ ] #16 Weapon placement in every direction
+- [ ] #17 Co-op animation sync
+- [ ] #18 Hero animation audit and fixes
+- [ ] #19 Attack animations per weapon family and skill
+- [ ] #20 Item look variety: worn variants, icons, unique legendaries
+- [x] #21 Merchants 80 / 20, Gold Key on 80% of Archibald floors with a chest fallback (`economy`,
+      `economy-lan`)
+
 ## PixelLab ledger
 
 Start of the GDD goal (2026-10-15): **used 1081 / 2000, remaining 919**, resets 2026-11-14.
