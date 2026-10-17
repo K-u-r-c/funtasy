@@ -371,6 +371,13 @@ const REST_ANIMS := ["idle", "walk", "dash", "hit", "downed"]
 ## or when it covers the gripping hand (fingers close over the grip); the rest is drawn in front.
 func _held(spec: Dictionary, regions: Dictionary, hands: Dictionary, body: Image, anim: String, d: int) -> Array:
 	var hand := str(spec.get("hand", "main"))
+	# "hand_anim": {anim: hand, or [hand per direction]} - the bow sits in the extended hand of the
+	# draw, which isn't the same tracked hand in every direction.
+	var per_anim: Variant = spec.get("hand_anim", {}).get(anim)
+	if per_anim is Array:
+		hand = str(per_anim[d])
+	elif per_anim != null:
+		hand = str(per_anim)
 	var h: Dictionary
 	if str(spec.get("anchor", "")) == "back":
 		# Worn on the back (quiver): hung from the shoulder line, behind the body unless the hero
@@ -390,6 +397,20 @@ func _held(spec: Dictionary, regions: Dictionary, hands: Dictionary, body: Image
 		var at := Vector2i((Vector2(ref[0]) + centre - Vector2(ref[1])).round()) + Vector2i(int(off[0]), int(off[1]))
 		h = {"grip": at, "vec": Vector2.DOWN, "rad": Vector2.DOWN, "pix": {}, "hidden": false}
 		hand = "back"
+	elif hand == "extended":
+		# The arm point reaching furthest sideways above the hips: the bow fist of a draw, which the
+		# hand tracker can lose when the arm crosses the body (the drawing hand goes up, not out).
+		var centre := _trunk_centre(regions)
+		var best := Vector2i(-1, -1)
+		var far := -1.0
+		for q in regions:
+			if regions[q] in ["arms", "hands"] and q.y <= centre.y and absf(q.x - centre.x) > far:
+				far = absf(q.x - centre.x)
+				best = q
+		if best.x < 0 or centre.x < 0.0:
+			return []
+		var v := (Vector2(best) - centre).normalized()
+		h = {"grip": best, "vec": v, "rad": v, "pix": {}, "hidden": false}
 	else:
 		if not hands.has(hand):
 			return []
