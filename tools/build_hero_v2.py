@@ -19,7 +19,9 @@ SOURCES_JSON (tools/hero_<gender>_v2.json):
    "mirror": {"west": "east", "north-west": "north-east", "south-west": "south-east"},
    "clips": {"<game anim>": {"from": "<zip animation folder>", "pick": [frame indices],
                               "pick_dir": {"<direction>": [same count, other frames]},
-                              "from_dir": {"<direction>": "<other zip animation folder>"}}, ...},
+                              "from_dir": {"<direction>": "<other zip animation folder>"},
+                              "dup": {"<direction>": {"<slot>": <slot>}}}, ...},  # a slot shows another
+                              # slot's frame (body and outfits alike): a picked frame that drew a weapon
    "batches": [["walk", "idle", "hit"], ...],           # 15 frames each
    "strip_glow": ["cast"],                              # clips whose frames may show spell glow
    "ghost": {"from": "ghost", "state": "Ghost", "pick": [...]},
@@ -136,12 +138,21 @@ def step_sheets(src, work):
             ops.append({"op": "strip_glow", "src": dst, "cell": cell})
         ops.append({"op": "mirror_rows", "src": dst, "cell": cell, "rows": mirror})
 
+    def dup(anim, rows):
+        for d, slots in src["clips"].get(anim, {}).get("dup", {}).items():
+            row = rows[DIRS.index(d)]
+            for k, j in slots.items():
+                row[int(k)] = row[int(j)]
+        return rows
+
     anims = list(src["clips"].keys()) + (["ghost"] if src.get("ghost") else [])
     for anim in anims:
         n = len(src["ghost"]["pick"]) if anim == "ghost" else len(src["clips"][anim]["pick"])
         rows = [[base_path(work, anim, d, k) for k in range(n)] if d in src["drawn"] else [] for d in DIRS]
-        sheet(rows, n, f'{cfg["body_dir"]}/{anim}.png', anim)
+        sheet(dup(anim, rows), n, f'{cfg["body_dir"]}/{anim}.png', anim)
     for name, outfit in src.get("outfits", {}).items():
+        if not all(len(outfit.get("jobs", {}).get(str(b), {})) == len(src["drawn"]) for b in range(len(src["batches"]))):
+            continue  # transfers not complete yet
         local = {}
         for bi, batch in enumerate(src["batches"]):
             for d, job in outfit.get("jobs", {}).get(str(bi), {}).items():
@@ -159,8 +170,8 @@ def step_sheets(src, work):
                     start += n
         for anim, per_dir in local.items():
             n = len(src["clips"][anim]["pick"])
-            rows = [per_dir.get(d, []) for d in DIRS]
-            sheet(rows, n, f'{outfit["src_dir"]}/{anim}.png', anim)
+            rows = [list(per_dir.get(d, [])) for d in DIRS]
+            sheet(dup(anim, rows), n, f'{outfit["src_dir"]}/{anim}.png', anim)
     # Full-clip body sheets + the picks, for bake_gear's hand tracking.
     full_len = json.load(open(os.path.join(work, "full_len.json")))
     track = {"dir": os.path.join(work, "track"), "picks": {}}
@@ -172,7 +183,10 @@ def step_sheets(src, work):
         picks = []
         for d in DIRS:
             sd = src["mirror"].get(d, d)
-            picks.append(clip.get("pick_dir", {}).get(sd, clip["pick"]))
+            pk = list(clip.get("pick_dir", {}).get(sd, clip["pick"]))
+            for k, j in clip.get("dup", {}).get(sd, {}).items():
+                pk[int(k)] = pk[int(j)]
+            picks.append(pk)
         track["picks"][anim] = picks
     os.makedirs(track["dir"], exist_ok=True)
     json.dump(track, open(os.path.join(work, "track.json"), "w"))
@@ -184,7 +198,9 @@ def step_sheets(src, work):
         ghost_fix.append({"op": "replace_color", "src": f'{cfg["body_dir"]}/ghost.png', "colors": src["ghost"]["fix_colors"]})
     json.dump(ghost_fix, open(man, "w"))
     godot("-s", "tools/pixellab_import.gd", "--", man)
-    done = [n for n, o in src.get("outfits", {}).items() if o.get("jobs")]
+    # Only outfits whose transfers are all in (every batch and drawn direction) are cut.
+    done = [n for n, o in src.get("outfits", {}).items()
+            if all(len(o.get("jobs", {}).get(str(b), {})) == len(src["drawn"]) for b in range(len(src["batches"])))]
     if done:
         # Cut only the outfits that have their transfers (the others keep their layers).
         cut_cfg = dict(cfg)
