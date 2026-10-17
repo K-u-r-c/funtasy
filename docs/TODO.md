@@ -82,7 +82,7 @@ screenshot review at 1920x1080 and 3440x1440.
 
 - [ ] #15 Hero pieces lose pixels / wrong colours
 - [ ] #16 Weapon placement in every direction
-- [ ] #17 Co-op animation sync
+- [x] #17 Co-op animation sync: reliable one-shots, replicated dash / held poses, downed fall (`anim-lan`)
 - [ ] #18 Hero animation audit and fixes
 - [ ] #19 Attack animations per weapon family and skill
 - [ ] #20 Item look variety: worn variants, icons, unique legendaries

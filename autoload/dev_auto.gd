@@ -238,6 +238,8 @@ func _run() -> void:
 				await EconomySuite.new(self).run_lan()
 			"skills_lan":
 				await SkillSuite.new(self).run_lan()
+			"anim_lan":
+				await AnimSuite.new(self).run_lan()
 			"lore":
 				await LoreSuite.new(self).run()
 			"tour":
@@ -473,6 +475,8 @@ func client_cmd(cmd: String, arg: Variant) -> void:
 			await EconomySuite.new(self).client_cmd(cmd, arg)
 		_ when cmd.begins_with("sk_"):
 			await SkillSuite.new(self).client_cmd(cmd, arg)
+		_ when cmd.begins_with("an_"):
+			await AnimSuite.new(self).client_cmd(cmd, arg)
 		"leave":
 			log_line("client leaves to the main menu mid-run")
 			NetworkManager.leave_to_menu()

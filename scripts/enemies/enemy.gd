@@ -66,7 +66,7 @@ func setup(data: Dictionary) -> void:
 	collision_layer = 4
 	collision_mask = 1 | 2 | 8 | 16 | 32 | 64 | 128
 	NetSync.make(self, "StateSync", [
-		"Health:hp", "Health:max_hp", "Health:absorb", "Status:shown", ".:level", ".:aggro", ".:behavior_state",
+		"Health:hp", "Health:max_hp", "Health:absorb", "Status:shown", ".:level", ".:aggro", ".:behavior_state", ".:held_anim",
 	], [".:net_pos", ".:facing"], 0.05)
 
 

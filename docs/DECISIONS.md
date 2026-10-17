@@ -448,3 +448,15 @@ counts clockwise on screen, so turning right steps it back). The gamepad menu te
 | Merchant pick | `floor_pick` archibald 4 / malphas 1: Archibald on 80% of floors. |
 | Key chance | `elite.key_chance` 0.8, rolled per Archibald floor (D11). The old roll only ran when the floor had an elite and shared the elite picker's random stream; it now has its own stream (seed + 211) and falls back to a chest, then the boss, so the rate is exactly the data value. Real floors always roll 1-3 elites, so the fallback is a safety net. |
 | Test | `EconomySuite.merchant_odds`: 2000 seeded floors (real layouts): Archibald share 82.5%, key on 80.9% of Archibald floors, 0 keys on Malphas floors, deterministic per seed, and the same floors stripped of elites get the key from a chest. A live chest marked as the key chest drops the key once. |
+
+### #17 Co-op animation sync
+
+| Topic | Decision |
+| --- | --- |
+| One-shot actions | `Actor.play_action` (host -> all, `call_local`) is now **reliable**: an unreliable packet lost the whole attack / cast / hit animation on that peer. It is sent by the host only (Combat, monster behaviours, boss mechanics). A "hit" no longer cuts a running attack or cast short; the white flash still shows. |
+| Dash | The owner simulates its own dodge and forced dashes, so the host and other clients never saw "dash". The owner now streams `dash_sync` in `OwnerSync` (owner -> all, unreliable, every 0.05 s, next to the position); remote peers draw "dash" from it. |
+| Held poses | `Actor.held_anim` (host -> all, `StateSync` on change): the skill's anim while a cast time, channel or charge-up runs (`Actor.host_tick`), drawn in place of idle / walk until it ends (a non-looping anim holds its last frame). Players and monsters. |
+| Downed / ghost | Derived from the replicated `life_state` on every peer: going down plays the "death" fall once, then the "downed" loop; a ghost plays "ghost" (others don't see ghosts). No separate revive animation yet (see #18). |
+| Walk flicker | Remote actors move in steps as packets arrive; "walk" is held 0.12 s after the last visible step so it doesn't flicker to idle between packets. |
+| Local player | The owner does not predict its own one-shots: it plays the host's echo once (the test checks a single start per action). On LAN the delay is one round trip. |
+| Test | `AnimSuite` (`anim-lan` pair, warrior host + mage client): each side attacks / casts, dodges and is hit while the other records the hero's `CharacterSprite.anim` sequence and direction; the owner sees its own action start exactly once; a cast-time pose is held on both sides; the downed fall, downed loop and ghost reach the client; a monster's attack and hit reach the client. Packet loss isn't simulated: ENet has no loss switch, and the reliable RPC makes delivery the transport's job. |

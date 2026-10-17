@@ -80,6 +80,9 @@ var _dodge_dir := Vector2.ZERO
 var _dodge_cd := 0.0
 var _forced_vel := Vector2.ZERO
 var _forced_left := 0.0
+var dash_sync := false  ## owner -> everyone (OwnerSync): dodging or in a forced dash right now
+var _seen_life := 0  ## every peer: the life state the sprite last showed (Life.ALIVE)
+var _fall_left := 0.0  ## every peer: the "death" fall plays this long before the downed loop
 var _knock := Vector2.ZERO
 var _pending: Dictionary = {}
 var _quick_hold: Dictionary = {}
@@ -114,8 +117,11 @@ func setup(data: Dictionary) -> void:
 		"Status:shown", "Stats:final", ".:life_state", ".:downed_left", ".:revive_progress", ".:level",
 		".:xp", ".:talent_points", ".:talents", ".:appearance", ".:torch_sync",
 		".:stat_points", ".:allocated", ".:run_mods", ".:gold", ".:skills", ".:legacy_kit", ".:held_by",
+		".:held_anim",
 	], [], 0.1)
-	var owner_sync := NetSync.make(self, "OwnerSync", [], [".:net_pos", ".:facing", ".:aim_pos"], 0.05)
+	# The owner streams its dash state with its position (#17): the host and other clients don't
+	# simulate the owner's dodge / forced dash, so they draw "dash" from this.
+	var owner_sync := NetSync.make(self, "OwnerSync", [], [".:net_pos", ".:facing", ".:aim_pos", ".:dash_sync"], 0.05)
 	owner_sync.set_multiplayer_authority(peer_id)
 
 
@@ -145,10 +151,10 @@ func is_invulnerable() -> bool:
 func base_anim(moving: bool) -> String:
 	match life_state:
 		Life.DOWNED:
-			return "downed"
+			return "death" if _fall_left > 0.0 else "downed"
 		Life.GHOST:
 			return "ghost"
-	if _dodge_left > 0.0 or _forced_left > 0.0:
+	if _dodge_left > 0.0 or _forced_left > 0.0 or (dash_sync and not is_local()):
 		return "dash"
 	return "walk" if moving else "idle"
 
@@ -411,6 +417,11 @@ func _physics_process(delta: float) -> void:
 
 
 func _process(delta: float) -> void:
+	# Derived from the replicated life state, so every peer shows the fall (#17).
+	if life_state != _seen_life:
+		_fall_left = sprite.anim_length("death") if sprite and life_state == Life.DOWNED and _seen_life == Life.ALIVE else 0.0
+		_seen_life = life_state
+	_fall_left -= delta
 	update_visuals(delta)
 	_update_carried_torch(delta)
 	if sprite:
@@ -461,6 +472,7 @@ func _owner_tick(delta: float) -> void:
 	if life_state != Life.ALIVE:
 		velocity = Vector2.ZERO
 		_dodge_left = 0.0
+		dash_sync = false
 		if life_state == Life.GHOST:
 			net_pos = position
 		return
@@ -471,6 +483,7 @@ func _owner_tick(delta: float) -> void:
 		net_pos = position
 		velocity = Vector2.ZERO
 		_dodge_left = 0.0
+		dash_sync = false
 		_release_quick_holds()
 		return
 	var speed := move_speed()
@@ -487,6 +500,7 @@ func _owner_tick(delta: float) -> void:
 	_knock = _knock.move_toward(Vector2.ZERO, 900.0 * delta)
 	move_and_slide()
 	net_pos = position
+	dash_sync = _dodge_left > 0.0 or _forced_left > 0.0
 	if blocked:
 		_release_quick_holds()
 		return

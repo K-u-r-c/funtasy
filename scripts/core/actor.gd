@@ -35,9 +35,11 @@ var last_hit_area := false  ## host: the last hit came from an area attack (bone
 var proc_cd: Dictionary = {}  ## host: proc key -> time it is ready again
 var static_procs: Array = []  ## host: procs from talents, passives, items, elite modifiers
 var _stats_dirty := true
+var held_anim := ""  ## replicated: pose held while casting / channelling / charging (host sets it)
 var _action_anim := ""
 var _action_left := 0.0
 var _last_visual_pos := Vector2.ZERO
+var _moving_hold := 0.0  ## walk keeps playing this long after the last visible step (no flicker)
 var _flash := 0.0
 var _shadow: Sprite2D
 
@@ -168,6 +170,13 @@ func host_tick(delta: float) -> void:
 				var c := casting
 				casting = {}
 				Combat.instance.finish_cast(self, c.skill, c.aim)
+	var held := ""
+	for st in [channel, charging, casting]:
+		if not st.is_empty():
+			held = str(GameData.skills.get(str(st.skill), {}).get("anim", "cast"))
+			break
+	if held != held_anim:
+		held_anim = held
 
 
 func cooldown_left(skill_id: String) -> float:
@@ -197,9 +206,15 @@ func on_death() -> void:
 # --- Visuals (every peer) ---------------------------------------------------------------------
 
 
-## Host -> all (unreliable): one-shot animation such as attack/cast/hit.
-@rpc("authority", "call_local", "unreliable")
+## Host -> all (reliable, #17): one-shot animation such as attack/cast/hit. Called by the host
+## (Combat, monster behaviours, boss mechanics), run on every peer. Reliable because a dropped
+## packet would lose the whole animation. A hit never cuts a running attack / cast short (the
+## white flash still shows).
+@rpc("authority", "call_local", "reliable")
 func play_action(anim_name: String, dir: Vector2) -> void:
+	if anim_name == "hit" and _action_left > 0.0 and _action_anim != "hit":
+		_flash = 0.12
+		return
 	if dir != Vector2.ZERO:
 		facing = dir
 	_action_anim = anim_name
@@ -223,11 +238,17 @@ func update_visuals(delta: float) -> void:
 		return
 	var moved := (position - _last_visual_pos).length()
 	_last_visual_pos = position
-	var moving := moved > 20.0 * delta
+	# Remote actors move in steps as position packets arrive; hold "walk" briefly between them.
+	if moved > 20.0 * delta:
+		_moving_hold = 0.12
+	_moving_hold -= delta
+	var moving := _moving_hold > 0.0
 	_action_left -= delta
 	var anim_name := base_anim(moving)
 	if _action_left > 0.0 and anim_name in ["idle", "walk"]:
 		anim_name = _action_anim
+	elif not held_anim.is_empty() and anim_name in ["idle", "walk"]:
+		anim_name = held_anim
 	sprite.play(anim_name, facing)
 	_flash = maxf(_flash - delta, 0.0)
 	var tint := Color.WHITE
