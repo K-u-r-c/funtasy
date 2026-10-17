@@ -2484,6 +2484,11 @@ func _shots_flow() -> void:
 		await _wait(0.1)
 	for b in ["greatsword", "crossbow", "arcane_wand", "robe"]:
 		p.host_give_item(ItemGenerator.generate_equipment(b, 2, rng.randi_range(2, 5), rng))
+	# Look variety (#20): every rarity of a few armour bases and one legendary per class.
+	for i in 5:
+		p.host_give_item(ItemGenerator.generate_equipment(["greaves", "boots", "gloves", "plate_helm", "hood"][i], 2, i + 1, rng))
+	for lid in ["crown_blood_chieftain", "wyvernscale_jerkin", "robe_seven_cataclysms", "cuirass_radiant_dawn"]:
+		p.host_give_item(ItemGenerator.make_legendary(lid, 2, rng))
 	var heavy := ItemGenerator.generate_equipment("greataxe", 9, 4, rng)
 	heavy.req = 9
 	p.host_give_item(heavy)
