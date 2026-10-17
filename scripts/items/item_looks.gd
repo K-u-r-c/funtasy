@@ -37,9 +37,11 @@ static func apply_legendary(item: Dictionary, lg: Dictionary) -> void:
 	var looks: Dictionary = GameData.item_looks
 	var slot := str(item.get("slot", ""))
 	var by_class: Dictionary = looks.get("legendary_families", {}).get(str(lg.get("class", "")), {})
-	var fam := str(by_class.get(slot, by_class.get("*", "")))
+	var fam := str(looks.get("legendary_overrides", {}).get(str(lg.get("id", "")), by_class.get(slot, by_class.get("*", ""))))
+	# The class family wins over the base's families (a ranger's chest legendary is a leather jerkin
+	# though its base is a robe); only a family without art for the slot falls back to the base's.
 	var options: Array = looks.get("bases", {}).get(str(item.get("base", "")), [])
-	if not options.any(func(o): return str(o[0]) == fam) and not options.is_empty():
+	if looks.get("families", {}).get(fam, {}).get(slot, []).is_empty() and not options.is_empty():
 		fam = str(options[-1][0])
 	var spec: Array = looks.get("families", {}).get(fam, {}).get(slot, [])
 	if not spec.is_empty():

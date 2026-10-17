@@ -1,5 +1,5 @@
 {
-	"_comment": "Item looks (#20, DECISIONS '#20 Item look variety'). An armour item gets a worn family (seeded from its uid among the families its base allows at its rarity) and a colour variant (from its rarity, or the legendary's own). families: family -> slot -> worn appearance (a key of data/assets.json characters.layers without the gender prefix) and icon. fallback: appearance used while a family's art isn't drawn yet. variants: gear_variant.gdshader parameters; the item icon is recoloured the same way. legendary_families: class -> slot ('*' = any) -> family of its legendaries; their colours come from their icon.",
+	"_comment": "Item looks (#20, DECISIONS '#20 Item look variety'). An armour item gets a worn family (seeded from its uid among the families its base allows at its rarity) and a colour variant (from its rarity, or the legendary's own). families: family -> slot -> worn appearance (a key of data/assets.json characters.layers without the gender prefix) and icon. fallback: appearance used while a family's art isn't drawn yet. variants: gear_variant.gdshader parameters; the item icon is recoloured the same way. legendary_families: class -> slot ('*' = any) -> family of its legendaries; legendary_overrides: legendary id -> family where its art says otherwise; their colours come from their icon.",
 	"families": {
 		"plate": {
 			"head": [
@@ -343,5 +343,8 @@
 			"head": "cloth",
 			"chest": "cloth"
 		}
+	},
+	"legendary_overrides": {
+		"cuirass_radiant_dawn": "plate"
 	}
 }

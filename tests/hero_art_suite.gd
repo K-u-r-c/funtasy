@@ -19,6 +19,7 @@ func run() -> void:
 	await switch_test()
 	await equip_midanim_test()
 	audit()
+	legendary_looks()
 
 
 ## Pixels by which a hero's sprite differs from a fresh CharacterSprite built from its replicated
@@ -284,6 +285,51 @@ func set_holes(g: String, apps: Array) -> Dictionary:
 					worst = bad
 					out.at = "%s dir %d frame %d (%d px)" % [anim, d, f, bad]
 	return out
+
+
+## Every worn legendary gets its own colours from its icon (#20): the looks differ from each
+## other. With FUNTASY_REVIEW_DIR set, writes legendary_looks.png there (each legendary worn on
+## the male hero, facing south, next to its icon) for a visual review.
+func legendary_looks() -> void:
+	var rng := RandomNumberGenerator.new()
+	var sigs := {}
+	var worn := 0
+	var missing: Array = []
+	var ids: Array = GameData.legendaries.keys()
+	var review := OS.get_environment("FUNTASY_REVIEW_DIR")
+	var sheet := Image.create(12 * 72, ceili(ids.size() / 12.0) * 70, false, Image.FORMAT_RGBA8) if not review.is_empty() else null
+	if sheet:
+		sheet.fill(Color(0.16, 0.16, 0.17))
+	var body := _img("res://assets/sprites/pixellab/characters/male/body/idle.png")
+	for i in ids.size():
+		var item: Dictionary = ItemGenerator.make_legendary(str(ids[i]), 20, rng)
+		if str(item.get("appearance", "")).is_empty():
+			continue
+		worn += 1
+		if not item.has("look"):
+			missing.append(ids[i])
+			continue
+		var v: Dictionary = item.look.variant
+		sigs["%s|%.2f" % [str(v.get("ramp", [])), float(v.get("hue_shift", 0.0))]] = true
+		if sheet == null:
+			continue
+		var at := Vector2i((i % 12) * 72, (i / 12) * 70)
+		var fr := body.get_region(Rect2i(0, 128, 64, 64))
+		var key := CharacterSprite.gear_key(ItemLooks.drawn_appearance(str(item.appearance), "male"), "male")
+		if not key.is_empty():
+			var layer := _img(str(GameData.asset_entry(key).path) + "idle.png")
+			if layer:
+				fr.blend_rect(ItemLooks.recolor_image(layer.get_region(Rect2i(0, 128, 64, 64)), ItemLooks.params(v)), Rect2i(0, 0, 64, 64), Vector2i.ZERO)
+		sheet.blend_rect(fr, Rect2i(0, 0, 64, 64), at + Vector2i(0, 6))
+		var ic := ItemLooks.icon(item)
+		if ic:
+			var im := ic.get_image()
+			im.convert(Image.FORMAT_RGBA8)
+			sheet.blend_rect(im, Rect2i(Vector2i.ZERO, im.get_size()), at + Vector2i(40, 0))
+	if sheet:
+		sheet.save_png(review.path_join("legendary_looks.png"))
+	da.check(missing.is_empty() and sigs.size() >= int(worn * 0.9),
+			"worn legendaries have their own colours (%d looks for %d legendaries, none without: %s)" % [sigs.size(), worn, missing.slice(0, 4)])
 
 
 static var _imgs: Dictionary = {}
