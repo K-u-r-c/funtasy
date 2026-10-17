@@ -22,6 +22,7 @@ const LOOKS := {
 	"mace": ["weapon_mace"],
 	"warhammer": ["weapon_warhammer"],
 	"bow": ["weapon_bow"],
+	"ranger": ["head_hood", "chest_armor", "legs_armor", "boots_armor", "gloves_armor", "weapon_bow", "offhand_quiver"],
 	"crossbow": ["weapon_crossbow"],
 	"sling": ["weapon_sling"],
 	"wand": ["weapon_wand"],

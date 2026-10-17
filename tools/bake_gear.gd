@@ -16,6 +16,7 @@ var cfg: Dictionary
 var regions_tool: BodyRegions
 var cell := 64
 var track_cfg: Variant = null  ## {dir, picks: {anim: [[frame per pick] per direction]}} (--track)
+var _back_ref := {}  ## direction -> [shoulder on its idle frame 0, trunk centre there] (anchor "back")
 
 
 func _init() -> void:
@@ -370,9 +371,29 @@ const REST_ANIMS := ["idle", "walk", "dash", "hit", "downed"]
 ## or when it covers the gripping hand (fingers close over the grip); the rest is drawn in front.
 func _held(spec: Dictionary, regions: Dictionary, hands: Dictionary, body: Image, anim: String, d: int) -> Array:
 	var hand := str(spec.get("hand", "main"))
-	if not hands.has(hand):
-		return []
-	var h: Dictionary = hands[hand]
+	var h: Dictionary
+	if str(spec.get("anchor", "")) == "back":
+		# Worn on the back (quiver): hung from the shoulder line, behind the body unless the hero
+		# faces away ("near_hand" back row). The shoulder line is found on this direction's idle
+		# frame and moved with the body (arms left out): in attacks the arms cover the chest and
+		# the torso region shrinks or vanishes.
+		if not _back_ref.has(d):
+			var idle := _load(str(cfg.body_dir).path_join("idle.png"))
+			var ref_regions := regions_tool.segment(idle.get_region(Rect2i(0, d * cell, cell, cell))) if idle != null else {}
+			var shoulder := _shoulder(ref_regions)
+			_back_ref[d] = [shoulder, _trunk_centre(ref_regions)] if shoulder.x >= 0.0 else []
+		var ref: Array = _back_ref[d]
+		var centre := _trunk_centre(regions)
+		if ref.is_empty() or centre.x < 0.0:
+			return []
+		var off: Array = spec.get("offset", [[0, 0]])[d] if spec.has("offset") else [0, 0]
+		var at := Vector2i((Vector2(ref[0]) + centre - Vector2(ref[1])).round()) + Vector2i(int(off[0]), int(off[1]))
+		h = {"grip": at, "vec": Vector2.DOWN, "rad": Vector2.DOWN, "pix": {}, "hidden": false}
+		hand = "back"
+	else:
+		if not hands.has(hand):
+			return []
+		h = hands[hand]
 	var pic := _load(str(spec.picture))
 	if pic == null:
 		return []
@@ -417,6 +438,34 @@ func _held(spec: Dictionary, regions: Dictionary, hands: Dictionary, body: Image
 			else:
 				front.set_pixel(x, y, c)
 	return [front, back]
+
+
+## Middle of the torso's top rows, (-1, -1) without a torso.
+func _shoulder(regions: Dictionary) -> Vector2:
+	var torso: Array = regions.keys().filter(func(q): return regions[q] == "torso")
+	if torso.is_empty():
+		return Vector2(-1, -1)
+	var top := 999
+	for q in torso:
+		top = mini(top, q.y)
+	var acc := Vector2.ZERO
+	var n := 0
+	for q in torso:
+		if q.y <= top + 3:
+			acc += Vector2(q)
+			n += 1
+	return acc / n
+
+
+## Centroid of the body without arms and hands, (-1, -1) when empty.
+func _trunk_centre(regions: Dictionary) -> Vector2:
+	var acc := Vector2.ZERO
+	var n := 0
+	for q in regions:
+		if regions[q] in ["head", "torso", "legs", "feet"]:
+			acc += Vector2(q)
+			n += 1
+	return acc / n if n > 0 else Vector2(-1, -1)
 
 
 func _load(path: String) -> Image:
