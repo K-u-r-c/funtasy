@@ -41,7 +41,8 @@ var _action_anim := ""
 var _action_left := 0.0
 var _last_visual_pos := Vector2.ZERO
 var _turn_rate := 0.0  ## spin animations turn the facing this fast (rad/s) while they play
-var _moving_hold := 0.0  ## walk keeps playing this long after the last visible step (no flicker)
+var _moving_hold := 0.0
+var _speed_avg := 0.0  ## smoothed visible speed (px/s), for the walk pace  ## walk keeps playing this long after the last visible step (no flicker)
 var _flash := 0.0
 var _shadow: Sprite2D
 
@@ -111,7 +112,8 @@ func modify_damage_taken(amount: float, _data: Dictionary) -> float:
 	return amount
 
 
-## Full immunity to a damage type (monster data `immune`, statuses `immune_<type>`).
+## "Immunity" to a damage type (monster data `immune`, statuses `immune_<type>`): monsters take
+## combat.immunity_reduction less of it (#22), heroes none.
 func immune_to(dtype: String) -> bool:
 	return status.has_flag("immune_" + dtype)
 
@@ -255,6 +257,8 @@ func update_visuals(delta: float) -> void:
 		_moving_hold = 0.12
 	_moving_hold -= delta
 	var moving := _moving_hold > 0.0
+	# Feet don't slide: walk plays at the pace of the real speed (data "stride": px per cycle).
+	_speed_avg = lerpf(_speed_avg, moved / maxf(delta, 0.001), minf(1.0, delta * 10.0))
 	_action_left -= delta
 	var anim_name := base_anim(moving)
 	if _action_left > 0.0 and anim_name in ["idle", "walk"]:
@@ -264,6 +268,7 @@ func update_visuals(delta: float) -> void:
 	elif not held_anim.is_empty() and anim_name in ["idle", "walk"]:
 		anim_name = held_anim
 	sprite.play(anim_name, facing)
+	sprite.set_walk_pace(_speed_avg if anim_name == "walk" else -1.0)
 	_flash = maxf(_flash - delta, 0.0)
 	var tint := Color.WHITE
 	for s in status.shown:

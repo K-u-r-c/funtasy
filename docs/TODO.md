@@ -86,6 +86,7 @@ screenshot review at 1920x1080 and 3440x1440.
 - [ ] #18 Hero animation audit and fixes
 - [ ] #19 Attack animations per weapon family and skill
 - [ ] #20 Item look variety: worn variants, icons, unique legendaries
+- [x] #22 No full damage-type immunity: monsters take 80% less of an immune type (`skills-*`, `primitives`)
 - [x] #21 Merchants 80 / 20, Gold Key on 80% of Archibald floors with a chest fallback (`economy`,
       `economy-lan`)
 

@@ -111,7 +111,7 @@
 		"test": {"setup": {"self_status": ["test_no_crit"]}, "expect": ["warded_takes_half"]},
 		"effects": [{"type": "hit", "target": "enemies_radius", "radius": 400, "damage": {"base": 100, "coef": 0}}]},
 	{"id": "test_immune", "name": "Test Immunity", "school": "spell", "damage_type": "shadow", "cooldown": 1, "cost": 0,
-		"test": {"setup": {"self_status": ["test_no_crit"]}, "expect": ["warded_untouched", "target_damaged"]},
+		"test": {"setup": {"self_status": ["test_no_crit"]}, "expect": ["warded_resists", "target_damaged"]},
 		"effects": [{"type": "hit", "target": "enemies_radius", "radius": 400, "damage": {"base": 100, "coef": 0}}]},
 	{"id": "test_decoy", "name": "Test Mirror Image", "school": "spell", "cooldown": 1, "cost": 0,
 		"test": {"expect": ["minion"]},

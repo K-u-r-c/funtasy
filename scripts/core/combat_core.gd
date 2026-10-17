@@ -240,7 +240,10 @@ func deal_damage(ctx: Dictionary, target: Actor, amount: float, opts: Dictionary
 			bc = 0.0
 		if bc > 0.0 and _frontal(target, caster.global_position if caster else ctx.get("origin", pos)) and rng.randf() < bc:
 			blocked = true
-	if target.immune_to(dtype):
+	# #22: no monster is fully immune to a damage type - its "immunity" is a strong reduction, so
+	# every class can win every fight. (Heroes' own immunity statuses still block.)
+	var resisted := target.immune_to(dtype)
+	if resisted and target.team == Actor.Team.PLAYERS:
 		fx.number.rpc(pos, "Immune", "info")
 		return 0.0
 	# Granite Armor style charges swallow whole melee hits.
@@ -290,6 +293,10 @@ func deal_damage(ctx: Dictionary, target: Actor, amount: float, opts: Dictionary
 	if school in ["melee", "ranged", "spell"]:
 		amount *= target.stats.mult(school + "_damage_taken")
 	amount *= float(opts.get("mult", 1.0))
+	if resisted:
+		amount *= 1.0 - float(GameData.bal("combat.immunity_reduction", 0.8))
+		if not dot:
+			fx.number.rpc(pos + Vector2(0, -10), "Resisted", "info")
 	amount = target.modify_damage_taken(amount, data)
 	# Mitigation: armor for physical, resistances for the rest, nothing for true damage.
 	if dtype != "true":

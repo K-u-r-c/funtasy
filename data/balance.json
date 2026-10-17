@@ -319,7 +319,9 @@
 		}
 	},
 	"combat": {
-		"max_traps": 3
+		"max_traps": 3,
+		"_immunity": "A monster 'immune' to a damage type (data immune, statuses immune_<type>) takes this much less of it instead of none (#22).",
+		"immunity_reduction": 0.8
 	},
 	"probe": {
 		"_comment": "Pacing bands for tests/balance_suite.gd (scenario balance): one hero of level = depth in rare gear, primary attack only, monster behaviour modules off. Seconds.",

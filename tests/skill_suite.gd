@@ -97,6 +97,19 @@ func anim_rules(class_id: String) -> void:
 	da.check(err.is_empty() and delay > 0.05 and early and d0.health.hp < hp0,
 			"%s (%s) lands on its impact frame after %.2f s, not at the press" % [sid, anim, delay])
 	_reset()
+	# #22: the Amalgam's twins resist one school each but every class can hurt both.
+	for twin_id in ["bile_twin", "gristle_twin"]:
+		var tw: Enemy = g.spawn_monster(twin_id, g.nearest_floor(_start + Vector2(48, 0)), false)
+		await da._wait(0.3)
+		tw.status.apply("stun", 5.0, 1.0, null)
+		var thp := tw.health.hp
+		p.cooldowns.clear()
+		Combat.instance.try_use_skill(p, sid, tw.global_position)
+		await da._wait(delay + 0.9)
+		da.check(tw.health.hp < thp, "%s's %s hurts the %s (%.0f -> %.0f)" % [class_id, sid, twin_id, thp, tw.health.hp])
+		tw.queue_free()
+		_reset()
+		await da._wait(0.2)
 
 
 ## Every skill node learned (their procs compile), no passive talents or keystones.
@@ -593,8 +606,14 @@ func _expect(ex: String, b: Dictionary, a: Dictionary, target: Enemy, proj_id: i
 			if not (dd > 0.0 and absf(dw - dd * 0.5) <= 1.5):
 				print("[test] warded check: dummy took %.1f, warded took %.1f" % [dd, dw])
 			return dd > 0.0 and absf(dw - dd * 0.5) <= 1.5
-		"warded_untouched":
-			return is_equal_approx(float(a.warded_hp), float(b.warded_hp))
+		"warded_resists":
+			# #22: an immune type deals combat.immunity_reduction less, never nothing.
+			var d0: float = b.d0_hp - a.d0_hp
+			var dr: float = b.warded_hp - a.warded_hp
+			var want := d0 * (1.0 - float(GameData.bal("combat.immunity_reduction", 0.8)))
+			if not (dr > 0.0 and absf(dr - want) <= maxf(1.5, want * 0.25)):
+				print("[test] warded immunity check: dummy took %.1f, warded took %.1f (want %.1f)" % [d0, dr, want])
+			return dr > 0.0 and absf(dr - want) <= maxf(1.5, want * 0.25)
 	push_error("SkillSuite: unknown expectation '%s'" % ex)
 	return false
 
