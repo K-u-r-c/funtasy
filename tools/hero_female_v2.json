@@ -351,13 +351,21 @@
 			"state": "Leather",
 			"state_id": "f038ec62-a8b2-4d90-a99f-6af8789f19a7",
 			"src_dir": "res://assets/sprites/pixellab/gear_src/female_leather",
-			"jobs": {}
+			"jobs": {
+				"0": {
+					"south": "0c75fddd-ec81-4c80-8e4d-e3aadf171651"
+				}
+			}
 		},
 		"mail": {
 			"state": "Mail",
 			"state_id": "234f6755-5fd4-445a-9145-38bebfb416d3",
 			"src_dir": "res://assets/sprites/pixellab/gear_src/female_mail",
-			"jobs": {}
+			"jobs": {
+				"0": {
+					"south": "3dc22129-3d5a-404d-9386-db5ee2cc9717"
+				}
+			}
 		}
 	}
 }

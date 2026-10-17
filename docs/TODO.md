@@ -122,6 +122,10 @@ Goal cap: 2800 generations, never above the remaining allowance, 150 kept in res
 Estimate before the next batches (2026-10-17): female cloth 21 + leather 49 + mail 50 transfers = 120 x 10 = 1200,
 108 legendary icons (Pixen, 1 each) + re-rolls ~150: goal total about 2250 of the 2800 cap (2167 remaining).
 
+| Date | Batch | Used before | Used after | Spend | Goal spend |
+| --- | --- | --- | --- | --- | --- |
+| 2026-10-17 | Female cloth outfit (21 transfers), male leather outfit (24), mail probe (male) and leather / mail probes (female), one transfer lost to a server error (cancelled at 95%), mail chest icon re-roll | 2639 | 3139 | 500 | 1401 |
+
 ## Done (MVP)
 
 - [x] Foundation: folders, pixel-perfect settings, y-sort, autoloads, asset registry, generated placeholders

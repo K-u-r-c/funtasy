@@ -126,6 +126,68 @@
 					]
 				}
 			}
+		},
+		"leather": {
+			"dir": "res://assets/sprites/pixellab/gear_src/female_leather",
+			"layers": {
+				"head_leather": {
+					"regions": [
+						"head"
+					]
+				},
+				"chest_leather": {
+					"regions": [
+						"torso",
+						"arms"
+					]
+				},
+				"legs_leather": {
+					"regions": [
+						"legs"
+					]
+				},
+				"boots_leather": {
+					"regions": [
+						"feet"
+					]
+				},
+				"gloves_leather": {
+					"regions": [
+						"hands"
+					]
+				}
+			}
+		},
+		"mail": {
+			"dir": "res://assets/sprites/pixellab/gear_src/female_mail",
+			"layers": {
+				"head_mail": {
+					"regions": [
+						"head"
+					]
+				},
+				"chest_mail": {
+					"regions": [
+						"torso",
+						"arms"
+					]
+				},
+				"legs_mail": {
+					"regions": [
+						"legs"
+					]
+				},
+				"boots_mail": {
+					"regions": [
+						"feet"
+					]
+				},
+				"gloves_mail": {
+					"regions": [
+						"hands"
+					]
+				}
+			}
 		}
 	},
 	"derive": {

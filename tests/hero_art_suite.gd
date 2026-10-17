@@ -179,7 +179,9 @@ func equip_midanim_test() -> void:
 ## the composite has no interior holes (a masked body pixel no piece draws, with all 4 neighbours
 ## drawn) and trims the body's outline only where hair is hidden under a hood or helmet (the
 ## "No body under gear" decision).
-const SETS := {"plate": ["head_helm", "chest_armor", "legs_armor", "boots_armor", "gloves_armor"], "cloth": ["head_hood", "chest_robe"]}
+const SETS := {"plate": ["head_helm", "chest_armor", "legs_armor", "boots_armor", "gloves_armor"], "cloth": ["head_hood", "chest_robe"],
+	"leather": ["head_leather", "chest_leather", "legs_leather", "boots_leather", "gloves_leather"],
+	"mail": ["head_mail", "chest_mail", "legs_mail", "boots_mail", "gloves_mail"]}
 
 
 func audit() -> void:
@@ -219,6 +221,8 @@ func audit() -> void:
 	da.check(checked > 0 and empty.is_empty(), "all %d layer frames have pixels where the body part shows (%d empty: %s)" % [checked, empty.size(), empty.slice(0, 6)])
 	for g in CharacterSprite.genders():
 		for set_name in SETS:
+			if not SETS[set_name].any(func(app): return not CharacterSprite.gear_key(app, g).is_empty()):
+				continue  # this family isn't drawn for this gender yet (ItemLooks falls back)
 			var res := set_holes(g, SETS[set_name])
 			da.check(res.interior == 0 and res.trim == 0,
 					"%s %s set: no interior holes (%d) and no trimmed body outline except hidden hair (%d px trimmed, %d hair; worst %s)" % [g, set_name, res.interior, res.trim, res.hair, res.at])

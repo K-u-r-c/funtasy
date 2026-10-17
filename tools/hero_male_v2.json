@@ -320,6 +320,87 @@
 					"north": "db35a506-b986-45ea-90ea-420a4256a81a"
 				}
 			}
+		},
+		"leather": {
+			"state": "Leather",
+			"state_id": "39be826a-c782-4b70-8f95-fbc672e2b6c2",
+			"src_dir": "res://assets/sprites/pixellab/gear_src/male_leather",
+			"jobs": {
+				"0": {
+					"south": "60cfcdd1-254b-4bd1-9fa3-5ddd416d0624",
+					"south-east": "b5ec9bd8-90a7-4fed-9364-54eb9b71b121",
+					"east": "bf6ff8c5-5e71-4127-9500-061e62fc12df",
+					"north-east": "87ca69a2-7ac8-4c8b-8703-ddab1f19a555",
+					"north": "47c13cfa-751f-4cba-8f09-4e480304d1eb"
+				},
+				"1": {
+					"south": "f6805dea-fcd9-4506-9135-2f3a884ab350",
+					"south-east": "95069b9c-e4c4-4812-9e6c-0341b0d9e3c7",
+					"east": "70c2652b-a425-4f20-a90c-b2655ddf86c2",
+					"north-east": "f4a80026-fa97-4e42-8ea5-f7327d1cd51e",
+					"north": "2f7ff8f5-f7e5-43cd-9e1a-677871bf9129"
+				},
+				"2": {
+					"south": "bac4b7b6-457f-4223-b765-c8a91708b95a",
+					"south-east": "587c528b-98e1-4a71-b177-f97e702828ff",
+					"east": "9ffcc3e5-3d28-4d00-926a-a6e41ba9346c",
+					"north-east": "2d81fd03-c56d-4dff-9d17-904af391899d",
+					"north": "f65b821b-1149-4c89-b97b-e3fe16d9d671"
+				},
+				"3": {
+					"south": "70193472-0259-4b03-bfba-5630cc37a931",
+					"south-east": "dd80bee2-cd57-46c9-af84-77626d2c57f7",
+					"east": "0754c2cd-db18-4f8f-9a68-7f8ee4f3f83b",
+					"north-east": "aab889d7-2fb5-4945-a984-fbc02d5f12de",
+					"north": "70873069-9402-473f-96d5-d99fa4b1f690"
+				},
+				"4": {
+					"south": "622b92db-73ed-4c19-8bf2-d40d0adf4083",
+					"south-east": "ad94dc48-d14d-4e82-879c-0d34119e328a",
+					"east": "918e1545-6765-4f2e-a5ac-946c16652a1f",
+					"north-east": "31b39e02-1211-4860-90d7-d1070048e9e4",
+					"north": "f80233b8-189f-4f02-a813-ef5aa486f072"
+				}
+			}
+		},
+		"mail": {
+			"state": "Mail",
+			"state_id": "fe01e53f-3d53-42e7-9129-9d13b43dfbbe",
+			"src_dir": "res://assets/sprites/pixellab/gear_src/male_mail",
+			"jobs": {
+				"0": {
+					"south": "0a3553de-a836-437e-b139-50c9cfd8f7a0",
+					"south-east": "042d9dfa-cd78-45db-a1d9-d5ce649763e1",
+					"east": "321777be-e75f-473b-be9a-4ffddbab67ec",
+					"north-east": "5a311857-2ea3-4cb6-b949-19b53b553ef8",
+					"north": "a67770fc-c5a9-4d52-afab-59b772df4c1e"
+				},
+				"1": {
+					"south": "dc7e9112-100c-45a4-a03c-d515b63f46da",
+					"south-east": "926ada67-5123-49d5-8197-deb99d062cfb",
+					"east": "6d87a21b-07e2-44c3-ac7b-cc7c7e5427e6",
+					"north-east": "9d31bde8-9d31-4bb6-97cc-6aad990ffceb",
+					"north": "35094038-2b46-496d-9cd0-ceb9fe7c109c"
+				},
+				"2": {
+					"south": "6aea06f7-7bc4-4c94-a96a-4cc7ac0dc5b3",
+					"south-east": "04a06a7c-b1ad-4410-b1a4-a1ff7158432b",
+					"east": "2288ca1b-a73d-44b3-9293-341275431e38",
+					"north-east": "e294f382-3948-4564-a820-8cb2dba1b789",
+					"north": "e40cb8c4-984d-40f2-a980-6deda6747993"
+				},
+				"3": {
+					"south": "7aeea767-9c16-40cf-907b-6fbd6130d121",
+					"south-east": "d2d6fc80-0ed4-47ef-852b-598c6895b9db",
+					"east": "850305d1-f0ca-4d0a-b474-7693384429f2",
+					"north-east": "55e40cde-b9d4-4be8-803e-b58e6b9842fe",
+					"north": "e36d1c6f-899f-4c57-82b1-8c4b4e60fdc5"
+				},
+				"4": {
+					"south": "b62ae1f8-38d0-4123-8f76-1ba3b32c453e",
+					"south-east": "4a2c81da-677c-4527-9a39-f7e33a048cd2"
+				}
+			}
 		}
 	}
 }
