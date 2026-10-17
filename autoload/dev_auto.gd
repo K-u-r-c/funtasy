@@ -2162,8 +2162,10 @@ func _held_check(g: String, br: RefCounted, body_entry: Dictionary) -> void:
 							worst_at = "first empty: %s %s dir %d frame %d" % [layer, anim, fy, fx]
 						continue
 					var best := 999.0
+					# Worn on the back (quiver): it rests against the body, not in a hand.
+					var targets: Array = reg.keys() if str(cfg.held[layer].get("anchor", "")) == "back" else hands
 					for q in pix:
-						for h in hands:
+						for h in targets:
 							best = minf(best, maxf(absf(q.x - h.x), absf(q.y - h.y)))
 						if best <= 0.0:
 							break
