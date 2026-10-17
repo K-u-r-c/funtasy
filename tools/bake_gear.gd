@@ -407,10 +407,16 @@ func _held(spec: Dictionary, regions: Dictionary, hands: Dictionary, body: Image
 			if regions[q] in ["arms", "hands"] and q.y <= centre.y and absf(q.x - centre.x) > far:
 				far = absf(q.x - centre.x)
 				best = q
-		if best.x < 0 or centre.x < 0.0:
+		var rest_hand := str(spec.get("hand", "main"))
+		if (best.x < 0 or far < 11.0) and hands.has(rest_hand):
+			# No arm reaches out (rest frames): the item stays in its usual hand.
+			h = hands[rest_hand]
+			hand = rest_hand
+		elif best.x < 0 or centre.x < 0.0:
 			return []
-		var v := (Vector2(best) - centre).normalized()
-		h = {"grip": best, "vec": v, "rad": v, "pix": {}, "hidden": false}
+		else:
+			var v := (Vector2(best) - centre).normalized()
+			h = {"grip": best, "vec": v, "rad": v, "pix": {}, "hidden": false}
 	else:
 		if not hands.has(hand):
 			return []
