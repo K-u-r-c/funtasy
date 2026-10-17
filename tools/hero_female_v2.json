@@ -353,7 +353,24 @@
 			"src_dir": "res://assets/sprites/pixellab/gear_src/female_leather",
 			"jobs": {
 				"0": {
-					"south": "0c75fddd-ec81-4c80-8e4d-e3aadf171651"
+					"south": "0c75fddd-ec81-4c80-8e4d-e3aadf171651",
+					"south-east": "a798cf5f-fd3a-4456-ab6f-17445175b059",
+					"east": "fbd92a76-e24e-492e-a596-8463f4252603",
+					"north-east": "dfc16e89-2944-4041-adb0-31efad450f7d",
+					"north": "a6bd2279-30cc-423b-a595-af7090ff0ae1"
+				},
+				"1": {
+					"south": "b7364cdc-ecd7-4422-a597-e58bcf48eb49",
+					"south-east": "9df98086-4f81-4fed-a339-8dbf7b6c6d2c",
+					"east": "f5597554-4fa4-4dd5-8a2d-be35a278d138",
+					"north-east": "4624ddc7-ada1-43bc-b2c3-46858c4b7e2e",
+					"north": "4466274d-5ea7-48f7-97bf-dab4cf3e8907"
+				},
+				"2": {
+					"south": "ad5d5a76-8a72-4e79-8289-cfc48810556e",
+					"south-east": "93de19c6-4f11-4fa9-a1f6-44b134adc1e9",
+					"east": "158ea1c0-4931-4fd9-b8dd-400882fc6ac0",
+					"north-east": "5d2c8a10-7f63-4701-9b84-0414f1cfbcfa"
 				}
 			}
 		},

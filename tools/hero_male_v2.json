@@ -398,7 +398,10 @@
 				},
 				"4": {
 					"south": "b62ae1f8-38d0-4123-8f76-1ba3b32c453e",
-					"south-east": "4a2c81da-677c-4527-9a39-f7e33a048cd2"
+					"south-east": "4a2c81da-677c-4527-9a39-f7e33a048cd2",
+					"east": "bd1d9b30-434e-49e0-8718-18b8dcaf5e92",
+					"north-east": "0a95471d-7303-48c6-a96b-b258aa53ed1a",
+					"north": "83423a66-c2b1-4570-912e-e3046535ac37"
 				}
 			}
 		}
