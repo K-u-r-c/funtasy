@@ -232,7 +232,7 @@ res://
 
 ## Out of scope (do NOT do now)
 
-Matchmaking, accounts and cloud, auction/trading UI, crafting, seasons, a story campaign, localization (the game is English-only), dedicated server, final soundtrack (the user makes it in Suno), new worn armour sets beyond the existing plate/cloth layers (optional, budget permitting).
+Matchmaking, accounts and cloud, auction/trading UI, crafting, seasons, a story campaign, localization (the game is English-only), dedicated server, final soundtrack (the user makes it in Suno). (New worn armour sets are in scope since #20: leather and mail families next to plate and cloth, see `docs/DECISIONS.md`.)
 
 ## PixelLab budget
 

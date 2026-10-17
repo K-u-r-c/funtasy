@@ -104,6 +104,15 @@ Goal cap: 2500 generations, and never more than the remaining allowance. Spend =
 | 2026-10-16 | Biome art after the checkpoint approval: 4 tiles-pro sets, 26 v3 monsters / bosses (3 template animations on 5 directions), 11 shapeless creatures and forms from map objects, 46 props, 10 pact potion icons (1 Pixen sheet) | 1229 | 1736 | 507 | 655 |
 | 2026-10-16 | Terrain obstacles: Ignis's ingot and the arcane prism kind (2 map objects, replace the tinted blocks) | 1736 | 1738 | 2 | 657 |
 
+Visual polish goal (#15-#21), start 2026-10-17: **used 1738, remaining 3068**, resets 2026-11-14.
+Goal cap: 2800 generations, never above the remaining allowance, 150 kept in reserve. Estimate
+(DECISIONS "#16 / #18 / #19"): body animations 100, four outfits 2000, #20 art ~200, re-rolls ~10%.
+
+| Date | Batch | Used before | Used after | Spend | Goal spend |
+| --- | --- | --- | --- | --- | --- |
+| 2026-10-17 | (goal start) | 1738 | 1738 | 0 | 0 |
+| 2026-10-17 | Cost probes: v3 slash on the male base (1 direction), plate transfer_outfit onto it (9 frames); flesh stitcher walk east (missing direction, audit) | 1738 | 1750 | 12 | 12 |
+
 ## Done (MVP)
 
 - [x] Foundation: folders, pixel-perfect settings, y-sort, autoloads, asset registry, generated placeholders
