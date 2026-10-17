@@ -117,6 +117,10 @@ Goal cap: 2800 generations, never above the remaining allowance, 150 kept in res
 | 2026-10-17 | Male plate outfit: 25 transfer_outfit calls (5 batches of 15 frames x 5 directions) | 1812 | 2062 | 250 | 324 |
 | 2026-10-17 | Male cloth (hood + robe) outfit: 25 transfer_outfit calls | 2062 | 2312 | 250 | 574 |
 | 2026-10-17 | Female body attacks: 10 animations x 5 directions (empower re-run after a failed job, bash SE re-roll) | 2312 | 2356 | 44 | 618 |
+| 2026-10-17 | Female plate outfit (25 transfers), leather / mail outfit states for both genders (4), leather probe transfer (1), 13 family / quiver icons (Pixen 32 px, 2 re-rolls) | 2356 | 2639 | 283 | 901 |
+
+Estimate before the next batches (2026-10-17): female cloth 21 + leather 49 + mail 50 transfers = 120 x 10 = 1200,
+108 legendary icons (Pixen, 1 each) + re-rolls ~150: goal total about 2250 of the 2800 cap (2167 remaining).
 
 ## Done (MVP)
 

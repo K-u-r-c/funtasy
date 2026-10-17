@@ -145,9 +145,10 @@ static func icon(item: Dictionary) -> Texture2D:
 	if not GameData.asset_exists(key):
 		return null
 	var base: Texture2D = GameData.texture(key)
-	var variant: Variant = item.get("look", {}).get("variant", null) if item.has("look") else null
-	if variant == null:
-		variant = variant_of(item)
+	# A legendary's colours come from its own icon: the icon is shown as drawn.
+	if item.has("legendary"):
+		return base
+	var variant: Variant = variant_of(item)
 	var p := params(variant)
 	if p.is_empty() or base == null:
 		return base
