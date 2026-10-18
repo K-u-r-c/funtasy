@@ -1440,6 +1440,8 @@ func _darkness_scenario() -> void:
 		m.net_pos = spots[1]
 		await _wait(0.6)
 		check(not m.visible, "a monster in line of sight but in the dark is hidden")
+		host_p.host_teleport(spots[0])
+		await get_tree().physics_frame
 		Combat.instance.fx.ring.rpc(m.global_position, 70.0, "#ff7722", "")
 		await _wait(0.15)
 		if not m.visible:
@@ -1473,7 +1475,12 @@ func _dark_pair(g: Node) -> Array:
 		for x in range(2, d.size.x - 7):
 			var a := d.cell_center(Vector2i(x, y))
 			var b := d.cell_center(Vector2i(x + 5, y))
-			if d.cell_at(Vector2i(x, y)) != DungeonGenerator.CELL_FLOOR or d.cell_at(Vector2i(x + 5, y)) != DungeonGenerator.CELL_FLOOR:
+			# Floor above and below too: a hero next to a wall is pushed off the line.
+			var open := true
+			for c in [Vector2i(x, y), Vector2i(x + 5, y), Vector2i(x, y - 1), Vector2i(x, y + 1), Vector2i(x + 5, y - 1), Vector2i(x + 5, y + 1)]:
+				if d.cell_at(c) != DungeonGenerator.CELL_FLOOR:
+					open = false
+			if not open:
 				continue
 			if a.distance_to(g.layout.start) < 500.0:
 				continue
@@ -1572,13 +1579,14 @@ func _classes_scenario() -> void:
 ## the blow, so the contribution must be counted before it).
 func _first_blow_xp_check(g: Node, p: Player) -> void:
 	var mon: Enemy = g.spawn_monster("ghoul", g.nearest_floor(p.global_position + Vector2(40, 0)), false)
-	await _wait(0.2)
+	await _wait_until(func(): return is_instance_valid(mon) and mon.is_alive() and mon.is_targetable(), 1.5)
 	mon.set_physics_process(false)
 	var xp_before := p.xp + p.level * 100000
+	var state := "alive %s, targetable %s" % [mon.is_alive(), mon.is_targetable()]
 	var ctx := Combat.instance.make_ctx(p, GameData.skill(str(p.skills[0])))
 	Combat.instance.deal_damage(ctx, mon, mon.health.hp + mon.health.absorb + 999.0, {"damage_type": "true"})
-	await _wait(0.2)
-	check(p.xp + p.level * 100000 > xp_before, "%s: a one-hit kill earns the kill's XP" % p.class_id)
+	await _wait_until(func(): return p.xp + p.level * 100000 > xp_before, 1.0)
+	check(p.xp + p.level * 100000 > xp_before, "%s: a one-hit kill earns the kill's XP (%s; then dead %s)" % [p.class_id, state, not is_instance_valid(mon) or not mon.is_alive()])
 
 
 ## A melee primary (warrior, priest since #9) hits the monster in front, breaks a prop in its

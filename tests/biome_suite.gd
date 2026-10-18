@@ -164,7 +164,14 @@ func check_live_floor() -> void:
 	if not g.layout.get("rifts", []).is_empty():
 		var rift: Vector2 = g.layout.rifts[0]
 		_ready_hero()
-		p.host_teleport(g.nearest_floor(rift + Vector2(70, 0)))
+		# A spot in the rift's pull with nothing between (a wall would hold the hero back).
+		var spot: Vector2 = g.nearest_floor(rift + Vector2(70, 0))
+		for off in [Vector2(70, 0), Vector2(-70, 0), Vector2(0, 70), Vector2(0, -70), Vector2(50, 50), Vector2(-50, 50), Vector2(50, -50), Vector2(-50, -50)]:
+			var cand: Vector2 = g.nearest_floor(rift + off)
+			if cand.distance_to(rift) > 40.0 and cand.distance_to(rift) < 90.0 and Combat.instance.has_los(cand, rift):
+				spot = cand
+				break
+		p.host_teleport(spot)
 		var d0 := p.global_position.distance_to(rift)
 		await da._wait(1.2)
 		da.check(p.global_position.distance_to(rift) < d0 - 4.0, "a void rift pulls the hero in")
