@@ -632,14 +632,26 @@ func _full_scenario() -> void:
 	client_p.iframe_left = 30.0
 	var pack: Array = []
 	for mid in ["ghoul", "skeleton_archer", "cultist", "cultist"]:
-		pack.append(g.spawn_monster(mid, g.nearest_floor(host_p.global_position + Vector2(randf_range(-90, 90), randf_range(-60, 60))), false))
+		# In sight of the host: a caster behind a wall never gets its bolt off.
+		var at: Vector2 = g.nearest_floor(host_p.global_position + Vector2(60, 0))
+		for k in 12:
+			var cand: Vector2 = g.nearest_floor(host_p.global_position + Vector2(randf_range(-90, 90), randf_range(-60, 60)))
+			if Combat.instance.has_los(cand, host_p.global_position):
+				at = cand
+				break
+		pack.append(g.spawn_monster(mid, at, false))
 	await _wait(0.3)
 	for e in pack:
 		e.add_threat(host_p, 5.0)
 	pack[0].health.hp = pack[0].health.max_hp * 0.3  # something for the cultists to heal
-	await _wait(12.0)
+	var m_ids := ["ghoul_claw", "skeleton_arrow", "cultist_bolt", "cultist_curse", "cultist_mend"]
+	var all_used := func() -> bool:
+		var used_now := Combat.instance.get_meta("uses", {}) as Dictionary
+		return m_ids.all(func(sid): return used_now.keys().any(func(k): return str(k).ends_with(":" + sid)))
+	await _wait(6.0)
+	await _wait_until(all_used, 14.0)
 	var m_uses := Combat.instance.get_meta("uses", {}) as Dictionary
-	for sid in ["ghoul_claw", "skeleton_arrow", "cultist_bolt", "cultist_curse", "cultist_mend"]:
+	for sid in m_ids:
 		var seen := false
 		for k in m_uses:
 			if str(k).ends_with(":" + sid):
