@@ -681,3 +681,11 @@ its animation's impact frame (data `impact`); channels and cast times hold the s
 | Rejected | A new 8-frame long-stride run would need a transfer for every worn outfit: 4 families x 2 genders x 5 directions x 10 = 400 generations (the whole goal cap). A slower ground speed would change the game's balance. |
 | Pace | `characters.anims.run` (4 frames, 8 fps) and per-body `stride: {walk, run}` in `data/assets.json`; both play at speed / stride cycles a second (`CharacterSprite.pace_for`, capped at `walk_pace_max` 3.0x), so a hasted, slowed or remote hero keeps planted feet. The hero runs from 60 px/s and walks again below 50 (`run_speed`, hysteresis): a walk is calm (2 cycles a second) only up to ~48 px/s. Monsters are unchanged (no run stride). |
 | Tests | `hero-art` measures the contact foot on the sheets of both genders and checks the body's travel in the planted frames against it (within 1.5 px over the cycle) at 36 / 48 px/s (walk) and 72 / 120 / 156 / 192 px/s (run), and that the cadence at up to the normal speed stays at or under 2.5 cycles a second. Review: `--scenario=tour --tour=gait` shots of both genders running, hasted and slowed. |
+
+### #28 Merchants and the boss chamber on the map
+
+| Topic | Decision |
+| --- | --- |
+| Discovery | Per peer, from its own fog-of-war memory: a chamber is marked once its door or any of its cells has been seen (`Dungeon.map_markers`). Nothing is replicated; a client's discoveries never show on the host's map. |
+| Marks | Merchant room: the merchant's sign (Archibald a gold coin, Malphas a blood drop) with a small padlock while its door is sealed (#23). Boss chamber: a skull on a pulsing red glow. Same icons on the minimap and the map (`ui.map_*` in `data/assets.json`; placeholders until the UI art batch). |
+| Tests | `economy`: on both merchant floors no mark before discovery, the right sign after seeing the door, the boss mark after seeing a chamber cell, and walking up to the door through the real fog of war; `economy-lan`: the client's map shows the boss and Malphas marks it found itself, the host's map has no boss mark. Review: `--tour=map_marks`. |

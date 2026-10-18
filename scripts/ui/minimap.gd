@@ -11,11 +11,14 @@ const CANAL := Color("1a3a14")
 var cell_px := 2.0
 var full_map := false
 var _t := 0.0
+var _icons: Dictionary = {}  ## marker icons, loaded in _ready (a texture first loaded inside _draw draws white)
 
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	clip_contents = true
+	for key in ["ui.map_archibald", "ui.map_malphas", "ui.map_boss", "ui.map_lock"]:
+		_icons[key] = GameData.texture(key)
 
 
 func _process(delta: float) -> void:
@@ -57,6 +60,19 @@ func _draw() -> void:
 		var dc: Vector2i = door.cells[0]
 		if d.is_discovered(dc):
 			draw_rect(Rect2(origin + Vector2(dc) * px, Vector2(px, px) * 1.5), Color(0.75, 0.5, 0.25) if not door.is_open else Color(0.4, 0.3, 0.2))
+	# Discovered merchant and boss chambers (#28): the merchant's sign, a lock while sealed.
+	var icon_px := 16.0 if full_map else 12.0
+	for mk in d.map_markers():
+		var tex := _icon("ui.map_boss" if mk.kind == "boss" else "ui.map_" + str(mk.npc))
+		if tex == null:
+			continue
+		var mc := (origin + (Vector2(mk.cell) + Vector2(0.5, 0.5)) * px).round()
+		var ir := Rect2(mc - Vector2(icon_px, icon_px) / 2.0, Vector2(icon_px, icon_px)).abs()
+		if mk.kind == "boss":
+			draw_circle(mc, icon_px * 0.6 + sin(_t * 3.0), Color(0.8, 0.1, 0.05, 0.35))
+		draw_texture_rect(tex, ir, false)
+		if mk.locked:
+			draw_texture_rect(_icon("ui.map_lock"), Rect2(ir.end - Vector2(7, 7), Vector2(8, 8)), false)
 	if game.portal:
 		var pp := origin + Vector2(d.cell_of(game.portal.global_position)) * px
 		var pulse := 0.5 + 0.5 * sin(_t * 4.0)
@@ -85,3 +101,7 @@ func _draw() -> void:
 		draw_string_outline(f2, Vector2(roundf(size.x / 2.0) - 3, 11), "N", HORIZONTAL_ALIGNMENT_LEFT, -1, UITheme.FONT_SMALL, 3, Color.BLACK)
 		draw_string(f2, Vector2(roundf(size.x / 2.0) - 3, 11), "N", HORIZONTAL_ALIGNMENT_LEFT, -1, UITheme.FONT_SMALL, UITheme.GOLD)
 	draw_style_box(UITheme.cached_glass(Color(0, 0, 0, 0), UITheme.EDGE, 1, 0, UITheme.GOLD_DIM), r)
+
+
+func _icon(key: String) -> Texture2D:
+	return _icons.get(key)

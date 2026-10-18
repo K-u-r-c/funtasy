@@ -25,6 +25,7 @@ func run() -> void:
 	await elites_and_key()
 	item_compare()
 	await merchants()
+	await map_markers()
 
 
 func stat_points() -> void:
@@ -475,6 +476,43 @@ func merchant_odds() -> void:
 	da.check(c2.is_empty() or (c2.kind == "chest" and int(c2.index) in [0, 1]), "no elite -> a chest carries the key (%s)" % [c2])
 
 
+## #28: the map shows the merchant room (its merchant's sign) and the boss chamber only once this
+## peer has seen its door or a cell of it.
+func map_markers() -> void:
+	for npc in ["archibald", "malphas"]:
+		await _force_merchant(npc)
+		var d: Dungeon = g.dungeon
+		d.discovered.fill(0)
+		var none := d.map_markers().is_empty()
+		for c in d.leaf_door("merchant").cells:
+			d.mark_discovered(c)
+		var mk: Array = d.map_markers()
+		var ok: bool = mk.size() == 1 and mk[0].kind == "merchant" and mk[0].npc == npc and mk[0].locked == d.leaf_door("merchant").sealed \
+				and Rect2i(g.layout.rooms[int(g.layout.merchant.room)].rect).has_point(mk[0].cell)
+		d.discovered.fill(0)
+		var br: Rect2i = g.layout.rooms[int(g.layout.boss_room)].rect
+		d.mark_discovered(br.position + Vector2i(1, 1))
+		var mk2: Array = d.map_markers()
+		var boss_ok: bool = mk2.size() == 1 and mk2[0].kind == "boss" and br.has_point(mk2[0].cell)
+		da.check(none and ok and boss_ok, "%s floor: no marker before discovery, the %s sign after seeing its door, the boss mark after seeing the chamber (%s / %s)" % [npc, npc, mk, mk2])
+	# Live: walking up to the merchant door shows its sign through the real fog of war.
+	var door: Node = g.dungeon.leaf_door("merchant")
+	g.dungeon.discovered.fill(0)
+	p.host_teleport(g.nearest_floor(outside_door(door, g.layout.rooms[int(g.layout.merchant.room)].rect)))
+	await da._wait(0.8)
+	da.check(g.dungeon.map_markers().any(func(m): return m.kind == "merchant" and m.npc == "malphas"), "standing at Malphas's door puts his sign on the map")
+	p.host_teleport(g.layout.start)
+	await da._wait(0.3)
+
+
+## A spot in front of a leaf chamber's door, outside the chamber.
+static func outside_door(door: Node, room: Rect2i) -> Vector2:
+	var c: Vector2 = door.world_rect.get_center()
+	var tile := float(GameData.bal("world.tile_size"))
+	var room_c := Vector2(room.get_center()) * tile
+	return c + Vector2(0, signf(c.y - room_c.y)) * tile * 2.0
+
+
 ## Host: rebuilds the current floor with `npc` as its merchant (test hook "force_merchant").
 func _force_merchant(npc: String) -> void:
 	GameState.set_meta("force_merchant", npc)
@@ -544,6 +582,7 @@ func run_lan() -> void:
 	NetworkManager.to_clients("DevAuto", "client_cmd", ["eco_tithe", null])
 	await da._wait(0.8)
 	da.check(c.run_mods.size() == mods + 1, "the client's tithe is a run modifier on the client's hero")
+	await lan_markers(c)
 	# Reading: only the reader's screen opens the book; only the reader's codex learns it.
 	c.host_give_item(LootTable.make_book("lore_007", g.loot.rng))
 	await da._wait(0.4)
@@ -577,6 +616,25 @@ func run_lan() -> void:
 	await da._wait(1.0)
 
 
+## #28 over LAN: each peer marks what it has seen itself. The client, sent to the boss door, gets
+## the boss mark; the host, who never went there, doesn't. Then the client finds Malphas's door.
+func lan_markers(c: Player) -> void:
+	var boss_door: Node = g.dungeon.leaf_door("boss")
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["eco_markers_reset", null])
+	await da._wait(0.6)
+	c.host_teleport(g.nearest_floor(outside_door(boss_door, g.layout.rooms[int(g.layout.boss_room)].rect)))
+	await da._wait(1.0)
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["eco_markers", "boss"])
+	await da._wait(0.6)
+	da.check(not g.dungeon.map_markers().any(func(m): return m.kind == "boss"), "the host's map has no boss mark: only the client saw the chamber")
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["eco_markers_reset", null])
+	await da._wait(0.6)
+	c.host_teleport(g.nearest_floor(outside_door(g.dungeon.leaf_door("merchant"), g.layout.rooms[int(g.layout.merchant.room)].rect)))
+	await da._wait(1.0)
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["eco_markers", "malphas"])
+	await da._wait(0.6)
+
+
 ## Client side of run_lan.
 func client_cmd(cmd: String, arg: Variant) -> void:
 	g = da._game()
@@ -584,6 +642,13 @@ func client_cmd(cmd: String, arg: Variant) -> void:
 	match cmd:
 		"eco_check_gold":
 			da.check(p.gold == int(arg), "the client's wallet shows %d gold" % int(arg))
+		"eco_markers_reset":
+			g.dungeon.discovered.fill(0)
+			da.check(g.dungeon.map_markers().is_empty(), "the client's map has no merchant or boss mark after a reset")
+		"eco_markers":
+			var mk: Array = g.dungeon.map_markers()
+			var want := func(m): return m.kind == "boss" if str(arg) == "boss" else (m.kind == "merchant" and m.npc == str(arg))
+			da.check(mk.any(want), "the client's map shows the %s mark it found itself (%s)" % [arg, mk])
 		"eco_buy":
 			g.merchants.request_buy.rpc_id(1, int(arg))
 		"eco_check_stock":

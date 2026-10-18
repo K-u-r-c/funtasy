@@ -105,6 +105,24 @@ func _gait(_arg: String) -> void:
 	p.status.clear_all()
 
 
+## #28: the whole floor discovered, the map with the merchant's sign and the boss mark, and the
+## minimap next to the merchant door.
+func _map_marks(_arg: String) -> void:
+	var d: Dungeon = g.dungeon
+	d.discovered.fill(1)
+	var tx := GameData.texture("ui.map_boss")
+	da.log_line("map_boss %s %s" % [tx.get_size(), tx.get_image().get_pixel(5, 5)])
+	var door: Node = d.leaf_door("merchant")
+	p.host_teleport(g.nearest_floor(door.world_rect.get_center() + Vector2(0, 64)))
+	await da._wait(1.2)
+	await snap("map_marks_minimap_%s" % g.merchant_id)
+	var hud: Node = da.get_tree().get_first_node_in_group("hud")
+	hud.open_overlay(hud.menu_panel("map"))
+	await da._wait(0.6)
+	await snap("map_marks_map_%s" % g.merchant_id)
+	hud.close_overlay()
+
+
 ## Every game menu tab (and later dialogs) with some progress to show.
 func _menus(_arg: String) -> void:
 	p.add_xp(Player.xp_to_next(p.level))

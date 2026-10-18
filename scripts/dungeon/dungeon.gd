@@ -624,6 +624,41 @@ func mark_discovered(c: Vector2i) -> bool:
 	return true
 
 
+## The one door of the boss or merchant chamber (door kind "boss" / "merchant"), or null.
+func leaf_door(kind: String) -> Node:
+	for d in doors:
+		if d.kind == kind:
+			return d
+	return null
+
+
+## Map markers this peer has discovered (#28): the merchant room (by merchant, sealed or open) and
+## the boss chamber, once its door or any of its cells has been seen.
+## [{kind: "merchant" / "boss", npc: "archibald" / "malphas" / "", cell: Vector2i, locked: bool}]
+func map_markers() -> Array:
+	var out: Array = []
+	var rooms: Array = layout.get("rooms", [])
+	var m: Dictionary = layout.get("merchant", {})
+	for e in [["merchant", int(m.get("room", -1)), str(m.get("npc", ""))], ["boss", int(layout.get("boss_room", -1)), ""]]:
+		var ri: int = e[1]
+		if ri < 0 or ri >= rooms.size():
+			continue
+		var rect: Rect2i = rooms[ri].rect
+		var door := leaf_door(e[0])
+		var seen := false
+		if door:
+			for c in door.cells:
+				seen = seen or is_discovered(c)
+		for x in range(rect.position.x, rect.end.x):
+			for y in range(rect.position.y, rect.end.y):
+				if seen:
+					break
+				seen = is_discovered(Vector2i(x, y))
+		if seen:
+			out.append({"kind": e[0], "npc": e[2], "cell": rect.get_center(), "locked": door != null and door.sealed})
+	return out
+
+
 ## Cells that block sight for the grid FOV (walls and closed doors).
 func blocks_sight(c: Vector2i) -> bool:
 	if cell_at(c) == DungeonGenerator.CELL_WALL:

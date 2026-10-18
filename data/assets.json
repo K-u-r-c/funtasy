@@ -595,7 +595,11 @@
 		"_comment": "UI art. The font is a 16 px pixel font (use sizes 16/32/48 for crisp glyphs); the ornate frame is a 9-slice drawn over glass windows (margin = slice size in px).",
 		"font": "res://assets/fonts/funtasy_pixel.ttf",
 		"frame_ornate": {"path": "res://assets/ui/frame_ornate.png", "margin": 24},
-		"menu_backdrop": "res://assets/ui/menu_backdrop.png"
+		"menu_backdrop": "res://assets/ui/menu_backdrop.png",
+		"map_archibald": "res://assets/ui/map/map_archibald.png",
+		"map_malphas": "res://assets/ui/map/map_malphas.png",
+		"map_boss": "res://assets/ui/map/map_boss.png",
+		"map_lock": "res://assets/ui/map/map_lock.png"
 	},
 	"sfx": {
 		"swing": "res://assets/audio/sfx/placeholder/swing.wav",
