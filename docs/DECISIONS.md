@@ -642,3 +642,13 @@ its animation's impact frame (data `impact`); channels and cast times hold the s
 | --- | --- |
 | Rule | A monster or boss "immune" to a damage type (data `immune`, statuses `immune_<type>`) takes `combat.immunity_reduction` (0.8) less of it instead of nothing, with a "Resisted" note over the hit. A solo hero of any class can therefore finish every fight; the right type is still five times better. Heroes' own immunity statuses (none today) would still block fully. |
 | Reviewed | Murk Amalgam's Bile Twin (physical) and Gristle Twin (fire, frost, earth, ...): every class's primary now hurts both (`skills-*` suites). Other "resistant" monsters were already partial (Magma Carapace -60% physical, Banshee -50% physical, door-shields): unchanged. The warded test dummy now checks the 80% reduction. |
+
+## Second playtest round (GitHub issues #23-#32)
+
+### #24 Merchant prices
+
+| Topic | Decision |
+| --- | --- |
+| Buying | `balance.merchant.buy_mult` 1.0 -> 3.0: every item and consumable Archibald sells costs three times the old price (value x 3). |
+| Selling | `sell_mult` stays 0.3, so a hero gets the same gold as before; buying an item back costs 10x what it fetched. |
+| Malphas | Prices nothing in gold (tithe, contracts and pact potions cost stats), so he is unchanged. |

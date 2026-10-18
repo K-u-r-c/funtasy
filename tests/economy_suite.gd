@@ -306,6 +306,7 @@ func merchants() -> void:
 	mer.request_sell.rpc_id(1, idx)
 	await da._wait(0.3)
 	da.check(p.gold == gold0 - price + sp and sp > 0, "selling pays %d gold" % sp)
+	price_rules()
 	var mods_a := p.run_mods.size()
 	mer.request_tithe.rpc_id(1, true)
 	await da._wait(0.2)
@@ -360,6 +361,37 @@ func merchants() -> void:
 	var got := p.stats.get_stat("stamina") - sta0
 	da.check(absf(got - expect) < 2.0, "Colossus Draught adds %.0f Stamina at level %d (D15, got %.1f)" % [expect, p.level, got])
 
+
+
+## #24: merchants sell at 3x the old price (buy_mult was 1.0) and still pay the old 30% of the
+## item value; a hero buys back a sold item at 10x what it fetched.
+func price_rules() -> void:
+	const OLD_BUY_MULT := 1.0
+	const OLD_SELL_MULT := 0.3
+	var bad := ""
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 24
+	var items: Array = []
+	for i in 40:
+		items.append(ItemGenerator.generate_equipment(LootTable.pick_base(["warrior", "mage"], rng), rng.randi_range(1, 30), rng.randi_range(1, 5), rng))
+	for cid in GameData.merchants.archibald.consumables:
+		items.append(ItemGenerator.generate_consumable(str(cid), 1, rng))
+	for e in g.merchants.stock:
+		items.append(e.item)
+	for it in items:
+		var v := Merchants.item_value(it)
+		var buy := Merchants.buy_price(it)
+		var sell := Merchants.sell_price(it)
+		if buy != maxi(1, roundi(v * OLD_BUY_MULT * 3.0)):
+			bad = "%s: buy %d, value %d" % [it.get("name", "?"), buy, v]
+		elif sell != roundi(v * OLD_SELL_MULT):
+			bad = "%s: sell %d, value %d" % [it.get("name", "?"), sell, v]
+		elif v >= 10 and absf(float(buy) / float(sell) - 3.0 / OLD_SELL_MULT) > 1.0:
+			bad = "%s: buy / sell %d / %d" % [it.get("name", "?"), buy, sell]
+	for e in g.merchants.stock:
+		if int(e.price) != Merchants.buy_price(e.item):
+			bad = "stock line %s priced %d" % [e.item.get("name", "?"), int(e.price)]
+	da.check(bad.is_empty(), "merchants sell at 3x the old price, buy at the old 30%%, ratio 10:1 (%d items)%s" % [items.size(), "" if bad.is_empty() else ": " + bad])
 
 
 ## One merchant per floor (#6), over many seeds: exactly one merchant (both appear), in its own
