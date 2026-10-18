@@ -55,12 +55,20 @@ func build(new_layout: Dictionary, def: Dictionary, entity_root: Node2D) -> void
 	_build_tiles()
 	_build_astar()
 	var n := 0
-	for d in layout.doors:
+	for d0 in layout.doors:
+		var d: Dictionary = d0
+		if not str(d.get("kind", "")).is_empty():
+			# The sealed chambers' doors (#23 / #31): the boss door, or the floor merchant's own.
+			d = d0.duplicate()
+			d.type = str(layout.get("merchant", {}).get("npc", "")) if d.kind == "merchant" else "boss"
+			d.biome = str(def.get("id", ""))
 		var door: Node2D = DOOR_SCRIPT.new()
 		door.name = "Door_%d" % n
 		door.setup(d, tile)
 		entities.add_child(door)
 		doors.append(door)
+		if door.light:
+			lights.append(door.light)
 		for c in d.cells:
 			astar.set_point_weight_scale(c, 3.0)
 		n += 1

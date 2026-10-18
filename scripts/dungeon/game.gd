@@ -437,6 +437,9 @@ func host_interact(p: Player, node: Node) -> void:
 				dungeon.doors[gi].floodgate = false
 				dungeon.doors[gi].host_set_open(true)
 			combat.fx.sound.rpc("floodgate", node.global_position)
+	elif node.has_method("host_set_open") and node.sealed:
+		if node.kind == "merchant":
+			merchants.host_door(p, node)
 	elif node.has_method("host_set_open") and node.floodgate and not node.is_open:
 		combat.fx.number.rpc(node.interact_pos(), "Rusted shut - find a lever", "info")
 	elif node.has_method("host_set_open"):

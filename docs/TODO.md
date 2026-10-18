@@ -149,6 +149,8 @@ UI frames / ornaments / icons ~60, re-rolls ~10%.
 | 2026-10-18 | (goal start) | 4221 | 4221 | 0 | 0 |
 | 2026-10-18 | #27 talent icons: 6 Pixen 128x128 sheets of 16 (83 new passive talents + 13 stat icons for #29), cut by `tools/cut_icon_sheet.py` | 4221 | 4227 | 6 | 6 |
 | 2026-10-18 | Icons for the 32 older passives that showed initials (2 Pixen sheets) | 4227 | 4229 | 2 | 8 |
+| 2026-10-18 | #23 / #31 door probe: Archibald vault door v1 (map object, 96 px; not used) | 4229 | 4230 | 1 | 9 |
+| 2026-10-18 | #23 / #31 doors: 7 map objects (Archibald's gilded vault, Malphas's blood seal, a boss gate per biome; 1 each) + 7 "open" object states (**10 each**, the cost was not known before the batch, so no estimate was written; states are not used again in this goal) | 4230 | 4307 | 77 | 86 |
 
 ## Done (MVP)
 

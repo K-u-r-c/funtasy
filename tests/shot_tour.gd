@@ -110,8 +110,6 @@ func _gait(_arg: String) -> void:
 func _map_marks(_arg: String) -> void:
 	var d: Dungeon = g.dungeon
 	d.discovered.fill(1)
-	var tx := GameData.texture("ui.map_boss")
-	da.log_line("map_boss %s %s" % [tx.get_size(), tx.get_image().get_pixel(5, 5)])
 	var door: Node = d.leaf_door("merchant")
 	p.host_teleport(g.nearest_floor(door.world_rect.get_center() + Vector2(0, 64)))
 	await da._wait(1.2)
@@ -139,7 +137,9 @@ func _menus(_arg: String) -> void:
 	hud.close_overlay()
 
 
-## The merchant room of each merchant (#6), Archibald's shop, the tithe dialog and Malphas's bargains.
+## The merchant room of each merchant (#6): its sealed door seen from across the corridor and up
+## close (#23), the door paid for and open, Archibald's shop, the blood price dialog and
+## Malphas's bargains.
 func _merchants(_arg: String) -> void:
 	var hud: Node = da.get_tree().get_first_node_in_group("hud")
 	for npc in ["archibald", "malphas"]:
@@ -154,26 +154,57 @@ func _merchants(_arg: String) -> void:
 			return
 		p.iframe_left = 9999.0
 		p.host_add_gold(400)
+		var door: Node = g.dungeon.leaf_door("merchant")
+		var room: Rect2i = g.layout.rooms[int(m.room)].rect
+		var away := signf(door.world_rect.get_center().y - float(room.get_center().y) * g.dungeon.tile)
+		p.host_teleport(g.nearest_floor(door.interact_pos() + Vector2(0, away * 200.0)))
+		await da._wait(1.2)
+		await snap("merchant_door_far_%s" % npc)
+		p.host_teleport(g.nearest_floor(door.interact_pos() + Vector2(0, away * 56.0)))
+		await da._wait(1.0)
+		await snap("merchant_door_%s" % npc)
+		if npc == "archibald":
+			g.add_party_key(1)
+			g.host_interact(p, door)
+		else:
+			g.host_interact(p, door)
+			await da._wait(0.6)
+			await snap("merchant_tithe")
+			hud.close_overlay()
+			g.merchants.request_tithe.rpc_id(1, true)
+		await da._wait(1.0)
+		await snap("merchant_door_open_%s" % npc)
 		p.host_teleport(m.pos + Vector2(0, 40))
 		await da._wait(1.0)
 		await snap("merchant_room_%s" % npc)
 		p.host_teleport(m.pos + Vector2(0, 18))
 		await da._wait(0.3)
-		if npc == "archibald":
-			g.add_party_key(1)
-			g.host_interact(p, g.dungeon.props["Merchant"])
-			await da._wait(0.6)
-			await snap("merchant_shop")
-			hud.close_overlay()
-		else:
-			g.host_interact(p, g.dungeon.props["Merchant"])
-			await da._wait(0.6)
-			await snap("merchant_tithe")
-			hud.close_overlay()
-			g.merchants.request_tithe.rpc_id(1, true)
-			await da._wait(0.8)
-			await snap("merchant_pacts")
-			hud.close_overlay()
+		g.host_interact(p, g.dungeon.props["Merchant"])
+		await da._wait(0.6)
+		await snap("merchant_shop_%s" % npc)
+		hud.close_overlay()
+
+
+## #31: the boss door of every biome seen from across the room in front of it, then up close.
+func _boss_doors(_arg: String) -> void:
+	for fid in ["crypt", "sewers", "foundry", "archives", "kurgan"]:
+		GameState.set_meta("force_biome", fid)
+		g.start_floor(1)
+		await da._wait(1.5)
+		p = da._local()
+		p.iframe_left = 9999.0
+		for e in g.enemies_root.get_children():
+			if not e.is_boss:
+				e.queue_free()
+		var door: Node = g.dungeon.leaf_door("boss")
+		var room: Rect2i = g.layout.rooms[int(g.layout.boss_room)].rect
+		var away := signf(door.world_rect.get_center().y - float(room.get_center().y) * g.dungeon.tile)
+		p.host_teleport(g.nearest_floor(door.interact_pos() + Vector2(0, away * 150.0)))
+		await da._wait(1.4)
+		await snap("boss_door_far_%s" % fid)
+		p.host_teleport(g.nearest_floor(door.interact_pos() + Vector2(0, away * 60.0)))
+		await da._wait(1.0)
+		await snap("boss_door_%s" % fid)
 
 
 ## The lore reader on a tome and the codex tab.

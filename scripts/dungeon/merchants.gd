@@ -1,14 +1,15 @@
 class_name Merchants
 extends Node
 ## The merchant of every floor (GDD 5, #6): one seeded pick per floor (Game.merchant_id) in its
-## own room - Archibald the Gilded (trades once the party hands him the floor's Gold Key, D11) or
-## Malphas the Soul Broker (a blood tithe once per player per floor, D13). Host-authoritative:
-## the stock, the open shop and the contracts are replicated to everyone; every purchase is a
-## host-validated intent.
+## own sealed room (#23) - Archibald the Gilded (his vault door opens with the floor's Gold Key,
+## used up at the door, D11) or Malphas the Soul Broker (his door opens for the floor's blood
+## price, paid by the hero who breaks the seal, D13). Once the door is open the merchant trades
+## with the whole party. Host-authoritative: the door seal, the stock, the open shop and the
+## contracts are replicated to everyone; every purchase is a host-validated intent.
 ##
 ## RPCs (all on this node, the same path on every peer):
-## - request_buy(index) / request_sell(backpack index) / request_tithe(accept) /
-##   request_contract(index) / request_pact(id): owner -> host, reliable.
+## - request_buy(index) / request_sell(backpack index) / request_tithe(accept: pay the blood
+##   price at Malphas's door) / request_contract(index) / request_pact(id): owner -> host, reliable.
 ## - _sync(stock, contracts, shop_open), _open_ui(kind), _ask_tithe(text), _notice(text):
 ##   host -> peers, reliable.
 
@@ -17,8 +18,7 @@ signal changed
 var game: Node
 var stock: Array = []  ## every peer: [{item, price, left}]
 var contracts: Array = []  ## every peer: indices into merchants.malphas.contracts
-var shop_open := false  ## Archibald took this floor's Gold Key and trades
-var _tithe: Dictionary = {}  ## host: peer -> {"stat", "value"} rolled, "paid": bool
+var shop_open := false  ## Archibald's vault door took this floor's Gold Key: he trades
 var _signed: Dictionary = {}  ## host: peer -> [contract slots signed this floor]
 var rng := RandomNumberGenerator.new()
 
@@ -30,7 +30,6 @@ var rng := RandomNumberGenerator.new()
 
 func host_new_floor(floor_seed: int, item_level: int) -> void:
 	rng.seed = floor_seed + 777
-	_tithe.clear()
 	_signed.clear()
 	shop_open = false
 	var a: Dictionary = GameData.merchants.get("archibald", {})
@@ -80,39 +79,52 @@ static func sell_price(item: Dictionary) -> int:
 	return maxi(each, 0)
 
 
-## Host: a player talked to the floor's merchant.
+## Host: a player talked to the floor's merchant (inside the room, so its door is open).
 func host_interact(p: Player, node: Node) -> void:
 	var d: Dictionary = node.def
 	match str(d.get("npc", "")):
 		"archibald":
-			if not shop_open and game.party_keys > 0:
-				game.add_party_key(-1)
-				shop_open = true
-				game.combat.fx.sound.rpc("key_unlock", node.global_position)
-				game.broadcast_message.rpc("%s hands Archibald the Gold Key" % p.display_name, "#f0c850")
-				_sync.rpc(stock, contracts, shop_open)
 			if shop_open:
 				game.combat.fx.sound.rpc("merchant_chime", node.global_position)
 				_open_ui.rpc_id(p.peer_id, "archibald")
-			else:
-				_notice.rpc_id(p.peer_id, "Archibald trades only for the Gold Key (an elite on this floor may carry it)")
 		"malphas":
-			if _paid(p):
+			if _paid():
 				_open_ui.rpc_id(p.peer_id, "malphas")
-			else:
-				var t: Dictionary = _tithe_for(p)
-				_ask_tithe.rpc_id(p.peer_id, "Crossing the threshold costs a blood tithe: %s for the rest of the run." % mod_text(t))
 
 
-func _paid(p: Player) -> bool:
-	return bool(_tithe.get(p.peer_id, {}).get("paid", false))
+## Host: a player used the merchant room's sealed door (#23).
+func host_door(p: Player, door: Node) -> void:
+	if not door.sealed:
+		return
+	match str(door.type_def.get("seal", "")):
+		"gold_key":
+			if game.party_keys <= 0:
+				_notice.rpc_id(p.peer_id, "The vault is sealed: bring the floor's Gold Key (an elite or a chest carries it)")
+				game.combat.fx.sound.rpc("ui_error", door.interact_pos())
+				return
+			game.add_party_key(-1)
+			door.host_unseal()
+			shop_open = true
+			_sync.rpc(stock, contracts, shop_open)
+			game.combat.fx.sound.rpc("key_unlock", door.interact_pos())
+			game.broadcast_message.rpc("%s opens Archibald's vault with the Gold Key" % p.display_name, "#f0c850")
+		"blood":
+			_ask_tithe.rpc_id(p.peer_id, "Malphas's seal asks for blood: %s for the rest of the run. The door then stays open for the whole party." % mod_text(blood_price(int(game.layout.get("seed", 0)))))
 
 
-func _tithe_for(p: Player) -> Dictionary:
-	if not _tithe.has(p.peer_id):
-		var opts: Array = GameData.merchants.get("malphas", {}).get("tithe", [])
-		_tithe[p.peer_id] = opts[rng.randi_range(0, opts.size() - 1)].duplicate()
-	return _tithe[p.peer_id]
+## The floor's blood price at Malphas's door: one of merchants.json malphas.tithe, picked from the
+## floor seed so every peer shows the same price before anyone pays it.
+static func blood_price(floor_seed: int) -> Dictionary:
+	var opts: Array = GameData.merchants.get("malphas", {}).get("tithe", [])
+	if opts.is_empty():
+		return {"stat": "max_hp", "value": -10.0}
+	return opts[posmod(floor_seed * 31 + 7, opts.size())].duplicate()
+
+
+## Malphas trades once his door's seal is broken (by anyone).
+func _paid() -> bool:
+	var door: Node = game.dungeon.leaf_door("merchant") if game else null
+	return door != null and not door.sealed
 
 
 func _player_near(peer: int) -> Player:
@@ -121,6 +133,17 @@ func _player_near(peer: int) -> Player:
 		return null
 	var m: Dictionary = game.layout.merchant
 	if p.global_position.distance_to(m.pos) > float(GameData.bal("merchant.interact_range")):
+		return null
+	return p
+
+
+## The player within reach of the merchant room's door, or null.
+func _player_at_door(peer: int) -> Player:
+	var p: Player = game.player_by_peer(peer) if game else null
+	var door: Node = game.dungeon.leaf_door("merchant") if game else null
+	if p == null or door == null or p.life_state != Player.Life.ALIVE:
+		return null
+	if p.global_position.distance_to(door.interact_pos()) > float(GameData.bal("world.interact_range")) + 24.0:
 		return null
 	return p
 
@@ -206,15 +229,14 @@ func request_tithe(accept: bool) -> void:
 	if not multiplayer.is_server():
 		return
 	var peer := multiplayer.get_remote_sender_id()
-	var p := _player_near(peer)
-	if p == null or not _is("malphas") or not accept or _paid(p):
+	var p := _player_at_door(peer)
+	if p == null or not _is("malphas") or not accept or _paid():
 		return
-	var t := _tithe_for(p)
-	t.paid = true
+	var t := blood_price(int(game.layout.get("seed", 0)))
 	p.host_add_run_mod(str(t.stat), float(t.value), "Demonic tithe")
+	game.dungeon.leaf_door("merchant").host_unseal()
 	game.combat.fx.sound.rpc("tithe", p.global_position)
-	_notice.rpc_id(peer, "Malphas takes his tithe: %s" % mod_text(t))
-	_open_ui.rpc_id(peer, "malphas")
+	game.broadcast_message.rpc("%s breaks Malphas's blood seal (%s)" % [p.display_name, mod_text(t)], "#e04050")
 
 
 @rpc("any_peer", "call_local", "reliable")
@@ -223,7 +245,7 @@ func request_contract(slot: int) -> void:
 		return
 	var peer := multiplayer.get_remote_sender_id()
 	var p := _player_near(peer)
-	if p == null or not _paid(p) or slot < 0 or slot >= contracts.size():
+	if p == null or not _paid() or slot < 0 or slot >= contracts.size():
 		return
 	var signed: Array = _signed.get(peer, [])
 	if signed.has(slot):
@@ -244,7 +266,7 @@ func request_pact(pact_id: String) -> void:
 		return
 	var peer := multiplayer.get_remote_sender_id()
 	var p := _player_near(peer)
-	if p == null or not _paid(p) or not GameData.pact_consumables.has(pact_id):
+	if p == null or not _paid() or not GameData.pact_consumables.has(pact_id):
 		return
 	var item := ItemGenerator.generate_consumable("pact_" + pact_id, 1, rng)
 	if not p.inv.can_add(item):

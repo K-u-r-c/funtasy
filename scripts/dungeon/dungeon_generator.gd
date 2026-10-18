@@ -51,7 +51,7 @@ func generate(seed_value: int, floor_def: Dictionary, count_mult: float = 1.0, d
 	cells = PackedByteArray()
 	cells.resize(w * h)
 	cells.fill(CELL_WALL)
-	var layout := {"size": Vector2i(w, h)}
+	var layout := {"size": Vector2i(w, h), "seed": seed_value}
 	gen = floor_def.get("generator", {})
 	# #23 / #30 / #31: the merchant and boss chambers are sealed leaves of the room graph. An
 	# attempt that can't attach them (rare) is redrawn from a derived seed, the same on every peer.
@@ -333,7 +333,7 @@ func _mark_merchant_room(rooms: Array) -> void:
 
 ## #23 / #30 / #31: the merchant room hangs off a shallower room and the boss chamber off the
 ## room farthest from the start along the room graph, each through one corridor that touches
-## nothing else and one 2-cell door in its top or bottom wall. The boss is then strictly the
+## nothing else and one 2-cell door in its bottom wall. The boss is then strictly the
 ## farthest room (one more step than the deepest ordinary room) and both are dead ends.
 ## False when the ordinary rooms aren't all connected or a leaf can't be attached.
 func _attach_leaves(rooms: Array) -> bool:
@@ -363,7 +363,7 @@ func _attach_leaves(rooms: Array) -> bool:
 
 
 ## Carves the one corridor of leaf room `li` to room `xi`: a straight stub out of the middle of
-## the leaf's top or bottom wall, then an L (or a grid search) to xi's centre that stays a cell
+## the leaf's bottom wall, then an L (or a grid search) to xi's centre that stays a cell
 ## away from every other floor cell (it only opens into xi itself).
 func _carve_leaf(rooms: Array, li: int, xi: int) -> bool:
 	var leaf: Rect2i = rooms[li].rect
@@ -385,8 +385,9 @@ func _carve_leaf(rooms: Array, li: int, xi: int) -> bool:
 			return false
 		return free_zone.has_point(c) or (not near.has(c) and not lring.has_point(c))
 	var x0 := leaf.get_center().x - 1
-	var sides := [1, -1] if target.get_center().y > leaf.get_center().y else [-1, 1]
-	for side in sides:
+	# Bottom wall only: in the 3/4 view a door's front faces south, so it is seen from the
+	# corridor that leads up to it (a top-wall door would show its back to the approach).
+	for side in [1]:
 		var wall_y := leaf.end.y if side > 0 else leaf.position.y - 1
 		var out_y := leaf.end.y + 2 if side > 0 else leaf.position.y - 4
 		# The stub's own cells: through the wall (2 wide) and two rows beyond the ring.

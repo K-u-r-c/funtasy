@@ -1683,7 +1683,7 @@ func _primary_env_checks(g: Node, p: Player) -> void:
 		mon.queue_free()
 	var door: Node = null
 	for d in g.dungeon.doors:
-		if not d.vertical and not d.floodgate:
+		if not d.vertical and not d.floodgate and not d.sealed:
 			door = d
 			break
 	if door == null:

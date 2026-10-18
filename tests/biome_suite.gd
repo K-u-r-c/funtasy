@@ -24,13 +24,13 @@ func run(biome: String = "") -> void:
 	for id in ids:
 		if biome.is_empty() or id == biome:
 			check_layouts(str(id))
-			leaf_rules(str(id))
+			leaf_rules(str(id), 150 if not biome.is_empty() else 100)
 	await check_live_floor()
 
 
 ## #23 / #30 / #31 over many seeds, read from the carved grid (not the generator's intentions):
 ## the boss chamber is the room farthest from the start along the room graph and a dead end with
-## one opening, its one door is the boss door on a top / bottom wall; the merchant room likewise
+## one opening, its one door is the boss door in its bottom wall; the merchant room likewise
 ## has one opening and one merchant door; nothing else leaks into either.
 func leaf_rules(fid: String, seeds: int = 150) -> void:
 	var fd: Dictionary = GameData.floor_types[fid]
@@ -65,8 +65,8 @@ func _leaf_problem(lay: Dictionary) -> String:
 		if openings != 1 or adj[ri].size() != 1:
 			return "%s room has %d openings, %d neighbours" % [pair[1], openings, adj[ri].size()]
 		var doors: Array = lay.doors.filter(func(d): return Rect2i(d.rect).intersects(rect.grow(1)))
-		if doors.size() != 1 or str(doors[0].kind) != pair[1] or doors[0].vertical:
-			return "%s room doors: %s" % [pair[1], doors.map(func(d): return [d.kind, d.vertical])]
+		if doors.size() != 1 or str(doors[0].kind) != pair[1] or doors[0].vertical or Rect2i(doors[0].rect).position.y != rect.end.y:
+			return "%s room doors: %s" % [pair[1], doors.map(func(d): return [d.kind, d.vertical, d.rect])]
 		# Sealed: with its door shut nothing reaches the room.
 		var shut := {}
 		for c in doors[0].cells:

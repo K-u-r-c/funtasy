@@ -282,31 +282,29 @@ func merchants() -> void:
 	var mer: Merchants = g.merchants
 	da.check(mer.stock.size() >= 5, "Archibald has stock (%d)" % mer.stock.size())
 	var arch: Node = g.dungeon.props["Merchant"]
-	g.add_party_key(-g.party_keys)
-	g.host_interact(p, arch)
+	await sealed_door_rules(room)
+	p.host_teleport(m.pos + Vector2(0, 16))
 	await da._wait(0.2)
-	da.check(not mer.shop_open, "Archibald doesn't trade without the Gold Key")
-	g.add_party_key(1)
 	g.host_interact(p, arch)
 	await da._wait(0.3)
-	da.check(mer.shop_open and g.party_keys == 0, "Archibald takes the Gold Key and trades")
 	var hud: Node = da.get_tree().get_first_node_in_group("hud")
+	da.check(mer.shop_open and hud._overlay != null, "inside the opened vault Archibald trades")
 	hud.close_overlay()
 	# Buying: the stock is shared, gold is checked.
 	p.host_add_gold(5000)
 	var gold0 := p.gold
-	var price := int(mer.stock[0].price)
+	var cost := int(mer.stock[0].price)
 	mer.request_buy.rpc_id(1, 0)
 	await da._wait(0.3)
-	da.check(p.gold == gold0 - price and int(mer.stock[0].left) == 0, "buying takes %d gold and empties that stock line" % price)
+	da.check(p.gold == gold0 - cost and int(mer.stock[0].left) == 0, "buying takes %d gold and empties that stock line" % cost)
 	mer.request_buy.rpc_id(1, 0)
 	await da._wait(0.2)
-	da.check(p.gold == gold0 - price, "a sold-out line can't be bought again")
+	da.check(p.gold == gold0 - cost, "a sold-out line can't be bought again")
 	var idx: int = p.inv.backpack.size() - 1
 	var sp := Merchants.sell_price(p.inv.backpack[idx])
 	mer.request_sell.rpc_id(1, idx)
 	await da._wait(0.3)
-	da.check(p.gold == gold0 - price + sp and sp > 0, "selling pays %d gold" % sp)
+	da.check(p.gold == gold0 - cost + sp and sp > 0, "selling pays %d gold" % sp)
 	price_rules()
 	var mods_a := p.run_mods.size()
 	mer.request_tithe.rpc_id(1, true)
@@ -316,21 +314,36 @@ func merchants() -> void:
 	await _force_merchant("malphas")
 	m = g.layout.merchant
 	da.check(str(m.npc) == "malphas" and mer.contracts.size() == 2, "Malphas has the merchant room and 2 contracts")
-	var mal: Node = g.dungeon.props["Merchant"]
+	var mal_door: Node = g.dungeon.leaf_door("merchant")
+	var mal_room: Rect2i = g.layout.rooms[int(m.room)].rect
+	da.check(mal_door.sealed and not mal_door.is_open and mal_door.door_type == "malphas" and mal_door.monster_proof, "Malphas's door is his own blood-sealed door")
 	p.host_teleport(m.pos + Vector2(0, 16))
 	await da._wait(0.3)
 	var mods0 := p.run_mods.size()
-	g.host_interact(p, mal)
+	mer.request_tithe.rpc_id(1, true)
 	await da._wait(0.2)
-	da.check(p.run_mods.size() == mods0, "talking to Malphas only asks for the tithe")
+	da.check(p.run_mods.size() == mods0 and mal_door.sealed, "the blood price is paid at the door, not from inside")
+	p.host_teleport(g.nearest_floor(outside_door(mal_door, mal_room)))
+	await da._wait(0.3)
+	g.host_interact(p, mal_door)
+	await da._wait(0.2)
+	da.check(p.run_mods.size() == mods0 and mal_door.sealed and not mal_door.is_open, "using the sealed door only names the blood price")
 	hud.close_overlay()
+	var price := Merchants.blood_price(int(g.layout.seed))
 	mer.request_tithe.rpc_id(1, true)
 	await da._wait(0.3)
-	da.check(p.run_mods.size() == mods0 + 1 and str(p.run_mods[-1].source) == "Demonic tithe", "the tithe takes a stat for the run")
-	hud.close_overlay()
+	da.check(p.run_mods.size() == mods0 + 1 and str(p.run_mods[-1].source) == "Demonic tithe" and str(p.run_mods[-1].stat) == str(price.stat)
+			and not mal_door.sealed and mal_door.is_open, "the blood price (%s) takes a stat for the run and opens Malphas's door" % Merchants.mod_text(price))
 	mer.request_tithe.rpc_id(1, true)
 	await da._wait(0.2)
-	da.check(p.run_mods.size() == mods0 + 1, "the tithe is paid once per floor")
+	da.check(p.run_mods.size() == mods0 + 1, "the blood price is paid once per floor")
+	p.host_teleport(m.pos + Vector2(0, 16))
+	await da._wait(0.3)
+	var mal: Node = g.dungeon.props["Merchant"]
+	g.host_interact(p, mal)
+	await da._wait(0.2)
+	da.check(hud._overlay != null, "behind the broken seal Malphas bargains")
+	hud.close_overlay()
 	var gold1 := p.gold
 	mer.request_buy.rpc_id(1, 1)
 	await da._wait(0.2)
@@ -476,6 +489,40 @@ func merchant_odds() -> void:
 	da.check(c2.is_empty() or (c2.kind == "chest" and int(c2.index) in [0, 1]), "no elite -> a chest carries the key (%s)" % [c2])
 
 
+## #23: Archibald's vault door, seen from outside: sealed, it holds against everything (Interact
+## without the key, a sword swing, a monster) and blocks movement and sight; the Gold Key opens it
+## at the door and is used up there.
+func sealed_door_rules(room: Rect2i) -> void:
+	var door: Node = g.dungeon.leaf_door("merchant")
+	da.check(door != null and door.door_type == "archibald" and door.sealed and not door.is_open and not door.vertical,
+			"Archibald's room has its own sealed vault door on a front wall")
+	if door == null:
+		return
+	p.host_teleport(g.nearest_floor(outside_door(door, room)))
+	await da._wait(0.3)
+	da.check(door.interact_text().contains("Gold Key") and not door.type_art("art_closed").is_empty(), "the vault door says what it costs and is drawn as Archibald's (%s)" % door.interact_text())
+	g.add_party_key(-g.party_keys)
+	g.host_interact(p, door)
+	await da._wait(0.2)
+	da.check(door.sealed and not door.is_open and not g.merchants.shop_open, "without the Gold Key the vault stays sealed")
+	door.host_set_open(true)  # the path every swing, monster and lever takes
+	await da._wait(0.2)
+	var solid: bool = not door._shape.disabled and g.dungeon.blocks_sight(door.cells[0]) and door.monster_proof
+	da.check(not door.is_open and solid, "a sealed door can't be forced open and blocks movement, sight and monsters")
+	var probe: Enemy = g.spawn_monster("ghoul", g.nearest_floor(outside_door(door, room)), false)
+	await da._wait(0.2)
+	var dir: Vector2 = (door.world_rect.get_center() - probe.global_position).normalized()
+	probe.global_position = door.world_rect.get_center() - dir * 20.0
+	await da._wait(1.0 + float(GameData.bal("world.door_enemy_open_delay")))
+	da.check(not door.is_open, "a monster waiting at the sealed door never gets in")
+	probe.queue_free()
+	g.add_party_key(1)
+	g.host_interact(p, door)
+	await da._wait(0.3)
+	da.check(not door.sealed and door.is_open and g.party_keys == 0 and g.merchants.shop_open, "the Gold Key, used at the door, unseals it and Archibald trades (sealed %s, open %s, keys %d, %.0f px from the door)"
+			% [door.sealed, door.is_open, g.party_keys, p.global_position.distance_to(door.interact_pos())])
+
+
 ## #28: the map shows the merchant room (its merchant's sign) and the boss chamber only once this
 ## peer has seen its door or a cell of it.
 func map_markers() -> void:
@@ -555,12 +602,19 @@ func run_lan() -> void:
 		pl.iframe_left = 9999.0
 	var m: Dictionary = g.layout.merchant
 	NetworkManager.to_clients("DevAuto", "client_cmd", ["eco_check_merchant", "archibald"])
+	var vault: Node = g.dungeon.leaf_door("merchant")
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["eco_door", [true, "archibald"]])
+	await da._wait(0.5)
 	g.add_party_key(1)
+	p.host_teleport(g.nearest_floor(outside_door(vault, g.layout.rooms[int(m.room)].rect)))
+	await da._wait(0.3)
+	g.host_interact(p, vault)
+	await da._wait(0.4)
+	da.check(not vault.sealed and g.merchants.shop_open, "the host opens the vault with the Gold Key")
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["eco_door", [false, "archibald"]])
 	p.host_teleport(m.pos + Vector2(-14, 18))
 	c.host_teleport(m.pos + Vector2(14, 16))
 	await da._wait(0.5)
-	g.host_interact(p, g.dungeon.props["Merchant"])
-	da.get_tree().get_first_node_in_group("hud").close_overlay()
 	c.host_add_gold(1000)
 	await da._wait(0.4)
 	var price := int(g.merchants.stock[0].price)
@@ -576,12 +630,19 @@ func run_lan() -> void:
 		pl.iframe_left = 9999.0
 	m = g.layout.merchant
 	NetworkManager.to_clients("DevAuto", "client_cmd", ["eco_check_merchant", "malphas"])
-	c.host_teleport(m.pos + Vector2(0, 18))
+	var seal: Node = g.dungeon.leaf_door("merchant")
+	c.host_teleport(g.nearest_floor(outside_door(seal, g.layout.rooms[int(m.room)].rect)))
+	await da._wait(0.4)
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["eco_door", [true, "malphas"]])
 	await da._wait(0.4)
 	var mods := c.run_mods.size()
 	NetworkManager.to_clients("DevAuto", "client_cmd", ["eco_tithe", null])
 	await da._wait(0.8)
-	da.check(c.run_mods.size() == mods + 1, "the client's tithe is a run modifier on the client's hero")
+	da.check(c.run_mods.size() == mods + 1 and not seal.sealed and seal.is_open, "the client's blood price is a run modifier on the client's hero and opens the door")
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["eco_door", [false, "malphas"]])
+	await da._wait(0.4)
+	c.host_teleport(m.pos + Vector2(0, 18))
+	await da._wait(0.4)
 	await lan_markers(c)
 	# Reading: only the reader's screen opens the book; only the reader's codex learns it.
 	c.host_give_item(LootTable.make_book("lore_007", g.loot.rng))
@@ -659,11 +720,15 @@ func client_cmd(cmd: String, arg: Variant) -> void:
 			da.check(str(g.merchant_id) == str(arg) and str(g.layout.merchant.npc) == str(arg) and mp != null and str(mp.type) == str(arg)
 					and not g.dungeon.props.has("Merchant_Portal"), "the client sees the same single merchant (%s)" % arg)
 		"eco_tithe":
+			var door0: Node = g.dungeon.leaf_door("merchant")
+			da.check(door0.interact_text().contains(Merchants.mod_text(Merchants.blood_price(int(g.layout.seed)))), "the client's door prompt names the same blood price (%s)" % door0.interact_text())
 			g.merchants.request_tithe.rpc_id(1, true)
-			await da._wait(0.5)
-			var hud: Node = da.get_tree().get_first_node_in_group("hud")
-			da.check(hud._overlay != null, "after the tithe Malphas's window opens on the client")
-			hud.close_overlay()
+		"eco_door":
+			await da._wait(0.3)
+			var door: Node = g.dungeon.leaf_door("merchant")
+			var want_sealed: bool = arg[0]
+			da.check(door != null and door.door_type == str(arg[1]) and door.sealed == want_sealed and door.is_open == not want_sealed,
+					"the client sees %s's door %s" % [arg[1], "sealed" if want_sealed else "open"])
 		"eco_read":
 			for i in p.inv.backpack.size():
 				if str(p.inv.backpack[i].get("book", "")) == str(arg):
