@@ -86,14 +86,22 @@ func melee(pos: Vector2, dir: Vector2, reach: float, _arc: float, fx_key: String
 
 ## Host -> all (unreliable): AoE impact ring (and explosion).
 @rpc("authority", "call_local", "unreliable")
-func ring(pos: Vector2, r: float, color_html: String, fx_key: String) -> void:
+func ring(pos: Vector2, r: float, color_html: String, fx_key: String, element: String = "") -> void:
 	if world == null:
 		return
 	var c := Color.from_string(color_html, Color.WHITE)
+	# The element's own impact (#34), scaled to the area; the ring stays faint as its edge.
+	var burst := _element_anim("burst", element, r, false)
+	if burst:
+		burst.position = pos
+		burst.z_index = 4
+		world.add_child(burst)
+		burst.play("default")
+		burst.animation_finished.connect(burst.queue_free)
 	var s := Sprite2D.new()
 	s.texture = _tex("fx.ring")
 	s.position = pos
-	s.modulate = Color(c.r * 1.4, c.g * 1.4, c.b * 1.4, 0.9)
+	s.modulate = Color(c.r * 1.4, c.g * 1.4, c.b * 1.4, 0.45 if burst else 0.9)
 	s.z_index = GROUND_Z
 	var base := r / 64.0
 	s.scale = Vector2(base, base * 0.75) * 0.5
@@ -102,7 +110,7 @@ func ring(pos: Vector2, r: float, color_html: String, fx_key: String) -> void:
 	t.tween_property(s, "scale", Vector2(base, base * 0.75), 0.18).set_ease(Tween.EASE_OUT)
 	t.tween_property(s, "modulate:a", 0.0, 0.45).set_delay(0.1)
 	t.chain().tween_callback(s.queue_free)
-	if fx_key == "explosion":
+	if fx_key == "explosion" and burst == null:
 		var a := _anim_sprite("fx.explosion")
 		if a:
 			a.position = pos + HEIGHT * 0.5
@@ -149,14 +157,27 @@ func telegraph(pos: Vector2, r: float, color_html: String, delay: float) -> void
 
 ## Host -> all (reliable): persistent ground zone or trap appears.
 @rpc("authority", "call_local", "reliable")
-func zone(id: int, pos: Vector2, r: float, color_html: String, duration: float, sprite_key: String) -> void:
+func zone(id: int, pos: Vector2, r: float, color_html: String, duration: float, sprite_key: String, element: String = "") -> void:
 	if world == null:
 		return
 	var c := Color.from_string(color_html, Color.WHITE)
 	var n := Node2D.new()
 	n.position = pos
 	n.z_index = GROUND_Z
-	if sprite_key.is_empty():
+	var look := _element_anim("zone", element, r, true) if sprite_key.is_empty() else null
+	if look:
+		# The element's lingering ground (#34) inside a steady edge ring.
+		n.add_child(look)
+		look.play("default")
+		var edge := Sprite2D.new()
+		edge.texture = _tex("fx.ring")
+		edge.scale = Vector2(r / 64.0, r / 64.0 * 0.75)
+		edge.modulate = Color(c.r * 1.3, c.g * 1.3, c.b * 1.3, 0.35)
+		n.add_child(edge)
+		var ll := _light(c, 0.7, 1.0)
+		LightLayers.register(ll, r)
+		n.add_child(ll)
+	elif sprite_key.is_empty():
 		var s := Sprite2D.new()
 		s.texture = _tex("fx.ring")
 		s.scale = Vector2(r / 64.0, r / 64.0 * 0.75)
@@ -347,7 +368,8 @@ static var _strip_cache: Dictionary = {}
 
 ## An additive animated sprite from a one-row strip asset ({path, frames, fps, anchor}); its anchor
 ## (the effect's origin inside a frame) sits on the node's position.
-static func anim_sprite(key: String, loop: bool) -> AnimatedSprite2D:
+## `additive` false: drawn as it is (smoke, dust) but unshaded, so the dark doesn't swallow it.
+static func anim_sprite(key: String, loop: bool, additive: bool = true) -> AnimatedSprite2D:
 	var entry := GameData.asset_entry(key)
 	if not _strip_cache.has(key):
 		_strip_cache[key] = GameData.texture(key)
@@ -370,8 +392,26 @@ static func anim_sprite(key: String, loop: bool) -> AnimatedSprite2D:
 		var an: Array = entry.anchor
 		a.offset = Vector2(w / 2.0 - float(an[0]), tex.get_height() / 2.0 - float(an[1]))
 	var mat := CanvasItemMaterial.new()
-	mat.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+	if additive:
+		mat.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+	else:
+		mat.light_mode = CanvasItemMaterial.LIGHT_MODE_UNSHADED
 	a.material = mat
+	return a
+
+
+## The `kind` ("burst" / "zone") animation of an element from data/fx.json, scaled so its ground
+## span matches the area's diameter (2r), or null.
+func _element_anim(kind: String, element: String, r: float, loop: bool) -> AnimatedSprite2D:
+	var spec: Dictionary = GameData.fx.get(kind, {}).get(element, {})
+	if spec.is_empty() or not GameData.asset_exists(str(spec.get("key", ""))):
+		return null
+	var a := CombatFx.anim_sprite(str(spec.key), loop, str(spec.get("blend", "add")) != "mix")
+	if a == null:
+		return null
+	var k := clampf(2.0 * r / float(spec.get("span", 64)), 0.4, 4.0)
+	a.scale = Vector2(k, k)
+	set_meta("element_fx_log", (get_meta("element_fx_log", []) + [[kind, element]]).slice(-60))  # test harness
 	return a
 
 

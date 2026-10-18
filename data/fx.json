@@ -12,5 +12,30 @@
 		"hot": {"key": "fx.hot_glow", "at": "feet", "scale": 1.2, "behind": true, "light": {"color": "#4dff7a", "energy": 0.7, "radius": 40}},
 		"shield": {"key": "fx.shield_bubble", "at": "center", "scale": 0.95, "light": {"color": "#9fc8ff", "energy": 0.6, "radius": 44}}
 	},
-	"big_heal_fraction": 0.25
+	"big_heal_fraction": 0.25,
+
+	"_elements": "An AoE's element is its effect's \"fx\" (when it names one below), else its damage_type, else the skill's, else physical; aliases fold the rest in. blend mix draws it as it is (smoke, dust, dark pools), otherwise it glows (additive). span: the effect's ground width in pixels at scale 1 (it is scaled so that width matches the area's diameter).",
+	"aliases": {"true": "physical", "heal": "holy", "light": "holy", "dark": "shadow", "poison": "nature", "blood": "physical", "explosion": ""},
+	"burst": {
+		"physical": {"key": "fx.burst_physical", "span": 100, "blend": "mix"},
+		"fire": {"key": "fx.burst_fire", "span": 54, "blend": "mix"},
+		"frost": {"key": "fx.burst_frost", "span": 72, "blend": "mix"},
+		"lightning": {"key": "fx.burst_lightning", "span": 60, "blend": "mix"},
+		"earth": {"key": "fx.burst_earth", "span": 70, "blend": "mix"},
+		"holy": {"key": "fx.burst_holy", "span": 96},
+		"shadow": {"key": "fx.burst_shadow", "span": 88, "blend": "mix"},
+		"nature": {"key": "fx.burst_nature", "span": 50, "blend": "mix"},
+		"arcane": {"key": "fx.burst_arcane", "span": 58}
+	},
+	"zone": {
+		"physical": {"key": "fx.zone_physical", "span": 70, "blend": "mix"},
+		"fire": {"key": "fx.zone_fire", "span": 50, "blend": "mix"},
+		"frost": {"key": "fx.zone_frost", "span": 90, "blend": "mix"},
+		"lightning": {"key": "fx.zone_lightning", "span": 56, "blend": "mix"},
+		"earth": {"key": "fx.zone_earth", "span": 54, "blend": "mix"},
+		"holy": {"key": "fx.zone_holy", "span": 62},
+		"shadow": {"key": "fx.zone_shadow", "span": 54, "blend": "mix"},
+		"nature": {"key": "fx.zone_nature", "span": 54, "blend": "mix"},
+		"arcane": {"key": "fx.zone_arcane", "span": 62}
+	}
 }

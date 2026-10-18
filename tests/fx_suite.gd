@@ -15,6 +15,62 @@ func _init(dev_auto: Node) -> void:
 	da = dev_auto
 
 
+## #34 solo: every area effect in the data (skills, monster and boss skills, legendary and status
+## procs, nested delayed effects) resolves to an element with a burst and a zone look; then a fire,
+## a frost and a holy area are cast and show their own look.
+func run() -> void:
+	g = da._game()
+	p = da._local()
+	await da._wait(1.0)
+	var bad: Array = []
+	var seen := {}
+	var sources: Array = []
+	for sid in GameData.skills:
+		sources.append([str(sid), GameData.skills[sid], GameData.damage_type_of(GameData.skills[sid])])
+	for lg in GameData.legendaries.values() if GameData.legendaries is Dictionary else GameData.legendaries:
+		sources.append([str(lg.get("id", "")), lg, "physical"])
+	for st in GameData.status_effects:
+		sources.append([str(st), GameData.status_effects[st], str(GameData.status_effects[st].get("damage_type", "physical"))])
+	for src in sources:
+		_scan(src[1], {"damage_type": src[2]}, src[0], bad, seen)
+	da.check(bad.is_empty() and seen.size() >= 6, "every area effect resolves to an element look (%d elements; missing: %s)" % [seen.size(), bad.slice(0, 6)])
+	for kind in ["burst", "zone"]:
+		for el in GameData.fx.get(kind, {}):
+			da.check(GameData.asset_exists(str(GameData.fx[kind][el].key)), "%s look of %s has its art" % [kind, el])
+	# Cast a few: each area plays its own element (no plain circle).
+	p.iframe_left = 9999.0
+	var fx: Node = Combat.instance.fx
+	fx.set_meta("element_fx_log", [])
+	var ctx := Combat.instance.make_ctx(p, GameData.skill("mage_fireball"))
+	Combat.instance.run_effect({"type": "aoe", "radius": 50, "damage": {"base": 1, "coef": 0}, "damage_type": "fire", "at": "self"}, ctx, p.global_position + Vector2(80, 0), p.global_position)
+	Combat.instance.run_effect({"type": "aoe", "radius": 50, "damage": {"base": 1, "coef": 0}, "damage_type": "frost", "at": "self"}, ctx, p.global_position + Vector2(-80, 0), p.global_position)
+	Combat.instance.run_effect({"type": "zone", "radius": 50, "duration": 2.0, "tick": 1.0, "heal": {"base": 1, "coef": 0}, "targets": "allies", "at": "self"}, ctx, p.global_position, p.global_position)
+	await da._wait(0.4)
+	var log: Array = fx.get_meta("element_fx_log", [])
+	da.check(log.has(["burst", "fire"]) and log.has(["burst", "frost"]) and log.has(["zone", "holy"]), "cast areas show their element's look (%s)" % [log])
+
+
+func _scan(o: Variant, ctx: Dictionary, src: String, bad: Array, seen: Dictionary) -> void:
+	if o is Dictionary:
+		var t := str(o.get("type", ""))
+		if t in ["aoe", "zone"]:
+			var el := CombatEffects_fx_element(o, ctx)
+			seen[el] = true
+			for kind in ["burst", "zone"]:
+				var spec: Dictionary = GameData.fx.get(kind, {}).get(el, {})
+				if spec.is_empty() or not GameData.asset_exists(str(spec.get("key", ""))):
+					bad.append("%s %s -> %s" % [src, t, el])
+		for v in o.values():
+			_scan(v, ctx, src, bad, seen)
+	elif o is Array:
+		for v in o:
+			_scan(v, ctx, src, bad, seen)
+
+
+static func CombatEffects_fx_element(eff: Dictionary, ctx: Dictionary) -> String:
+	return CombatEffects.fx_element(eff, ctx)
+
+
 static func loops(a: Node) -> Array:
 	var f: Node = a.get_node_or_null("ActorFx")
 	return f._loops.keys() if f else []
@@ -83,6 +139,20 @@ func run_lan() -> void:
 	da.check(played(c.get_path(), "cleanse") and not c.status.has("poison"), "Purify shows a cleanse flash on the teammate")
 	NetworkManager.to_clients("DevAuto", "client_cmd", ["fx_seen", ["cleanse"]])
 	await da._wait(1.0)
+	# #34: Holy Nova's burst and Consecration's ground look on both peers.
+	p.skills[1] = "priest_holy_nova"
+	p.skills[2] = "priest_consecration"
+	p.cooldowns.clear()
+	p.resource.value = p.resource.max_value
+	Combat.instance.fx.set_meta("element_fx_log", [])
+	p.request_skill.rpc_id(1, 1, p.global_position, 0)
+	await da._wait(0.8)
+	p.request_skill.rpc_id(1, 2, p.global_position, 0)
+	await da._wait(0.8)
+	var log: Array = Combat.instance.fx.get_meta("element_fx_log", [])
+	da.check(log.has(["burst", "holy"]) and log.has(["zone", "holy"]), "Holy Nova and Consecration show the holy burst and ground on the host (%s)" % [log])
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["fx_elements", [["burst", "holy"], ["zone", "holy"]]])
+	await da._wait(1.0)
 
 
 func client_cmd(cmd: String, arg: Variant) -> void:
@@ -92,6 +162,9 @@ func client_cmd(cmd: String, arg: Variant) -> void:
 		"fx_seen":
 			var roles: Array = arg
 			da.check(roles.any(func(r): return played(p.get_path(), r)), "the client sees the %s effect on itself" % [roles[0]])
+		"fx_elements":
+			var log: Array = Combat.instance.fx.get_meta("element_fx_log", [])
+			da.check(Array(arg).all(func(x): return log.has(x)), "the client shows the same area looks %s (%s)" % [arg, log])
 		"fx_loop":
 			var role: String = arg[0]
 			var want: bool = arg[1]

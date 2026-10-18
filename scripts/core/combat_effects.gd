@@ -475,6 +475,21 @@ func _melee(eff: Dictionary, ctx: Dictionary, origin: Vector2, dir: Vector2) -> 
 	fx.melee.rpc(origin, dir, reach, rad_to_deg(half_arc * 2.0), str(eff.get("fx", "slash")))
 
 
+## The element whose look an AoE / zone takes (#34, data/fx.json): the effect's "fx" when it
+## names one, else its damage type, else the skill's; a heal-only area is holy.
+static func fx_element(eff: Dictionary, ctx: Dictionary) -> String:
+	var bursts: Dictionary = GameData.fx.get("burst", {})
+	var aliases: Dictionary = GameData.fx.get("aliases", {})
+	var e := str(eff.get("fx", ""))
+	if not bursts.has(e):
+		if not eff.has("damage") and (eff.has("heal") or str(eff.get("targets", "")) == "allies"):
+			e = "heal"
+		else:
+			e = str(eff.get("damage_type", ctx.get("damage_type", "physical")))
+	e = str(aliases.get(e, e))
+	return e if bursts.has(e) else "physical"
+
+
 func apply_aoe(eff: Dictionary, ctx: Dictionary, center: Vector2) -> void:
 	var r := float(eff.radius) * float(ctx.radius_mult)
 	var targets_kind: String = eff.get("targets", "enemies")
@@ -504,7 +519,7 @@ func apply_aoe(eff: Dictionary, ctx: Dictionary, center: Vector2) -> void:
 			p.take_damage(value_of_spec(eff.damage, ctx), ctx)
 	if eff.get("destroys_projectiles", false):
 		destroy_projectiles_in(ctx, center, Vector2.RIGHT, r, 360.0)
-	fx.ring.rpc(center, r, str(eff.get("color", "#ffffff")), str(eff.get("fx", "")))
+	fx.ring.rpc(center, r, str(eff.get("color", "#ffffff")), str(eff.get("fx", "")), fx_element(eff, ctx))
 	if eff.has("shake"):
 		fx.shake.rpc(center, float(eff.shake))
 
@@ -954,7 +969,7 @@ func add_zone(eff: Dictionary, ctx: Dictionary, pos: Vector2) -> int:
 	var vis_r := r if not is_trap else 14.0
 	if eff.get("light_only", false):
 		vis_r = r
-	fx.zone.rpc(id, pos, vis_r, str(eff.get("color", "#ffffff")), float(zones[id].left), str(eff.get("sprite", "")))
+	fx.zone.rpc(id, pos, vis_r, str(eff.get("color", "#ffffff")), float(zones[id].left), str(eff.get("sprite", "")), fx_element(eff, ctx))
 	return id
 
 

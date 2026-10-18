@@ -249,6 +249,25 @@ func _allyfx(_arg: String) -> void:
 	await snap("allyfx_cleanse")
 
 
+## #34: the nine elements' AoE impacts side by side (one shot near their peak), then their
+## lingering zones.
+func _elements(_arg: String) -> void:
+	await arena(0)
+	var els: Array = GameData.fx.get("burst", {}).keys()
+	var ctx := Combat.instance.make_ctx(p, GameData.skill("mage_fireball"))
+	var at := func(i: int) -> Vector2: return p.global_position + Vector2(-130 + 130 * (i % 3), -110 + 100 * (i / 3))
+	for i in els.size():
+		Combat.instance.fx.ring.rpc(at.call(i), 40.0, "#ffffff", "", str(els[i]))
+	await da._wait(0.35)
+	await snap("elements_bursts")
+	await da._wait(1.2)
+	for i in els.size():
+		Combat.instance.fx.zone.rpc(9000 + i, at.call(i), 40.0, "#ffffff", 4.0, "", str(els[i]))
+	await da._wait(0.8)
+	await snap("elements_zones")
+	da.log_line("elements order %s" % [els])
+
+
 ## The merchant room of each merchant (#6): its sealed door seen from across the corridor and up
 ## close (#23), the door paid for and open, Archibald's shop, the blood price dialog and
 ## Malphas's bargains.

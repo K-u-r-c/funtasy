@@ -259,6 +259,8 @@ func _run() -> void:
 				await TargetSuite.new(self).run_lan()
 			"fx_lan":
 				await FxSuite.new(self).run_lan()
+			"fx":
+				await FxSuite.new(self).run()
 			"interact_lan":
 				await InteractSuite.new(self).run_lan()
 			"i18n_lan":
