@@ -307,10 +307,12 @@ func _process(delta: float) -> void:
 		return
 	var best: Node2D = null
 	var best_d := INF
+	# Visible enemies first: the nearest one can stand behind a wall in the next room (fog of war
+	# hides it), and swinging at the wall stalled the boss fight on some layouts.
 	for e in g.enemies_root.get_children():
 		if e.visible:
 			_seen_visible += 1
-		var d: float = e.global_position.distance_to(p.global_position)
+		var d: float = e.global_position.distance_to(p.global_position) + (0.0 if e.visible else 100000.0)
 		if d < best_d:
 			best_d = d
 			best = e
