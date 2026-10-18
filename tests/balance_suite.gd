@@ -253,7 +253,7 @@ func _avg_hit(att: Actor, sk: Dictionary, target: Actor) -> float:
 	if eff.is_empty():
 		return 0.0
 	var total := 0.0
-	var n := 24
+	var n := 400  # damage ranges, crits and misses over 24 hits swung the averages by ±15% (flaky near the band edges)
 	for i in n:
 		var ctx := Combat.instance.test_ctx(att, sk)
 		target.health.hp = target.health.max_hp

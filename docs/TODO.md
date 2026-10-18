@@ -213,6 +213,10 @@ Estimate before the next batches (2026-10-17): female cloth 21 + leather 49 + ma
       the same physics ray Visibility uses (a destructible prop could block sight while the grid check was
       clear), the tank check ignores taunt pulls, and the runner writes line-buffered logs.
 
+- [x] Balance suite averages 400 hits per measurement instead of 24 (2026-10-18): damage ranges, crits and
+      misses swung a hit by ±15% between runs, so rows near a band edge (ranger vs skeleton archer on floor 16,
+      ttk ~0.3 s) failed at random; measured the same before and after the visual polish goal.
+
 ## Known limitations
 
 - Movement is client-predicted; the host only clamps speed (no full reconciliation).
