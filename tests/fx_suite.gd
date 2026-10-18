@@ -101,6 +101,17 @@ func run_spouts() -> void:
 			warned = false
 		t += 0.05
 	da.check(ok, "a warning runs right before every spray")
+	# Every wall side a spout can face: over many floors of this biome, the generator only puts
+	# spouts in north walls facing down, the side the pipe / vent art is drawn for.
+	var fd: Dictionary = g.floor_def
+	var sides := {}
+	var count := 0
+	for i in 40:
+		var lay: Dictionary = DungeonGenerator.new().generate(9100 + i, fd, 1.0, 1 + i % 8)
+		for spd in lay.get("spouts", []):
+			sides[spd.dir] = true
+			count += 1
+	da.check(count > 0 and sides.keys() == [Vector2i.DOWN], "over 40 %s floors every one of %d spouts faces down from a north wall (%s)" % [str(fd.get("id", "")), count, sides.keys()])
 
 
 static func loops(a: Node) -> Array:

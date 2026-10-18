@@ -114,7 +114,7 @@ screenshot review at 1920x1080 and 3440x1440.
 - [x] #33 Heal burst, heal-over-time glow, shield bubble and break, buff and cleanse flashes on allies (`fx-lan`)
 - [x] #34 Nine element looks for AoE impacts and lingering zones (`fx`, `fx-lan`)
 - [x] #36 Sewer drain pipes and Foundry furnace vents with a telegraph before each spray (`spouts-sewers`, `spouts-foundry`)
-- [x] Screenshot review (English and Polish where there is text): tours `interact`, `party` (16:9 and 32:9), `target`, `bookback`, `allyfx`, `elements`, `spouts` (Sewers, Foundry)
+- [x] Screenshot review in English and Polish: tours `interact`, `party` (16:9 and 32:9), `target`, `bookback`, `allyfx`, `elements`, `spouts` (Sewers, Foundry); the Linux release build checked with `--lang=pl`
 
 ## PixelLab ledger
 
