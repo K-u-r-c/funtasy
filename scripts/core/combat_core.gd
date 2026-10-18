@@ -365,10 +365,13 @@ func deal_damage(ctx: Dictionary, target: Actor, amount: float, opts: Dictionary
 			fire(target, "on_fatal", data)
 		if data.prevented:
 			amount = maxf(target.health.hp + target.health.absorb - 1.0, 0.0)
-	# Kill credit must be in place before the blow lands (death fires inside take()).
+	# Kill credit must be in place before the blow lands (death fires inside take()), the XP
+	# contribution too: a first hit that kills still earns its dealer the kill's XP.
 	if caster:
 		target.last_attacker = caster
 		target.last_attack_ctx = ctx
+	if target.has_method("add_contribution") and int(ctx.peer) > 0:
+		target.add_contribution(int(ctx.peer))
 	# Wyvernscale Jerkin: poison clouds feed the ranger's mana instead of hurting.
 	if dtype == "nature" and dot and target.stats.has_flag("toxic_feeder"):
 		target.resource.gain(10.0)
@@ -425,8 +428,6 @@ func deal_damage(ctx: Dictionary, target: Actor, amount: float, opts: Dictionary
 	# Threat and XP contribution.
 	if target.has_method("add_threat") and caster and caster.team != target.team:
 		target.add_threat(caster, amount * float(ctx.threat_mult))
-	if target.has_method("add_contribution") and int(ctx.peer) > 0:
-		target.add_contribution(int(ctx.peer))
 	if caster and caster.has_method("add_contribution") and target.get("peer_id") != null:
 		caster.add_contribution(int(target.peer_id))  # tanking counts as contributing
 	if caster:

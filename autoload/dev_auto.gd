@@ -1532,6 +1532,7 @@ func _classes_scenario() -> void:
 	await _wait(1.0)
 	_starting_kit_checks(p)
 	await _primary_env_checks(g, p)
+	await _first_blow_xp_check(g, p)
 	# Only skill use is checked here: a lucky monster pack must not wipe the solo hero.
 	p.iframe_left = 9999.0
 	var target := _nearest_enemy(p.global_position)
@@ -1555,6 +1556,19 @@ func _classes_scenario() -> void:
 	else:
 		check(p.resource.max_value > 0.0, "mana pool exists")
 	await _wait(0.5)
+
+
+## A killing blow that is also the first hit earns its dealer the kill's XP (death fires inside
+## the blow, so the contribution must be counted before it).
+func _first_blow_xp_check(g: Node, p: Player) -> void:
+	var mon: Enemy = g.spawn_monster("ghoul", g.nearest_floor(p.global_position + Vector2(40, 0)), false)
+	await _wait(0.2)
+	mon.set_physics_process(false)
+	var xp_before := p.xp + p.level * 100000
+	var ctx := Combat.instance.make_ctx(p, GameData.skill(str(p.skills[0])))
+	Combat.instance.deal_damage(ctx, mon, mon.health.hp + mon.health.absorb + 999.0, {"damage_type": "true"})
+	await _wait(0.2)
+	check(p.xp + p.level * 100000 > xp_before, "%s: a one-hit kill earns the kill's XP" % p.class_id)
 
 
 ## A melee primary (warrior, priest since #9) hits the monster in front, breaks a prop in its
