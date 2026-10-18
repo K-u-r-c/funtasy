@@ -125,7 +125,7 @@ Estimate before the next batches (2026-10-17): female cloth 21 + leather 49 + ma
 | Date | Batch | Used before | Used after | Spend | Goal spend |
 | --- | --- | --- | --- | --- | --- |
 | 2026-10-17 | Female cloth outfit (21 transfers), male leather outfit (24), mail probe (male) and leather / mail probes (female), one transfer lost to a server error (cancelled at 95%), mail chest icon re-roll | 2639 | 3139 | 500 | 1401 |
-| 2026-10-18 | Male mail (24 transfers), female leather (24) and mail (24 + 1 re-run of a dropped job), 108 legendary icons (Pixen 32 px) with ~40 re-rolls / prompt tests (bows: Pixen and Pixflux img2img), one more transfer lost to a server error | 3139 | 4044 | 905 | 2306 |
+| 2026-10-18 | Male mail (24 transfers), female leather (24) and mail (24 + 1 re-run of a dropped job), 108 legendary icons (Pixen 32 px) with ~40 re-rolls / prompt tests (bows: Pixen and Pixflux img2img), one more transfer lost to a server error (the re-run's charge posted late) | 3139 | 4054 | 915 | 2316 |
 
 ## Done (MVP)
 
