@@ -745,3 +745,13 @@ its animation's impact frame (data `impact`); channels and cast times hold the s
 | --- | --- |
 | Return | A lore reader opened over a game menu panel (reading a book from the inventory, or Accept on a read book in the codex) remembers that panel (`UIModal.save_state`: the inventory's focused slot, the codex's book); closing the reader with Cancel / Back / B reopens it with that selection (`HUD._back_to`). Opening any other overlay forgets the way back. The main menu's codex opens its reader the same way and comes back to the book. |
 | Tests | `lore`: inventory -> read -> Cancel lands on the inventory with the book's slot focused; codex -> Accept -> Cancel lands on the same book. |
+
+### #35 Several things at one spot
+
+| Topic | Decision |
+| --- | --- |
+| Choice | `Game.find_interactable(p, pick)`: the thing the hero points at, plus everything else whose aim point lies within `world.interact_stack_radius` (30 px) of it, form a stack. Order: an item the hero can take, then doors / chests / the rest by distance, items they can't take last. `pick` cycles through the stack; a different set of things in reach starts again from the first. |
+| Action | New rebindable action `interact_next` "Next thing to interact with": **G** on the keyboard, **left stick click** on the gamepad (the only free pad button). The HUD prompt adds a cycle icon, "1/2" and that button's glyph when there is more than one thing. |
+| Refusals | Checked on the hero's own copy of the inventory: a full backpack ("Backpack is full") or a backpack no bigger than the one carried ("You already have a backpack this big"). Such an item doesn't hide the door and its prompt says why; the host still decides on pickup. Gold and the Gold Key are always takeable. |
+| Doorways | `LootManager.drop_item` moves anything landing within `world.door_drop_margin` of a doorway to the nearest floor cell beside it (kills, chests, and items players drop). |
+| Tests | `interact`: item in a doorway first, `interact_next` to the door, the door opens / closes, the item is picked up; full backpack and a too-small backpack put the door first with the reason; loot dropped on a doorway lands beside it. `interact-lan`: the client sees the same order and opens the door through its switched choice. Review: `--tour=interact` in English and Polish. |

@@ -17,7 +17,7 @@ signal local_stats_changed
 signal local_cooldown_started(slot: int, duration: float)
 signal local_level_up(level: int)
 signal local_loadout_changed
-signal interact_prompt(text: String)
+signal interact_prompt(text: String, index: int, count: int)
 
 # Feedback
 signal damage_number(pos: Vector2, amount: int, kind: String)

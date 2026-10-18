@@ -87,6 +87,8 @@ var _knock := Vector2.ZERO
 var _pending: Dictionary = {}
 var _quick_hold: Dictionary = {}
 var _reviving_peer := 0
+var _interact_pick := 0  ## which of the things at one spot "interact" uses (#35)
+var _interact_key := ""  ## the set of things that pick refers to
 var input_blocked := false
 var auto_aim := Vector2.INF  ## test harness override for the aim point
 var _cc_wander := Vector2.ZERO
@@ -608,8 +610,15 @@ func _handle_interact() -> void:
 	var game := get_tree().get_first_node_in_group("game")
 	if game == null:
 		return
-	var target: Dictionary = game.find_interactable(self)
-	EventBus.interact_prompt.emit(target.get("text", ""))
+	if Input.is_action_just_pressed("interact_next"):
+		_interact_pick += 1
+	var target: Dictionary = game.find_interactable(self, _interact_pick)
+	# A new set of things in reach starts again from the first (#35).
+	if str(target.get("key", "")) != _interact_key:
+		_interact_key = str(target.get("key", ""))
+		_interact_pick = 0
+		target = game.find_interactable(self, 0)
+	EventBus.interact_prompt.emit(target.get("text", ""), int(target.get("index", 0)), int(target.get("count", 0)))
 	if target.get("kind", "") == "revive":
 		var tp: int = target.node.peer_id
 		if Input.is_action_pressed("interact"):

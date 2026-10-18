@@ -5,6 +5,9 @@
 		"interact_range": 48,
 		"revive_range": 44,
 		"pickup_range": 44,
+		"_interact_stack": "#35: things whose aim points lie this close to the chosen one share the spot; the player switches between them",
+		"interact_stack_radius": 30,
+		"door_drop_margin": 6,
 		"door_enemy_open_delay": 1.2
 	},
 	"player": {

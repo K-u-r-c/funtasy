@@ -159,6 +159,29 @@ func _options(_arg: String) -> void:
 	await snap("options_hud_%s" % other)
 
 
+## #35: an item lying in a doorway (the prompt shows 1/2 and the switch button), then the door
+## picked with "interact_next".
+func _interact(_arg: String) -> void:
+	var ia := InteractSuite.new(da)
+	ia.g = g
+	ia.p = p
+	for e in g.enemies_root.get_children():
+		e.queue_free()
+	var door: Node = ia.plain_door()
+	door.host_set_open(false)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 35
+	await ia.put_in_doorway(ItemGenerator.generate_equipment("sword", 1, 3, rng), door)
+	p.host_teleport(g.floor_beside_door(door.world_rect.get_center()))
+	p.auto_aim = door.world_rect.get_center()
+	await da._wait(1.0)
+	await snap("interact_item_%s" % Settings.language)
+	da._action("interact_next")
+	await da._wait(0.5)
+	await snap("interact_door_%s" % Settings.language)
+	p.auto_aim = Vector2.INF
+
+
 ## The merchant room of each merchant (#6): its sealed door seen from across the corridor and up
 ## close (#23), the door paid for and open, Archibald's shop, the blood price dialog and
 ## Malphas's bargains.

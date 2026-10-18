@@ -867,12 +867,14 @@ func _process(_delta: float) -> void:
 		visibility.viewer = local_player
 
 
-## Nearest thing the local player can interact with: {node, kind, text} or {}.
-## The single thing the local player would interact with: {node, kind, text} or {}.
-## Everything within reach is a candidate; the player chooses by pointing at it:
+## The single thing the local player would interact with: {node, kind, text, index, count, key}
+## or {}. Everything within reach is a candidate; the player chooses by pointing at it:
 ## - mouse: the candidate closest to the cursor,
 ## - gamepad: the candidate the character faces (aim direction), nearer ones first on ties.
-func find_interactable(p: Player) -> Dictionary:
+## Things at the same spot as that one (an item lying in a doorway...) form a stack the player
+## switches through with "interact_next" (`pick`, #35): an item they can take comes first, then
+## doors and the rest, items they can't take last (their prompt says why).
+func find_interactable(p: Player, pick: int = 0) -> Dictionary:
 	var pos := p.global_position
 	var reach := float(GameData.bal("world.interact_range"))
 	var candidates: Array = []  ## [point to aim at, node, kind, text]
@@ -914,8 +916,65 @@ func find_interactable(p: Player) -> Dictionary:
 			best = c
 	if best.is_empty():
 		return {}
+	var at: Vector2 = best[0]
+	if best[1].has_method("host_set_open"):
+		at = _closest_on_rect(p.aim_pos if not InputSettings.using_gamepad else pos, best[1].world_rect)
+	var stack_r := float(GameData.bal("world.interact_stack_radius", 30))
+	var stack: Array = []
+	for c in candidates:
+		var pt: Vector2 = _closest_on_rect(at, c[1].world_rect) if c[1].has_method("host_set_open") else c[0]
+		if pt.distance_to(at) <= stack_r or c == best:
+			var rank := 1
+			var text: String = c[3]
+			if c[2] == "item":
+				var why := take_refusal(p, c[1].item)
+				rank = 0 if why.is_empty() else 2
+				if not why.is_empty():
+					text = "%s - %s" % [text, Loc.t(why)]
+			stack.append([rank, pt.distance_to(at), c, text])
+	stack.sort_custom(func(x, y): return x[0] < y[0] or (x[0] == y[0] and x[1] < y[1]))
+	var i := posmod(pick, stack.size())
+	var chosen: Array = stack[i][2]
+	var key := ",".join(stack.map(func(s): return str(s[2][1].get_instance_id())))
 	# The HUD draws the interact button glyph in front of the text.
-	return {"node": best[1], "kind": best[2], "text": best[3]}
+	return {"node": chosen[1], "kind": chosen[2], "text": stack[i][3], "index": i, "count": stack.size(), "key": key}
+
+
+## Why `p` can't take a ground item ("" = they can): a full backpack, or a backpack no bigger than
+## the one they carry. Checked on the player's own copy of the inventory (prompts only; the host
+## decides on pickup).
+func take_refusal(p: Player, item: Dictionary) -> String:
+	match str(item.get("kind", "")):
+		"gold", "gold_key":
+			return ""
+		"backpack":
+			return "" if int(item.get("capacity", 0)) > p.inv.capacity else "You already have a backpack this big"
+	return "" if p.inv.can_add(item) else "Backpack is full"
+
+
+## True when `pos` lies in (or right at) a doorway.
+func in_doorway(pos: Vector2) -> bool:
+	var m := float(GameData.bal("world.door_drop_margin", 6))
+	for d in dungeon.doors:
+		if Rect2(d.world_rect).grow(m).has_point(pos):
+			return true
+	return false
+
+
+## The centre of the nearest walkable floor cell to `pos` that is not a doorway (#35).
+func floor_beside_door(pos: Vector2) -> Vector2:
+	var c := dungeon.cell_of(pos)
+	for r in range(1, 6):
+		var best := Vector2.INF
+		for dx in range(-r, r + 1):
+			for dy in range(-r, r + 1):
+				var cc := c + Vector2i(dx, dy)
+				var at := dungeon.cell_center(cc)
+				if dungeon.cell_at(cc) == DungeonGenerator.CELL_FLOOR and not in_doorway(at) and at.distance_to(pos) < best.distance_to(pos):
+					best = at
+		if best != Vector2.INF:
+			return best
+	return pos
 
 
 func _closest_on_rect(pos: Vector2, r: Rect2) -> Vector2:

@@ -41,6 +41,9 @@ func drop_item(item: Dictionary, pos: Vector2) -> void:
 	var c: Vector2i = game.dungeon.cell_of(pos)
 	if not DungeonGenerator.walkable(game.dungeon.cell_at(c)):
 		pos = game.dungeon.cell_center(game.dungeon.cell_of(game.nearest_floor(pos)))
+	# Nor in a doorway, where the door would sit on top of it (#35).
+	if game.in_doorway(pos):
+		pos = game.floor_beside_door(pos)
 	spawner.spawn({"name": "Item_%d" % _counter, "pos": pos, "item": item})
 
 

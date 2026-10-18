@@ -43,6 +43,10 @@ window/stretch/aspect="expand"
 
 enabled=PackedStringArray("res://addons/mcp_bridge/plugin.cfg")
 
+[internationalization]
+
+locale/translations=PackedStringArray("res://data/i18n/translations.pl.translation")
+
 [layer_names]
 
 2d_physics/layer_1="world"
@@ -62,7 +66,3 @@ textures/vram_compression/import_etc2_astc=true
 environment/defaults/default_clear_color=Color(0, 0, 0, 1)
 2d/snap/snap_2d_transforms_to_pixel=true
 2d/snap/snap_2d_vertices_to_pixel=true
-
-[internationalization]
-
-locale/translations=PackedStringArray("res://data/i18n/translations.pl.translation")
