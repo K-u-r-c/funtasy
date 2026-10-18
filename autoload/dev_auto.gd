@@ -1644,7 +1644,7 @@ func _first_blow_xp_check(g: Node, p: Player) -> void:
 	mon.set_physics_process(false)
 	var xp_before := p.xp + p.level * 100000
 	var state := "alive %s, targetable %s" % [mon.is_alive(), mon.is_targetable()]
-	var ctx := Combat.instance.make_ctx(p, GameData.skill(str(p.skills[0])))
+	var ctx := Combat.instance.test_ctx(p, GameData.skill(str(p.skills[0])))  # a ghoul can dodge
 	Combat.instance.deal_damage(ctx, mon, mon.health.hp + mon.health.absorb + 999.0, {"damage_type": "true"})
 	await _wait_until(func(): return p.xp + p.level * 100000 > xp_before, 1.0)
 	check(p.xp + p.level * 100000 > xp_before, "%s: a one-hit kill earns the kill's XP (%s; then dead %s)" % [p.class_id, state, not is_instance_valid(mon) or not mon.is_alive()])
