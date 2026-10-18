@@ -110,6 +110,8 @@ func check_lunges(biome: String) -> void:
 		await da._wait(0.6)
 		da.check(is_instance_valid(e) and e.global_position.distance_to(from) < 6.0, "%s: no movement during the wind-up" % id)
 		await da._wait(float(sk.windup) + 0.4)
+		# A loaded machine can land the leap a few frames late.
+		await da._wait_until(func(): return not is_instance_valid(e) or e.global_position.distance_to(from) > 20.0, 1.5)
 		da.check(is_instance_valid(e) and e.global_position.distance_to(from) > 20.0, "%s: the %s lands after the wind-up" % [id, sid])
 		if is_instance_valid(e):
 			var spec: Variant = _lunge_damage(sk)

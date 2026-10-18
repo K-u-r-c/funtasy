@@ -646,6 +646,8 @@ func _full_scenario() -> void:
 	leaper.behaviors = []
 	leaper.add_threat(client_p, 50.0)
 	leaper._aggro_since -= 5.0
+	# A freshly spawned ghoul can still be busy with its spawn action for a moment.
+	await _wait_until(func(): return leaper.casting.is_empty() and leaper.channel.is_empty() and leaper.charging.is_empty() and leaper.impact_pending.is_empty(), 1.5)
 	var leap_err := Combat.instance.try_use_skill(leaper, "ghoul_pounce", client_p.global_position)
 	check(leap_err.is_empty() and float(leaper.casting.get("left", 0.0)) >= 0.8, "host: the ghoul winds up its pounce (%s)" % leap_err)
 	await _wait(0.3)
@@ -686,7 +688,15 @@ func _full_scenario() -> void:
 	g.host_interact(host_p, door)
 	await _wait(0.4)
 	if door.is_open == was_open:
-		print("[auto:host] door %s not toggled: hero %.0f px from it, open %s" % [door.name, host_p.global_position.distance_to(door.interact_pos()), was_open])
+		# An open door never closes on someone: an actor that stepped into the doorway in the
+		# meantime (a loaded machine) is moved off and the host tries once more.
+		print("[auto:host] door %s not toggled: hero %.0f px from it, open %s; clearing the doorway" % [door.name, host_p.global_position.distance_to(door.interact_pos()), was_open])
+		for a in Combat.instance.all_actors():
+			if a != host_p and door.world_rect.grow(24).has_point(a.global_position):
+				a.host_teleport(g.layout.start)
+		await _wait(0.3)
+		g.host_interact(host_p, door)
+		await _wait(0.4)
 	check(door.is_open != was_open, "host toggled a door")
 	NetworkManager.to_clients("DevAuto", "client_cmd", ["check_door", [door.name, door.is_open]])
 	await _wait(0.5)
