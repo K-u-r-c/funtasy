@@ -736,3 +736,12 @@ its animation's impact frame (data `impact`); channels and cast times hold the s
 | Font | `assets/fonts/funtasy_pixel_pl.ttf`: the pixel font plus ą ć ę ł ń ó ś ź ż Ą Ć Ę Ł Ń Ó Ś Ź Ż built with fontTools from the font's own letters and accent marks, so they match its pixel style. The Polish text uses only characters of this font (plain quotes and hyphens instead of typographic ones); the test checks every Polish character. |
 | Grammar (assumptions) | Adjectives that are combined at runtime stay masculine (elite prefixes "Wampiryczny Ghul", rarity "Rzadki"); the item kind line becomes "Rzadki - Głowa" ("%s %s" -> "%s - %s") to avoid wrong agreement. Item suffixes are genitive nouns ("Miecz Sokoła"). Counts use colon forms ("Plecak powiększony: 16 miejsc") or `Loc.plural`. A long header subtitle is cut at a word with "..." instead of widening a window (Polish is ~25% longer). |
 | Tests | `i18n` (new): every key has Polish, every Polish character is in the pixel font, switching the language changes a UI label, an item tooltip, a skill tooltip and a lore book, the language option from the pause menu switches and saves the language and the HUD rebuilds in Polish, and no visible text of the HUD, the six game menus, pause, options, both merchants, the lore reader and the main menu shows an English word that has a translation; `i18n-lan`; `ui-layout-pl` (the 183 layout checks with `--lang=pl`). Review: shots flow and the `menus`, `merchants`, `lore`, `skills`, `options` tours in Polish. |
+
+## Third playtest round (GitHub issues #33-#39)
+
+### #38 Closing a book returns to where it was opened
+
+| Topic | Decision |
+| --- | --- |
+| Return | A lore reader opened over a game menu panel (reading a book from the inventory, or Accept on a read book in the codex) remembers that panel (`UIModal.save_state`: the inventory's focused slot, the codex's book); closing the reader with Cancel / Back / B reopens it with that selection (`HUD._back_to`). Opening any other overlay forgets the way back. The main menu's codex opens its reader the same way and comes back to the book. |
+| Tests | `lore`: inventory -> read -> Cancel lands on the inventory with the book's slot focused; codex -> Accept -> Cancel lands on the same book. |

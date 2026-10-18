@@ -8,6 +8,7 @@ const INK := Color("e8d9b8")
 
 var book_id := ""
 var note := ""
+var standalone := false  ## opened by the main menu's codex: closes itself on Cancel
 var _scroll: ScrollContainer
 
 
@@ -54,3 +55,9 @@ func _process(delta: float) -> void:
 	var dir := Input.get_axis("ui_up", "ui_down")
 	if absf(dir) > 0.2:
 		_scroll.scroll_vertical += int(dir * 360.0 * delta)
+
+
+func _unhandled_input(ev: InputEvent) -> void:
+	if standalone and (ev.is_action_pressed("ui_cancel") or ev.is_action_pressed("pause")):
+		get_viewport().set_input_as_handled()
+		closed.emit()

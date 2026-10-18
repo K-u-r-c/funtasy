@@ -27,6 +27,7 @@ var menu_tab := ""  ## id from MENU_TABS for the game menu panels, "" for other 
 var subtitle_text := ""
 var subtitle: Label
 var from_tab := false  ## opened by switching tabs: crossfade instead of the pop-in
+var restore: Dictionary = {}  ## state from save_state() to bring back (returning from a book, #38)
 
 var dim: ColorRect
 var window: GlassWindow
@@ -115,6 +116,11 @@ func notice(text: String, color: Color = UITheme.DANGER) -> void:
 	_notice_tween = create_tween()
 	_notice_tween.tween_interval(3.0)
 	_notice_tween.tween_property(_notice, "modulate:a", 0.0, 0.6)
+
+
+## Override: what to bring back when the player returns to this panel (a selection...).
+func save_state() -> Dictionary:
+	return {}
 
 
 ## Override: build the window body into `content`.

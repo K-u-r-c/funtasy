@@ -20,6 +20,7 @@ func run() -> void:
 	library()
 	drops()
 	await reading()
+	await back_to_panel()
 	await bookshelf()
 
 
@@ -112,6 +113,49 @@ func bookshelf() -> void:
 		await da._wait(0.3)
 	var after: Array = g.items_root.get_children().filter(func(i): return i.item.get("kind", "") == "book")
 	da.check(after.size() > before.size(), "a broken bookshelf drops a book")
+
+
+## #38: a book read from the inventory (or opened from the codex) goes back to that panel, with
+## the selection kept, when the reader is closed with Cancel.
+func back_to_panel() -> void:
+	var hud: Node = da.get_tree().get_first_node_in_group("hud")
+	hud.close_overlay()
+	var std := ""
+	for id in GameData.lore_order:
+		if GameData.lore_books[id].classification == "standard":
+			std = id
+	p.host_give_item(LootTable.make_book(std, RandomNumberGenerator.new()))
+	await da._wait(0.3)
+	var i := _index_of(std)
+	hud.open_overlay(hud.menu_panel("inventory"))
+	await da._wait(0.4)
+	var inv: Node = hud._overlay
+	inv._slots["b:%d" % i].grab_focus()
+	await da._wait(0.2)
+	inv._accept_backpack(i)
+	await da._wait(0.5)
+	da.check(hud._overlay != null and str(hud._overlay.get("book_id")) == std, "reading a book from the inventory opens the reader")
+	da._action("ui_cancel")
+	await da._wait(0.5)
+	var back: Node = hud._overlay
+	da.check(back != null and str(back.get("menu_tab")) == "inventory" and str(back._focus_key) == "b:%d" % i,
+			"Cancel in the reader returns to the inventory with the book still selected (%s)" % [back._focus_key if back else "closed"])
+	# The codex: Accept on a read book opens it, Cancel comes back to the same book.
+	hud._switch_tab("codex")
+	await da._wait(0.4)
+	var codex: Node = hud._overlay
+	codex._buttons[std].grab_focus()
+	await da._wait(0.2)
+	codex._buttons[std].pressed.emit()
+	await da._wait(0.5)
+	da.check(hud._overlay != null and str(hud._overlay.get("book_id")) == std, "Accept on a read book in the codex opens the reader")
+	da._action("ui_cancel")
+	await da._wait(0.5)
+	var c2: Node = hud._overlay
+	da.check(c2 != null and str(c2.get("menu_tab")) == "codex" and str(c2._selected) == std and c2._buttons[std].has_focus(),
+			"Cancel in the reader returns to the codex on the same book")
+	hud.close_overlay()
+	await da._wait(0.3)
 
 
 func _index_of(book: String) -> int:

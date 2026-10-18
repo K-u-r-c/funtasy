@@ -28,6 +28,10 @@ var _cap_label: Label
 var _dragging := false
 var _portrait: CharacterPortrait
 var _focus_key := ""
+
+
+func save_state() -> Dictionary:
+	return {"focus": _focus_key}
 var _shown_key := ""
 var _last_stats: Dictionary = {}
 var _last_level := -1
@@ -39,6 +43,7 @@ func _init() -> void:
 
 
 func _build() -> void:
+	_focus_key = str(restore.get("focus", _focus_key))
 	_cap_label = subtitle
 
 	var body := HBoxContainer.new()

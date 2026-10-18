@@ -50,6 +50,8 @@ var _burst_label: Label  ## "Burst it down" bar of a boss grab (#12)
 var _burst_bar: StatBar
 var _messages: VBoxContainer
 var _prompt_row: HBoxContainer
+var _prompt_more: HBoxContainer
+var _prompt_count: Label
 var _prompt: Label
 var _floor_label: Label
 var _goal_label: Label
@@ -59,6 +61,7 @@ var _center_label: Label
 var _spectate_hint: HBoxContainer
 var _overlay: Control
 var _relocalize_pending := false
+var _back_to: Dictionary = {}  ## {tab, state}: the menu panel a book was opened from (#38)
 var _radial: Control
 var _wipe: Control
 var _dodge_slot: Control
@@ -288,6 +291,15 @@ func _build_bottom() -> void:
 	ph.add_child(InputGlyph.new("interact"))
 	_prompt = UITheme.label("", Color("fff2cc"), UITheme.FONT_BODY)
 	ph.add_child(_prompt)
+	# More than one thing at this spot (#35): "1/2" and the button that switches.
+	_prompt_more = HBoxContainer.new()
+	_prompt_more.add_theme_constant_override("separation", 4)
+	_prompt_more.visible = false
+	ph.add_child(_prompt_more)
+	_prompt_more.add_child(UITheme.icon("act_reset", 16))
+	_prompt_count = UITheme.label("", UITheme.GOLD, UITheme.FONT_SMALL)
+	_prompt_more.add_child(_prompt_count)
+	_prompt_more.add_child(InputGlyph.new("interact_next"))
 
 	var bar := PanelContainer.new()
 	bar.theme_type_variation = &"GlassHud"
@@ -390,7 +402,10 @@ func _divider() -> Control:
 	return d
 
 
-func _set_prompt(t: String) -> void:
+func _set_prompt(t: String, index: int = 0, count: int = 0) -> void:
+	_prompt_more.visible = count > 1
+	if count > 1:
+		_prompt_count.text = "%d/%d" % [index + 1, count]
 	if _prompt.text == t:
 		return
 	var show := not t.is_empty()
@@ -714,13 +729,18 @@ func _unhandled_input(ev: InputEvent) -> void:
 	get_viewport().set_input_as_handled()
 
 
-## The lore reader for a book the local player just read (D19).
+## The lore reader for a book the local player just read (D19). Opened over a game menu panel
+## (the inventory, the codex), closing it goes back to that panel with its selection (#38).
 func open_book(book_id: String, note: String) -> void:
+	var back := {}
+	if _overlay and is_instance_valid(_overlay) and not str(_overlay.get("menu_tab") if _overlay.get("menu_tab") != null else "").is_empty():
+		back = {"tab": str(_overlay.menu_tab), "state": _overlay.save_state()}
 	var r := LoreReader.new()
 	r.book_id = book_id
 	r.note = note
 	r.title_text = Loc.t(str(GameData.lore_books.get(book_id, {}).get("title", "Book")))
 	open_overlay(r)
+	_back_to = back
 
 
 ## Merchants -> local player: open Archibald's shop or Malphas's bargains.
@@ -750,6 +770,7 @@ func ask_tithe(text: String) -> void:
 
 
 func open_overlay(panel: Control) -> void:
+	_back_to = {}
 	close_overlay()
 	close_radial()
 	_overlay = panel
@@ -770,9 +791,17 @@ func _switch_tab(id: String) -> void:
 
 
 func close_overlay() -> void:
+	var back := _back_to
+	_back_to = {}
 	if _overlay and is_instance_valid(_overlay):
 		_overlay.queue_free()
 	_overlay = null
+	if not back.is_empty():
+		var panel := menu_panel(str(back.tab))
+		panel.set("from_tab", true)
+		panel.set("restore", back.state)
+		open_overlay(panel)
+		return
 	if player and is_instance_valid(player):
 		player.input_blocked = false
 	EventBus.ui_overlay_changed.emit(false)

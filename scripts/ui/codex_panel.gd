@@ -6,6 +6,8 @@ extends UIModal
 const LoreReader := preload("res://scripts/ui/lore_reader.gd")
 
 var standalone := false
+var _buttons: Dictionary = {}  ## book id -> its list button
+var _selected := ""
 var _list: VBoxContainer
 var _page: Label
 var _page_title: Label
@@ -83,15 +85,47 @@ func _build() -> void:
 		var bid: String = id
 		btn.focus_entered.connect(_show.bind(bid))
 		btn.mouse_entered.connect(_show.bind(bid))
-		btn.pressed.connect(_show.bind(bid))
+		btn.pressed.connect(_read.bind(bid))
 		_list.add_child(btn)
+		_buttons[bid] = btn
 		if first == null:
 			first = btn
+	var back: Button = _buttons.get(str(restore.get("book", "")))
+	if back:
+		first = back
 	if first:
 		first.grab_focus.call_deferred()
 
 
+func save_state() -> Dictionary:
+	return {"book": _selected}
+
+
+## Accept on a read book opens it in the lore reader; closing the reader comes back here (#38).
+func _read(id: String) -> void:
+	_show(id)
+	if not Codex.is_read(id):
+		return
+	if standalone:
+		var r: UIModal = LoreReader.new()
+		r.book_id = id
+		r.set("standalone", true)
+		r.title_text = Loc.t(str(GameData.lore_books[id].get("title", "Book")))
+		get_parent().add_child(r)
+		set_process_unhandled_input(false)
+		r.closed.connect(func():
+			r.queue_free()
+			set_process_unhandled_input(true)
+			if _buttons.has(id):
+				_buttons[id].grab_focus())
+		return
+	var hud := get_tree().get_first_node_in_group("hud")
+	if hud:
+		hud.open_book(id, "")
+
+
 func _show(id: String) -> void:
+	_selected = id
 	if not Codex.is_read(id):
 		_page_title.text = "???"
 		_page.text = Loc.t("Not read yet. Books drop from bookshelves, secret containers and elite altars.")
