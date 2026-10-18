@@ -295,6 +295,7 @@ func legendary_looks() -> void:
 	var sigs := {}
 	var worn := 0
 	var missing: Array = []
+	var unlit: Array = []  ## legendaries whose sprite layer doesn't get their own colours
 	var ids: Array = GameData.legendaries.keys()
 	var review := OS.get_environment("FUNTASY_REVIEW_DIR")
 	var sheet := Image.create(12 * 72, ceili(ids.size() / 12.0) * 70, false, Image.FORMAT_RGBA8) if not review.is_empty() else null
@@ -311,6 +312,20 @@ func legendary_looks() -> void:
 			continue
 		var v: Dictionary = item.look.variant
 		sigs["%s|%.2f" % [str(v.get("ramp", [])), float(v.get("hue_shift", 0.0))]] = true
+		# The real path: equipped -> Inventory.appearance() -> the sprite layer's material.
+		var inv := Inventory.new()
+		var slot := "main_hand" if str(item.slot) == "weapon" else ("off_hand" if str(item.slot) in ["off_hand", "offhand"] else str(item.slot))
+		inv.equipment[slot] = item
+		var looks_by_layer := inv.appearance()
+		for layer in looks_by_layer:
+			var cs := CharacterSprite.new()
+			cs.set_layer("body", CharacterSprite.body_key("male"))
+			cs.set_look_layer(layer, looks_by_layer[layer], "male")
+			var node: AnimatedSprite2D = cs._layers.get(layer)
+			var mat: ShaderMaterial = node.material if node else null
+			if mat == null or mat.get_shader_parameter("ramp_dark") != Color.from_string(str(v.ramp[0]), Color.BLACK):
+				unlit.append(ids[i])
+			cs.free()
 		if sheet == null:
 			continue
 		var at := Vector2i((i % 12) * 72, (i / 12) * 70)
@@ -330,6 +345,7 @@ func legendary_looks() -> void:
 		sheet.save_png(review.path_join("legendary_looks.png"))
 	da.check(missing.is_empty() and sigs.size() >= int(worn * 0.9),
 			"worn legendaries have their own colours (%d looks for %d legendaries, none without: %s)" % [sigs.size(), worn, missing.slice(0, 4)])
+	da.check(unlit.is_empty(), "an equipped legendary's sprite layer is drawn in its own colours (%d without: %s)" % [unlit.size(), unlit.slice(0, 4)])
 
 
 static var _imgs: Dictionary = {}

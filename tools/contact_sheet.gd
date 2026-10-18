@@ -13,6 +13,8 @@ const LOOKS := {
 	"bare": [],
 	"plate": ["head_helm", "chest_armor", "legs_armor", "boots_armor", "gloves_armor"],
 	"cloth": ["head_hood", "chest_robe"],
+	"leather": ["head_leather", "chest_leather", "legs_leather", "boots_leather", "gloves_leather"],
+	"mail": ["head_mail", "chest_mail", "legs_mail", "boots_mail", "gloves_mail"],
 	"warrior": ["head_helm", "chest_armor", "legs_armor", "boots_armor", "gloves_armor", "weapon_sword", "offhand_shield"],
 	"warrior_2h": ["head_helm", "chest_armor", "legs_armor", "boots_armor", "gloves_armor", "weapon_greatsword"],
 	"sword_shield": ["weapon_sword", "offhand_shield"],
