@@ -2277,6 +2277,10 @@ func _held_check(g: String, br: RefCounted, body_entry: Dictionary) -> void:
 					var best := 999.0
 					# Worn on the back (quiver): it rests against the body, not in a hand.
 					var targets: Array = reg.keys() if str(cfg.held[layer].get("anchor", "")) == "back" else hands
+					# A fist raised over the head ("high" hand of an overhead wind-up) reads as arm.
+					var mode: Variant = cfg.held[layer].get("hand_anim", {}).get(anim)
+					if (mode is Array and str(mode[fy]) == "high") or (mode is String and mode == "high"):
+						targets = targets + reg.keys().filter(func(q): return reg[q] == "arms")
 					for q in pix:
 						for h in targets:
 							best = minf(best, maxf(absf(q.x - h.x), absf(q.y - h.y)))

@@ -39,6 +39,7 @@ func _init() -> void:
 			outs[layer] = [Image.create(body.get_width(), body.get_height(), false, Image.FORMAT_RGBA8),
 				Image.create(body.get_width(), body.get_height(), false, Image.FORMAT_RGBA8)]
 		var frames := body.get_width() / cell
+		_no_face = anim in cfg.get("no_face_hands", [])
 		for d in DIRS:
 			var per_frame: Array = []  # [src, used, regions] or null
 			for f in frames:
@@ -116,6 +117,7 @@ func _tracked_paths(anim: String, d: int, per_frame: Array) -> Dictionary:
 
 
 var _idle_tops := {}
+var _no_face := false  ## the current animation is in the config's "no_face_hands" (no face / trunk skin as fists)
 
 
 ## Hands from the config's "rest_hands" (where the arms hang, for a body whose skin the regions
@@ -145,6 +147,8 @@ func _anchor_paths(per_frame: Array, d: int) -> Dictionary:
 ## of the tank-top body read as "hands" too, and a hand never rises that high there.
 func _hand_blobs(regions: Dictionary, low := false) -> Array:
 	var hand_px := {}
+	var head := Rect2i()
+	var trunk := Rect2i()
 	var top := 999
 	var xs := 0.0
 	var n := 0
@@ -155,7 +159,10 @@ func _hand_blobs(regions: Dictionary, low := false) -> Array:
 		fig_bot = maxi(fig_bot, p.y)
 		if regions[p] == "hands":
 			hand_px[p] = true
+		elif regions[p] == "head":
+			head = Rect2i(p, Vector2i.ONE) if head.size == Vector2i.ZERO else head.expand(p)
 		elif regions[p] == "torso":
+			trunk = Rect2i(p, Vector2i.ONE) if trunk.size == Vector2i.ZERO else trunk.expand(p)
 			top = mini(top, p.y)
 			xs += p.x
 			n += 1
@@ -172,6 +179,10 @@ func _hand_blobs(regions: Dictionary, low := false) -> Array:
 			continue
 		if low and c.y < fig_top + (fig_bot - fig_top + 1) * LOW_HAND_LINE:
 			continue
+		if _no_face and head.size != Vector2i.ZERO and Rect2(head).grow(1.0).has_point(c) and c.y >= head.position.y + 2:
+			continue  # cheek / jaw skin of the face, not a fist ("no_face_hands" animations)
+		if _no_face and trunk.size.x > 8 and Rect2(trunk).grow(-3.0).has_point(c):
+			continue  # neckline / midriff skin inside the trunk
 		out.append([c, px])
 	return out
 
@@ -469,6 +480,43 @@ func _held(spec: Dictionary, regions: Dictionary, hands: Dictionary, body: Image
 		else:
 			var v := (Vector2(best) - centre).normalized()
 			h = {"grip": best, "vec": v, "rad": v, "pix": {}, "hidden": false}
+	elif hand == "high":
+		# A fist raised over the head (the wind-up of an overhead chop): the highest hand blob or arm
+		# pixel above the middle of the head on the tracked hand's side of the body, which the tracker can lose
+		# to skin on the trunk; otherwise the tracked hand.
+		var head_bot := -1
+		var head_top := 999
+		for q in regions:
+			if regions[q] == "head":
+				head_bot = maxi(head_bot, q.y)
+				head_top = mini(head_top, q.y)
+		var rest_hand := str(spec.get("hand", "main"))
+		var centre := _trunk_centre(regions)
+		var side := signf(float(hands[rest_hand].grip.x) - centre.x) if hands.has(rest_hand) and centre.x >= 0.0 else 0.0
+		var best := Vector2(-1, 999)
+		var cands: Array = []
+		for b in _hand_blobs(regions):
+			cands.append(b[0])
+		for q in regions:
+			if regions[q] == "arms":
+				cands.append(Vector2(q))
+		for c in cands:
+			if c.y < best.y and head_bot >= 0 and c.y <= (head_top + head_bot) / 2.0 and (side == 0.0 or signf(c.x - centre.x) == side):
+				best = c
+		if best.x < 0.0 or centre.x < 0.0:
+			if not hands.has(rest_hand):
+				return []
+			h = hands[rest_hand]
+			hand = rest_hand
+		else:
+			# The fist itself when it is close: the raised forearm's end may read as arm.
+			var near := 4.5
+			for q in regions:
+				if regions[q] == "hands" and Vector2(q).distance_to(best) < near:
+					near = Vector2(q).distance_to(best)
+					best = Vector2(q)
+			var v := (best - centre).normalized()
+			h = {"grip": Vector2i(best.round()), "vec": v, "rad": v, "pix": {}, "hidden": false}
 	elif hand == "forward":
 		# The arm point reaching furthest the way the hero faces, above the hips: the aiming fists
 		# of a crossbow shot, while the tracked weapon hand can be the arm thrown back for balance.

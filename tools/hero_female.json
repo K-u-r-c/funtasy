@@ -345,6 +345,9 @@
 					"radial",
 					0
 				]
+			},
+			"hand_anim": {
+				"cleave": "high"
 			}
 		},
 		"weapon_axe": {
@@ -395,6 +398,9 @@
 					"radial",
 					0
 				]
+			},
+			"hand_anim": {
+				"cleave": "high"
 			}
 		},
 		"weapon_mace": {
@@ -445,6 +451,9 @@
 					"radial",
 					0
 				]
+			},
+			"hand_anim": {
+				"cleave": "high"
 			}
 		},
 		"weapon_bow": {
@@ -589,6 +598,9 @@
 					"radial",
 					0
 				]
+			},
+			"hand_anim": {
+				"cleave": "high"
 			}
 		},
 		"offhand_shield": {
@@ -826,5 +838,9 @@
 			]
 		]
 	},
-	"_rest_hands": "Where the arms hang (idle / walk / dash) the fists are looked for near these anchors (idle frame 0, per direction E..NE; W / SW / NW mirror E / SE / NE), because the tank-top body's bare shoulders, midriff and legs read as hands. The main hand is the side the sword is on at slash frame 0, so it never changes hands when the hero attacks."
+	"_rest_hands": "Where the arms hang (idle / walk / dash) the fists are looked for near these anchors (idle frame 0, per direction E..NE; W / SW / NW mirror E / SE / NE), because the tank-top body's bare shoulders, midriff and legs read as hands. The main hand is the side the sword is on at slash frame 0, so it never changes hands when the hero attacks.",
+	"no_face_hands": [
+		"cleave"
+	],
+	"_no_face_hands": "Animations whose hand blobs centred inside the head's box or deep inside the trunk are ignored: in the female overhead cleave the cheeks, neckline and midriff read as fists while the real fists are raised wide."
 }

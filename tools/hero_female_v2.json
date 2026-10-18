@@ -117,9 +117,22 @@
 				6,
 				8
 			],
+			"from_dir": {
+				"south": "chop_s2"
+			},
+			"pick_dir": {
+				"south": [
+					2,
+					4,
+					6,
+					7,
+					8,
+					0
+				]
+			},
 			"dup": {
-				"south": {
-					"0": 1
+				"south-east": {
+					"1": 0
 				}
 			}
 		},
@@ -183,10 +196,16 @@
 				8
 			],
 			"from_dir": {
-				"south": "aim_s2"
+				"south": "aim_s2",
+				"south-east": "aim_se2"
 			},
 			"pick_dir": {
 				"south": [
+					4,
+					6,
+					8
+				],
+				"south-east": [
 					4,
 					6,
 					8
@@ -336,7 +355,7 @@
 					"north-east": "9aa14baa-69ab-4843-9901-4a2446522bd3"
 				},
 				"2": {
-					"south": "cc381ccc-9ac4-4ea3-b39b-88087a69ef98",
+					"south": "352ef79a-606c-46de-8abc-02cba0dfc437",
 					"south-east": "a6c2d2ad-52a0-4bd5-82fa-58cc44438a68",
 					"east": "445638a6-9aa4-4e10-ba82-a6b1b4536e56",
 					"north-east": "ef82adee-eba8-42b4-ab12-63921cc45a68",
@@ -344,7 +363,7 @@
 				},
 				"3": {
 					"south": "a877a416-b527-415e-a884-8184395d1103",
-					"south-east": "50b9ca2a-8e3c-4ba5-8d16-291a22931432",
+					"south-east": "5051c3bf-b937-41b8-8784-dc85d9a0dace",
 					"east": "fe58d4f1-38e8-4461-b1b9-2eb369c4ff31",
 					"north-east": "370f06f6-156e-4a84-a621-b45b40c1d3de",
 					"north": "f6d70407-318b-460e-9b41-1e94f515b913"
@@ -377,7 +396,7 @@
 					"north": "5d1c5c90-068e-41b2-8772-2e26a35ffa13"
 				},
 				"2": {
-					"south": "0fa8deb8-24bf-45b6-b79b-855e836b20e8",
+					"south": "4db27d75-da22-4691-87dd-391dd64fcbe4",
 					"east": "8f200015-08dd-451a-8b85-24fb856d7aa9",
 					"south-east": "eb2dcbf2-7f54-4480-96ed-7f9ac76e5e77",
 					"north-east": "88c06eae-9b4d-43aa-ad92-1fba16410659",
@@ -385,7 +404,7 @@
 				},
 				"3": {
 					"south": "85460aeb-2e20-4b55-9744-49a5e12ddc17",
-					"south-east": "9a3ee9ad-b2f0-46f2-abce-6c841b51e7a6",
+					"south-east": "784f3113-fb20-41b0-b050-237fe7dd19c8",
 					"east": "7596fffa-b248-4a26-8d7b-0845283d281e",
 					"north-east": "347fafa9-abb7-44f0-b15d-ae23ccbc5f1a",
 					"north": "b58a8db7-39bf-41d5-b4d6-07b1ec8d3fb7"
@@ -419,7 +438,7 @@
 					"north": "4466274d-5ea7-48f7-97bf-dab4cf3e8907"
 				},
 				"2": {
-					"south": "ad5d5a76-8a72-4e79-8289-cfc48810556e",
+					"south": "0fc5a90e-c5a4-4f33-b19c-4a27056f3e30",
 					"south-east": "93de19c6-4f11-4fa9-a1f6-44b134adc1e9",
 					"east": "158ea1c0-4931-4fd9-b8dd-400882fc6ac0",
 					"north-east": "5d2c8a10-7f63-4701-9b84-0414f1cfbcfa",
@@ -427,7 +446,7 @@
 				},
 				"3": {
 					"south": "7569c695-d716-44c5-a1f6-a7e56af30e0f",
-					"south-east": "f2c80433-9c43-4326-9426-ace221705bf3",
+					"south-east": "479499b4-8a5b-4ade-a391-e76eb89543f1",
 					"east": "b2db9a93-4317-4a6d-93eb-065b431954dd",
 					"north-east": "f2e4654a-668f-44dc-a3dd-6f1911033f8a",
 					"north": "8eaabf09-4798-4502-8238-aa98f5751d65"
@@ -461,7 +480,7 @@
 					"north": "c5f52d3b-1f87-4a01-aabf-07cea99db1e5"
 				},
 				"2": {
-					"south": "ae4438c0-f759-4d4a-a1ae-03e25f6e5041",
+					"south": "33beb0eb-b42d-4845-bdcf-68ef3e03f4a0",
 					"south-east": "8a2fdd76-771f-4ae7-a37b-869a2abbcac0",
 					"east": "2e5344d9-a73e-40fe-8016-0b9c93461bce",
 					"north-east": "04968ce6-4176-46b3-9f24-503f67f296c1",
@@ -469,7 +488,7 @@
 				},
 				"3": {
 					"south": "1088f7d2-3e86-4221-920a-69370091f1cf",
-					"south-east": "93d304cf-145b-4181-b6ec-1987ea06552f",
+					"south-east": "59e334b3-c8f3-4c47-b6fc-d491f686ca3a",
 					"east": "5113ce01-aa3f-49e4-aa3e-4b7b1922dea3",
 					"north-east": "8a422185-0531-477f-9c38-5459e2f01036",
 					"north": "1b288a96-9299-4c43-9fc2-9eb504eb9c53"

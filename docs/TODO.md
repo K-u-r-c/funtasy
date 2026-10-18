@@ -131,6 +131,10 @@ Estimate before the next batches (2026-10-17): female cloth 21 + leather 49 + ma
 | 2026-10-18 | Blacksong Greatbow icon redrawn (2 Pixflux img2img tries) | 4054 | 4056 | 2 | 2318 |
 | 2026-10-18 | Second art review: held-item anchors, body-region and dup fixes from existing frames (no generation) | 4056 | 4056 | 0 | 2318 |
 | 2026-10-18 | Female slash east re-drawn (v3 probes swing_e2, swing_e3: no drawn blade) and crossbow south (aim_s2), batch 1 east + batch 3 south re-transferred for the 4 outfits (8 x 10) | 4056 | 4139 | 83 | 2401 |
+| 2026-10-18 | Female cleave south re-drawn (chop_s2: arms in a V, never over the head) and crossbow south-east (aim_se2), batch 2 south + batch 3 south-east re-transferred for the 4 outfits (8 x 10) | 4139 | 4221 | 82 | 2483 |
+
+Estimate before the next batch (female cleave S lifts the forearms over the head, so a head piece worn alone draws sleeves there; female crossbow SE / SW spreads the arms wide): v3 re-rolls of cleave south and shoot_crossbow south-east (1 each, up to 2 tries: <= 4) + transfer_outfit of batch 2 south and batch 3 south-east for the 4 outfits (8 x 10 = 80): <= 84, goal spend <= 2485 of 2800.
+
 
 Estimate before the next batch (female slash east kept the blade behind her and drew a blade into the body; female crossbow south is a T-pose): v3 re-rolls of slash east and shoot_crossbow south (1 each, up to 3 tries: <= 6) + transfer_outfit of batch 1 east and batch 3 south for the 4 outfits (8 x 10 = 80): <= 86, goal spend <= 2404 of 2800.
 
