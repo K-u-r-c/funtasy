@@ -26,6 +26,10 @@ const CELL_GRATE := 7  ## iron grate over molten rock: walkable until it collaps
 static func walkable(v: int) -> bool:
 	return v == CELL_FLOOR or v == CELL_LAVA or v == CELL_WATER or v == CELL_SLUDGE or v == CELL_BRIDGE or v == CELL_GRATE
 
+const LEAF_ATTEMPTS := 16
+const BRUSH := [Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 1), Vector2i(1, 1)]  ## corridors are 2 cells wide
+const SIDES4 := [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]
+
 var rng := RandomNumberGenerator.new()
 var w := 0
 var h := 0
@@ -49,9 +53,21 @@ func generate(seed_value: int, floor_def: Dictionary, count_mult: float = 1.0, d
 	cells.fill(CELL_WALL)
 	var layout := {"size": Vector2i(w, h)}
 	gen = floor_def.get("generator", {})
-	var rooms := _place_rooms(floor_def)
-	_connect_rooms(rooms)
-	var doors := _pick_merchant_room(rooms)
+	# #23 / #30 / #31: the merchant and boss chambers are sealed leaves of the room graph. An
+	# attempt that can't attach them (rare) is redrawn from a derived seed, the same on every peer.
+	var rooms: Array = []
+	for attempt in LEAF_ATTEMPTS:
+		if attempt > 0:
+			rng.seed = seed_value + attempt * 104729
+			cells.fill(CELL_WALL)
+		rooms = _place_rooms(floor_def)
+		_mark_merchant_room(rooms)
+		_connect_rooms(rooms)
+		if _attach_leaves(rooms):
+			break
+		if attempt == LEAF_ATTEMPTS - 1:
+			push_error("DungeonGenerator: seed %d has no layout with sealed boss / merchant rooms" % seed_value)
+	var doors := _find_doors(rooms)
 	layout.rooms = rooms
 	layout.doors = doors
 	var door_zone := {}
@@ -80,7 +96,7 @@ func generate(seed_value: int, floor_def: Dictionary, count_mult: float = 1.0, d
 	layout.runes = _scatter(rooms, used, floor_def.get("silence_runes", [0, 0]))
 	layout.snares = _scatter(rooms, used, floor_def.get("root_snares", [0, 0]))
 	for d in doors:
-		if not d.get("monster_proof", false) and not d.get("floodgate", false) and rng.randf() < float(gen.get("bookshelf_door_chance", 0.0)):
+		if str(d.kind).is_empty() and not d.get("floodgate", false) and rng.randf() < float(gen.get("bookshelf_door_chance", 0.0)):
 			d.style = "bookshelf"
 	var arena := _side_arena(rooms)
 	if arena.size != Vector2i.ZERO:
@@ -173,16 +189,22 @@ func _try_rect(rw: int, rh: int, existing: Array, attempts: int) -> Rect2i:
 	return Rect2i()
 
 
+## Prim's MST over the centres of the ordinary rooms (start + normal) plus a few extra edges for
+## loops. The boss and merchant rooms are left out and every corridor keeps clear of their walls,
+## so _attach_leaves can give each exactly one entrance.
 func _connect_rooms(rooms: Array) -> void:
-	# Prim's MST over room centers + a couple of extra edges for loops.
-	var n := rooms.size()
-	var in_tree := {0: true}
+	var core: Array = _core_rooms(rooms)
+	var reserved: Array = []
+	for i in rooms.size():
+		if not core.has(i):
+			reserved.append(Rect2i(rooms[i].rect).grow(1))
+	var in_tree := {core[0]: true}
 	var edges: Array = []
-	while in_tree.size() < n:
+	while in_tree.size() < core.size():
 		var best := INF
 		var pair := Vector2i(-1, -1)
 		for a in in_tree:
-			for b in n:
+			for b in core:
 				if in_tree.has(b):
 					continue
 				var d := Vector2(rooms[a].rect.get_center() - rooms[b].rect.get_center()).length()
@@ -192,67 +214,311 @@ func _connect_rooms(rooms: Array) -> void:
 		in_tree[pair.y] = true
 		edges.append(pair)
 	for k in int(gen.get("extra_edges", 2)):
-		var a2 := rng.randi_range(0, n - 1)
-		var b2 := rng.randi_range(0, n - 1)
-		if a2 != b2 and not (a2 == 1 or b2 == 1):
+		var a2: int = core[rng.randi_range(0, core.size() - 1)]
+		var b2: int = core[rng.randi_range(0, core.size() - 1)]
+		if a2 != b2:
 			edges.append(Vector2i(a2, b2))
+	var clear := func(c: Vector2i) -> bool:
+		if c.x <= 0 or c.y <= 0 or c.x >= w - 1 or c.y >= h - 1:
+			return false
+		for r in reserved:
+			if r.has_point(c):
+				return false
+		return true
 	for e in edges:
-		_carve_corridor(rooms[e.x].rect.get_center(), rooms[e.y].rect.get_center())
+		_carve_path(_corridor_path(rooms[e.x].rect.get_center(), rooms[e.y].rect.get_center(), clear))
 
 
-func _carve_corridor(a: Vector2i, b: Vector2i) -> void:
+## Indices of the ordinary rooms: the start room first, then the normal rooms.
+func _core_rooms(rooms: Array) -> Array:
+	var out: Array = []
+	for i in rooms.size():
+		if rooms[i].role == "start" or rooms[i].role == "normal":
+			out.append(i)
+	return out
+
+
+## Brush origins of a corridor from a to b whose every cell passes `clear`: the profile's L shape
+## (or winding detour) first, the other corner next, a grid search last. [] if nothing fits.
+func _corridor_path(a: Vector2i, b: Vector2i, clear: Callable) -> Array:
+	var tries: Array = []
 	if gen.get("winding", false) and Vector2(b - a).length() > 10.0:
 		# Labyrinth: a detour through a jittered midpoint gives the corridor extra bends.
 		var mid := (a + b) / 2
 		var side := Vector2(b - a).orthogonal().normalized() * rng.randf_range(-6.0, 6.0)
 		mid = Vector2i(clampi(mid.x + int(side.x), 3, w - 5), clampi(mid.y + int(side.y), 3, h - 5))
-		_carve_l(a, mid)
-		_carve_l(mid, b)
-		return
-	_carve_l(a, b)
+		var flip := rng.randf() < 0.5
+		var p1 := _l_cells(a, mid, flip)
+		p1.append_array(_l_cells(mid, b, not flip))
+		tries.append(p1)
+	var first := rng.randf() < 0.5
+	tries.append(_l_cells(a, b, first))
+	tries.append(_l_cells(a, b, not first))
+	for t in tries:
+		if _path_clear(t, clear):
+			return t
+	return _grid_path(a, b, clear)
 
 
-func _carve_l(a: Vector2i, b: Vector2i) -> void:
-	var corner := Vector2i(b.x, a.y) if rng.randf() < 0.5 else Vector2i(a.x, b.y)
-	_carve_line(a, corner)
-	_carve_line(corner, b)
+func _path_clear(path: Array, clear: Callable) -> bool:
+	for p in path:
+		for o in BRUSH:
+			if not clear.call(p + o):
+				return false
+	return true
 
 
-func _carve_line(a: Vector2i, b: Vector2i) -> void:
+## A 4-connected search over brush origins whose cells pass `clear` (a and b always pass).
+func _grid_path(a: Vector2i, b: Vector2i, clear: Callable) -> Array:
+	var astar := AStarGrid2D.new()
+	astar.region = Rect2i(0, 0, w, h)
+	astar.diagonal_mode = AStarGrid2D.DIAGONAL_MODE_NEVER
+	astar.update()
+	for x in w:
+		for y in h:
+			var p := Vector2i(x, y)
+			if p == a or p == b:
+				continue
+			for o in BRUSH:
+				if not clear.call(p + o):
+					astar.set_point_solid(p, true)
+					break
+	var ids := astar.get_id_path(a, b)
+	return Array(ids) if not ids.is_empty() else []
+
+
+## The cells of an L from a to b: along x first (or along y first when `y_first`).
+func _l_cells(a: Vector2i, b: Vector2i, y_first: bool) -> Array:
+	var corner := Vector2i(a.x, b.y) if y_first else Vector2i(b.x, a.y)
+	var out := _line_cells(a, corner)
+	out.append_array(_line_cells(corner, b))
+	return out
+
+
+func _line_cells(a: Vector2i, b: Vector2i) -> Array:
 	var step := Vector2i(signi(b.x - a.x), signi(b.y - a.y))
+	var out: Array = []
 	var p := a
 	while true:
-		for o in [Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 1), Vector2i(1, 1)]:
-			if get_cell(p + o) == CELL_WALL:
-				_set_cell(p + o, CELL_FLOOR)
+		out.append(p)
 		if p == b:
 			break
 		p += step
+	return out
 
 
-## Every floor has one merchant room: the extra normal room closest to a medium size (seeded
-## like everything else), entered through an ordinary door. It gets no monsters, hazards or
-## loose props, and monsters never path into it.
-## Returns the floor's doors (found with the merchant room marked, so its doors are
-## monster-proof); a candidate room without a door is skipped.
-func _pick_merchant_room(rooms: Array) -> Array:
-	var cands: Array = []
+func _carve_path(path: Array) -> void:
+	for p in path:
+		for o in BRUSH:
+			if get_cell(p + o) == CELL_WALL:
+				_set_cell(p + o, CELL_FLOOR)
+
+
+## Every floor has one merchant room (#6): the normal room closest to a medium size (seeded like
+## everything else). It gets no monsters, hazards or loose props, and monsters never path into it.
+func _mark_merchant_room(rooms: Array) -> void:
+	var best := INF
+	var pick := -1
 	for i in range(2, rooms.size()):
 		var r: Rect2i = rooms[i].rect
 		var score := absf(r.size.x - 11) + absf(r.size.y - 9) + rng.randf() * 2.0
 		if r.size.x < 9 or r.size.y < 8:
 			score += 100.0
-		cands.append([score, i])
-	cands.sort_custom(func(a, b): return a[0] < b[0])
-	for cand in cands:
-		var i: int = cand[1]
-		rooms[i].role = "merchant"
-		var doors := _find_doors(rooms)
-		var room_rect: Rect2i = rooms[i].rect.grow(1)
-		if doors.any(func(d): return Rect2i(d.rect).intersects(room_rect)):
-			return doors
-		rooms[i].role = "normal"
-	return _find_doors(rooms)
+		if score < best:
+			best = score
+			pick = i
+	if pick >= 0 and rooms.size() > 3:
+		rooms[pick].role = "merchant"
+
+
+## #23 / #30 / #31: the merchant room hangs off a shallower room and the boss chamber off the
+## room farthest from the start along the room graph, each through one corridor that touches
+## nothing else and one 2-cell door in its top or bottom wall. The boss is then strictly the
+## farthest room (one more step than the deepest ordinary room) and both are dead ends.
+## False when the ordinary rooms aren't all connected or a leaf can't be attached.
+func _attach_leaves(rooms: Array) -> bool:
+	var core := _core_rooms(rooms)
+	var hops := room_hops(room_graph(cells, Vector2i(w, h), rooms), 0)
+	var max_h := 0
+	for i in core:
+		if not hops.has(i):
+			return false
+		max_h = maxi(max_h, int(hops[i]))
+	var mi := -1
+	for i in rooms.size():
+		if rooms[i].role == "merchant":
+			mi = i
+	if mi >= 0:
+		var mc: Vector2i = rooms[mi].rect.get_center()
+		var near: Array = core.filter(func(i): return int(hops[i]) < max_h)
+		near.sort_custom(func(a, b): return (rooms[a].rect.get_center() - mc).length_squared() < (rooms[b].rect.get_center() - mc).length_squared())
+		if not near.any(func(i): return _carve_leaf(rooms, mi, i)):
+			return false
+	var dist := _walk_dist(rooms[0].rect.get_center())
+	var deep: Array = core.filter(func(i): return int(hops[i]) == max_h)
+	var far_cell := func(i: int) -> int:
+		return int(dist.get(Rect2i(rooms[i].rect).get_center(), 0))
+	deep.sort_custom(func(a, b): return far_cell.call(a) > far_cell.call(b))
+	return deep.any(func(i): return _carve_leaf(rooms, 1, i))
+
+
+## Carves the one corridor of leaf room `li` to room `xi`: a straight stub out of the middle of
+## the leaf's top or bottom wall, then an L (or a grid search) to xi's centre that stays a cell
+## away from every other floor cell (it only opens into xi itself).
+func _carve_leaf(rooms: Array, li: int, xi: int) -> bool:
+	var leaf: Rect2i = rooms[li].rect
+	var target: Rect2i = rooms[xi].rect
+	var lring := leaf.grow(1)
+	# Only the target's own floor may be touched: merging with a corridor at its doorway would
+	# join the leaf to that corridor's other room too.
+	var free_zone := target
+	var near := {}
+	for x in w:
+		for y in h:
+			var c := Vector2i(x, y)
+			if cells[_idx(c)] != CELL_WALL and not free_zone.has_point(c):
+				for dx in range(-1, 2):
+					for dy in range(-1, 2):
+						near[c + Vector2i(dx, dy)] = true
+	var clear := func(c: Vector2i) -> bool:
+		if c.x <= 1 or c.y <= 1 or c.x >= w - 2 or c.y >= h - 2:
+			return false
+		return free_zone.has_point(c) or (not near.has(c) and not lring.has_point(c))
+	var x0 := leaf.get_center().x - 1
+	var sides := [1, -1] if target.get_center().y > leaf.get_center().y else [-1, 1]
+	for side in sides:
+		var wall_y := leaf.end.y if side > 0 else leaf.position.y - 1
+		var out_y := leaf.end.y + 2 if side > 0 else leaf.position.y - 4
+		# The stub's own cells: through the wall (2 wide) and two rows beyond the ring.
+		var stub: Array = _line_cells(Vector2i(x0, wall_y if side > 0 else wall_y - 1), Vector2i(x0, out_y))
+		var stub_ok := true
+		for p in stub:
+			for o in BRUSH:
+				var c: Vector2i = p + o
+				if c.x <= 1 or c.y <= 1 or c.x >= w - 2 or c.y >= h - 2 or (near.has(c) and not leaf.has_point(c) and not lring.has_point(c)):
+					stub_ok = false
+		if not stub_ok:
+			continue
+		var s := Vector2i(x0, out_y)
+		var path := []
+		for y_first in [false, true]:
+			var t := _l_cells(s, target.get_center(), y_first)
+			if _path_clear(t.slice(1), clear):
+				path = t
+				break
+		if path.is_empty():
+			path = _grid_path(s, target.get_center(), clear)
+		if path.is_empty():
+			continue
+		_carve_path(stub)
+		_carve_path(path)
+		rooms[xi].leaf_anchor = true  # its walls stay square (a reading room would cut the way in)
+		return true
+	return false
+
+
+## Walking distance in cells from `from` to every reachable cell.
+func _walk_dist(from: Vector2i) -> Dictionary:
+	var dist := {from: 0}
+	var queue: Array = [from]
+	var head := 0
+	while head < queue.size():
+		var c: Vector2i = queue[head]
+		head += 1
+		for o in SIDES4:
+			var n: Vector2i = c + o
+			if not dist.has(n) and walkable(get_cell(n)):
+				dist[n] = int(dist[c]) + 1
+				queue.append(n)
+	return dist
+
+
+## The room graph of a carved grid (#30): rooms (not the sealed prison) are nodes, joined when a
+## corridor runs from one to the other without entering a third room. adj[i] = {j: true}.
+static func room_graph(grid: PackedByteArray, size: Vector2i, rooms: Array) -> Array:
+	var owner := {}
+	for i in rooms.size():
+		if rooms[i].role == "prison":
+			continue
+		var r: Rect2i = rooms[i].rect
+		for x in range(r.position.x, r.end.x):
+			for y in range(r.position.y, r.end.y):
+				owner[Vector2i(x, y)] = i
+	var cell := func(c: Vector2i) -> int:
+		if c.x < 0 or c.y < 0 or c.x >= size.x or c.y >= size.y:
+			return CELL_WALL
+		return grid[c.y * size.x + c.x]
+	var adj: Array = []
+	for i in rooms.size():
+		adj.append({})
+	for i in rooms.size():
+		if rooms[i].role == "prison":
+			continue
+		var r: Rect2i = rooms[i].rect
+		var seen := {}
+		var queue: Array = []
+		for x in range(r.position.x, r.end.x):
+			for y in range(r.position.y, r.end.y):
+				var c := Vector2i(x, y)
+				if walkable(cell.call(c)) or cell.call(c) == CELL_CANAL:
+					seen[c] = true
+					queue.append(c)
+		var head := 0
+		while head < queue.size():
+			var c: Vector2i = queue[head]
+			head += 1
+			for o in SIDES4:
+				var n: Vector2i = c + o
+				if seen.has(n) or not walkable(cell.call(n)):
+					continue
+				seen[n] = true
+				var j: int = owner.get(n, -1)
+				if j == -1:
+					queue.append(n)
+				elif j != i:
+					adj[i][j] = true
+					adj[j][i] = true
+	return adj
+
+
+## Steps along the room graph from room `from` to every room it reaches.
+static func room_hops(adj: Array, from: int) -> Dictionary:
+	var hops := {from: 0}
+	var queue: Array = [from]
+	var head := 0
+	while head < queue.size():
+		var i: int = queue[head]
+		head += 1
+		for j in adj[i]:
+			if not hops.has(j):
+				hops[j] = int(hops[i]) + 1
+				queue.append(j)
+	return hops
+
+
+## Walkable openings in the wall ring around `rect` (runs of open ring cells).
+static func room_openings(grid: PackedByteArray, size: Vector2i, rect: Rect2i) -> int:
+	var ring: Array = []
+	var r := rect.grow(1)
+	for x in range(r.position.x, r.end.x):
+		ring.append(Vector2i(x, r.position.y))
+	for y in range(r.position.y + 1, r.end.y):
+		ring.append(Vector2i(r.end.x - 1, y))
+	for x in range(r.end.x - 2, r.position.x - 1, -1):
+		ring.append(Vector2i(x, r.end.y - 1))
+	for y in range(r.end.y - 2, r.position.y, -1):
+		ring.append(Vector2i(r.position.x, y))
+	var open := func(c: Vector2i) -> bool:
+		if c.x < 0 or c.y < 0 or c.x >= size.x or c.y >= size.y:
+			return false
+		return walkable(grid[c.y * size.x + c.x])
+	var runs := 0
+	for k in ring.size():
+		if open.call(ring[k]) and not open.call(ring[k - 1]):
+			runs += 1
+	if runs == 0 and ring.all(func(c): return open.call(c)):
+		runs = 1
+	return runs
 
 
 ## The floor's one merchant (#6): a seeded pick weighted by merchants.json "floor_pick", from its
@@ -330,8 +596,9 @@ func _find_doors(rooms: Array) -> Array:
 						var rect := Rect2i(run[0], Vector2i.ONE)
 						for rc in run:
 							rect = rect.expand(rc).expand(rc + Vector2i.ONE)
+						var kind := str(room.role) if room.role in ["boss", "merchant"] else ""
 						doors.append({"cells": run.duplicate(), "vertical": bool(side[3]), "rect": rect,
-							"monster_proof": room.role == "merchant"})
+							"monster_proof": room.role == "merchant", "kind": kind})
 					run.clear()
 	return doors
 
@@ -600,7 +867,7 @@ func _round_rooms(rooms: Array, doors: Array, door_zone: Dictionary) -> void:
 	if chance <= 0.0:
 		return
 	for room in rooms:
-		if room.role != "normal" or rng.randf() > chance:
+		if room.role != "normal" or rng.randf() > chance or room.get("leaf_anchor", false):
 			continue
 		var r: Rect2i = room.rect
 		if r.size.x < 11 or r.size.y < 9:
@@ -833,7 +1100,7 @@ func _place_floodgates(doors: Array, rooms: Array, used: Dictionary) -> Array:
 		return out
 	for i in doors.size():
 		var d: Dictionary = doors[i]
-		if d.get("monster_proof", false) or rng.randf() > chance:
+		if not str(d.kind).is_empty() or rng.randf() > chance:
 			continue
 		var c0: Vector2i = d.cells[0]
 		var across := Vector2i(1, 0) if d.vertical else Vector2i(0, 1)

@@ -24,7 +24,57 @@ func run(biome: String = "") -> void:
 	for id in ids:
 		if biome.is_empty() or id == biome:
 			check_layouts(str(id))
+			leaf_rules(str(id))
 	await check_live_floor()
+
+
+## #23 / #30 / #31 over many seeds, read from the carved grid (not the generator's intentions):
+## the boss chamber is the room farthest from the start along the room graph and a dead end with
+## one opening, its one door is the boss door on a top / bottom wall; the merchant room likewise
+## has one opening and one merchant door; nothing else leaks into either.
+func leaf_rules(fid: String, seeds: int = 150) -> void:
+	var fd: Dictionary = GameData.floor_types[fid]
+	var bad := ""
+	var t0 := Time.get_ticks_msec()
+	for i in seeds:
+		var seed_value := 31337 + i * 7919
+		var lay: Dictionary = DungeonGenerator.new().generate(seed_value, fd, 1.0, 1 + i % 8)
+		var why := _leaf_problem(lay)
+		if not why.is_empty():
+			bad = "seed %d: %s" % [seed_value, why]
+			break
+	da.check(bad.is_empty(), "%s: over %d seeds the boss chamber is the graph-farthest dead end with one boss door and the merchant room has one merchant door (%d ms)%s" % [fid, seeds, Time.get_ticks_msec() - t0, "" if bad.is_empty() else ": " + bad])
+
+
+func _leaf_problem(lay: Dictionary) -> String:
+	var adj: Array = DungeonGenerator.room_graph(lay.cells, lay.size, lay.rooms)
+	var hops: Dictionary = DungeonGenerator.room_hops(adj, 0)
+	var boss := int(lay.boss_room)
+	for i in lay.rooms.size():
+		if lay.rooms[i].role != "prison" and not hops.has(i):
+			return "room %d (%s) unreachable" % [i, lay.rooms[i].role]
+	for i in lay.rooms.size():
+		if i != boss and lay.rooms[i].role != "prison" and int(hops[i]) >= int(hops[boss]):
+			return "room %d (%s) is %d steps away, the boss %d" % [i, lay.rooms[i].role, hops[i], hops[boss]]
+	for pair in [[boss, "boss"], [int(lay.merchant.get("room", -1)), "merchant"]]:
+		var ri: int = pair[0]
+		if ri < 0:
+			return "no %s room" % pair[1]
+		var rect: Rect2i = lay.rooms[ri].rect
+		var openings := DungeonGenerator.room_openings(lay.cells, lay.size, rect)
+		if openings != 1 or adj[ri].size() != 1:
+			return "%s room has %d openings, %d neighbours" % [pair[1], openings, adj[ri].size()]
+		var doors: Array = lay.doors.filter(func(d): return Rect2i(d.rect).intersects(rect.grow(1)))
+		if doors.size() != 1 or str(doors[0].kind) != pair[1] or doors[0].vertical:
+			return "%s room doors: %s" % [pair[1], doors.map(func(d): return [d.kind, d.vertical])]
+		# Sealed: with its door shut nothing reaches the room.
+		var shut := {}
+		for c in doors[0].cells:
+			shut[c] = true
+		var reach := _flood(lay, lay.start, shut)
+		if reach.has(rect.get_center()):
+			return "%s room reachable past its door" % pair[1]
+	return ""
 
 
 func check_layouts(fid: String) -> void:
@@ -273,7 +323,7 @@ func _ready_hero() -> void:
 	p.health.hp = p.health.max_hp
 
 
-func _flood(lay: Dictionary, from: Vector2) -> Dictionary:
+func _flood(lay: Dictionary, from: Vector2, shut: Dictionary = {}) -> Dictionary:
 	var tile := int(GameData.bal("world.tile_size"))
 	var size: Vector2i = lay.size
 	var cells: PackedByteArray = lay.cells
@@ -284,7 +334,7 @@ func _flood(lay: Dictionary, from: Vector2) -> Dictionary:
 		var c: Vector2i = queue.pop_back()
 		for o in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
 			var n: Vector2i = c + o
-			if n.x < 0 or n.y < 0 or n.x >= size.x or n.y >= size.y or seen.has(n):
+			if n.x < 0 or n.y < 0 or n.x >= size.x or n.y >= size.y or seen.has(n) or shut.has(n):
 				continue
 			if cells[n.y * size.x + n.x] == DungeonGenerator.CELL_WALL:
 				continue

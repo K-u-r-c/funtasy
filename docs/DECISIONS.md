@@ -661,3 +661,13 @@ its animation's impact frame (data `impact`); channels and cast times hold the s
 | Still waiting | The primary pressed during any pending swing (holding LMB would otherwise cut itself off), and a skill pressed while another skill's blow is pending (it would waste the first skill's cooldown and cost). Casts, channels and charges stay exclusive as before. |
 | No wasted swing | The swing is only cut when the new skill would start (cooldown, charges, cost, silence, target checks pass); otherwise the press is refused and the swing lands. |
 | Tests | `skills-<class>`: up to six skills per class pressed mid-swing start in the same frame and cut the swing; `skills-lan`: the client's Flash Heal tapped mid-swing starts on the host as soon as the press arrives (one round trip). |
+
+### #30 Boss chamber at the end of the floor (and the sealed-leaf generator for #23 / #31)
+
+| Topic | Decision |
+| --- | --- |
+| Graph distance | "Farthest along the room graph" = most rooms passed: rooms are nodes, two rooms are joined when a corridor runs between them without entering a third room (read from the carved grid, `DungeonGenerator.room_graph`). |
+| Construction | The ordinary rooms (start + normal) get the MST + extra loops as before; every corridor keeps a wall's width away from the boss and merchant rectangles (L shape, the other corner, then a grid search around them). The merchant room then hangs off a nearby room that is not the deepest, and the boss chamber off the deepest ordinary room (ties: the longest walk), each through its own corridor that touches no other floor and opens into its target only. So the boss is strictly one room deeper than anything else and both are dead ends. |
+| One entrance | Each leaf's corridor leaves through a 2-cell gap in the middle of its top or bottom wall: a horizontal door, drawn face-on (side doors are drawn edge-on), recorded as door `kind` "boss" / "merchant". These doors never become floodgates or bookshelf doors, and the room a leaf hangs off is never rounded into a reading room (it would wall off the way in). |
+| Retry | A layout whose leaves can't be attached (rare) is redrawn from `seed + k * 104729`, deterministic on every peer; after 16 tries the generator reports an error (the tests would fail). |
+| Tests | `biomes` (+ `biomes-<id>`): 150 seeds per biome, read from the carved grid: every room reachable, the boss chamber strictly farthest in rooms, one opening and one neighbour, one horizontal door of kind boss, unreachable with that door shut; the merchant room the same with a merchant door. |
