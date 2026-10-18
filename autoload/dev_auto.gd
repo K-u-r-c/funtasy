@@ -567,17 +567,22 @@ func _full_scenario() -> void:
 	check(client_uses >= client_bar, "client used %d different skills through host validation (%d on the bar)" % [client_uses, client_bar])
 	check(client_p.cooldowns.size() > 0 or client_uses > 0, "host tracks client cooldowns")
 	check(not is_instance_valid(target) or target.health.hp < target.health.max_hp, "client damaged the monster (host authority)")
-	if client_p.xp + client_p.level * 100000 <= xp_before and not (is_instance_valid(target) and target.is_alive() and target.is_targetable()):
-		# The host's cleave can finish the target before the client touches it (or it is out of
-		# reach underground): any XP monster that can be hit will do.
-		target = null
-		for e in g.enemies_root.get_children():
-			if e is Enemy and not e.is_boss and e.is_alive() and e.is_targetable() and int(e.def.get("xp", 0)) > 0:
-				if target == null or e.global_position.distance_to(client_p.global_position) < target.global_position.distance_to(client_p.global_position):
-					target = e
-	if client_p.xp + client_p.level * 100000 <= xp_before and is_instance_valid(target) and target.is_alive():
-		# The pack outlasted the 9 s fight (reassembling footmen, burrowed crawlers): the client
-		# lands the killing blow so kill credit is still what gets checked.
+	# The pack can outlast the 9 s fight (reassembling footmen, burrowed crawlers) or the host's
+	# cleave can finish the client's target first: the client then lands the killing blow on its
+	# target or the nearest XP monster that can be hit, so kill credit is still what gets checked.
+	for attempt in 3:
+		if client_p.xp + client_p.level * 100000 > xp_before:
+			break
+		if not (is_instance_valid(target) and target.is_alive() and target.is_targetable()):
+			target = null
+			for e in g.enemies_root.get_children():
+				if e is Enemy and not e.is_boss and e.is_alive() and e.is_targetable() and int(e.def.get("xp", 0)) > 0:
+					if target == null or e.global_position.distance_to(client_p.global_position) < target.global_position.distance_to(client_p.global_position):
+						target = e
+		if target == null:
+			log_line("no XP monster left to finish")
+			break
+		log_line("client finishes %s (attempt %d, hp %.0f)" % [target.def_id, attempt + 1, target.health.hp])
 		var kctx := Combat.instance.make_ctx(client_p, GameData.skill(str(client_p.skills[0])))
 		Combat.instance.deal_damage(kctx, target, target.health.hp + target.health.absorb + 999.0, {"damage_type": "true", "area": true})
 		await _wait(0.5)
