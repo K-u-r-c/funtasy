@@ -313,6 +313,39 @@ func _bookback(_arg: String) -> void:
 	await snap("bookback_inventory_%s" % Settings.language)
 
 
+## #36: a spout on each wall side (north, south, west, east), spraying, seen from the room.
+func _spout_sides(_arg: String) -> void:
+	var biome := str(g.floor_def.get("id", ""))
+	var names := {Vector2i.DOWN: "north", Vector2i.UP: "south", Vector2i.RIGHT: "west", Vector2i.LEFT: "east"}
+	for d in names:
+		var found: Node2D = null
+		for attempt in 16:
+			for s2 in g.dungeon.spouts:
+				if s2.dir == d:
+					found = s2
+			if found:
+				break
+			# force_biome pins the first floor's type and later depths cycle on; pick the pin that
+			# lands the next depth on this biome.
+			for ft in GameData.floor_types:
+				GameState.set_meta("force_biome", ft)
+				if g.floor_type_for(g.depth + 1) == biome:
+					break
+			g.start_floor(g.depth + 1)
+			await da._wait(1.5)
+			p = da._local()
+		if found == null:
+			da.check(false, "found a %s-wall spout" % names[d])
+			continue
+		for e in g.enemies_root.get_children():
+			e.queue_free()
+		p.iframe_left = 9999.0
+		p.host_teleport(g.nearest_floor(found.global_position + Vector2(d) * 70.0 + Vector2(d.y, d.x) * 40.0))
+		await da._wait_until(func(): return found.is_on(g.floor_time), float(found.cfg.get("period", 5.0)) + 1.5)
+		await da._wait(0.3)
+		await snap("spout_side_%s_%s" % [biome, names[d]])
+
+
 ## The merchant room of each merchant (#6): its sealed door seen from across the corridor and up
 ## close (#23), the door paid for and open, Archibald's shop, the blood price dialog and
 ## Malphas's bargains.

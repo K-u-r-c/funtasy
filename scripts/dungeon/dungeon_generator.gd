@@ -1063,8 +1063,8 @@ func _place_grates(rooms: Array, fd: Dictionary, used: Dictionary) -> Array:
 	return out
 
 
-## Wall spouts: acid spouts (Sewers) and flame jets (Foundry) in the north walls of normal rooms,
-## spraying down on a timer.
+## Wall spouts: acid spouts (Sewers) and flame jets (Foundry) in the walls of normal rooms, on any
+## side, spraying into the room on a timer (#36: each side has its pipe / vent art).
 func _place_spouts(rooms: Array, fd: Dictionary) -> Array:
 	var out: Array = []
 	var spec: Dictionary = fd.get("wall_spouts", {})
@@ -1077,19 +1077,28 @@ func _place_spouts(rooms: Array, fd: Dictionary) -> Array:
 		if room.role != "normal":
 			continue
 		var r: Rect2i = room.rect
+		var sides: Array = []  ## [wall cell, direction into the room]
 		for x in range(r.position.x + 1, r.end.x - 1):
-			var w := Vector2i(x, r.position.y - 1)
-			if get_cell(w) == CELL_WALL and walkable(get_cell(w + Vector2i(0, 1))) and walkable(get_cell(w + Vector2i(0, 2))):
-				cands.append(w)
+			sides.append([Vector2i(x, r.position.y - 1), Vector2i.DOWN])
+			sides.append([Vector2i(x, r.end.y), Vector2i.UP])
+		for y in range(r.position.y + 1, r.end.y - 1):
+			sides.append([Vector2i(r.position.x - 1, y), Vector2i.RIGHT])
+			sides.append([Vector2i(r.end.x, y), Vector2i.LEFT])
+		for sd in sides:
+			var w: Vector2i = sd[0]
+			var d: Vector2i = sd[1]
+			if get_cell(w) == CELL_WALL and walkable(get_cell(w + d)) and walkable(get_cell(w + d * 2)):
+				cands.append(sd)
 	var n := rng.randi_range(int(spec.count[0]), int(spec.count[1]))
 	while out.size() < n and not cands.is_empty():
-		var c: Vector2i = cands.pop_at(rng.randi_range(0, cands.size() - 1))
+		var cd: Array = cands.pop_at(rng.randi_range(0, cands.size() - 1))
+		var c: Vector2i = cd[0]
 		var clash := false
 		for o in out:
 			if Vector2(o.cell - c).length() < 4.0:
 				clash = true
 		if not clash:
-			out.append({"cell": c, "dir": Vector2i.DOWN, "phase": rng.randf(), "kind": str(spec.kind)})
+			out.append({"cell": c, "dir": cd[1], "phase": rng.randf(), "kind": str(spec.kind)})
 	return out
 
 

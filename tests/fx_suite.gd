@@ -72,7 +72,9 @@ static func CombatEffects_fx_element(eff: Dictionary, ctx: Dictionary) -> String
 
 
 ## #36 (scenario "spouts", run with --biome=sewers / foundry): every wall spout shows its pipe or
-## vent art on the wall, its spray leaves the mouth, and a warning runs right before each spray.
+## vent art on the wall for its side (the face on a north wall, the top elsewhere, turned to the
+## room), its spray leaves the mouth, and a warning runs right before each spray; over many floors
+## spouts appear on every wall side.
 func run_spouts() -> void:
 	g = da._game()
 	p = da._local()
@@ -80,12 +82,14 @@ func run_spouts() -> void:
 	var sp: Array = g.dungeon.spouts
 	da.check(not sp.is_empty(), "the floor has wall spouts (%d)" % sp.size())
 	for s in sp:
-		var key := str(s.cfg.get("sprite", ""))
+		var key := str(s.cfg.get("sprite" if s.dir == Vector2i.DOWN else "sprite_top", ""))
 		var tex: Texture2D = s._pipe.texture
-		if key in ["props.acid_spout", "props.flame_jet"] or tex == null or tex.get_height() < 32 or s._spray.position.y < 12.0:
-			da.check(false, "spout at %s has a visible pipe / vent (%s)" % [s.cell, key])
+		var mouth := Vector2(s.dir) * float(s.cfg.get("mouth", 10))
+		if key in ["", "props.acid_spout", "props.flame_jet"] or tex == null or tex != GameData.texture(key) or tex.get_height() < 32 or not s._spray.position.is_equal_approx(mouth) \
+				or s._spray.gravity != Vector2.ZERO or s._spray.direction != Vector2(s.dir):
+			da.check(false, "spout at %s facing %s has its pipe / vent art (%s)" % [s.cell, s.dir, key])
 			return
-	da.check(true, "every spout has its pipe / vent art and sprays from its mouth")
+	da.check(true, "every spout has the pipe / vent art of its wall side and sprays straight from its mouth")
 	var s0: Node = sp[0]
 	var period := float(s0.cfg.get("period", 5.0))
 	var warned := false
@@ -101,8 +105,7 @@ func run_spouts() -> void:
 			warned = false
 		t += 0.05
 	da.check(ok, "a warning runs right before every spray")
-	# Every wall side a spout can face: over many floors of this biome, the generator only puts
-	# spouts in north walls facing down, the side the pipe / vent art is drawn for.
+	# Every wall side: over many floors of this biome, spouts face down, up, left and right.
 	var fd: Dictionary = g.floor_def
 	var sides := {}
 	var count := 0
@@ -111,7 +114,8 @@ func run_spouts() -> void:
 		for spd in lay.get("spouts", []):
 			sides[spd.dir] = true
 			count += 1
-	da.check(count > 0 and sides.keys() == [Vector2i.DOWN], "over 40 %s floors every one of %d spouts faces down from a north wall (%s)" % [str(fd.get("id", "")), count, sides.keys()])
+	da.check(count > 0 and [Vector2i.DOWN, Vector2i.UP, Vector2i.LEFT, Vector2i.RIGHT].all(func(d): return sides.has(d)),
+			"over 40 %s floors the %d spouts face every wall side (%s)" % [str(fd.get("id", "")), count, sides.keys()])
 
 
 static func loops(a: Node) -> Array:

@@ -256,6 +256,9 @@
 		"spouts": {
 			"acid": {
 				"sprite": "props.sewer_drain_pipe",
+				"sprite_top": "props.sewer_drain_pipe_top",
+				"top_offset": -5,
+				"top_scale": 0.75,
 				"sprite_scale": 0.75,
 				"sprite_y": 2,
 				"mouth": 16,
@@ -275,6 +278,9 @@
 			},
 			"flame": {
 				"sprite": "props.foundry_wall_vent",
+				"sprite_top": "props.foundry_wall_vent_top",
+				"top_offset": -12,
+				"top_scale": 1.0,
 				"sprite_scale": 0.75,
 				"sprite_y": 2,
 				"mouth": 16,

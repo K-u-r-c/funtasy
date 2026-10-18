@@ -27,13 +27,25 @@ func setup(c: Vector2i, d: Vector2i, tile: int, p: float, spout_kind: String = "
 	phase = p
 	position = Vector2(c * tile) + Vector2(tile, tile) / 2.0
 	_pipe = Sprite2D.new()
-	_pipe.texture = GameData.texture(str(cfg.get("sprite", "props.acid_spout")))
 	_pipe.light_mask = LightLayers.SELF_LIT
-	# On the wall's face, the mouth at the wall's foot where the spray leaves it (#36).
 	var sc := float(cfg.get("sprite_scale", 1.0))
 	_pipe.scale = Vector2(sc, sc)
-	_pipe.position = Vector2(0, float(cfg.get("sprite_y", 0)))
 	_pipe.z_index = 2
+	if dir == Vector2i.DOWN:
+		# A north wall shows its face: the pipe on it, its mouth at the wall's foot (#36).
+		_pipe.texture = GameData.texture(str(cfg.get("sprite", "props.acid_spout")))
+		_pipe.position = Vector2(0, float(cfg.get("sprite_y", 0)))
+	else:
+		# East, west and south walls show their tops: the pipe lies on the wall, drawn mouth-right,
+		# turned (or mirrored) so its mouth reaches the room edge.
+		_pipe.texture = GameData.texture(str(cfg.get("sprite_top", cfg.get("sprite", "props.acid_spout"))))
+		var ts := float(cfg.get("top_scale", sc))
+		_pipe.scale = Vector2(ts, ts)
+		if dir == Vector2i.LEFT:
+			_pipe.flip_h = true
+		elif dir == Vector2i.UP:
+			_pipe.rotation = -PI / 2.0
+		_pipe.position = Vector2(dir) * float(cfg.get("top_offset", 4))
 	add_child(_pipe)
 	_spray = CPUParticles2D.new()
 	_spray.texture = GameData.texture(str(cfg.get("spray_texture", "fx.pixel")))
@@ -41,6 +53,8 @@ func setup(c: Vector2i, d: Vector2i, tile: int, p: float, spout_kind: String = "
 	_spray.lifetime = 0.5
 	_spray.emitting = false
 	_spray.direction = Vector2(dir)
+	# No fall-off: the jet runs straight along its damage strip whichever wall it leaves.
+	_spray.gravity = Vector2.ZERO
 	_spray.spread = float(cfg.get("spray_spread", 12.0))
 	_spray.initial_velocity_min = float(length * tile) * 1.6
 	_spray.initial_velocity_max = float(length * tile) * 2.0

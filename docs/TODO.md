@@ -113,7 +113,7 @@ screenshot review at 1920x1080 and 3440x1440.
 - [x] #39 Friendly targeting: Tab / right stick click / a click on a teammate or party frame; ally spells land on the pick (`target-lan`)
 - [x] #33 Heal burst, heal-over-time glow, shield bubble and break, buff and cleanse flashes on allies (`fx-lan`)
 - [x] #34 Nine element looks for AoE impacts and lingering zones (`fx`, `fx-lan`)
-- [x] #36 Sewer drain pipes and Foundry furnace vents with a telegraph before each spray (`spouts-sewers`, `spouts-foundry`)
+- [x] #36 Sewer drain pipes and Foundry furnace vents on every wall side, with a telegraph before each spray (`spouts-sewers`, `spouts-foundry`)
 - [x] Screenshot review in English and Polish: tours `interact`, `party` (16:9 and 32:9), `target`, `bookback`, `allyfx`, `elements`, `spouts` (Sewers, Foundry); the Linux release build checked with `--lang=pl`
 
 ## PixelLab ledger
@@ -186,6 +186,8 @@ Goal cap: 150 generations, 150 kept in reserve. Planned: status icons ~5 (Pixen 
 | 2026-10-18 | #37 status icons: 5 Pixen 128x128 sheets of 16 (76 statuses without a skill / potion / legendary icon to reuse; 113 others reuse those) | 4317 | 4322 | 5 | 5 |
 | 2026-10-18 | #33 / #34 effects: 24 animations from the free vfx workbench (heal, heal over time, shield bubble and break, buff, cleanse; 9 element bursts and 9 zones) | 4322 | 4322 | 0 | 5 |
 | 2026-10-18 | #36 wall spouts: 2 map objects 48x48 (Sewers drain pipe, Foundry furnace vent) | 4322 | 4324 | 2 | 7 |
+| 2026-10-19 | #36 spouts on every wall side: 2 top-down map objects 48x48 (drain pipe, furnace nozzle); came out diagonal, unused | 4324 | 4326 | 2 | 9 |
+| 2026-10-19 | #36 spouts on every wall side: 2 top-down map objects 64x32, straight, mouth right (drain pipe, furnace nozzle, the nozzle recoloured) | 4326 | 4328 | 2 | 11 |
 
 ## Done (MVP)
 
