@@ -22,6 +22,7 @@ func run() -> void:
 	head_on_top()
 	held_side()
 	legendary_looks()
+	locomotion_pace()
 
 
 ## Pixels by which a hero's sprite differs from a fresh CharacterSprite built from its replicated
@@ -424,6 +425,88 @@ func legendary_looks() -> void:
 	da.check(missing.is_empty() and sigs.size() >= int(worn * 0.9),
 			"worn legendaries have their own colours (%d looks for %d legendaries, none without: %s)" % [sigs.size(), worn, missing.slice(0, 4)])
 	da.check(unlit.is_empty(), "an equipped legendary's sprite layer is drawn in its own colours (%d without: %s)" % [unlit.size(), unlit.slice(0, 4)])
+
+
+## #25: measured on the art, both genders. Seen from the side (east; west is its mirror) the foot
+## on the ground moves back through the frames; played at the pace CharacterSprite picks, the
+## body covers the same ground in those frames, so the foot stays where it landed (within
+## PLANT_TOL px over the cycle) at a slowed walk, the normal running speed and with haste. The
+## run's cadence stays calm (at most CALM_CADENCE cycles = 2 x that many steps per second).
+const PLANT_TOL := 1.5
+const CALM_CADENCE := 2.5
+
+
+func locomotion_pace() -> void:
+	var chars: Dictionary = GameData.assets.characters
+	var base := float(GameData.bal("player.move_speed"))
+	var cases := [["walk", base * 0.3], ["walk", base * 0.4], ["run", base], ["run", base * 0.6], ["run", base * 1.3], ["run", base * 1.6]]
+	var bad: Array = []
+	var notes: Array = []
+	for g in CharacterSprite.genders():
+		var entry := GameData.asset_entry(CharacterSprite.body_key(g))
+		var cell := int(entry.get("frame_size", chars.frame_size))
+		for c in cases:
+			var anim: String = c[0]
+			var speed: float = c[1]
+			if CharacterSprite.locomotion(entry, speed, false) != anim:
+				bad.append("%s at %d px/s plays %s" % [g, speed, CharacterSprite.locomotion(entry, speed, false)])
+			var def: Dictionary = chars.anims[anim]
+			var src := str(def.get("from", anim))
+			var frames := int(chars.anims[src].frames)
+			var xs := _contact_xs(_img(str(entry.path) + src + ".png"), 0, frames, cell)
+			# Ground the body covers while one frame shows, at the pace the game plays.
+			var step := speed / (float(def.fps) * CharacterSprite.pace_for(entry, anim, speed))
+			var err := 0.0
+			var travel := 0.0
+			var steps := 0
+			for k in frames:
+				var a: float = xs[k]
+				var b: float = xs[(k + 1) % frames]
+				if is_nan(a) or is_nan(b) or b - a > 0.5:
+					continue  # a foot in the air, or the swinging foot landing ahead
+				travel += a - b
+				steps += 1
+				err += (a - b) - step
+			if steps == 0 or absf(err) > PLANT_TOL:
+				bad.append("%s %s at %d px/s: foot travels %.1f px in %d frames, body %.1f" % [g, anim, speed, travel, steps, step * steps])
+			var cadence := speed / CharacterSprite.stride_for(entry, anim)
+			if c == cases[1] or c == cases[2]:
+				notes.append("%s %s %.2f cycles/s at %d px/s, foot %.1f px/frame" % [g, anim, cadence, speed, travel / maxf(steps, 1)])
+			if cadence > CALM_CADENCE and speed <= base:
+				bad.append("%s %s at %d px/s: %.2f cycles/s" % [g, anim, speed, cadence])
+	da.check(bad.is_empty(), "feet stay planted (within %.1f px) walking slowed and running at normal and hasted speed, calm cadence (%s)%s" % [PLANT_TOL, notes, "" if bad.is_empty() else ": %s" % [bad]])
+
+
+## Contact-foot x per frame of one sheet row: the centre of the opaque pixels on the two lowest
+## rows of the cycle's ground line, NAN while the frame's feet are off the ground.
+func _contact_xs(img: Image, row: int, frames: int, cell: int) -> Array:
+	var bottoms: Array = []
+	var ground := 0
+	for f in frames:
+		var b := -1
+		for y in range(cell - 1, -1, -1):
+			for x in cell:
+				if img.get_pixel(f * cell + x, row * cell + y).a > 0.5:
+					b = y
+					break
+			if b >= 0:
+				break
+		bottoms.append(b)
+		ground = maxi(ground, b)
+	var out: Array = []
+	for f in frames:
+		if int(bottoms[f]) < ground - 1:
+			out.append(NAN)
+			continue
+		var lo := cell
+		var hi := -1
+		for y in [ground - 1, ground]:
+			for x in cell:
+				if img.get_pixel(f * cell + x, row * cell + y).a > 0.5:
+					lo = mini(lo, x)
+					hi = maxi(hi, x)
+		out.append((lo + hi) / 2.0 if hi >= 0 else NAN)
+	return out
 
 
 static var _imgs: Dictionary = {}

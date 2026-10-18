@@ -84,6 +84,27 @@ func _combat() -> void:
 	await snap("combat_statuses")
 
 
+## #25: the hero crossing a room at a slowed walk, the normal running speed and hasted, one shot
+## every other frame (assembled into a strip / animation for the review).
+func _gait(_arg: String) -> void:
+	var ctx := Combat.instance.make_ctx(p, GameData.skill("test_hit"))
+	for c in [["run", []], ["haste", ["battle_cry", "haste_potion"]], ["slowed", ["slow"]]]:
+		p.status.clear_all()
+		for st in c[1]:
+			p.status.apply(st, 30.0, 0.0, ctx)
+		p.host_teleport(g.nearest_floor(g.layout.start + Vector2(-140, 0)))
+		await da._wait(1.5)
+		Input.action_press("move_right")
+		await da._wait(0.35)
+		for i in 24:
+			await da.get_tree().process_frame
+			await snap("gait_%s_%02d" % [c[0], i])
+			da.log_line("gait_pos %s %d %s" % [c[0], i, p.get_global_transform_with_canvas().origin])
+		Input.action_release("move_right")
+		await da._wait(0.4)
+	p.status.clear_all()
+
+
 ## Every game menu tab (and later dialogs) with some progress to show.
 func _menus(_arg: String) -> void:
 	p.add_xp(Player.xp_to_next(p.level))

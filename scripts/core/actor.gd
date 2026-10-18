@@ -43,6 +43,7 @@ var _last_visual_pos := Vector2.ZERO
 var _turn_rate := 0.0  ## spin animations turn the facing this fast (rad/s) while they play
 var _moving_hold := 0.0  ## walk keeps playing this long after the last visible step (no flicker)
 var _speed_avg := 0.0  ## smoothed visible speed (px/s), for the walk pace
+var _running := false  ## locomotion plays the run cycle (#25)
 var _flash := 0.0
 var _shadow: Sprite2D
 
@@ -261,14 +262,17 @@ func update_visuals(delta: float) -> void:
 	_speed_avg = lerpf(_speed_avg, moved / maxf(delta, 0.001), minf(1.0, delta * 10.0))
 	_action_left -= delta
 	var anim_name := base_anim(moving)
-	if _action_left > 0.0 and anim_name in ["idle", "walk"]:
+	if anim_name == "walk":
+		anim_name = CharacterSprite.locomotion(sprite.body_entry(), _speed_avg, _running)
+		_running = anim_name == "run"
+	if _action_left > 0.0 and anim_name in ["idle", "walk", "run"]:
 		anim_name = _action_anim
 		if _turn_rate != 0.0:
 			facing = facing.rotated(_turn_rate * delta)
-	elif not held_anim.is_empty() and anim_name in ["idle", "walk"]:
+	elif not held_anim.is_empty() and anim_name in ["idle", "walk", "run"]:
 		anim_name = held_anim
 	sprite.play(anim_name, facing)
-	sprite.set_walk_pace(_speed_avg if anim_name == "walk" else -1.0)
+	sprite.set_walk_pace(_speed_avg if anim_name in ["walk", "run"] else -1.0, anim_name)
 	_flash = maxf(_flash - delta, 0.0)
 	var tint := Color.WHITE
 	for s in status.shown:

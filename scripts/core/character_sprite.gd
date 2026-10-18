@@ -169,18 +169,44 @@ func play(new_anim: String, facing: Vector2, force := false) -> void:
 		_play_layer(spr, not force and changed_dir)
 
 
-## Walk pace from the actor's speed (px/s; < 0 = normal speed): the body entry's "stride" is the
-## ground one walk cycle covers, so the cycle plays at speed / stride cycles per second (capped).
-func set_walk_pace(speed: float) -> void:
-	var sc := 1.0
-	var entry := body_entry()
-	if speed > 0.0 and entry.has("stride"):
-		var anims: Dictionary = GameData.assets.characters.anims
-		var frames := float(anims.walk.frames)
-		var fps := float(anims.walk.fps)
-		sc = clampf(speed / float(entry.stride) * frames / fps, 0.6, float(GameData.assets.characters.get("walk_pace_max", 2.3)))
+## Locomotion pace (#25): the body entry's "stride" gives, per locomotion animation, the ground one
+## cycle covers (measured on the sheet: the contact foot's travel per frame x frames), so the
+## cycle plays at speed / stride cycles per second and a planted foot keeps its place on the
+## ground. speed < 0 = the animation's normal speed.
+func set_walk_pace(speed: float, anim_name: String = "walk") -> void:
+	var sc := pace_for(body_entry(), anim_name, speed) if speed > 0.0 else 1.0
 	for spr in _layers.values():
 		spr.speed_scale = sc
+
+
+## Ground one cycle of `anim_name` covers for a body entry (0 = not a paced animation).
+static func stride_for(entry: Dictionary, anim_name: String) -> float:
+	var st: Variant = entry.get("stride", 0.0)
+	if st is Dictionary:
+		return float(st.get(anim_name, 0.0))
+	return float(st) if anim_name == "walk" else 0.0
+
+
+## speed_scale that plays `anim_name` at `speed` px/s with planted feet (1.0 when unpaced).
+static func pace_for(entry: Dictionary, anim_name: String, speed: float) -> float:
+	var stride := stride_for(entry, anim_name)
+	var anims: Dictionary = GameData.assets.characters.anims
+	if stride <= 0.0 or speed <= 0.0 or not anims.has(anim_name):
+		return 1.0
+	var def: Dictionary = anims[anim_name]
+	var frames := float(anims.get(str(def.get("from", anim_name)), def).frames)
+	return clampf(speed / stride * frames / float(def.fps), 0.3, float(GameData.assets.characters.get("walk_pace_max", 3.0)))
+
+
+## Walk or run at this speed (#25): a hero moving at a running pace plays the run cycle (long
+## strides, calm cadence), a slowed one walks. `running` is the current choice (hysteresis).
+static func locomotion(entry: Dictionary, speed: float, running: bool) -> String:
+	if stride_for(entry, "run") <= 0.0:
+		return "walk"
+	var rs: Dictionary = GameData.assets.characters.get("run_speed", {"from": 60, "back_below": 50})
+	if running:
+		return "walk" if speed < float(rs.back_below) else "run"
+	return "run" if speed >= float(rs.from) else "walk"
 
 
 ## Seconds one play of `a_name` takes on the body layer (its entry's frames / fps), 0 if missing.
