@@ -151,6 +151,7 @@ UI frames / ornaments / icons ~60, re-rolls ~10%.
 | 2026-10-18 | Icons for the 32 older passives that showed initials (2 Pixen sheets) | 4227 | 4229 | 2 | 8 |
 | 2026-10-18 | #23 / #31 door probe: Archibald vault door v1 (map object, 96 px; not used) | 4229 | 4230 | 1 | 9 |
 | 2026-10-18 | #23 / #31 doors: 7 map objects (Archibald's gilded vault, Malphas's blood seal, a boss gate per biome; 1 each) + 7 "open" object states (**10 each**, the cost was not known before the batch, so no estimate was written; states are not used again in this goal) | 4230 | 4307 | 77 | 86 |
+| 2026-10-18 | #29 UI art: 5 Pixen icon sheets (equipment slot silhouettes, menu / tab icons, class crests and HUD, talent branch emblems, extras) + 4 ornaments (title banner, item slot, gold divider, gauge frame) + 1 unused corner | 4307 | 4317 | 10 | 96 |
 
 ## Done (MVP)
 

@@ -77,12 +77,16 @@ func _ready() -> void:
 	col.add_child(bottom)
 	_start = AnimButton.new()
 	_start.text = "Start run"
+	_start.icon = UITheme.icon_tex("menu_play")
+	_start.add_theme_constant_override("icon_max_width", 16)
 	_start.visible = multiplayer.is_server()
 	_primary(_start)
 	_start.pressed.connect(_on_start)
 	bottom.add_child(_start)
 	var leave := AnimButton.new()
 	leave.text = "Leave"
+	leave.icon = UITheme.icon_tex("menu_leave")
+	leave.add_theme_constant_override("icon_max_width", 16)
 	leave.pressed.connect(func(): NetworkManager.leave_to_menu())
 	bottom.add_child(leave)
 	_status = UITheme.label("", UITheme.TEXT_DIM, 14)
@@ -176,8 +180,10 @@ func _build_character_panel() -> Control:
 			continue
 		var b := Button.new()
 		b.text = GameData.classes[cid].name
+		b.icon = UITheme.icon_tex("class_" + cid)
+		b.add_theme_constant_override("icon_max_width", 24)
 		b.toggle_mode = true
-		b.custom_minimum_size = Vector2(137, 30)
+		b.custom_minimum_size = Vector2(137, 36)
 		b.add_theme_color_override("font_color", UITheme.hex(GameData.classes[cid].color))
 		b.pressed.connect(_select_class.bind(cid))
 		classes.add_child(b)
@@ -414,7 +420,7 @@ func _build_party_panel() -> Control:
 	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.add_child(v)
 	# The game choice (host) sits with the party: it is about the whole run, not one hero.
-	v.add_child(UITheme.label("Game", UITheme.ACCENT, 18))
+	v.add_child(UITheme.section("Game", "menu_save"))
 	var game_row := HBoxContainer.new()
 	game_row.add_theme_constant_override("separation", 6)
 	v.add_child(game_row)
@@ -434,18 +440,18 @@ func _build_party_panel() -> Control:
 	_game_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_game_desc.custom_minimum_size = Vector2(240, 0)
 	v.add_child(_game_desc)
-	v.add_child(UITheme.label("Party", UITheme.ACCENT, 18))
+	v.add_child(UITheme.section("Party", "ui_party"))
 	_roster_box = VBoxContainer.new()
 	_roster_box.custom_minimum_size = Vector2(0, 60)
 	v.add_child(_roster_box)
-	v.add_child(UITheme.label("Game settings" + ("" if multiplayer.is_server() else " (host only)"), UITheme.ACCENT, 18))
+	v.add_child(UITheme.section("Game settings" + ("" if multiplayer.is_server() else " (host only)"), "menu_options"))
 	_settings_box = GridContainer.new()
 	_settings_box.columns = 2
 	_settings_box.add_theme_constant_override("h_separation", 16)
 	_settings_box.add_theme_constant_override("v_separation", 6)
 	v.add_child(_settings_box)
 	for d in GameData.game_settings:
-		var l := UITheme.label(d.label)
+		var l := UITheme.icon_label(str(d.get("icon", "sil_star")), str(d.label))
 		l.tooltip_text = d.get("description", "")
 		_settings_box.add_child(l)
 		var ctrl: Control
@@ -526,10 +532,18 @@ func _refresh_roster() -> void:
 		if GameState.roster.has(id):
 			var r: Dictionary = GameState.roster[id]
 			var cdef: Dictionary = GameData.classes.get(r.class_id, {})
+			# Ready (a hero is chosen), the host's crown and the class crest lead the row (#29).
+			row.add_child(UITheme.icon("ui_check", 16))
+			if id == 1:
+				var crown := UITheme.icon("ui_crown", 16)
+				crown.tooltip_text = "Host"
+				row.add_child(crown)
+			row.add_child(UITheme.icon("class_" + str(r.class_id), 16))
 			row.add_child(UITheme.label("%s%s" % [r.name, "  (host)" if id == 1 else ""]))
 			var gname := str(GameData.assets.characters.get("genders", {}).get(str(r.get("gender", "")), {}).get("name", ""))
 			row.add_child(UITheme.label("%s%s, level %d" % [gname + " " if not gname.is_empty() else "", cdef.get("name", r.class_id), int(r.level)], UITheme.hex(cdef.get("color", "#ffffff"))))
 		else:
+			row.add_child(UITheme.icon("menu_resume", 16, Color(1, 1, 1, 0.6)))
 			row.add_child(UITheme.label("Player %d" % id, UITheme.TEXT_DIM))
 			row.add_child(UITheme.label("choosing a hero...", UITheme.TEXT_DIM))
 		_roster_box.add_child(row)

@@ -47,6 +47,7 @@ func _ready() -> void:
 	window.add_child(outer)
 	var head := HBoxContainer.new()
 	outer.add_child(head)
+	head.add_child(UITheme.icon("menu_options", 32))
 	head.add_child(UITheme.title("Options", UITheme.FONT_TITLE))
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -61,9 +62,15 @@ func _ready() -> void:
 	_tabs.add_child(_build_audio())
 	_tabs.add_child(_build_controls())
 	_tabs.tab_changed.connect(func(_i): _focus_first())
+	# Tab icons (#29): screen, speaker, keyboard + pad.
+	_tabs.add_theme_constant_override("icon_max_width", 16)
+	for i in _tabs.get_tab_count():
+		_tabs.set_tab_icon(i, UITheme.icon_tex(["ui_video", "ui_audio", "ui_gamepad", "ui_keyboard"][mini(i, 3)]))
 
 	var back := AnimButton.new()
 	back.text = "Back"
+	back.icon = UITheme.icon_tex("menu_back")
+	back.add_theme_constant_override("icon_max_width", 16)
 	back.pressed.connect(_close)
 	outer.add_child(back)
 

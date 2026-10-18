@@ -260,6 +260,147 @@ static func _crisp(size: int) -> int:
 	return FONT_SMALL
 
 
+# Icons and ornaments (#29: explain with icons, colour and shape) ------------------------------
+
+## Icon key (data/assets.json icons) of a stat, "" when it has none.
+const STAT_ICONS := {"strength": "stat_strength", "stamina": "stat_stamina", "agility": "stat_agility",
+	"intellect": "stat_intellect", "armor": "stat_armor", "weapon_dps": "stat_weapon_dps",
+	"crit_chance": "stat_crit_chance", "crit_damage": "stat_crit_damage", "haste": "stat_haste",
+	"dodge": "stat_dodge", "leech": "stat_leech", "max_hp": "hud_health", "max_resource": "stat_mana",
+	"mana": "stat_mana", "fury": "stat_fury", "gold": "hud_gold", "xp": "hud_xp", "level": "hud_level",
+	"move_speed": "nav_inventory", "power_melee": "class_warrior", "power_ranged": "class_ranger",
+	"power_spell": "class_mage", "strength_reduction": "stat_armor", "resource_regen": "stat_mana"}
+
+static var _tex_cache: Dictionary = {}
+
+
+## A texture from the icons registry (cached; "" or a missing key -> null).
+static func icon_tex(key: String) -> Texture2D:
+	if key.is_empty():
+		return null
+	if not _tex_cache.has(key):
+		_tex_cache[key] = GameData.texture("icons." + key) if GameData.asset_exists("icons." + key) else null
+	return _tex_cache[key]
+
+
+## A pixel-exact icon of `px` (16 = half size of the 32 px art) with an optional tint.
+static func icon(key: String, px: int = 16, tint: Color = Color.WHITE) -> TextureRect:
+	var t := TextureRect.new()
+	t.texture = icon_tex(key)
+	t.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	t.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	t.custom_minimum_size = Vector2(px, px)
+	t.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	t.modulate = tint
+	t.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	t.mouse_filter = Control.MOUSE_FILTER_PASS
+	return t
+
+
+## Icon + text on one row.
+static func icon_label(key: String, text: String, color: Color = TEXT, size: int = FONT_BODY, px: int = 16) -> HBoxContainer:
+	var h := HBoxContainer.new()
+	h.add_theme_constant_override("separation", 4)
+	h.add_child(icon(key, px))
+	var l := label(text, color, size)
+	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	h.add_child(l)
+	return h
+
+
+## A section header: icon, gold title and the gilded divider running to the right.
+static func section(text: String, icon_key: String = "") -> HBoxContainer:
+	var h := HBoxContainer.new()
+	h.add_theme_constant_override("separation", 6)
+	if not icon_key.is_empty():
+		h.add_child(icon(icon_key, 16))
+	var l := label(text, GOLD, FONT_BODY)
+	l.add_theme_color_override("font_outline_color", Color("1a0f04"))
+	l.add_theme_constant_override("outline_size", 2)
+	h.add_child(l)
+	var d := divider()
+	d.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	h.add_child(d)
+	return h
+
+
+## The gilded filigree divider (PixelLab ornament), stretched along its middle.
+static func divider() -> Control:
+	var tex := icon_tex("orn_divider")
+	if tex == null:
+		var sep := HSeparator.new()
+		return sep
+	var np := NinePatchRect.new()
+	np.texture = tex
+	np.region_rect = Rect2(Vector2.ZERO, tex.get_size())
+	# The left curl and the right half (gem, knot, fading tip) stay as drawn; only the thin
+	# line between them stretches.
+	np.patch_margin_left = 60
+	np.patch_margin_right = 100
+	np.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	np.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	np.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	# A NinePatchRect's minimum width is its patch margins: held in a plain Control so the
+	# divider never widens a layout, and hidden while too short to show both ends.
+	var holder := Control.new()
+	holder.custom_minimum_size = Vector2(24, 12)
+	holder.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	holder.clip_contents = true
+	holder.add_child(np)
+	holder.resized.connect(func(): np.visible = holder.size.x >= 160.0)
+	return holder
+
+
+static var _slot_styles: Dictionary = {}
+
+
+## The bronze-rimmed item well (PixelLab ornament) as a 9-slice style, tinted; null without art.
+static func slot_style(tint: Color) -> StyleBoxTexture:
+	if _slot_styles.has(tint):
+		return _slot_styles[tint]
+	var tex := icon_tex("orn_slot")
+	var sb: StyleBoxTexture = null
+	if tex:
+		sb = StyleBoxTexture.new()
+		sb.texture = tex
+		for side in [SIDE_LEFT, SIDE_TOP, SIDE_RIGHT, SIDE_BOTTOM]:
+			sb.set_texture_margin(side, 8)
+		sb.modulate_color = tint
+		sb.draw_center = false  # the art's centre is a glass lens; the slot draws its own well
+	_slot_styles[tint] = sb
+	return sb
+
+
+## One item-card line ([text, color] or [text, color, icon key]): the stat's icon before the
+## wrapped text (#29).
+static func card_line(line: Array, width: float) -> Control:
+	var l := label(str(line[0]), line[1], FONT_SMALL)
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	if line.size() < 3 or str(line[2]).is_empty():
+		l.custom_minimum_size = Vector2(width, 0)
+		return l
+	var h := HBoxContainer.new()
+	h.add_theme_constant_override("separation", 4)
+	var ic := icon(str(line[2]), 16)
+	ic.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	h.add_child(ic)
+	l.custom_minimum_size = Vector2(width - 20, 0)
+	l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	h.add_child(l)
+	return h
+
+
+## A small glass pill with an icon and a value (gold, points, keys...).
+static func chip(icon_key: String, text: String, color: Color = TEXT, border: Color = EDGE) -> PanelContainer:
+	var p := PanelContainer.new()
+	p.add_theme_stylebox_override("panel", glass(Color("070a10e0"), border, 1, 6))
+	var row := icon_label(icon_key, text, color, FONT_BODY, 16)
+	p.add_child(row)
+	p.set_meta("label", row.get_child(1))
+	return p
+
+
 static func hex(s: String, fallback: Color = Color.WHITE) -> Color:
 	return Color.from_string(s, fallback)
 

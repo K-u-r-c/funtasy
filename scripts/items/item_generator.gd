@@ -156,26 +156,26 @@ static func describe(item: Dictionary, class_id: String = "", char_level: int = 
 		kind_txt += " (%s)" % ("Two-handed" if int(item.get("hands", 1)) == 2 else "One-handed")
 	lines.append([kind_txt, Color(0.7, 0.7, 0.7)])
 	if item.has("dps"):
-		lines.append(["%.1f DPS" % float(item.dps), Color(1, 1, 1)])
+		lines.append(["%.1f DPS" % float(item.dps), Color(1, 1, 1), "stat_weapon_dps"])
 	if item.has("legendary"):
 		lines.append(["Legendary", Color.from_string(rar.color, Color.ORANGE)])
 	if item.has("armor") and int(item.armor) > 0:
-		lines.append(["%d Armor" % int(item.armor), Color(1, 1, 1)])
+		lines.append(["%d Armor" % int(item.armor), Color(1, 1, 1), "stat_armor"])
 	var names: Dictionary = GameData.affixes.stat_names
 	for k in item.get("stats", {}):
 		var v := float(item.stats[k])
 		var is_pct := Array(GameData.affixes.percent_stats).has(k) or (absf(v) < 1.0 and v != 0.0)
 		var txt := ("%+d%% %s" % [roundi(v * 100.0), names.get(k, k)]) if is_pct else ("%+d %s" % [int(v), names.get(k, k)])
-		lines.append([txt, Color(0.55, 0.9, 0.55)])
+		lines.append([txt, Color(0.55, 0.9, 0.55), str(UITheme.STAT_ICONS.get(str(k).trim_suffix("_pct"), "sil_star"))])
 	if item.has("affix"):
-		lines.append([str(item.affix), Color(1.0, 0.72, 0.3)])
+		lines.append([str(item.affix), Color(1.0, 0.72, 0.3), "sil_star"])
 		var lg: Dictionary = GameData.legendaries.get(str(item.get("legendary", "")), {})
 		if lg.has("description"):
 			lines.append([str(lg.description), Color(0.6, 0.6, 0.65)])
 	if char_level > 0 and too_high_level(item, char_level):
-		lines.append(["Requires level %d (you are level %d)" % [int(item.get("req", 1)), char_level], Color(0.95, 0.4, 0.35)])
+		lines.append(["Requires level %d (you are level %d)" % [int(item.get("req", 1)), char_level], Color(0.95, 0.4, 0.35), "sil_lock"])
 	else:
-		lines.append(["Requires level %d" % int(item.get("req", 1)), Color(0.75, 0.75, 0.75)])
+		lines.append(["Requires level %d" % int(item.get("req", 1)), Color(0.75, 0.75, 0.75), "ui_crown"])
 	var classes: Array = item.get("classes", [])
 	if not classes.is_empty():
 		var cnames: Array = []
@@ -184,7 +184,7 @@ static func describe(item: Dictionary, class_id: String = "", char_level: int = 
 		var ok := class_id.is_empty() or classes.has(class_id)
 		var penalty := "  (-%d%% damage, slower cooldowns for you)" % roundi((1.0 - float(GameData.bal("off_class.damage_mult"))) * 100.0)
 		lines.append(["Class: %s%s" % [", ".join(cnames), "" if ok else penalty],
-			Color(0.75, 0.75, 0.75) if ok else Color(0.95, 0.4, 0.35)])
+			Color(0.75, 0.75, 0.75) if ok else Color(0.95, 0.4, 0.35), "class_" + str(classes[0])])
 	return lines
 
 

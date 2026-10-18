@@ -26,7 +26,7 @@ func _build() -> void:
 	subtitle.text = "%s  -  pick a skill, then a slot" % player.class_def.name
 	_hint = UITheme.label("", UITheme.TEXT_DIM, UITheme.FONT_SMALL)
 	content.add_child(_hint)
-	content.add_child(UITheme.label("Skill bar", UITheme.GOLD, UITheme.FONT_BODY))
+	content.add_child(UITheme.section("Skill bar", "act_skills"))
 	_bar = HBoxContainer.new()
 	_bar.add_theme_constant_override("separation", 8)
 	content.add_child(_bar)
@@ -40,8 +40,7 @@ func _build() -> void:
 		b.focus_exited.connect(func(): _tooltip.hide_for(b))
 		_bar.add_child(b)
 		_slot_buttons.append(b)
-	content.add_child(HSeparator.new())
-	content.add_child(UITheme.label("Unlocked skills", UITheme.GOLD, UITheme.FONT_BODY))
+	content.add_child(UITheme.section("Unlocked skills", "nav_skillbook"))
 	var scroll := ScrollContainer.new()
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -163,10 +162,15 @@ class SlotButton:
 	var skill := ""
 	var picked := false
 	var _icon: Texture2D
+	var _empty: Texture2D
+	var _primary: Texture2D
 	var _glyph: InputGlyph
 
 	func _init() -> void:
-		custom_minimum_size = Vector2(56, 64)
+		custom_minimum_size = Vector2(56, 58)
+		_empty = UITheme.icon_tex("slot_rune")
+		_primary = UITheme.icon_tex("menu_play")
+		tooltip_text = "Primary attack" if slot == 0 else ""
 		focus_mode = Control.FOCUS_ALL
 		_glyph = InputGlyph.new("")
 		_glyph.position = Vector2(2, 2)
@@ -185,8 +189,10 @@ class SlotButton:
 		if not sk.is_empty():
 			# Held in a member: a texture freed right after _draw would render as a white quad.
 			_icon = GameData.texture("icons." + str(sk.get("icon", "attack")))
-			draw_texture_rect(_icon, Rect2((r.size.x - 32) / 2.0, 14, 32, 32), false)
-		var f := UITheme.font()
-		var label := "Primary" if slot == 0 else "Slot %d" % slot
-		var tw := f.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, UITheme.FONT_SMALL).x
-		draw_string(f, Vector2(roundf((r.size.x - tw) / 2.0), r.size.y - 4), label, HORIZONTAL_ALIGNMENT_LEFT, -1, UITheme.FONT_SMALL, UITheme.TEXT_DIM)
+			draw_texture_rect(_icon, Rect2((r.size.x - 32) / 2.0, 16, 32, 32), false)
+		elif _empty:
+			# An empty slot shows a dim rune stone instead of words (#29).
+			draw_texture_rect(_empty, Rect2((r.size.x - 24) / 2.0, 20, 24, 24), false, Color(0.75, 0.82, 1.0, 0.35))
+		if slot == 0 and _primary:
+			# The primary attack's slot is marked with crossed swords in the corner.
+			draw_texture_rect(_primary, Rect2(r.size.x - 18, 2, 16, 16), false)

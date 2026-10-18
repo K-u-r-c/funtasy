@@ -11,6 +11,7 @@ var _last_sig := ""
 
 func _init() -> void:
 	title_text = "Malphas the Soul Broker"
+	title_icon = "stat_leech"
 	fill_height = true
 	prompts = [["ui_accept", "Make the pact"], ["ui_cancel", "Leave"]]
 
@@ -43,6 +44,38 @@ func _build() -> void:
 	_rebuild()
 
 
+## A right-aligned row of stat chips (icon + signed value) over a list row; `arrow_icon` between
+## the first group and `then` (contracts: give -> get). `left` > 0 pins it to the row's left.
+func _chips(first: Array, left: int, arrow_icon := "", then: Array = []) -> HBoxContainer:
+	var h := HBoxContainer.new()
+	h.add_theme_constant_override("separation", 4)
+	h.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if left > 0:
+		h.set_anchors_and_offsets_preset(Control.PRESET_CENTER_LEFT)
+		h.offset_left = left
+	else:
+		h.set_anchors_and_offsets_preset(Control.PRESET_CENTER_RIGHT)
+		h.offset_left = -260
+		h.offset_right = -8
+		h.alignment = BoxContainer.ALIGNMENT_END
+	h.offset_top = -13
+	h.offset_bottom = 13
+	var add := func(group: Array) -> void:
+		for g in group:
+			var m: Dictionary = g[0]
+			var st := str(m.stat).trim_suffix("_pct")
+			var chip := UITheme.chip(str(UITheme.STAT_ICONS.get(st, "sil_star")), Merchants.mod_text(m).split(" ")[0], g[1], Color(g[1], 0.5))
+			chip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			h.add_child(chip)
+	add.call(first)
+	if not then.is_empty():
+		var arrow := UITheme.icon(arrow_icon, 16)
+		arrow.flip_h = true
+		h.add_child(arrow)
+		add.call(then)
+	return h
+
+
 func _process(_delta: float) -> void:
 	if str(player.run_mods.size()) != _last_sig:
 		_rebuild()
@@ -55,21 +88,25 @@ func _rebuild() -> void:
 	for c in _list.get_children():
 		_list.remove_child(c)
 		c.queue_free()
-	_list.add_child(UITheme.label("Contracts", UITheme.GOLD, UITheme.FONT_BODY))
+	_list.add_child(UITheme.section("Contracts", "menu_save"))
 	var pool: Array = GameData.merchants.get("malphas", {}).get("contracts", [])
 	for i in merchants.contracts.size():
 		var c: Dictionary = pool[int(merchants.contracts[i])]
-		var b := _row("Sacrifice %s  ->  gain %s" % [Merchants.mod_text(c.give), Merchants.mod_text(c.get)])
+		var b := _row("")
+		# What it takes (red) and what it gives (green), each with its stat's icon (#29).
+		b.add_child(_chips([[c.give, UITheme.DANGER]], 10, "menu_back", [[c.get, UITheme.GOOD]]))
+		b.tooltip_text = "Sacrifice %s  ->  gain %s" % [Merchants.mod_text(c.give), Merchants.mod_text(c.get)]
 		var slot: int = i
 		b.pressed.connect(func(): merchants.request_contract.rpc_id(1, slot))
 		b.focus_entered.connect(_show_mods.bind("Contract", "", [c.give, c.get]))
 		b.mouse_entered.connect(_show_mods.bind("Contract", "", [c.give, c.get]))
 		_list.add_child(b)
-	_list.add_child(UITheme.label("Pact potions", UITheme.GOLD, UITheme.FONT_BODY))
+	_list.add_child(UITheme.section("Pact potions", "ui_potion"))
 	var ids: Array = GameData.pact_consumables.keys()
 	for pid in ids:
 		var d: Dictionary = GameData.pact_consumables[pid]
-		var b2 := _row("%s  -  costs %s" % [d.name, ", ".join(d.cost.map(func(c): return Merchants.mod_text(c)))])
+		var b2 := _row(str(d.name))
+		b2.add_child(_chips(d.cost.map(func(c): return [c, UITheme.DANGER]), -1))
 		b2.icon = GameData.texture(str(d.icon))
 		b2.expand_icon = true
 		b2.add_theme_constant_override("icon_max_width", 22)
@@ -89,7 +126,7 @@ func _row(text: String) -> Button:
 	b.text = text
 	b.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	b.add_theme_font_size_override("font_size", UITheme.FONT_SMALL)
-	b.custom_minimum_size = Vector2(320, 28)
+	b.custom_minimum_size = Vector2(320, 32)
 	return b
 
 

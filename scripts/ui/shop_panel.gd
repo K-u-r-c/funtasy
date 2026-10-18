@@ -9,10 +9,12 @@ var _buy_list: VBoxContainer
 var _sell_list: VBoxContainer
 var _card: VBoxContainer
 var _last_sig := ""
+var _gold_chip: PanelContainer
 
 
 func _init() -> void:
 	title_text = "Archibald the Gilded"
+	title_icon = "hud_merchant"
 	fill_height = true
 	prompts = [["ui_accept", "Buy / sell"], ["ui_cancel", "Leave"]]
 
@@ -23,8 +25,12 @@ func _build() -> void:
 	body.add_theme_constant_override("separation", 12)
 	body.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	content.add_child(body)
-	_buy_list = _column(body, "For sale (shared with the party)")
-	_sell_list = _column(body, "Your backpack - sell")
+	_buy_list = _column(body, "For sale (shared with the party)", "hud_chest")
+	_sell_list = _column(body, "Your backpack - sell", "slot_backpack")
+	_gold_chip = UITheme.chip("hud_gold", "", UITheme.GOLD, UITheme.GOLD_DIM)
+	_gold_chip.tooltip_text = "Your gold"
+	_gold_chip.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	header.add_child(_gold_chip)
 	var cardp := PanelContainer.new()
 	cardp.theme_type_variation = &"GlassInset"
 	cardp.custom_minimum_size = Vector2(230, 0)
@@ -37,12 +43,12 @@ func _build() -> void:
 	_rebuild()
 
 
-func _column(parent: Control, title: String) -> VBoxContainer:
+func _column(parent: Control, title: String, icon_key: String) -> VBoxContainer:
 	var col := VBoxContainer.new()
 	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	col.add_theme_constant_override("separation", 4)
 	parent.add_child(col)
-	col.add_child(UITheme.label(title, UITheme.GOLD, UITheme.FONT_BODY))
+	col.add_child(UITheme.section(title, icon_key))
 	var scroll := ScrollContainer.new()
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -66,6 +72,8 @@ func _rebuild() -> void:
 		return
 	_last_sig = "%d|%d" % [player.gold, player.inv.backpack.size()]
 	subtitle.text = "Gold: %d" % player.gold
+	subtitle.visible = false  # the gold chip shows it
+	_gold_chip.get_meta("label").text = str(player.gold)
 	var focus_idx := -1
 	var focused := get_viewport().gui_get_focus_owner()
 	var rows: Array = _buy_list.get_children() + _sell_list.get_children()
@@ -77,17 +85,15 @@ func _rebuild() -> void:
 	for i in merchants.stock.size():
 		var e: Dictionary = merchants.stock[i]
 		var sold_out := int(e.left) <= 0
-		var txt := "%s%s  -  %d g" % [e.item.get("name", "?"), "  x%d" % int(e.left) if int(e.left) > 1 else "", int(e.price)]
-		if sold_out:
-			txt = "%s  -  sold out" % e.item.get("name", "?")
-		var b := _row(txt, e.item, sold_out or player.gold < int(e.price))
+		var txt := "%s%s" % [e.item.get("name", "?"), "  x%d" % int(e.left) if int(e.left) > 1 else ""]
+		var b := _row(txt, e.item, sold_out or player.gold < int(e.price), -1 if sold_out else int(e.price), player.gold >= int(e.price))
 		var idx: int = i
 		b.pressed.connect(func(): merchants.request_buy.rpc_id(1, idx))
 		_buy_list.add_child(b)
 	for j in player.inv.backpack.size():
 		var it: Dictionary = player.inv.backpack[j]
 		var price := Merchants.sell_price(it)
-		var b2 := _row("%s  -  %s" % [it.get("name", "?"), "%d g" % price if price > 0 else "not wanted"], it, price <= 0)
+		var b2 := _row(str(it.get("name", "?")), it, price <= 0, price if price > 0 else -1, true, true)
 		var bj: int = j
 		b2.pressed.connect(func(): merchants.request_sell.rpc_id(1, bj))
 		_sell_list.add_child(b2)
@@ -99,7 +105,9 @@ func _rebuild() -> void:
 		all[clampi(focus_idx, 0, all.size() - 1)].grab_focus.call_deferred()
 
 
-func _row(text: String, item: Dictionary, dim: bool) -> Button:
+## One trade row: the item's icon and name in its rarity colour, and its price as a coin chip on
+## the right (red when it can't be afforded, green when selling; a cross when sold out / unwanted).
+func _row(text: String, item: Dictionary, dim: bool, price: int, affordable := true, selling := false) -> Button:
 	var b := Button.new()
 	b.text = text
 	b.alignment = HORIZONTAL_ALIGNMENT_LEFT
@@ -111,6 +119,23 @@ func _row(text: String, item: Dictionary, dim: bool) -> Button:
 		b.add_theme_constant_override("icon_max_width", 24)
 	var rar := GameData.rarity(int(item.get("rarity", 1)))
 	b.add_theme_color_override("font_color", Color.from_string(rar.color, Color.WHITE).darkened(0.35 if dim else 0.0))
+	var tag := HBoxContainer.new()
+	tag.add_theme_constant_override("separation", 3)
+	tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	tag.set_anchors_and_offsets_preset(Control.PRESET_CENTER_RIGHT)
+	tag.offset_left = -70
+	tag.offset_right = -8
+	tag.offset_top = -12
+	tag.offset_bottom = 12
+	tag.alignment = BoxContainer.ALIGNMENT_END
+	if price >= 0:
+		tag.add_child(UITheme.icon("hud_gold", 16))
+		var pc := UITheme.GOOD if selling else (UITheme.GOLD if affordable else UITheme.DANGER)
+		var pl := UITheme.label(str(price), pc, UITheme.FONT_BODY)
+		tag.add_child(pl)
+	else:
+		tag.add_child(UITheme.icon("sil_lock", 16, Color(1, 1, 1, 0.5)))
+	b.add_child(tag)
 	b.focus_entered.connect(_show.bind(item))
 	b.mouse_entered.connect(_show.bind(item))
 	return b
@@ -120,7 +145,4 @@ func _show(item: Dictionary) -> void:
 	for c in _card.get_children():
 		c.queue_free()
 	for line in ItemGenerator.describe(item, player.class_id, player.level):
-		var l := UITheme.label(str(line[0]), line[1], UITheme.FONT_SMALL)
-		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		l.custom_minimum_size = Vector2(214, 0)
-		_card.add_child(l)
+		_card.add_child(UITheme.card_line(line, 214))

@@ -33,3 +33,14 @@ static func deny(c: Control) -> void:
 	for i in 4:
 		tw.tween_property(c, "position:x", c.position.x + (2.0 if i % 2 == 0 else -2.0), 0.03)
 	tw.tween_property(c, "position:x", c.position.x, 0.03)
+
+
+## Slow glow that draws the eye to something waiting for the player (unspent points). Runs
+## until the node leaves the tree; `self_modulate` only, so it never moves pixels.
+static func pulse(c: CanvasItem, strength := 0.45, period := 1.4) -> void:
+	if c.has_meta("pulse"):
+		return
+	c.set_meta("pulse", true)
+	var tw := c.create_tween().set_loops()
+	tw.tween_property(c, "self_modulate", Color(1 + strength, 1 + strength, 1 + strength * 0.6), period / 2.0).set_trans(Tween.TRANS_SINE)
+	tw.tween_property(c, "self_modulate", Color.WHITE, period / 2.0).set_trans(Tween.TRANS_SINE)

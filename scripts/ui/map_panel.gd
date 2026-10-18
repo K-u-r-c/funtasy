@@ -33,3 +33,17 @@ func _build() -> void:
 		item.add_child(sw)
 		item.add_child(UITheme.label(e[0], UITheme.TEXT_DIM, UITheme.FONT_SMALL))
 		legend.add_child(item)
+	# The chamber marks (#28) with their own icons.
+	for m in [["map_archibald", "Archibald"], ["map_malphas", "Malphas"], ["map_boss", "Boss"], ["map_lock", "Sealed"]]:
+		var mi := HBoxContainer.new()
+		mi.add_theme_constant_override("separation", 4)
+		var t := TextureRect.new()
+		t.texture = GameData.texture("ui." + str(m[0]))
+		t.custom_minimum_size = Vector2(12, 12)
+		t.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		t.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		t.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		t.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		mi.add_child(t)
+		mi.add_child(UITheme.label(m[1], UITheme.TEXT_DIM, UITheme.FONT_SMALL))
+		legend.add_child(mi)

@@ -12,6 +12,10 @@ signal switch_tab(id: String)
 
 ## The game menu panels, in tab order: [id (= input action), title].
 const MENU_TABS := [["character", "Character"], ["inventory", "Inventory"], ["talents", "Talents"], ["skillbook", "Skill Book"], ["map", "Map"], ["codex", "Codex"]]
+## Tab icons (data/assets.json icons, #29).
+const TAB_ICONS := {"character": "nav_character", "inventory": "nav_inventory", "talents": "nav_talents",
+	"skillbook": "nav_skillbook", "map": "nav_map", "codex": "nav_codex"}
+var title_icon := ""  ## icon key shown before the title (the tab's icon for menu panels)
 
 var player: Player
 var title_text := ""
@@ -52,6 +56,11 @@ func _ready() -> void:
 	header = HBoxContainer.new()
 	header.add_theme_constant_override("separation", 10)
 	v.add_child(header)
+	if title_icon.is_empty():
+		title_icon = TAB_ICONS.get(menu_tab, "")
+	if not title_icon.is_empty():
+		var ti := UITheme.icon(title_icon, 32)
+		header.add_child(ti)
 	if not title_text.is_empty():
 		header.add_child(UITheme.title(title_text, UITheme.FONT_TITLE))
 	subtitle = UITheme.label(subtitle_text, UITheme.TEXT_DIM, UITheme.FONT_BODY)
@@ -124,7 +133,11 @@ func _tab_strip() -> HBoxContainer:
 			b.add_theme_stylebox_override("pressed", b.get_theme_stylebox("normal"))
 			b.add_theme_color_override("font_color", UITheme.GOLD)
 			b.add_theme_color_override("font_pressed_color", UITheme.GOLD)
-		b.text = t[1]
+		# Icons tell the tabs apart; only the open tab spells out its name.
+		b.text = t[1] if t[0] == menu_tab else ""
+		b.icon = UITheme.icon_tex(TAB_ICONS.get(t[0], ""))
+		b.add_theme_constant_override("icon_max_width", 16)
+		b.custom_minimum_size.x = 0 if t[0] == menu_tab else 30
 		b.tooltip_text = "%s [%s]" % [t[1], InputSettings.prompt_for(t[0])]
 		var id: String = t[0]
 		b.pressed.connect(func():

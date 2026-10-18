@@ -16,6 +16,7 @@ var _grid_pos: Dictionary = {}  ## Vector2i(column, tier) -> node id
 var _branch_labels: Dictionary = {}  ## branch id -> Label
 var _cols_per_branch := 3
 var _reset: Button
+var _points_chip: PanelContainer
 var _focused := ""
 var _last_talents: Dictionary = {}
 var _last_points := -1
@@ -71,11 +72,18 @@ func _build() -> void:
 		head.tooltip_text = str(br.get("description", ""))
 		head.mouse_filter = Control.MOUSE_FILTER_PASS
 		col.add_child(head)
+		# The branch's emblem, its name and the points spent in it (#29).
+		var hrow := HBoxContainer.new()
+		hrow.alignment = BoxContainer.ALIGNMENT_CENTER
+		hrow.add_theme_constant_override("separation", 4)
+		hrow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		head.add_child(hrow)
+		hrow.add_child(UITheme.icon("branch_" + str(br.id), 24))
 		var bl := UITheme.label(str(br.name), UITheme.GOLD, UITheme.FONT_SMALL)
 		bl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		bl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		bl.custom_minimum_size = Vector2(_cols_per_branch * CELL_W - 8, 0)
-		head.add_child(bl)
+		bl.custom_minimum_size = Vector2(_cols_per_branch * CELL_W - 40, 0)
+		hrow.add_child(bl)
 		_branch_labels[br.id] = bl
 		for t in TIERS:
 			var row := HBoxContainer.new()
@@ -101,6 +109,11 @@ func _build() -> void:
 	var right := VBoxContainer.new()
 	right.add_theme_constant_override("separation", 8)
 	body.add_child(right)
+	_points_chip = UITheme.chip("act_plus", "", UITheme.GOOD, UITheme.GOLD_DIM)
+	_points_chip.tooltip_text = "Talent points to spend"
+	_points_chip.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	UIFx.pulse(_points_chip)
+	right.add_child(_points_chip)
 	var card_panel := PanelContainer.new()
 	card_panel.theme_type_variation = &"GlassInset"
 	card_panel.custom_minimum_size = Vector2(230, 0)
@@ -111,6 +124,8 @@ func _build() -> void:
 	card_panel.add_child(_card)
 	_reset = AnimButton.new()
 	_reset.text = "Reset talents (free)"
+	_reset.icon = UITheme.icon_tex("act_reset")
+	_reset.add_theme_constant_override("icon_max_width", 16)
 	_reset.custom_minimum_size = Vector2(230, 28)
 	_reset.pressed.connect(func(): player.request_reset_talents.rpc_id(1))
 	right.add_child(_reset)
@@ -185,6 +200,9 @@ func _refresh() -> void:
 	_last_talents = player.talents.duplicate()
 	_last_points = player.talent_points
 	_points.text = "%s  -  %d point%s to spend" % [player.class_def.name, player.talent_points, "" if player.talent_points == 1 else "s"]
+	if _points_chip:
+		_points_chip.get_meta("label").text = "%d" % player.talent_points
+		_points_chip.get_meta("label").add_theme_color_override("font_color", UITheme.GOOD if player.talent_points > 0 else UITheme.TEXT_DIM)
 	_points.add_theme_color_override("font_color", UITheme.GOOD if player.talent_points > 0 else UITheme.TEXT_DIM)
 	for br in _tree.get("branches", []):
 		_branch_labels[br.id].text = "%s (%d)" % [br.name, player.branch_points(br.id)]
@@ -223,6 +241,24 @@ func _show(node: Dictionary) -> void:
 		tag += " - rank %d / %d" % [rank, int(node.get("max_rank", 1))]
 	_card.add_child(UITheme.label(tag, UITheme.CYAN, UITheme.FONT_SMALL))
 	_card.add_child(HSeparator.new())
+	# Passives: what the ranks learned so far give and what the next one adds, with stat icons.
+	if kind != "skill" and not node.get("mods", []).is_empty():
+		var nums := HFlowContainer.new()
+		nums.add_theme_constant_override("h_separation", 4)
+		nums.add_theme_constant_override("v_separation", 4)
+		for m in node.mods:
+			if m.has("skill"):
+				continue
+			var st := str(m.stat).trim_suffix("_pct").trim_suffix("_mult")
+			var per := float(m.value)
+			var pct := str(m.stat).ends_with("_pct") or str(m.stat).ends_with("_mult") or st in ["crit_chance", "crit_damage", "haste", "dodge", "leech", "block_chance", "magic_resist", "armor_pen", "magic_pen", "max_traps"]
+			var now := per * maxi(rank, 1)
+			var txt := ("%+d%%" % roundi(now * 100.0)) if pct else ("%+d" % roundi(now))
+			var c := UITheme.chip(str(UITheme.STAT_ICONS.get(st, "sil_star")), txt, UITheme.GOOD if rank > 0 else UITheme.TEXT_DIM,
+					Color(UITheme.GOOD, 0.5) if rank > 0 else UITheme.EDGE)
+			nums.add_child(c)
+		if nums.get_child_count() > 0:
+			_card.add_child(nums)
 	var desc := str(node.get("description", ""))
 	if kind == "skill":
 		var sk: Dictionary = GameData.skills.get(str(node.skill), {})

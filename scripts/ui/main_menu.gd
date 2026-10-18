@@ -106,10 +106,13 @@ func _new_page(page_name: String) -> VBoxContainer:
 	return page
 
 
-func _btn(page: VBoxContainer, text: String, action: Callable, disabled := false) -> AnimButton:
+func _btn(page: VBoxContainer, text: String, action: Callable, disabled := false, icon_key := "") -> AnimButton:
 	var b := AnimButton.new()
 	b.text = text
 	b.disabled = disabled
+	if not icon_key.is_empty():
+		b.icon = UITheme.icon_tex(icon_key)
+		b.add_theme_constant_override("icon_max_width", 16)
 	b.pressed.connect(action)
 	page.add_child(b)
 	return b
@@ -117,20 +120,20 @@ func _btn(page: VBoxContainer, text: String, action: Callable, disabled := false
 
 func _build_main_page() -> void:
 	var p := _new_page("main")
-	_btn(p, "Play", _show_page.bind("play"))
-	_btn(p, "Options", open_settings)
-	_btn(p, "Quit", _quit)
+	_btn(p, "Play", _show_page.bind("play"), false, "menu_play")
+	_btn(p, "Options", open_settings, false, "menu_options")
+	_btn(p, "Quit", _quit, false, "menu_quit")
 
 
 func _build_play_page() -> void:
 	var p := _new_page("play")
 	var steam_ok := NetworkManager.steam_ready
-	_btn(p, "Solo", NetworkManager.host_solo)
-	_btn(p, "Host LAN game", _on_host_lan)
-	_btn(p, "Join LAN game", _show_page.bind("lan"))
-	_btn(p, "Host Steam lobby", _on_host_steam, not steam_ok)
-	_btn(p, "Join Steam lobby", _show_page.bind("browser"), not steam_ok)
-	_btn(p, "Back", _show_page.bind("main"))
+	_btn(p, "Solo", NetworkManager.host_solo, false, "nav_character")
+	_btn(p, "Host LAN game", _on_host_lan, false, "menu_host")
+	_btn(p, "Join LAN game", _show_page.bind("lan"), false, "menu_join")
+	_btn(p, "Host Steam lobby", _on_host_steam, not steam_ok, "ui_crown")
+	_btn(p, "Join Steam lobby", _show_page.bind("browser"), not steam_ok, "ui_party")
+	_btn(p, "Back", _show_page.bind("main"), false, "menu_back")
 
 
 func _build_browser_page() -> void:
@@ -139,8 +142,8 @@ func _build_browser_page() -> void:
 	_lobby_list = VBoxContainer.new()
 	_lobby_list.add_theme_constant_override("separation", 4)
 	p.add_child(_lobby_list)
-	_btn(p, "Refresh", NetworkManager.request_steam_lobbies)
-	_btn(p, "Back", _show_page.bind("play"))
+	_btn(p, "Refresh", NetworkManager.request_steam_lobbies, false, "act_reset")
+	_btn(p, "Back", _show_page.bind("play"), false, "menu_back")
 
 
 func _build_lan_page() -> void:
@@ -155,8 +158,8 @@ func _build_lan_page() -> void:
 	_port_edit.text = str(NetworkManager.DEFAULT_PORT)
 	_port_edit.custom_minimum_size = Vector2(240, 32)
 	p.add_child(_port_edit)
-	_btn(p, "Connect", _on_join_lan)
-	_btn(p, "Back", _show_page.bind("play"))
+	_btn(p, "Connect", _on_join_lan, false, "menu_join")
+	_btn(p, "Back", _show_page.bind("play"), false, "menu_back")
 
 
 # --- Page switching --------------------------------------------------------------------------

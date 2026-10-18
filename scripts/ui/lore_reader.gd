@@ -19,6 +19,10 @@ func _init() -> void:
 
 func _build() -> void:
 	var b: Dictionary = GameData.lore_books.get(book_id, {})
+	# The book's kind as its icon before the title (#29): a scroll, a tome, a golden codex.
+	var kind_icon: String = {"standard": "menu_save", "tome": "nav_skillbook", "legendary": "nav_codex"}.get(str(b.get("classification", "")), "menu_save")
+	header.add_child(UITheme.icon(kind_icon, 32))
+	header.move_child(header.get_child(header.get_child_count() - 1), 0)
 	subtitle.text = "%s  -  %s" % [b.get("origin", ""), {"standard": "Lore", "tome": "Tome of Enlightenment", "legendary": "Legendary tome"}.get(str(b.get("classification", "")), "")]
 	var page := PanelContainer.new()
 	page.add_theme_stylebox_override("panel", UITheme.glass(PARCHMENT, Color("8a6a3a"), 2, 6))

@@ -23,6 +23,7 @@ func _ready() -> void:
 	for id in _options:
 		if not str(id).is_empty():
 			_icons[id] = GameData.texture(str(GameData.consumables[id].icon))
+	_icons[""] = UITheme.icon_tex("slot_potion")  # "clear the slot": an empty flask
 	_sel_anim = float(maxi(_selected, 0))
 	var tw := create_tween()
 	tw.tween_method(func(v: float): _pop = v, 0.0, 1.0, 0.22).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
@@ -94,7 +95,8 @@ func _draw() -> void:
 		draw_style_box(UITheme.cached_glass(Color("16203af2") if sel else Color("070a10f2"), UITheme.GOLD if sel else UITheme.EDGE, 1, 0, UITheme.CYAN if sel else Color(0, 0, 0, 0)), box)
 		var id: String = _options[i]
 		if id.is_empty():
-			_text_center(font, p + Vector2(0, 4), "none", UITheme.FONT_SMALL, UITheme.TEXT_DIM)
+			if _icons.get(""):
+				draw_texture_rect(_icons[""], Rect2(p - Vector2(12, 12), Vector2(24, 24)), false, Color(0.75, 0.82, 1.0, 0.4))
 			continue
 		var def: Dictionary = GameData.consumables[id]
 		var tex: Texture2D = _icons.get(id)
@@ -106,8 +108,7 @@ func _draw() -> void:
 		draw_string_outline(font, cp, cnt, HORIZONTAL_ALIGNMENT_LEFT, -1, UITheme.FONT_SMALL, 3, Color.BLACK)
 		draw_string(font, cp, cnt, HORIZONTAL_ALIGNMENT_LEFT, -1, UITheme.FONT_SMALL, Color.WHITE)
 	# Center: slot + selection
-	_text_center(font, c + Vector2(0, 0), "Slot", UITheme.FONT_SMALL, UITheme.TEXT_DIM)
-	_text_center(font, c + Vector2(0, 14), slot.to_upper(), UITheme.FONT_BODY, UITheme.CYAN)
+	_text_center(font, c + Vector2(0, 8), slot.to_upper(), UITheme.FONT_TITLE, UITheme.CYAN)
 	var label := "Clear"
 	if _selected >= 0 and _selected < n and not str(_options[_selected]).is_empty():
 		label = str(GameData.consumables[_options[_selected]].name)

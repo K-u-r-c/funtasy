@@ -34,6 +34,28 @@ func _init(color: Color = Color("c23a3a"), min_size: Vector2 = Vector2(150, 12))
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 
+## Wraps the bar in the iron gauge frame with skull caps (PixelLab ornament, #29).
+func set_ornate() -> void:
+	var tex := UITheme.icon_tex("orn_gauge")
+	if tex == null:
+		return
+	var np := NinePatchRect.new()
+	np.texture = tex
+	np.patch_margin_left = 22
+	np.patch_margin_right = 22
+	np.patch_margin_top = 8
+	np.patch_margin_bottom = 8
+	np.draw_center = false
+	np.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	np.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	np.set_anchors_preset(Control.PRESET_FULL_RECT)
+	np.offset_left = -12
+	np.offset_right = 12
+	np.offset_top = -5
+	np.offset_bottom = 5
+	add_child(np)
+
+
 ## `frac` 0..1, `shield_frac` 0..1 (absorb relative to max), `label` drawn centered.
 func set_values(frac: float, shield_frac: float = 0.0, label: String = "") -> void:
 	frac = clampf(frac, 0.0, 1.0)

@@ -14,7 +14,8 @@ const TIER_STRENGTH := [0.0, 0.0, 0.35, 0.55, 0.8, 1.1]
 
 var item: Dictionary = {}
 var slot_key := ""  ## "e:<slot>", "b:<index>", "q:<quick slot>"
-var placeholder := ""  ## shown while empty ("Head", "Q")
+var placeholder := ""  ## shown while empty ("Head", "Q") when there is no placeholder icon
+var placeholder_icon: Texture2D  ## a dim silhouette of what goes here (#29), drawn while empty
 var ghost_icon: Texture2D  ## drawn dimmed while empty (e.g. the 2H weapon in the off hand)
 var accepts := Callable()  ## func(drag_data: Dictionary) -> bool
 var draggable := true
@@ -34,8 +35,11 @@ var _tex: Texture2D
 func _init(px: int = 40) -> void:
 	custom_minimum_size = Vector2(px, px)
 	focus_mode = Control.FOCUS_ALL
-	add_theme_stylebox_override("normal", UITheme.glass(UITheme.GLASS_DEEP, UITheme.EDGE, 1, 0))
-	add_theme_stylebox_override("hover", UITheme.glass(Color("121a2af2"), UITheme.CYAN_DIM, 1, 0))
+	# The bronze-rimmed well (PixelLab ornament, #29); glass when the art is missing.
+	var well := UITheme.slot_style(Color.WHITE)
+	add_theme_stylebox_override("normal", well if well else UITheme.glass(UITheme.GLASS_DEEP, UITheme.EDGE, 1, 0))
+	var lit := UITheme.slot_style(Color(1.35, 1.35, 1.5))
+	add_theme_stylebox_override("hover", lit if lit else UITheme.glass(Color("121a2af2"), UITheme.CYAN_DIM, 1, 0))
 	var pressed := UITheme.glass(Color("05070bf5"), UITheme.GOLD, 1, 0)
 	add_theme_stylebox_override("pressed", pressed)
 	add_theme_stylebox_override("hover_pressed", pressed)
@@ -81,6 +85,7 @@ func has_item() -> bool:
 func _draw() -> void:
 	var r := Rect2(Vector2.ZERO, size.round())
 	var icon_rect := Rect2(((r.size - Vector2(32, 32)) / 2.0).round(), Vector2(32, 32))
+	draw_rect(r.grow(-5), Color("05070bd8"))  # the dark well inside the bronze rim
 	if _drag_state == 1:
 		draw_rect(r.grow(-1), Color(UITheme.CYAN, 0.16))
 		draw_rect(r.grow(-1), Color(UITheme.CYAN, 0.9), false, 1.0)
@@ -99,6 +104,8 @@ func _draw() -> void:
 			_corner_text(str(int(item.get("count", 1))), r, Color.WHITE)
 	elif ghost_icon:
 		draw_texture_rect(ghost_icon, icon_rect, false, Color(1, 1, 1, 0.25))
+	elif placeholder_icon:
+		draw_texture_rect(placeholder_icon, Rect2(icon_rect.position + Vector2(4, 4), icon_rect.size - Vector2(8, 8)), false, Color(0.75, 0.82, 1.0, 0.42))
 	elif not placeholder.is_empty():
 		var f := UITheme.font()
 		var fs := UITheme.FONT_SMALL

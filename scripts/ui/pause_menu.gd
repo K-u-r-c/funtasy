@@ -13,6 +13,7 @@ func _init() -> void:
 
 
 func _build() -> void:
+	header.add_child(UITheme.icon("menu_resume", 32))
 	var t := UITheme.title("Paused", UITheme.FONT_TITLE)
 	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	t.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -23,9 +24,9 @@ func _build() -> void:
 	_box = VBoxContainer.new()
 	_box.add_theme_constant_override("separation", 6)
 	content.add_child(_box)
-	var resume := _add("Resume", func(): closed.emit())
-	_options_btn = _add("Options", _open_settings)
-	_add("Leave to main menu" if not multiplayer.is_server() else "End session (host)", _leave)
+	var resume := _add("Resume", func(): closed.emit(), "menu_resume")
+	_options_btn = _add("Options", _open_settings, "menu_options")
+	_add("Leave to main menu" if not multiplayer.is_server() else "End session (host)", _leave, "menu_leave")
 	var delay := 0.05
 	for b in _box.get_children():
 		b.play_intro(delay)
@@ -33,9 +34,12 @@ func _build() -> void:
 	resume.grab_focus.call_deferred()
 
 
-func _add(text: String, cb: Callable) -> AnimButton:
+func _add(text: String, cb: Callable, icon_key := "") -> AnimButton:
 	var b := AnimButton.new()
 	b.text = text
+	if not icon_key.is_empty():
+		b.icon = UITheme.icon_tex(icon_key)
+		b.add_theme_constant_override("icon_max_width", 16)
 	b.pressed.connect(cb)
 	_box.add_child(b)
 	return b

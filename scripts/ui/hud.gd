@@ -62,6 +62,9 @@ var _radial: Control
 var _wipe: Control
 var _dodge_slot: Control
 var _torch_label: Label
+var _torch_icon: TextureRect
+var _res_icon: TextureRect
+var _goal_icon: TextureRect
 var _last_message := ""
 var _last_message_at := 0
 ## Layout test hook: fills every HUD block with worst-case content (boss bar, banner, three
@@ -135,12 +138,14 @@ func _build_top_left() -> void:
 	row.add_child(bars)
 	_name_label = UITheme.label("", UITheme.TEXT, UITheme.FONT_BODY)
 	bars.add_child(_name_label)
-	_hp_bar = StatBar.new(Color("c23a3a"), Vector2(168, 16))
+	_hp_bar = StatBar.new(Color("c23a3a"), Vector2(156, 16))
 	_hp_bar.ticks = 4
 	_hp_bar.flash_on_damage = true
-	bars.add_child(_hp_bar)
-	_res_bar = StatBar.new(Color("3b6fe0"), Vector2(168, 11))
-	bars.add_child(_res_bar)
+	_hp_bar.set_ornate()
+	bars.add_child(_bar_row("hud_health", _hp_bar))
+	_res_bar = StatBar.new(Color("3b6fe0"), Vector2(156, 11))
+	_res_icon = UITheme.icon("stat_mana", 16)
+	bars.add_child(_bar_row("", _res_bar, _res_icon))
 	_status_box = HBoxContainer.new()
 	_status_box.add_theme_constant_override("separation", 3)
 	_status_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -163,17 +168,28 @@ func _build_top_right() -> void:
 	v.add_child(mm)
 	_floor_label = UITheme.label("", UITheme.GOLD, UITheme.FONT_BODY)
 	v.add_child(_floor_label)
+	# Each tracker line leads with its icon (#29): the goal (skull / stairs), the portal, the torch.
+	var grow := HBoxContainer.new()
+	grow.add_theme_constant_override("separation", 4)
+	v.add_child(grow)
+	_goal_icon = UITheme.icon("hud_boss", 16)
+	grow.add_child(_goal_icon)
 	_goal_label = UITheme.label("", UITheme.TEXT, UITheme.FONT_SMALL)
 	_goal_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_goal_label.custom_minimum_size = Vector2(176, 0)
-	v.add_child(_goal_label)
+	_goal_label.custom_minimum_size = Vector2(156, 0)
+	grow.add_child(_goal_label)
 	_portal_label = UITheme.label("", Color(0.8, 0.6, 1.0), UITheme.FONT_SMALL)
 	_portal_label.visible = false
 	v.add_child(_portal_label)
+	var trow := HBoxContainer.new()
+	trow.add_theme_constant_override("separation", 4)
+	v.add_child(trow)
+	_torch_icon = UITheme.icon("hud_torch", 16)
+	trow.add_child(_torch_icon)
 	_torch_label = UITheme.label("", Color(1.0, 0.7, 0.35), UITheme.FONT_SMALL)
 	_torch_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_torch_label.custom_minimum_size = Vector2(176, 0)
-	v.add_child(_torch_label)
+	_torch_label.custom_minimum_size = Vector2(156, 0)
+	trow.add_child(_torch_label)
 
 
 func _build_center() -> void:
@@ -279,8 +295,10 @@ func _build_bottom() -> void:
 	var xp_row := HBoxContainer.new()
 	xp_row.add_theme_constant_override("separation", 6)
 	bv.add_child(xp_row)
+	xp_row.add_child(UITheme.icon("ui_crown", 16))
 	_level_label = UITheme.label("Lv 1", UITheme.GOLD, UITheme.FONT_SMALL)
 	xp_row.add_child(_level_label)
+	xp_row.add_child(UITheme.icon("hud_xp", 12))
 	_xp_bar = StatBar.new(Color("8a5ce6"), Vector2(0, 6))
 	_xp_bar.show_text = false
 	_xp_bar.ticks = 10
@@ -291,31 +309,50 @@ func _build_bottom() -> void:
 	_talent_hint.add_theme_constant_override("separation", 3)
 	_talent_hint.visible = false
 	_talent_hint.add_child(InputGlyph.new("talents"))
+	_talent_hint.add_child(UITheme.icon("nav_talents", 16))
 	_talent_hint.add_child(UITheme.label("Talent point", UITheme.GOOD, UITheme.FONT_SMALL))
+	_talent_hint.tooltip_text = "Talent points to spend"
+	UIFx.pulse(_talent_hint)
 	xp_row.add_child(_talent_hint)
 	_stat_hint = HBoxContainer.new()
 	_stat_hint.add_theme_constant_override("separation", 3)
 	_stat_hint.visible = false
 	_stat_hint.add_child(InputGlyph.new("character"))
+	_stat_hint.add_child(UITheme.icon("act_plus", 16))
 	_stat_hint.add_child(UITheme.label("Stat points", UITheme.GOOD, UITheme.FONT_SMALL))
+	_stat_hint.tooltip_text = "Stat points to spend"
+	UIFx.pulse(_stat_hint)
 	xp_row.add_child(_stat_hint)
 	_key_icon = TextureRect.new()
-	_key_icon.texture = GameData.texture("items.gold_key")
-	_key_icon.custom_minimum_size = Vector2(14, 14)
+	_key_icon.texture = UITheme.icon_tex("hud_key")
+	_key_icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	_key_icon.custom_minimum_size = Vector2(16, 16)
 	_key_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_key_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	_key_icon.tooltip_text = "Gold Key: Archibald trades for it"
 	_key_icon.visible = false
 	xp_row.add_child(_key_icon)
 	var coin := TextureRect.new()
-	coin.texture = GameData.texture("items.gold")
-	coin.custom_minimum_size = Vector2(12, 12)
+	coin.texture = UITheme.icon_tex("hud_gold")
+	coin.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	coin.custom_minimum_size = Vector2(16, 16)
 	coin.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	coin.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	xp_row.add_child(coin)
 	_gold_label = UITheme.label("0", UITheme.GOLD, UITheme.FONT_SMALL)
 	_gold_label.custom_minimum_size = Vector2(34, 0)
 	xp_row.add_child(_gold_label)
+
+
+## A bar led by its icon (heart, mana crystal or fury flame).
+func _bar_row(icon_key: String, bar: StatBar, ic: TextureRect = null) -> HBoxContainer:
+	var h := HBoxContainer.new()
+	h.add_theme_constant_override("separation", 14)
+	h.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	h.add_child(ic if ic else UITheme.icon(icon_key, 16))
+	bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	h.add_child(bar)
+	return h
 
 
 func _divider() -> Control:
@@ -364,6 +401,7 @@ func _rebuild_skill_icons() -> void:
 	_dodge_slot.action = "dodge"
 	_dodge_slot.tooltip = "Dodge"
 	_res_bar.fill_color = Color("e0701c") if player.class_def.resource == "fury" else Color("3b6fe0")
+	_res_icon.texture = UITheme.icon_tex("stat_fury" if player.class_def.resource == "fury" else "stat_mana")
 	_name_label.text = player.display_name
 	_refresh_quick()
 
@@ -401,6 +439,8 @@ func _process(_delta: float) -> void:
 		_level_label.text = "Lv %d" % player.level
 		_talent_hint.visible = player.talent_points > 0
 		_stat_hint.visible = player.stat_points > 0
+		_talent_hint.get_child(2).text = str(player.talent_points)
+		_stat_hint.get_child(2).text = str(player.stat_points)
 		_gold_label.text = str(player.gold)
 		var game := get_tree().get_first_node_in_group("game")
 		_key_icon.visible = game != null and int(game.get("party_keys")) > 0
@@ -442,6 +482,7 @@ func _update_status() -> void:
 func _update_tracker() -> void:
 	var game := get_tree().get_first_node_in_group("game")
 	var goal := ""
+	_goal_icon.texture = UITheme.icon_tex("hud_stairs" if game and game.portal else "hud_boss")
 	if game and game.portal:
 		goal = "The way down is open: step into the portal"
 	else:
@@ -452,6 +493,7 @@ func _update_tracker() -> void:
 			goal = "Find and defeat the floor boss"
 	_goal_label.text = goal
 	var t: int = player.torch_sync
+	_torch_icon.modulate = Color(1, 1, 1, 1.0 if t > 0 else 0.35)
 	if t <= 0:
 		_torch_label.text = "No light - take a torch from a wall"
 		_torch_label.add_theme_color_override("font_color", UITheme.TEXT_DIM)
@@ -667,7 +709,14 @@ func ask_tithe(text: String) -> void:
 	d.body_text = text
 	d.yes_text = "Pay the tithe"
 	d.no_text = "Turn away"
+	d.title_icon = "stat_leech"
+	d.yes_icon = "stat_leech"
+	d.no_icon = "menu_back"
 	var game := get_tree().get_first_node_in_group("game")
+	if game:
+		# The price as a stat chip: what the hero loses for the rest of the run.
+		var price: Dictionary = Merchants.blood_price(int(game.layout.get("seed", 0)))
+		d.chips = [[str(UITheme.STAT_ICONS.get(str(price.stat).trim_suffix("_pct"), "hud_health")), Merchants.mod_text(price), UITheme.DANGER]]
 	d.on_answer = func(ok: bool):
 		if ok and game:
 			game.merchants.request_tithe.rpc_id(1, true)
@@ -761,6 +810,11 @@ class SkillSlot:
 	var _text: Control
 	var _mat: ShaderMaterial
 	var _ready_flash := 0.0
+	var _empty_icon: Texture2D
+
+	func _ready() -> void:
+		# Loaded here: a texture first loaded inside _draw renders blank.
+		_empty_icon = UITheme.icon_tex("slot_potion" if not quick_key.is_empty() else ("" if is_dodge else "slot_rune"))
 
 	func _init() -> void:
 		custom_minimum_size = Vector2(40, 40)
@@ -810,10 +864,9 @@ class SkillSlot:
 			draw_texture_rect(icon, Rect2(4, 4, 32, 32), false, tint)
 			if unaffordable:
 				draw_rect(Rect2(4, 34, 32, 2), Color("3b6fe0"))
-		elif not quick_key.is_empty():
-			var t := "empty"
-			var tw2 := f.get_string_size(t, HORIZONTAL_ALIGNMENT_LEFT, -1, UITheme.FONT_SMALL).x
-			draw_string(f, Vector2(roundf((r.size.x - tw2) / 2.0), 25), t, HORIZONTAL_ALIGNMENT_LEFT, -1, UITheme.FONT_SMALL, Color(UITheme.TEXT_DIM, 0.5))
+		elif _empty_icon:
+			# An empty quick slot shows a potion, an empty skill slot a rune stone (#29).
+			draw_texture_rect(_empty_icon, Rect2(8, 8, 24, 24), false, Color(0.75, 0.82, 1.0, 0.3))
 		if _ready_flash > 0.0:
 			draw_rect(r.grow(-1), Color(1, 1, 1, 0.35 * _ready_flash))
 			var g := roundf((1.0 - _ready_flash) * 4.0)

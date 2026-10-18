@@ -38,6 +38,7 @@ var _last_points := -1
 var _points_label: Label
 var _plus: Dictionary = {}  ## stat -> Button
 var _mods_label: Label
+var _mods_box: HFlowContainer
 var _gold_label: Label
 
 
@@ -69,16 +70,36 @@ func _build() -> void:
 	var name_l := UITheme.label(player.display_name, UITheme.GOLD, UITheme.FONT_BODY)
 	name_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	hv.add_child(name_l)
-	_level_label = UITheme.label("", Color.from_string(str(player.class_def.get("color", "#ffffff")), UITheme.TEXT), UITheme.FONT_SMALL)
-	_level_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	hv.add_child(_level_label)
-	_xp_bar = StatBar.new(Color("8a5ce6"), Vector2(196, 8))
+	# Class crest + level badge instead of a sentence.
+	var crest := HBoxContainer.new()
+	crest.alignment = BoxContainer.ALIGNMENT_CENTER
+	crest.add_theme_constant_override("separation", 6)
+	hv.add_child(crest)
+	var ci := UITheme.icon("class_" + str(player.class_id), 24)
+	ci.tooltip_text = str(player.class_def.name)
+	crest.add_child(ci)
+	var lv := UITheme.chip("ui_crown", "", Color.from_string(str(player.class_def.get("color", "#ffffff")), UITheme.TEXT), UITheme.GOLD_DIM)
+	lv.tooltip_text = "Level"
+	crest.add_child(lv)
+	_level_label = lv.get_meta("label")
+	var xprow := HBoxContainer.new()
+	xprow.add_theme_constant_override("separation", 4)
+	xprow.alignment = BoxContainer.ALIGNMENT_CENTER
+	hv.add_child(xprow)
+	xprow.add_child(UITheme.icon("hud_xp", 16))
+	_xp_bar = StatBar.new(Color("8a5ce6"), Vector2(176, 8))
 	_xp_bar.show_text = false
 	_xp_bar.ticks = 10
-	hv.add_child(_xp_bar)
+	_xp_bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	xprow.add_child(_xp_bar)
 	_xp_label = UITheme.label("", UITheme.TEXT_DIM, UITheme.FONT_SMALL)
 	_xp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	hv.add_child(_xp_label)
+	var gold := UITheme.chip("hud_gold", "", UITheme.GOLD, UITheme.GOLD_DIM)
+	gold.tooltip_text = "Gold"
+	gold.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	hv.add_child(gold)
+	_gold_label = gold.get_meta("label")
 	_offclass = UITheme.label("", UITheme.DANGER, UITheme.FONT_SMALL)
 	_offclass.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_offclass.custom_minimum_size = Vector2(196, 0)
@@ -88,34 +109,44 @@ func _build() -> void:
 	var stats_col := VBoxContainer.new()
 	stats_col.add_theme_constant_override("separation", 4)
 	body.add_child(stats_col)
-	stats_col.add_child(UITheme.label("Attributes", UITheme.GOLD, UITheme.FONT_BODY))
-	# Free stat points (5 per level): one "+" button per primary stat, focusable with a pad.
+	stats_col.add_child(UITheme.section("Attributes", "nav_character"))
+	# Free stat points: a points badge and one "+" button per primary stat, shown by its icon.
 	var prow := HBoxContainer.new()
 	prow.add_theme_constant_override("separation", 4)
 	stats_col.add_child(prow)
-	_points_label = UITheme.label("", UITheme.TEXT_DIM, UITheme.FONT_SMALL)
-	_points_label.custom_minimum_size = Vector2(92, 0)
-	prow.add_child(_points_label)
+	var pts := UITheme.chip("act_plus", "", UITheme.TEXT_DIM)
+	pts.tooltip_text = "Free stat points"
+	pts.custom_minimum_size = Vector2(58, 0)
+	prow.add_child(pts)
+	_points_label = pts.get_meta("label")
+	UIFx.pulse(pts)
 	for st in Stats.PRIMARY:
 		var b := Button.new()
-		b.text = "+" + str(st).substr(0, 3).capitalize()
-		b.add_theme_font_size_override("font_size", UITheme.FONT_SMALL)
-		b.custom_minimum_size = Vector2(46, 20)
-		b.tooltip_text = "Spend a stat point on %s. %s" % [str(st).capitalize(), STAT_HELP.get(str(st).capitalize(), "")]
-		b.pressed.connect(func(): player.request_spend_stat.rpc_id(1, st, 1))
+		b.text = "+"
+		b.icon = UITheme.icon_tex(UITheme.STAT_ICONS.get(st, ""))
+		b.add_theme_constant_override("icon_max_width", 16)
+		b.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
+		b.custom_minimum_size = Vector2(44, 22)
+		b.tooltip_text = "+1 %s. %s" % [str(st).capitalize(), STAT_HELP.get(str(st).capitalize(), "")]
+		b.pressed.connect(func():
+			player.request_spend_stat.rpc_id(1, st, 1)
+			UIFx.flash(b))
 		prow.add_child(b)
 		_plus[st] = b
 	_stats_grid = GridContainer.new()
-	_stats_grid.columns = 4
+	_stats_grid.columns = 6
 	_stats_grid.add_theme_constant_override("h_separation", 12)
 	_stats_grid.add_theme_constant_override("v_separation", 1)
 	stats_col.add_child(_stats_grid)
-	_gold_label = UITheme.label("", UITheme.GOLD, UITheme.FONT_SMALL)
-	stats_col.add_child(_gold_label)
-	stats_col.add_child(UITheme.label("Run blessings and curses", UITheme.GOLD, UITheme.FONT_SMALL))
+	stats_col.add_child(UITheme.section("Run blessings and curses", "hud_boss"))
+	_mods_box = HFlowContainer.new()
+	_mods_box.add_theme_constant_override("h_separation", 4)
+	_mods_box.add_theme_constant_override("v_separation", 4)
+	_mods_box.custom_minimum_size = Vector2(300, 0)
+	stats_col.add_child(_mods_box)
 	_mods_label = UITheme.label("", UITheme.TEXT_DIM, UITheme.FONT_SMALL)
 	_mods_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_mods_label.custom_minimum_size = Vector2(260, 0)
+	_mods_label.custom_minimum_size = Vector2(300, 0)
 	_mods_label.mouse_filter = Control.MOUSE_FILTER_PASS
 	stats_col.add_child(_mods_label)
 
@@ -124,7 +155,7 @@ func _build() -> void:
 	skills_col.add_theme_constant_override("separation", 4)
 	skills_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	body.add_child(skills_col)
-	skills_col.add_child(UITheme.label("Skills", UITheme.GOLD, UITheme.FONT_BODY))
+	skills_col.add_child(UITheme.section("Skills", "act_skills"))
 	var scroll := ScrollContainer.new()
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -181,19 +212,15 @@ func _refresh() -> void:
 	_last_stats = player.stats.final.duplicate()
 	_last_level = player.level
 	_last_points = player.stat_points
-	_points_label.text = "%d stat point%s" % [player.stat_points, "" if player.stat_points == 1 else "s"]
+	_points_label.text = "%d" % player.stat_points
 	_points_label.add_theme_color_override("font_color", UITheme.GOOD if player.stat_points > 0 else UITheme.TEXT_DIM)
 	for st in _plus:
 		_plus[st].disabled = player.stat_points <= 0
-	_gold_label.text = "Gold: %d" % player.gold
-	_mods_label.text = run_mods_text(player.run_mods)
-	var tip := ""
-	for m in player.run_mods:
-		tip += "%s %s%s (%s)\n" % [_stat_name(str(m.stat)), "+" if float(m.value) >= 0 else "", _fmt(str(m.stat), float(m.value)), m.get("source", "")]
-	_mods_label.tooltip_text = tip.strip_edges()
+	_gold_label.text = "%d" % player.gold
+	_refresh_mods()
 	var s: Dictionary = player.stats.final
-	_level_label.text = "Level %d %s" % [player.level, player.class_def.name]
-	_xp_label.text = "XP %d / %d" % [player.xp, Player.xp_to_next(player.level)]
+	_level_label.text = "%d" % player.level
+	_xp_label.text = "%d / %d" % [player.xp, Player.xp_to_next(player.level)]
 	_offclass.text = "Off-class weapon: -%d%% damage, slower cooldowns" % roundi((1.0 - float(GameData.bal("off_class.damage_mult"))) * 100) \
 			if bool(s.get("offclass", false)) else ""
 	for c in _stats_grid.get_children():
@@ -222,16 +249,52 @@ func _refresh() -> void:
 	if player.class_def.resource == "mana":
 		rows.insert(2, ["Mana regen", "%.1f / s" % float(s.get("resource_regen", 0))])
 	for r in rows:
+		var ic := UITheme.icon(str(UITheme.STAT_ICONS.get(ROW_STAT.get(r[0], ""), "")), 16)
+		ic.tooltip_text = STAT_HELP.get(r[0], "")
+		_stats_grid.add_child(ic)
 		var k := UITheme.label(r[0], UITheme.TEXT_DIM, UITheme.FONT_SMALL)
 		k.tooltip_text = STAT_HELP.get(r[0], "")
 		k.mouse_filter = Control.MOUSE_FILTER_PASS if not k.tooltip_text.is_empty() else Control.MOUSE_FILTER_IGNORE
 		_stats_grid.add_child(k)
 		var v := UITheme.label(r[1], UITheme.TEXT, UITheme.FONT_SMALL)
 		v.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-		v.custom_minimum_size = Vector2(44, 0)
+		v.custom_minimum_size = Vector2(40, 0)
 		_stats_grid.add_child(v)
 	for row in _skill_rows:
 		row.refresh(player)
+
+
+## Run modifiers as chips: the stat's icon and the summed value, green or red; the sources
+## are in the tooltip. Nothing yet: a dim line.
+func _refresh_mods() -> void:
+	for c in _mods_box.get_children():
+		c.queue_free()
+	var sums := {}
+	var order: Array = []
+	var srcs := {}
+	for m in player.run_mods:
+		var k := str(m.stat)
+		if not sums.has(k):
+			order.append(k)
+		sums[k] = float(sums.get(k, 0.0)) + float(m.value)
+		srcs[k] = str(srcs.get(k, "")) + "%s%s %s\n" % ["+" if float(m.value) >= 0 else "", _fmt(k, float(m.value)), m.get("source", "")]
+	for k in order:
+		var v := float(sums[k])
+		var key := str(UITheme.STAT_ICONS.get(k.trim_suffix("_pct"), "sil_star"))
+		var c := UITheme.chip(key, "%s%s" % ["+" if v >= 0 else "", _fmt(k, v)], UITheme.GOOD if v >= 0 else UITheme.DANGER,
+				Color(UITheme.GOOD, 0.5) if v >= 0 else Color(UITheme.DANGER, 0.5))
+		c.tooltip_text = "%s\n%s" % [_stat_name(k), str(srcs[k]).strip_edges()]
+		_mods_box.add_child(c)
+	_mods_label.text = run_mods_text(player.run_mods) if order.is_empty() else ""
+	_mods_label.visible = order.is_empty()
+
+
+## Stat icon of each row of the attribute grid.
+const ROW_STAT := {"Health": "max_hp", "Mana": "mana", "Fury": "fury", "Mana regen": "resource_regen",
+	"Strength": "strength", "Stamina": "stamina", "Agility": "agility", "Intellect": "intellect", "Armor": "armor",
+	"Weapon DPS": "weapon_dps", "Crit chance": "crit_chance", "Crit damage": "crit_damage", "Haste": "haste",
+	"Dodge": "dodge", "Leech": "leech", "Melee power": "power_melee", "Ranged power": "power_ranged",
+	"Spell power": "power_spell", "Damage reduction": "strength_reduction", "Move speed": "move_speed"}
 
 
 ## One skill in the compact list: icon, name and key glyph (details in the tooltip).
@@ -271,9 +334,11 @@ class SkillRow:
 
 	func refresh(p: Player) -> void:
 		var sk: Dictionary = GameData.skills.get(str(p.skills[slot]), {})
-		_icon.texture = GameData.texture("icons." + str(sk.get("icon", "attack"))) if not sk.is_empty() else null
+		_icon.texture = GameData.texture("icons." + str(sk.get("icon", "attack"))) if not sk.is_empty() else UITheme.icon_tex("slot_rune")
+		_icon.modulate = Color.WHITE if not sk.is_empty() else Color(1, 1, 1, 0.25)
+		_name.add_theme_color_override("font_color", UITheme.GOLD if not sk.is_empty() else UITheme.TEXT_DIM)
 		if sk.is_empty():
-			_name.text = "Empty slot"
+			_name.text = "-"
 		else:
 			_name.text = str(sk.get("name", "?")) if slot > 0 else "%s  (primary)" % sk.get("name", "?")
 		_glyph.action = Player.SLOT_ACTIONS[slot]

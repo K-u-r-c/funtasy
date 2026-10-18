@@ -11,6 +11,10 @@ const SLOT_PX := 40
 const LEFT_SLOTS := ["head", "chest", "legs", "boots"]
 const RIGHT_SLOTS := ["necklace", "ring_1", "ring_2", "gloves"]
 const HAND_SLOTS := ["main_hand", "off_hand"]
+## Silhouette of what each equipment slot takes, drawn while it is empty (#29).
+const SLOT_ICONS := {"head": "slot_head", "chest": "slot_chest", "legs": "slot_legs", "boots": "slot_feet",
+	"gloves": "slot_hands", "main_hand": "slot_main_hand", "off_hand": "slot_off_hand", "ring_1": "slot_ring",
+	"ring_2": "slot_ring", "necklace": "slot_neck"}
 
 var _slots: Dictionary = {}  ## key ("e:slot" / "b:index" / "q:q") -> ItemSlot
 var _bag_grid: GridContainer
@@ -45,7 +49,7 @@ func _build() -> void:
 	var left := VBoxContainer.new()
 	left.add_theme_constant_override("separation", 6)
 	body.add_child(left)
-	left.add_child(_section("Equipment"))
+	left.add_child(UITheme.section("Equipment", "slot_chest"))
 	_equip_root = HBoxContainer.new()
 	_equip_root.add_theme_constant_override("separation", 6)
 	left.add_child(_equip_root)
@@ -65,9 +69,9 @@ func _build() -> void:
 	for s in HAND_SLOTS:
 		_hands.add_child(_make_equip_slot(s))
 	_equip_root.add_child(_slot_column(RIGHT_SLOTS))
-	left.add_child(_section("Attributes"))
+	left.add_child(UITheme.section("Attributes", "nav_character"))
 	_stats = GridContainer.new()
-	_stats.columns = 4
+	_stats.columns = 8
 	_stats.add_theme_constant_override("h_separation", 8)
 	_stats.add_theme_constant_override("v_separation", 1)
 	left.add_child(_stats)
@@ -78,7 +82,7 @@ func _build() -> void:
 	var bag := VBoxContainer.new()
 	bag.add_theme_constant_override("separation", 6)
 	body.add_child(bag)
-	bag.add_child(_section("Backpack"))
+	bag.add_child(UITheme.section("Backpack", "slot_backpack"))
 	var scroll := ScrollContainer.new()
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll.custom_minimum_size = Vector2(COLS * (SLOT_PX + 4) + 4, 4 * (SLOT_PX + 4))
@@ -89,7 +93,7 @@ func _build() -> void:
 	_bag_grid.add_theme_constant_override("h_separation", 4)
 	_bag_grid.add_theme_constant_override("v_separation", 4)
 	scroll.add_child(_bag_grid)
-	bag.add_child(_section("Quick slots"))
+	bag.add_child(UITheme.section("Quick slots", "ui_potion"))
 	_quick_row = HBoxContainer.new()
 	_quick_row.add_theme_constant_override("separation", 8)
 	bag.add_child(_quick_row)
@@ -100,6 +104,7 @@ func _build() -> void:
 		var qs := ItemSlot.new(SLOT_PX)
 		qs.slot_key = "q:" + k
 		qs.placeholder = k.to_upper()
+		qs.placeholder_icon = UITheme.icon_tex("slot_potion")
 		qs.draggable = false
 		qs.accepts = func(d: Dictionary) -> bool: return d.item.get("kind") == "consumable"
 		qs.item_dropped.connect(func(d: Dictionary): player.request_assign_quick.rpc_id(1, k, d.item.base))
@@ -146,6 +151,7 @@ func _make_equip_slot(slot: String) -> ItemSlot:
 	b.slot_key = "e:" + slot
 	b.placeholder = {"head": "Head", "chest": "Chest", "legs": "Legs", "boots": "Feet", "gloves": "Hands",
 		"main_hand": "Main", "off_hand": "Off", "ring_1": "Ring", "ring_2": "Ring", "necklace": "Neck"}.get(slot, "")
+	b.placeholder_icon = UITheme.icon_tex(str(SLOT_ICONS.get(slot, "")))
 	b.tooltip_text = Inventory.SLOT_NAMES[slot]
 	b.accepts = func(d: Dictionary) -> bool: return str(d.from).begins_with("b:") and _fits(d.item, slot)
 	b.item_dropped.connect(func(d: Dictionary): _try_equip(int(str(d.from).get_slice(":", 1)), b))
@@ -336,7 +342,13 @@ func _show_card(b: ItemSlot) -> void:
 	for c in _card.get_children():
 		c.queue_free()
 	if not b.has_item():
-		_card.add_child(UITheme.label("Empty slot", UITheme.TEXT_DIM))
+		var eh := HBoxContainer.new()
+		eh.add_theme_constant_override("separation", 6)
+		var ei := UITheme.icon("", 32, Color(0.75, 0.82, 1.0, 0.45))
+		ei.texture = b.placeholder_icon if b.placeholder_icon else UITheme.icon_tex("slot_backpack")
+		eh.add_child(ei)
+		eh.add_child(UITheme.label("Empty slot", UITheme.TEXT_DIM))
+		_card.add_child(eh)
 		var hint := "Drag an item here or pick one from the backpack." if b.slot_key.begins_with("e:") \
 				else ("Drag a potion here to bind it." if b.slot_key.begins_with("q:") else "")
 		if not hint.is_empty():
@@ -371,8 +383,7 @@ func _show_card(b: ItemSlot) -> void:
 		_card.add_child(warn)
 	_card.add_child(HSeparator.new())
 	for i in range(2, lines.size()):
-		var c: Color = lines[i][1]
-		_card.add_child(_wrap(UITheme.label(str(lines[i][0]), c, UITheme.FONT_SMALL)))
+		_card.add_child(UITheme.card_line(lines[i], 234))
 	if item.get("kind") in ["weapon", "offhand", "armor", "jewelry"] and b.slot_key.begins_with("b:"):
 		# Compared with everything equipping it would take off (#11): a 2H weapon against both
 		# hands, an off-hand item against a 2H weapon.
@@ -480,11 +491,20 @@ func _refresh_stats() -> void:
 		["Haste", "%d%%" % roundi(float(s.get("haste", 0)) * 100)], ["Dodge", "%d%%" % roundi(float(s.get("dodge", 0)) * 100)],
 		["Leech", "%d%%" % roundi(float(s.get("leech", 0)) * 100)], ["Level", "%d" % player.level],
 	]
+	# Icon + value, the stat's name on hover (#29).
+	var icons := {"Health": "hud_health", "Mana": "stat_mana", "Fury": "stat_fury", "Strength": "stat_strength",
+		"Stamina": "stat_stamina", "Agility": "stat_agility", "Intellect": "stat_intellect", "Armor": "stat_armor",
+		"DPS": "stat_weapon_dps", "Crit": "stat_crit_chance", "Crit dmg": "stat_crit_damage", "Haste": "stat_haste",
+		"Dodge": "stat_dodge", "Leech": "stat_leech", "Level": "ui_crown"}
 	for r in rows:
-		_stats.add_child(UITheme.label(r[0], UITheme.TEXT_DIM, UITheme.FONT_SMALL))
+		var ic := UITheme.icon(str(icons.get(r[0], "sil_star")), 16)
+		ic.tooltip_text = r[0]
+		_stats.add_child(ic)
 		var v := UITheme.label(r[1], UITheme.TEXT, UITheme.FONT_SMALL)
 		v.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 		v.custom_minimum_size = Vector2(34, 0)
+		v.tooltip_text = r[0]
+		v.mouse_filter = Control.MOUSE_FILTER_PASS
 		_stats.add_child(v)
 	_offclass.text = "Off-class weapon: -%d%% damage, slower cooldowns" % roundi((1.0 - float(GameData.bal("off_class.damage_mult"))) * 100) \
 			if bool(s.get("offclass", false)) else ""

@@ -19,6 +19,14 @@ func _init() -> void:
 
 func _build() -> void:
 	subtitle.text = "%d / %d books read" % [Codex.count(), GameData.lore_order.size()]
+	# Progress as a gauge next to the title (the count stays in the subtitle).
+	var gauge := StatBar.new(UITheme.GOLD, Vector2(140, 8))
+	gauge.show_text = false
+	gauge.ticks = 7
+	gauge.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	header.add_child(gauge)
+	header.move_child(gauge, subtitle.get_index() + 1)
+	gauge.set_values.call_deferred(float(Codex.count()) / maxf(1.0, GameData.lore_order.size()))
 	var body := HBoxContainer.new()
 	body.add_theme_constant_override("separation", 12)
 	body.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -58,10 +66,16 @@ func _build() -> void:
 		var b: Dictionary = GameData.lore_books[id]
 		if str(b.origin) != origin:
 			origin = str(b.origin)
-			_list.add_child(UITheme.label(origin, UITheme.GOLD_DIM, UITheme.FONT_SMALL))
+			_list.add_child(UITheme.section(origin, "nav_codex"))
 		var known := Codex.is_read(id)
 		var btn := Button.new()
 		btn.text = ("%03d  %s" % [int(b.number), b.title]) if known else "%03d  ???" % int(b.number)
+		# Read books show a scroll in their class's colour, the rest a padlock (#29).
+		btn.icon = UITheme.icon_tex("menu_save" if known else "sil_lock")
+		btn.add_theme_constant_override("icon_max_width", 16)
+		var cls := str(b.get("classification", "standard"))
+		if known and cls != "standard":
+			btn.add_theme_color_override("font_color", UITheme.GOLD if cls == "legendary" else UITheme.CYAN)
 		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		btn.add_theme_font_size_override("font_size", UITheme.FONT_SMALL)
 		btn.disabled = not known
