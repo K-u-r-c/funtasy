@@ -24,6 +24,7 @@ var fails := 0
 var passes := 0
 
 var _fight := false
+var _aim_boss := false  ## the boss scenario aims at the boss (host and client)
 var _finishing := false
 var _skill_cycle := 0.0
 var _seen_visible := 0
@@ -307,15 +308,19 @@ func _process(delta: float) -> void:
 		return
 	var best: Node2D = null
 	var best_d := INF
-	# Visible enemies first: the nearest one can stand behind a wall in the next room (fog of war
-	# hides it), and swinging at the wall stalled the boss fight on some layouts.
 	for e in g.enemies_root.get_children():
 		if e.visible:
 			_seen_visible += 1
-		var d: float = e.global_position.distance_to(p.global_position) + (0.0 if e.visible else 100000.0)
+		var d: float = e.global_position.distance_to(p.global_position)
 		if d < best_d:
 			best_d = d
 			best = e
+	# The boss test fights the boss: the nearest enemy can stand behind a wall in the next room,
+	# and swinging at that wall stalled the fight on some layouts.
+	if _aim_boss:
+		var boss := _nearest_enemy(p.global_position, true)
+		if boss:
+			best = boss
 	if best:
 		p.auto_aim = best.global_position
 	if scenario == "classes" and multiplayer.is_server():
@@ -369,7 +374,8 @@ func client_cmd(cmd: String, arg: Variant) -> void:
 	var p := _local()
 	match cmd:
 		"fight":
-			_fight = bool(arg)
+			_aim_boss = arg is String and arg == "boss"
+			_fight = arg is String or bool(arg)
 			if not _fight:
 				for a in ["attack", "skill_1", "skill_2", "skill_3", "skill_4", "skill_5"]:
 					Input.action_release(a)
@@ -1038,7 +1044,8 @@ func _boss_scenario() -> void:
 	await _wait(0.6)
 	await _boss_guard_and_grab_checks(g, boss)
 	if NetworkManager.has_remote_peers():
-		NetworkManager.to_clients("DevAuto", "client_cmd", ["fight", true])
+		NetworkManager.to_clients("DevAuto", "client_cmd", ["fight", "boss"])
+	_aim_boss = true
 	_fight = true
 	var t := 0.0
 	var start_hp := boss.health.hp
@@ -1047,13 +1054,16 @@ func _boss_scenario() -> void:
 			p.iframe_left = 2.0
 			if p.life_state != Player.Life.ALIVE:
 				p.revive(1.0)
-			if p.global_position.distance_to(boss.global_position) > 260.0 and not p.status.has("tome_prison"):
-				p.host_teleport(g.nearest_floor(boss.global_position + Vector2(0, 90)))
+			# Melee range: the auto-fight doesn't walk, and a boss blocked by an arena prop would
+			# never close the gap (both heroes swung at air for 240 s on some layouts).
+			if p.global_position.distance_to(boss.global_position) > 90.0 and not p.status.has("tome_prison"):
+				p.host_teleport(g.nearest_floor(boss.global_position + Vector2(0, 50)))
 		await _wait(1.0)
 		t += 1.0
 		if int(t) % 30 == 0 and is_instance_valid(boss):
 			print("[auto:host] boss %s at %d s: HP %d / %d, phase %d" % [boss.def_id, t, boss.health.hp, boss.health.max_hp, boss.phase])
 	_fight = false
+	_aim_boss = false
 	for a in ["attack", "skill_1", "skill_2", "skill_3", "skill_4", "skill_5"]:
 		Input.action_release(a)
 	if NetworkManager.has_remote_peers():
@@ -1150,6 +1160,9 @@ func _tank_scenario() -> void:
 		e.recompute_stats()
 		e.health.hp = e.health.max_hp
 	_fight = true
+	# The tank opens the fight, the damage dealer joins a moment later (as a party would): both
+	# starting together let the first spell win some monsters before the warrior reached them.
+	await _wait(1.5)
 	NetworkManager.to_clients("DevAuto", "client_cmd", ["fight", true])
 	var on_tank := 0
 	var samples := 0

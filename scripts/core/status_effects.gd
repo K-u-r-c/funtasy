@@ -229,6 +229,8 @@ func consume_dot_damage(ids: Array) -> float:
 
 
 func has_flag(flag: String) -> bool:
+	if not is_inside_tree():
+		return false  # the session is closing (visibility can still ask in its last frame)
 	if multiplayer.is_server():
 		for e in effects:
 			if Array(e.def.get("flags", [])).has(flag):
