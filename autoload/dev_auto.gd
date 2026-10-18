@@ -318,7 +318,7 @@ func _process(delta: float) -> void:
 	# The boss test fights the boss: the nearest enemy can stand behind a wall in the next room,
 	# and swinging at that wall stalled the fight on some layouts.
 	if _aim_boss:
-		var boss := _nearest_enemy(p.global_position, true)
+		var boss := _boss_target(p.global_position)
 		if boss:
 			best = boss
 	if best:
@@ -349,6 +349,20 @@ func _other_player() -> Player:
 		if p.peer_id != 1:
 			return p
 	return null
+
+
+## What the boss fight hits: the boss, or while it can't be hit (the Amalgam split into its
+## twins) the nearest enemy that can.
+func _boss_target(pos: Vector2) -> Enemy:
+	var boss := _nearest_enemy(pos, true)
+	if boss and boss.is_targetable() and not boss.is_invulnerable():
+		return boss
+	var best: Enemy = null
+	for e in _game().enemies_root.get_children():
+		if e is Enemy and e.is_alive() and e.is_targetable() and not e.is_invulnerable():
+			if best == null or e.global_position.distance_to(pos) < best.global_position.distance_to(pos):
+				best = e
+	return best if best else boss
 
 
 func _nearest_enemy(pos: Vector2, boss: bool = false) -> Enemy:
@@ -1071,8 +1085,9 @@ func _boss_scenario() -> void:
 				p.revive(1.0)
 			# Melee range: the auto-fight doesn't walk, and a boss blocked by an arena prop would
 			# never close the gap (both heroes swung at air for 240 s on some layouts).
-			if p.global_position.distance_to(boss.global_position) > 90.0 and not p.status.has("tome_prison"):
-				p.host_teleport(g.nearest_floor(boss.global_position + Vector2(0, 50)))
+			var foe := _boss_target(p.global_position)
+			if foe and p.global_position.distance_to(foe.global_position) > 90.0 and not p.status.has("tome_prison"):
+				p.host_teleport(g.nearest_floor(foe.global_position + Vector2(0, 50)))
 		await _wait(1.0)
 		t += 1.0
 		if int(t) % 30 == 0 and is_instance_valid(boss):
