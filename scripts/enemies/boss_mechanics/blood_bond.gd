@@ -19,7 +19,7 @@ func trigger() -> void:
 	_left = float(p("duration", 10.0))
 	_tid = Combat.instance.new_id()
 	Combat.instance.fx.tether.rpc(_tid, pair[0].get_path(), pair[1].get_path(), "#ff2030")
-	game().broadcast_message.rpc("%s and %s are bound by a Blood Thread - stay together!" % [pair[0].display_name, pair[1].display_name], "#ff4050")
+	game().broadcast_message.rpc("%s and %s are bound by a Blood Thread - stay together!", "#ff4050", [pair[0].display_name, pair[1].display_name])
 	bonds += 1
 
 

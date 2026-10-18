@@ -71,7 +71,7 @@ func action_defs() -> Array:
 func action_label(action: String) -> String:
 	for a in action_defs():
 		if a.id == action:
-			return a.label
+			return Loc.t(str(a.label))
 	return action
 
 
@@ -206,6 +206,10 @@ func event_from_code(code: String) -> InputEvent:
 
 
 func code_display(code: String) -> String:
+	return Loc.t(_code_display_en(code))
+
+
+func _code_display_en(code: String) -> String:
 	if code.is_empty():
 		return "-"
 	var kind := code.get_slice(":", 0)
@@ -214,7 +218,7 @@ func code_display(code: String) -> String:
 		"key":
 			return value
 		"mouse":
-			return {"left": "LMB", "right": "RMB", "middle": "MMB"}.get(value, "Mouse " + value)
+			return {"left": "LMB", "right": "RMB", "middle": "MMB"}.get(value, Loc.t("Mouse ") + value)
 		"button":
 			return PAD_NAMES.get(value, value)
 		"axis":
@@ -225,7 +229,7 @@ func code_display(code: String) -> String:
 ## First binding for the current device, for on-screen prompts ("[F] Open").
 func prompt_for(action: String) -> String:
 	var code := glyph_code(action)
-	return code_display(code) if not code.is_empty() else "unbound"
+	return code_display(code) if not code.is_empty() else Loc.t("Unbound")
 
 
 ## Binding code shown for `action` on the current device ("key:F", "button:a", ...). Works for
@@ -247,6 +251,10 @@ func glyph_code(action: String, pad: bool = using_gamepad) -> String:
 
 ## Short label for a glyph cap: "Esc", "LMB", "A", "LB", "RT", "Up" ...
 func glyph_text(code: String) -> String:
+	return Loc.t(_glyph_text_en(code))
+
+
+func _glyph_text_en(code: String) -> String:
 	var kind := code.get_slice(":", 0)
 	var value := code.get_slice(":", 1)
 	match kind:

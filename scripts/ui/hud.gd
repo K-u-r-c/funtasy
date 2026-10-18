@@ -58,6 +58,7 @@ var _center_panel: PanelContainer
 var _center_label: Label
 var _spectate_hint: HBoxContainer
 var _overlay: Control
+var _relocalize_pending := false
 var _radial: Control
 var _wipe: Control
 var _dodge_slot: Control
@@ -74,6 +75,39 @@ var preview_full := false
 
 func _ready() -> void:
 	add_to_group("hud")
+	_build_layout()
+	EventBus.local_player_spawned.connect(func(p): player = p; _portrait.actor = p; _rebuild_skill_icons())
+	EventBus.hud_message.connect(show_message)
+	EventBus.interact_prompt.connect(_set_prompt)
+	EventBus.floor_started.connect(_on_floor_started)
+	EventBus.bindings_changed.connect(_rebuild_skill_icons)
+	EventBus.input_device_changed.connect(func(_g): _rebuild_skill_icons())
+	EventBus.local_loadout_changed.connect(_rebuild_skill_icons)
+	EventBus.local_inventory_changed.connect(_refresh_quick)
+	EventBus.locale_changed.connect(_relocalize)
+
+
+## A new language (#32): the HUD is built again so every label picks up the new texts. The
+## options window lives inside an overlay, so that waits until the overlay closes.
+func _relocalize() -> void:
+	if has_overlay():
+		_relocalize_pending = true
+		return
+	_relocalize_pending = false
+	_root.free()
+	_slots.clear()
+	_quick.clear()
+	_build_layout()
+	if player and is_instance_valid(player):
+		_portrait.actor = player
+		_rebuild_skill_icons()
+		_refresh_quick()
+	var game := get_tree().get_first_node_in_group("game")
+	if game:
+		_on_floor_started(int(game.depth))
+
+
+func _build_layout() -> void:
 	_root = Control.new()
 	_root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -92,14 +126,6 @@ func _ready() -> void:
 	_build_top_right()
 	_build_center()
 	_build_bottom()
-	EventBus.local_player_spawned.connect(func(p): player = p; _portrait.actor = p; _rebuild_skill_icons())
-	EventBus.hud_message.connect(show_message)
-	EventBus.interact_prompt.connect(_set_prompt)
-	EventBus.floor_started.connect(_on_floor_started)
-	EventBus.bindings_changed.connect(_rebuild_skill_icons)
-	EventBus.input_device_changed.connect(func(_g): _rebuild_skill_icons())
-	EventBus.local_loadout_changed.connect(_rebuild_skill_icons)
-	EventBus.local_inventory_changed.connect(_refresh_quick)
 
 
 # =========================================================================================
@@ -245,7 +271,7 @@ func _build_bottom() -> void:
 	_spectate_hint.alignment = BoxContainer.ALIGNMENT_CENTER
 	_spectate_hint.add_theme_constant_override("separation", 4)
 	_spectate_hint.add_child(InputGlyph.new("attack"))
-	_spectate_hint.add_child(UITheme.label("Switch spectated player", UITheme.TEXT_DIM, UITheme.FONT_SMALL))
+	_spectate_hint.add_child(UITheme.label(Loc.t("Switch spectated player"), UITheme.TEXT_DIM, UITheme.FONT_SMALL))
 	cv.add_child(_spectate_hint)
 
 	_prompt_row = HBoxContainer.new()
@@ -296,7 +322,7 @@ func _build_bottom() -> void:
 	xp_row.add_theme_constant_override("separation", 6)
 	bv.add_child(xp_row)
 	xp_row.add_child(UITheme.icon("ui_crown", 16))
-	_level_label = UITheme.label("Lv 1", UITheme.GOLD, UITheme.FONT_SMALL)
+	_level_label = UITheme.label(Loc.t("Lv 1"), UITheme.GOLD, UITheme.FONT_SMALL)
 	xp_row.add_child(_level_label)
 	xp_row.add_child(UITheme.icon("hud_xp", 12))
 	_xp_bar = StatBar.new(Color("8a5ce6"), Vector2(0, 6))
@@ -310,8 +336,8 @@ func _build_bottom() -> void:
 	_talent_hint.visible = false
 	_talent_hint.add_child(InputGlyph.new("talents"))
 	_talent_hint.add_child(UITheme.icon("nav_talents", 16))
-	_talent_hint.add_child(UITheme.label("Talent point", UITheme.GOOD, UITheme.FONT_SMALL))
-	_talent_hint.tooltip_text = "Talent points to spend"
+	_talent_hint.add_child(UITheme.label(Loc.t("Talent point"), UITheme.GOOD, UITheme.FONT_SMALL))
+	_talent_hint.tooltip_text = Loc.t("Talent points to spend")
 	UIFx.pulse(_talent_hint)
 	xp_row.add_child(_talent_hint)
 	_stat_hint = HBoxContainer.new()
@@ -319,8 +345,8 @@ func _build_bottom() -> void:
 	_stat_hint.visible = false
 	_stat_hint.add_child(InputGlyph.new("character"))
 	_stat_hint.add_child(UITheme.icon("act_plus", 16))
-	_stat_hint.add_child(UITheme.label("Stat points", UITheme.GOOD, UITheme.FONT_SMALL))
-	_stat_hint.tooltip_text = "Stat points to spend"
+	_stat_hint.add_child(UITheme.label(Loc.t("Stat points"), UITheme.GOOD, UITheme.FONT_SMALL))
+	_stat_hint.tooltip_text = Loc.t("Stat points to spend")
 	UIFx.pulse(_stat_hint)
 	xp_row.add_child(_stat_hint)
 	_key_icon = TextureRect.new()
@@ -329,7 +355,7 @@ func _build_bottom() -> void:
 	_key_icon.custom_minimum_size = Vector2(16, 16)
 	_key_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_key_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	_key_icon.tooltip_text = "Gold Key: Archibald trades for it"
+	_key_icon.tooltip_text = Loc.t("Gold Key: Archibald trades for it")
 	_key_icon.visible = false
 	xp_row.add_child(_key_icon)
 	var coin := TextureRect.new()
@@ -379,7 +405,7 @@ func _set_prompt(t: String) -> void:
 func _on_floor_started(d: int) -> void:
 	var game := get_tree().get_first_node_in_group("game")
 	var fname := str(game.floor_def.get("name", "")) if game else ""
-	_floor_label.text = "Floor %d%s" % [d, "  " + fname if not fname.is_empty() else ""]
+	_floor_label.text = Loc.f("Floor %d%s", [d, "  " + Loc.t(fname) if not fname.is_empty() else ""])
 	_portal_label.text = ""
 	_portal_label.visible = false
 
@@ -392,14 +418,14 @@ func _rebuild_skill_icons() -> void:
 		var sk: Dictionary = GameData.skills.get(str(player.skills[i]), {})  # {} = empty slot
 		s.icon = GameData.texture("icons." + str(sk.icon)) if sk.has("icon") else null
 		s.action = Player.SLOT_ACTIONS[i]
-		s.tooltip = "%s\n%s" % [sk.name, sk.get("description", "")] if not sk.is_empty() else "Empty slot - learn skills in the Talents tab"
+		s.tooltip = "%s\n%s" % [Loc.t(str(sk.name)), Loc.t(str(sk.get("description", "")))] if not sk.is_empty() else Loc.t("Empty slot - learn skills in the Talents tab")
 		s.cost = float(sk.get("cost", 0))
 		s.queue_redraw()
 	for k in _quick:
 		_quick[k].action = "quick_" + k
 	_dodge_slot.icon = GameData.texture("icons.dash")
 	_dodge_slot.action = "dodge"
-	_dodge_slot.tooltip = "Dodge"
+	_dodge_slot.tooltip = Loc.t("Dodge")
 	_res_bar.fill_color = Color("e0701c") if player.class_def.resource == "fury" else Color("3b6fe0")
 	_res_icon.texture = UITheme.icon_tex("stat_fury" if player.class_def.resource == "fury" else "stat_mana")
 	_name_label.text = player.display_name
@@ -415,11 +441,11 @@ func _refresh_quick() -> void:
 		if base_id.is_empty():
 			q.icon = null
 			q.count = -1
-			q.tooltip = "Quick slot %s (hold to choose)" % k.to_upper()
+			q.tooltip = Loc.f("Quick slot %s (hold to choose)", [k.to_upper()])
 		else:
 			q.icon = GameData.texture(str(GameData.consumables[base_id].icon))
 			q.count = player.inv.count_of(base_id)
-			q.tooltip = str(GameData.consumables[base_id].name)
+			q.tooltip = Loc.t(str(GameData.consumables[base_id].name))
 		q.queue_redraw()
 
 
@@ -434,9 +460,9 @@ func _process(_delta: float) -> void:
 		_hp_bar.set_values(h.fraction(), h.absorb / maxf(1.0, float(h.max_hp)),
 				"%d / %d%s" % [h.hp, h.max_hp, "  +%d" % h.absorb if h.absorb > 0.0 else ""])
 		_res_bar.set_values(player.resource.fraction(), 0.0,
-				"%s %d / %d" % [str(player.resource.kind).capitalize(), player.resource.value, player.resource.max_value])
+				"%s %d / %d" % [Loc.t(str(player.resource.kind).capitalize()), player.resource.value, player.resource.max_value])
 		_xp_bar.set_values(float(player.xp) / maxf(1.0, Player.xp_to_next(player.level)))
-		_level_label.text = "Lv %d" % player.level
+		_level_label.text = Loc.f("Lv %d", [player.level])
 		_talent_hint.visible = player.talent_points > 0
 		_stat_hint.visible = player.stat_points > 0
 		_talent_hint.get_child(2).text = str(player.talent_points)
@@ -484,33 +510,33 @@ func _update_tracker() -> void:
 	var goal := ""
 	_goal_icon.texture = UITheme.icon_tex("hud_stairs" if game and game.portal else "hud_boss")
 	if game and game.portal:
-		goal = "The way down is open: step into the portal"
+		goal = Loc.t("The way down is open: step into the portal")
 	else:
 		var b := get_tree().get_first_node_in_group("boss")
 		if b and is_instance_valid(b) and b.aggro:
-			goal = "Defeat %s" % b.display_name
+			goal = Loc.f("Defeat %s", [b.display_name])
 		else:
-			goal = "Find and defeat the floor boss"
+			goal = Loc.t("Find and defeat the floor boss")
 	_goal_label.text = goal
 	var t: int = player.torch_sync
 	_torch_icon.modulate = Color(1, 1, 1, 1.0 if t > 0 else 0.35)
 	if t <= 0:
-		_torch_label.text = "No light - take a torch from a wall"
+		_torch_label.text = Loc.t("No light - take a torch from a wall")
 		_torch_label.add_theme_color_override("font_color", UITheme.TEXT_DIM)
 		return
-	_torch_label.text = "Torch %d:%02d" % [t / 60, t % 60]
+	_torch_label.text = Loc.f("Torch %d:%02d", [t / 60, t % 60])
 	var warn := int(GameData.bal("lighting.carried_torch_warning"))
 	_torch_label.add_theme_color_override("font_color", Color(1.0, 0.35, 0.25) if t <= warn else Color(1.0, 0.7, 0.35))
 
 
 func _update_center() -> void:
-	var t := "You are a ghost until the next floor." if preview_full else ""
+	var t := Loc.t("You are a ghost until the next floor.") if preview_full else ""
 	var ghost := preview_full
 	match player.life_state:
 		Player.Life.DOWNED:
-			t = "You are down! A teammate can revive you (%ds)" % ceili(player.downed_left)
+			t = Loc.f("You are down! A teammate can revive you (%ds)", [ceili(player.downed_left)])
 		Player.Life.GHOST:
-			t = "You are a ghost until the next floor."
+			t = Loc.t("You are a ghost until the next floor.")
 			ghost = true
 	_center_label.text = t
 	_spectate_hint.visible = ghost
@@ -540,7 +566,7 @@ func _update_boss() -> void:
 	var b := get_tree().get_first_node_in_group("boss")
 	if preview_full and b:
 		_boss_panel.visible = true
-		_boss_name.text = "%s  - Phase 2" % b.display_name
+		_boss_name.text = Loc.f("%s  - Phase 2", [b.display_name])
 		_boss_bar.set_values(0.5, 0.0, "50%")
 	elif b and is_instance_valid(b) and b.aggro:
 		if not _boss_panel.visible:
@@ -549,8 +575,8 @@ func _update_boss() -> void:
 		var phases: Array = b.def.get("phases", [])
 		var title := ""
 		if b.phase > 0 and b.phase < phases.size():
-			title = "  - " + str(phases[b.phase].get("title", "Phase %d" % (b.phase + 1)))
-		_boss_name.text = b.display_name + title
+			title = "  - " + Loc.t(str(phases[b.phase].get("title", Loc.f("Phase %d", [(b.phase + 1)]))))
+		_boss_name.text = Loc.name(b.display_name) + title
 		_boss_bar.set_values(b.health.fraction(), 0.0, "%d%%" % ceili(b.health.fraction() * 100.0))
 		var bb: Vector2 = b.get("burst_bar") if b.get("burst_bar") != null else Vector2.ZERO
 		_burst_label.visible = bb.y > 0.0
@@ -559,15 +585,15 @@ func _update_boss() -> void:
 			var held := ""
 			for p2 in get_tree().get_nodes_in_group("players"):
 				if not p2.held_by.is_empty():
-					held = "You are held" if p2 == player else "%s is held" % p2.display_name
-			_burst_label.text = "%s - Burst it down! %.1f s" % [held, bb.y] if not held.is_empty() else "Burst it down! %.1f s" % bb.y
+					held = Loc.t("You are held") if p2 == player else Loc.f("%s is held", [p2.display_name])
+			_burst_label.text = Loc.f("%s - Burst it down! %.1f s", [held, bb.y]) if not held.is_empty() else Loc.f("Burst it down! %.1f s", [bb.y])
 			_burst_bar.set_values(bb.x, 0.0, "%d%%" % roundi(bb.x * 100.0))
 	else:
 		_boss_panel.visible = false
 
 
 func set_portal_status(inside: int, alive: int) -> void:
-	_portal_label.text = "Portal: %d / %d players ready" % [inside, alive]
+	_portal_label.text = Loc.f("Portal: %d / %d players ready", [inside, alive])
 	_portal_label.visible = true
 
 
@@ -612,11 +638,11 @@ func show_wipe(final_depth: int) -> void:
 	var v := VBoxContainer.new()
 	v.add_theme_constant_override("separation", 8)
 	win.add_child(v)
-	var t := UITheme.title("Your party has fallen", UITheme.FONT_TITLE)
+	var t := UITheme.title(Loc.t("Your party has fallen"), UITheme.FONT_TITLE)
 	t.add_theme_color_override("font_color", UITheme.DANGER)
 	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(t)
-	var l := UITheme.label("Reached floor %d. This game is over and its heroes are gone.\nReturning to the lobby..." % final_depth, UITheme.TEXT, UITheme.FONT_BODY)
+	var l := UITheme.label(Loc.f("Reached floor %d. This game is over and its heroes are gone.\nReturning to the lobby...", [final_depth]), UITheme.TEXT, UITheme.FONT_BODY)
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	l.custom_minimum_size = Vector2(420, 0)
@@ -693,7 +719,7 @@ func open_book(book_id: String, note: String) -> void:
 	var r := LoreReader.new()
 	r.book_id = book_id
 	r.note = note
-	r.title_text = str(GameData.lore_books.get(book_id, {}).get("title", "Book"))
+	r.title_text = Loc.t(str(GameData.lore_books.get(book_id, {}).get("title", "Book")))
 	open_overlay(r)
 
 
@@ -705,10 +731,10 @@ func open_merchant(kind: String) -> void:
 ## Malphas asks the local player for the blood tithe (D13).
 func ask_tithe(text: String) -> void:
 	var d := ConfirmDialog.new()
-	d.title_text = "Malphas the Soul Broker"
+	d.title_text = Loc.t("Malphas the Soul Broker")
 	d.body_text = text
-	d.yes_text = "Pay the tithe"
-	d.no_text = "Turn away"
+	d.yes_text = Loc.t("Pay the tithe")
+	d.no_text = Loc.t("Turn away")
 	d.title_icon = "stat_leech"
 	d.yes_icon = "stat_leech"
 	d.no_icon = "menu_back"
@@ -750,6 +776,8 @@ func close_overlay() -> void:
 	if player and is_instance_valid(player):
 		player.input_blocked = false
 	EventBus.ui_overlay_changed.emit(false)
+	if _relocalize_pending:
+		_relocalize.call_deferred()
 
 
 func has_overlay() -> bool:
@@ -911,7 +939,7 @@ class StatusChip:
 		_stacks = stacks
 		var def: Dictionary = GameData.status_effects.get(id, {})
 		var time_txt := "active" if left < 0.0 else "%ds" % ceili(left)
-		tooltip_text = "%s%s - %s" % [def.get("name", id), " x%d" % stacks if stacks > 1 else "", time_txt]
+		tooltip_text = "%s%s - %s" % [Loc.t(str(def.get("name", id))), " x%d" % stacks if stacks > 1 else "", time_txt]
 		queue_redraw()
 
 	func _draw() -> void:
@@ -930,7 +958,7 @@ class StatusChip:
 				_icon = GameData.texture(icon_key)
 			draw_texture_rect(_icon, Rect2(2, 2, r.size.x - 4, r.size.y - 5), false)
 		else:
-			var name_: String = str(def.get("name", _id))
+			var name_: String = Loc.t(str(def.get("name", _id)))
 			var t := name_.substr(0, 2)
 			var tw := f.get_string_size(t, HORIZONTAL_ALIGNMENT_LEFT, -1, UITheme.FONT_SMALL).x
 			draw_string_outline(f, Vector2(roundf((r.size.x - tw) / 2.0), 14), t, HORIZONTAL_ALIGNMENT_LEFT, -1, UITheme.FONT_SMALL, 3, Color.BLACK)
@@ -980,10 +1008,10 @@ class PartyFrame:
 		var state := ""
 		match pl.life_state:
 			Player.Life.DOWNED:
-				state = "  DOWN %d" % ceili(pl.downed_left)
+				state = Loc.f("  DOWN %d", [ceili(pl.downed_left)])
 			Player.Life.GHOST:
-				state = "  GHOST"
-		_name.text = "%s  Lv%d%s" % [pl.display_name, pl.level, state]
+				state = Loc.t("  GHOST")
+		_name.text = Loc.f("%s  Lv%d%s", [pl.display_name, pl.level, state])
 		_name.add_theme_color_override("font_color", UITheme.DANGER if not state.is_empty() else UITheme.TEXT)
 		_portrait.tint = Color.WHITE if state.is_empty() else Color(0.45, 0.45, 0.55)
 		_portrait.frame_color = Color.from_string(str(pl.class_def.get("color", "#ffffff")), Color.WHITE).darkened(0.2)

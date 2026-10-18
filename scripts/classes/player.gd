@@ -725,7 +725,7 @@ func request_use_quick(slot: String) -> void:
 		return
 	var base_id: String = inv.quick.get(slot, "")
 	if base_id.is_empty():
-		_notify.rpc_id(peer_id, "No item assigned to %s" % slot.to_upper())
+		_notify.rpc_id(peer_id, "No item assigned to %s", [slot.to_upper()])
 		return
 	_use_consumable(base_id)
 
@@ -787,7 +787,7 @@ func request_learn_talent(node_id: String) -> void:
 		return
 	var need := int(nd.get("tier", 0)) * int(talent_tree().get("tier_points", 2))
 	if branch_points(str(nd.branch)) < need:
-		_notify.rpc_id(peer_id, "Spend %d points in this branch first" % need)
+		_notify.rpc_id(peer_id, "Spend %d points in this branch first", [need])
 		return
 	for req in nd.get("requires", []):
 		if node_rank(talent_node(str(req))) <= 0:
@@ -798,7 +798,7 @@ func request_learn_talent(node_id: String) -> void:
 	talents = t
 	talent_points -= 1
 	if nd.get("type", "") == "skill":
-		_notify.rpc_id(peer_id, "Learned %s - slot it in the Skill Book" % GameData.skills.get(str(nd.skill), {}).get("name", nd.skill))
+		_notify.rpc_id(peer_id, "Learned %s - slot it in the Skill Book", [GameData.skills.get(str(nd.skill), {}).get("name", nd.skill)])
 	on_stats_dirty()
 	persist()
 
@@ -835,7 +835,7 @@ func request_read_book(index: int) -> void:
 		"tome":
 			for m in eff.get("mods", []):
 				host_add_run_mod(str(m.stat), float(m.value), str(book.title))
-			note = "You learned: %s" % str(book.effect_text).replace(" (Permanent)", " for this run")
+			note = "tome"
 			inv.take_backpack(index)
 		"legendary":
 			var tp := int(eff.get("talent_points", 0))
@@ -844,17 +844,27 @@ func request_read_book(index: int) -> void:
 			bonus_stat_points += sp
 			talent_points += tp
 			stat_points += sp
-			note = "+%d talent point and +%d stat points" % [tp, sp]
+			note = "legendary"
 			inv.take_backpack(index)
 	_inventory_changed()
 	persist()
 	_open_book.rpc_id(peer_id, str(book.id), note)
 
 
+## `kind` is "tome" / "legendary" when reading used the book up: the note under the text says
+## what it gave, in the reader's language (#32).
 @rpc("authority", "call_local", "reliable")
-func _open_book(book_id: String, note: String) -> void:
+func _open_book(book_id: String, kind: String) -> void:
 	Codex.mark_read(book_id)
 	AudioManager.play_sfx("book_open", 0.0)
+	var book: Dictionary = GameData.lore_books.get(book_id, {})
+	var note := ""
+	match kind:
+		"tome":
+			note = Loc.f("You learned: %s", [Loc.t(str(book.get("effect_text", ""))).replace(Loc.t(" (Permanent)"), Loc.t(" for this run"))])
+		"legendary":
+			var eff: Dictionary = book.get("effect", {})
+			note = Loc.f("+%d talent point and +%d stat points", [int(eff.get("talent_points", 0)), int(eff.get("stat_points", 0))])
 	var hud := get_tree().get_first_node_in_group("hud")
 	if hud and hud.has_method("open_book"):
 		hud.open_book(book_id, note)
@@ -911,12 +921,12 @@ func _skill_result(slot: int, cd: float, ok: bool, msg: String) -> void:
 			var total := float(local_cd[slot][1]) if local_cd.has(slot) else cd
 			local_cd[slot] = [cd, maxf(total, cd)]
 	if not msg.is_empty():
-		EventBus.hud_message.emit(msg, Color(1, 0.6, 0.5))
+		EventBus.hud_message.emit(Loc.t(msg), Color(1, 0.6, 0.5))
 
 
 @rpc("authority", "call_local", "reliable")
-func _notify(text: String) -> void:
-	EventBus.hud_message.emit(text, Color(1, 0.85, 0.5))
+func _notify(text: String, args: Array = []) -> void:
+	EventBus.hud_message.emit(Loc.f(text, args), Color(1, 0.85, 0.5))
 
 
 @rpc("authority", "call_local", "reliable")
@@ -983,7 +993,8 @@ func _report(err: String, sfx: String) -> void:
 		_inventory_changed()
 		Combat.instance.fx.sound.rpc(sfx, global_position)
 	else:
-		_notify.rpc_id(peer_id, err)
+		_notify.rpc_id(peer_id, err, inv.error_args)
+		inv.error_args = []
 
 
 func _inventory_changed() -> void:
@@ -1005,7 +1016,7 @@ func host_give_item(item: Dictionary) -> String:
 			return "You already have a backpack this big"
 		inv.capacity = int(item.capacity)
 		_inventory_changed()
-		_notify.rpc_id(peer_id, "Backpack upgraded to %d slots" % inv.capacity)
+		_notify.rpc_id(peer_id, "Backpack upgraded to %d slots", [inv.capacity])
 		return ""
 	if not inv.can_add(item):
 		return "Backpack is full"
@@ -1018,7 +1029,7 @@ func host_give_item(item: Dictionary) -> String:
 func _use_consumable(base_id: String) -> void:
 	var def: Dictionary = GameData.consumables.get(base_id, {})
 	if def.is_empty() or inv.count_of(base_id) <= 0:
-		_notify.rpc_id(peer_id, "No %s left" % def.get("name", "items"))
+		_notify.rpc_id(peer_id, "No %s left", [def.get("name", "items")])
 		return
 	if float(_item_cd_host.get("potion", 0.0)) > 0.0:
 		_notify.rpc_id(peer_id, "Item not ready")
@@ -1078,7 +1089,7 @@ func _level_up_fx(new_level: int) -> void:
 	AudioManager.play_sfx_at("level_up", global_position)
 	if is_local():
 		EventBus.local_level_up.emit(new_level)
-		EventBus.hud_message.emit("Level %d! +%d talent points, +%d stat points" % [new_level, int(GameData.bal("progression.talent_points_per_level")), int(GameData.bal("progression.stat_points_per_level"))], Color(1, 0.85, 0.3))
+		EventBus.hud_message.emit(Loc.f("Level %d! +%d talent points, +%d stat points", [new_level, int(GameData.bal("progression.talent_points_per_level")), int(GameData.bal("progression.stat_points_per_level"))]), Color(1, 0.85, 0.3))
 
 
 # --- Life state (downed / revive / ghost) ----------------------------------------------------

@@ -17,16 +17,16 @@ var _last_sig := ""
 
 
 func _init() -> void:
-	title_text = "Skill Book"
+	title_text = Loc.t("Skill Book")
 	menu_tab = "skillbook"
-	prompts = [["ui_accept", "Pick / place"], ["ui_cancel", "Close"]]
+	prompts = [["ui_accept", Loc.t("Pick / place")], ["ui_cancel", Loc.t("Close")]]
 
 
 func _build() -> void:
-	subtitle.text = "%s  -  pick a skill, then a slot" % player.class_def.name
+	subtitle.text = Loc.f("%s  -  pick a skill, then a slot", [player.class_def.name])
 	_hint = UITheme.label("", UITheme.TEXT_DIM, UITheme.FONT_SMALL)
 	content.add_child(_hint)
-	content.add_child(UITheme.section("Skill bar", "act_skills"))
+	content.add_child(UITheme.section(Loc.t("Skill bar"), "act_skills"))
 	_bar = HBoxContainer.new()
 	_bar.add_theme_constant_override("separation", 8)
 	content.add_child(_bar)
@@ -40,7 +40,7 @@ func _build() -> void:
 		b.focus_exited.connect(func(): _tooltip.hide_for(b))
 		_bar.add_child(b)
 		_slot_buttons.append(b)
-	content.add_child(UITheme.section("Unlocked skills", "nav_skillbook"))
+	content.add_child(UITheme.section(Loc.t("Unlocked skills"), "nav_skillbook"))
 	var scroll := ScrollContainer.new()
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -81,7 +81,7 @@ func _rebuild() -> void:
 			continue
 		var sk: Dictionary = GameData.skills.get(sid, {})
 		var b := Button.new()
-		b.text = str(sk.get("name", sid)) + ("  (passive)" if sk.get("passive", false) else "")
+		b.text = Loc.t(str(sk.get("name", sid))) + (Loc.t("  (passive)") if sk.get("passive", false) else "")
 		b.icon = GameData.texture("icons." + str(sk.get("icon", "attack")))
 		b.expand_icon = false
 		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
@@ -102,8 +102,8 @@ func _rebuild() -> void:
 		_skill_buttons[sid].button_pressed = sid == _picked
 		_skill_buttons[sid].add_theme_color_override("font_color", UITheme.GOLD if on_bar else UITheme.TEXT)
 	_wire_focus()
-	_hint.text = "%d skills unlocked. Learn more in the Talents tab." % unlocked.size() if _picked.is_empty() \
-		else "Now choose a slot for %s." % GameData.skills.get(_picked, {}).get("name", _picked)
+	_hint.text = Loc.f("%d skills unlocked. Learn more in the Talents tab.", [unlocked.size()]) if _picked.is_empty() \
+		else Loc.f("Now choose a slot for %s.", [GameData.skills.get(_picked, {}).get("name", _picked)])
 
 
 func _wire_focus() -> void:
@@ -124,7 +124,7 @@ func _tip(anchor: Control, sid: String, slot: int) -> void:
 
 func _on_skill(sid: String) -> void:
 	if GameData.skills.get(sid, {}).get("passive", false):
-		notice("Passive skills work as soon as they are learned.", UITheme.TEXT_DIM)
+		notice(Loc.t("Passive skills work as soon as they are learned."), UITheme.TEXT_DIM)
 		_picked = ""
 	else:
 		_picked = "" if _picked == sid else sid
@@ -135,7 +135,7 @@ func _on_skill(sid: String) -> void:
 
 func _on_slot(i: int) -> void:
 	if _picked.is_empty():
-		notice("Pick a skill below first.", UITheme.TEXT_DIM)
+		notice(Loc.t("Pick a skill below first."), UITheme.TEXT_DIM)
 		return
 	var lo: Array = player.skills.duplicate()
 	var old := lo.find(_picked)
@@ -147,7 +147,7 @@ func _on_slot(i: int) -> void:
 		notice(err)
 		return
 	if player.in_combat():
-		notice("Can't change skills in combat")
+		notice(Loc.t("Can't change skills in combat"))
 		return
 	player.request_loadout.rpc_id(1, lo)
 	AudioManager.play_sfx("equip", 0.0)
@@ -170,7 +170,7 @@ class SlotButton:
 		custom_minimum_size = Vector2(56, 58)
 		_empty = UITheme.icon_tex("slot_rune")
 		_primary = UITheme.icon_tex("menu_play")
-		tooltip_text = "Primary attack" if slot == 0 else ""
+		tooltip_text = Loc.t("Primary attack") if slot == 0 else ""
 		focus_mode = Control.FOCUS_ALL
 		_glyph = InputGlyph.new("")
 		_glyph.position = Vector2(2, 2)

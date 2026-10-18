@@ -1,5 +1,5 @@
 extends Node
-## Video and audio preferences, stored in the [video] and [audio] sections of
+## Video, audio and language preferences, stored in the [video], [audio] and [game] sections of
 ## user://settings.cfg. Input bindings live in InputSettings.
 
 const BASE_SIZE := Vector2i(960, 540)
@@ -18,11 +18,19 @@ var window_size: Vector2i = Vector2i(1920, 1080)
 var vsync: bool = true
 var screen_shake: bool = true
 var volumes: Dictionary = {"Master": 0.8, "Music": 0.7, "SFX": 0.8}
+## Interface language (#32): [locale, name shown in its own language].
+const LANGUAGES := [["en", "English"], ["pl", "Polski"]]
+var language := "en"
 
 
 func _ready() -> void:
 	_ensure_buses()
 	load_settings()
+	# --lang=<locale> overrides the saved language (screenshot tours, tests).
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--lang="):
+			language = a.get_slice("=", 1)
+	apply_language()
 	if DisplayServer.get_name() != "headless":
 		apply()
 	apply_audio()
@@ -81,6 +89,7 @@ func save_settings() -> void:
 		"screen_shake": screen_shake,
 	})
 	SaveSystem.write_section("audio", volumes)
+	SaveSystem.write_section("game", {"language": language})
 
 
 func load_settings() -> void:
@@ -92,9 +101,28 @@ func load_settings() -> void:
 		window_size = available_sizes().back()
 	vsync = bool(v.get("vsync", vsync))
 	screen_shake = bool(v.get("screen_shake", screen_shake))
+	var gsec := SaveSystem.read_section("game")
+	language = str(gsec.get("language", language))
 	var a := SaveSystem.read_section("audio")
 	for bus in BUSES:
 		volumes[bus] = float(a.get(bus, volumes[bus]))
+
+
+## Switches every translated text to `language` (texts built afterwards; open screens rebuild
+## on EventBus.locale_changed).
+func apply_language() -> void:
+	if not LANGUAGES.any(func(l): return l[0] == language):
+		language = "en"
+	TranslationServer.set_locale(language)
+
+
+func set_language(locale: String) -> void:
+	if locale == language:
+		return
+	language = locale
+	apply_language()
+	save_settings()
+	EventBus.locale_changed.emit()
 
 
 func _center_window() -> void:

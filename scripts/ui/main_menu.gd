@@ -61,7 +61,7 @@ func _ready() -> void:
 	_version = UITheme.label("v%s" % str(ProjectSettings.get_setting("application/config/version", "0.1")), UITheme.TEXT_DIM, UITheme.FONT_SMALL)
 	_version.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	foot.add_child(_version)
-	foot.add_child(PromptBar.new([["ui_accept", "Select"], ["ui_cancel", "Back"]]))
+	foot.add_child(PromptBar.new([["ui_accept", Loc.t("Select")], ["ui_cancel", Loc.t("Back")]]))
 
 	_build_main_page()
 	_build_play_page()
@@ -120,46 +120,46 @@ func _btn(page: VBoxContainer, text: String, action: Callable, disabled := false
 
 func _build_main_page() -> void:
 	var p := _new_page("main")
-	_btn(p, "Play", _show_page.bind("play"), false, "menu_play")
-	_btn(p, "Options", open_settings, false, "menu_options")
-	_btn(p, "Quit", _quit, false, "menu_quit")
+	_btn(p, Loc.t("Play"), _show_page.bind("play"), false, "menu_play")
+	_btn(p, Loc.t("Options"), open_settings, false, "menu_options")
+	_btn(p, Loc.t("Quit"), _quit, false, "menu_quit")
 
 
 func _build_play_page() -> void:
 	var p := _new_page("play")
 	var steam_ok := NetworkManager.steam_ready
-	_btn(p, "Solo", NetworkManager.host_solo, false, "nav_character")
-	_btn(p, "Host LAN game", _on_host_lan, false, "menu_host")
-	_btn(p, "Join LAN game", _show_page.bind("lan"), false, "menu_join")
-	_btn(p, "Host Steam lobby", _on_host_steam, not steam_ok, "ui_crown")
-	_btn(p, "Join Steam lobby", _show_page.bind("browser"), not steam_ok, "ui_party")
-	_btn(p, "Back", _show_page.bind("main"), false, "menu_back")
+	_btn(p, Loc.t("Solo"), NetworkManager.host_solo, false, "nav_character")
+	_btn(p, Loc.t("Host LAN game"), _on_host_lan, false, "menu_host")
+	_btn(p, Loc.t("Join LAN game"), _show_page.bind("lan"), false, "menu_join")
+	_btn(p, Loc.t("Host Steam lobby"), _on_host_steam, not steam_ok, "ui_crown")
+	_btn(p, Loc.t("Join Steam lobby"), _show_page.bind("browser"), not steam_ok, "ui_party")
+	_btn(p, Loc.t("Back"), _show_page.bind("main"), false, "menu_back")
 
 
 func _build_browser_page() -> void:
 	var p := _new_page("browser")
-	p.add_child(UITheme.label("Steam lobbies (test app 480)", UITheme.ACCENT, UITheme.FONT_SMALL))
+	p.add_child(UITheme.label(Loc.t("Steam lobbies (test app 480)"), UITheme.ACCENT, UITheme.FONT_SMALL))
 	_lobby_list = VBoxContainer.new()
 	_lobby_list.add_theme_constant_override("separation", 4)
 	p.add_child(_lobby_list)
-	_btn(p, "Refresh", NetworkManager.request_steam_lobbies, false, "act_reset")
-	_btn(p, "Back", _show_page.bind("play"), false, "menu_back")
+	_btn(p, Loc.t("Refresh"), NetworkManager.request_steam_lobbies, false, "act_reset")
+	_btn(p, Loc.t("Back"), _show_page.bind("play"), false, "menu_back")
 
 
 func _build_lan_page() -> void:
 	var p := _new_page("lan")
-	p.add_child(UITheme.label("Host address", UITheme.ACCENT, UITheme.FONT_SMALL))
+	p.add_child(UITheme.label(Loc.t("Host address"), UITheme.ACCENT, UITheme.FONT_SMALL))
 	_ip_edit = LineEdit.new()
 	_ip_edit.text = "127.0.0.1"
 	_ip_edit.custom_minimum_size = Vector2(240, 32)
 	p.add_child(_ip_edit)
-	p.add_child(UITheme.label("Port", UITheme.ACCENT, UITheme.FONT_SMALL))
+	p.add_child(UITheme.label(Loc.t("Port"), UITheme.ACCENT, UITheme.FONT_SMALL))
 	_port_edit = LineEdit.new()
 	_port_edit.text = str(NetworkManager.DEFAULT_PORT)
 	_port_edit.custom_minimum_size = Vector2(240, 32)
 	p.add_child(_port_edit)
-	_btn(p, "Connect", _on_join_lan, false, "menu_join")
-	_btn(p, "Back", _show_page.bind("play"), false, "menu_back")
+	_btn(p, Loc.t("Connect"), _on_join_lan, false, "menu_join")
+	_btn(p, Loc.t("Back"), _show_page.bind("play"), false, "menu_back")
 
 
 # --- Page switching --------------------------------------------------------------------------
@@ -209,8 +209,13 @@ func _set_status(text: String) -> void:
 func open_settings() -> void:
 	_overlay = SETTINGS_MENU.new()
 	add_child(_overlay)
+	var locale := TranslationServer.get_locale()
 	_overlay.closed.connect(func():
 		_overlay = null
+		if TranslationServer.get_locale() != locale:
+			# A new language: the menu is built again with the new texts.
+			SceneManager.change_scene(NetworkManager.MENU_SCENE)
+			return
 		for c in _current.get_children():
 			if c is AnimButton and not c.disabled:
 				c.grab_focus()
@@ -222,17 +227,17 @@ func _quit() -> void:
 
 
 func _on_host_steam() -> void:
-	_set_status("Creating Steam lobby...")
+	_set_status(Loc.t("Creating Steam lobby..."))
 	NetworkManager.host_steam()
 
 
 func _on_host_lan() -> void:
-	_set_status("Hosting on port %d..." % NetworkManager.DEFAULT_PORT)
+	_set_status(Loc.f("Hosting on port %d...", [NetworkManager.DEFAULT_PORT]))
 	NetworkManager.host_enet()
 
 
 func _on_join_lan() -> void:
-	_set_status("Connecting...")
+	_set_status(Loc.t("Connecting..."))
 	NetworkManager.join_enet(_ip_edit.text.strip_edges(), int(_port_edit.text))
 
 
@@ -246,13 +251,13 @@ func _populate_lobbies(lobbies: Array) -> void:
 		return
 	_clear_lobbies()
 	if lobbies.is_empty():
-		_lobby_list.add_child(UITheme.label("No lobbies found", UITheme.TEXT_DIM))
+		_lobby_list.add_child(UITheme.label(Loc.t("No lobbies found"), UITheme.TEXT_DIM))
 		return
 	for l in lobbies:
 		var b := AnimButton.new()
 		b.text = "%s  (%d/%d)" % [l.name, l.count, l.max]
 		b.pressed.connect(func():
-			_set_status("Joining lobby...")
+			_set_status(Loc.t("Joining lobby..."))
 			NetworkManager.join_steam(l.id))
 		_lobby_list.add_child(b)
 		b.play_intro(0.0)

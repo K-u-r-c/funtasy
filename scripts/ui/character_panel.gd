@@ -43,13 +43,13 @@ var _gold_label: Label
 
 
 func _init() -> void:
-	title_text = "Character"
+	title_text = Loc.t("Character")
 	menu_tab = "character"
-	prompts = [["character", "Close"], ["ui_cancel", "Close"]]
+	prompts = [["character", Loc.t("Close")], ["ui_cancel", Loc.t("Close")]]
 
 
 func _build() -> void:
-	subtitle.text = "%s  -  Level %d %s" % [player.display_name, player.level, player.class_def.name]
+	subtitle.text = Loc.f("%s  -  Level %d %s", [player.display_name, player.level, player.class_def.name])
 	var body := HBoxContainer.new()
 	body.add_theme_constant_override("separation", 12)
 	body.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -76,10 +76,10 @@ func _build() -> void:
 	crest.add_theme_constant_override("separation", 6)
 	hv.add_child(crest)
 	var ci := UITheme.icon("class_" + str(player.class_id), 24)
-	ci.tooltip_text = str(player.class_def.name)
+	ci.tooltip_text = Loc.t(str(player.class_def.name))
 	crest.add_child(ci)
 	var lv := UITheme.chip("ui_crown", "", Color.from_string(str(player.class_def.get("color", "#ffffff")), UITheme.TEXT), UITheme.GOLD_DIM)
-	lv.tooltip_text = "Level"
+	lv.tooltip_text = Loc.t("Level")
 	crest.add_child(lv)
 	_level_label = lv.get_meta("label")
 	var xprow := HBoxContainer.new()
@@ -96,7 +96,7 @@ func _build() -> void:
 	_xp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	hv.add_child(_xp_label)
 	var gold := UITheme.chip("hud_gold", "", UITheme.GOLD, UITheme.GOLD_DIM)
-	gold.tooltip_text = "Gold"
+	gold.tooltip_text = Loc.t("Gold")
 	gold.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	hv.add_child(gold)
 	_gold_label = gold.get_meta("label")
@@ -109,13 +109,13 @@ func _build() -> void:
 	var stats_col := VBoxContainer.new()
 	stats_col.add_theme_constant_override("separation", 4)
 	body.add_child(stats_col)
-	stats_col.add_child(UITheme.section("Attributes", "nav_character"))
+	stats_col.add_child(UITheme.section(Loc.t("Attributes"), "nav_character"))
 	# Free stat points: a points badge and one "+" button per primary stat, shown by its icon.
 	var prow := HBoxContainer.new()
 	prow.add_theme_constant_override("separation", 4)
 	stats_col.add_child(prow)
 	var pts := UITheme.chip("act_plus", "", UITheme.TEXT_DIM)
-	pts.tooltip_text = "Free stat points"
+	pts.tooltip_text = Loc.t("Free stat points")
 	pts.custom_minimum_size = Vector2(58, 0)
 	prow.add_child(pts)
 	_points_label = pts.get_meta("label")
@@ -127,7 +127,7 @@ func _build() -> void:
 		b.add_theme_constant_override("icon_max_width", 16)
 		b.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
 		b.custom_minimum_size = Vector2(44, 22)
-		b.tooltip_text = "+1 %s. %s" % [str(st).capitalize(), STAT_HELP.get(str(st).capitalize(), "")]
+		b.tooltip_text = "+1 %s. %s" % [Loc.t(str(st).capitalize()), Loc.t(STAT_HELP.get(str(st).capitalize(), ""))]
 		b.pressed.connect(func():
 			player.request_spend_stat.rpc_id(1, st, 1)
 			UIFx.flash(b))
@@ -138,7 +138,7 @@ func _build() -> void:
 	_stats_grid.add_theme_constant_override("h_separation", 12)
 	_stats_grid.add_theme_constant_override("v_separation", 1)
 	stats_col.add_child(_stats_grid)
-	stats_col.add_child(UITheme.section("Run blessings and curses", "hud_boss"))
+	stats_col.add_child(UITheme.section(Loc.t("Run blessings and curses"), "hud_boss"))
 	_mods_box = HFlowContainer.new()
 	_mods_box.add_theme_constant_override("h_separation", 4)
 	_mods_box.add_theme_constant_override("v_separation", 4)
@@ -155,7 +155,7 @@ func _build() -> void:
 	skills_col.add_theme_constant_override("separation", 4)
 	skills_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	body.add_child(skills_col)
-	skills_col.add_child(UITheme.section("Skills", "act_skills"))
+	skills_col.add_child(UITheme.section(Loc.t("Skills"), "act_skills"))
 	var scroll := ScrollContainer.new()
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -221,7 +221,7 @@ func _refresh() -> void:
 	var s: Dictionary = player.stats.final
 	_level_label.text = "%d" % player.level
 	_xp_label.text = "%d / %d" % [player.xp, Player.xp_to_next(player.level)]
-	_offclass.text = "Off-class weapon: -%d%% damage, slower cooldowns" % roundi((1.0 - float(GameData.bal("off_class.damage_mult"))) * 100) \
+	_offclass.text = Loc.f("Off-class weapon: -%d%% damage, slower cooldowns", [roundi((1.0 - float(GameData.bal("off_class.damage_mult"))) * 100)]) \
 			if bool(s.get("offclass", false)) else ""
 	for c in _stats_grid.get_children():
 		c.queue_free()
@@ -250,10 +250,10 @@ func _refresh() -> void:
 		rows.insert(2, ["Mana regen", "%.1f / s" % float(s.get("resource_regen", 0))])
 	for r in rows:
 		var ic := UITheme.icon(str(UITheme.STAT_ICONS.get(ROW_STAT.get(r[0], ""), "")), 16)
-		ic.tooltip_text = STAT_HELP.get(r[0], "")
+		ic.tooltip_text = Loc.t(STAT_HELP.get(r[0], ""))
 		_stats_grid.add_child(ic)
-		var k := UITheme.label(r[0], UITheme.TEXT_DIM, UITheme.FONT_SMALL)
-		k.tooltip_text = STAT_HELP.get(r[0], "")
+		var k := UITheme.label(Loc.t(r[0]), UITheme.TEXT_DIM, UITheme.FONT_SMALL)
+		k.tooltip_text = Loc.t(STAT_HELP.get(r[0], ""))
 		k.mouse_filter = Control.MOUSE_FILTER_PASS if not k.tooltip_text.is_empty() else Control.MOUSE_FILTER_IGNORE
 		_stats_grid.add_child(k)
 		var v := UITheme.label(r[1], UITheme.TEXT, UITheme.FONT_SMALL)
@@ -340,14 +340,14 @@ class SkillRow:
 		if sk.is_empty():
 			_name.text = "-"
 		else:
-			_name.text = str(sk.get("name", "?")) if slot > 0 else "%s  (primary)" % sk.get("name", "?")
+			_name.text = Loc.t(str(sk.get("name", "?"))) if slot > 0 else Loc.f("%s  (primary)", [sk.get("name", "?")])
 		_glyph.action = Player.SLOT_ACTIONS[slot]
 
 
 ## Run modifiers summed per stat, e.g. "Strength +2, Max health -10" ("none" when empty).
 static func run_mods_text(mods: Array) -> String:
 	if mods.is_empty():
-		return "None yet: tomes, the demonic tithe, contracts and pacts change you for the whole run."
+		return Loc.t("None yet: tomes, the demonic tithe, contracts and pacts change you for the whole run.")
 	var sums := {}
 	var order: Array = []
 	for m in mods:
@@ -363,8 +363,8 @@ static func run_mods_text(mods: Array) -> String:
 
 
 static func _stat_name(k: String) -> String:
-	return {"max_hp": "Max health", "max_resource": "Max mana", "crit_chance": "Crit chance", "move_speed": "Move speed",
-		"max_hp_pct": "Max health"}.get(k, k.replace("_", " ").capitalize())
+	return {"max_hp": Loc.t("Max health"), "max_resource": Loc.t("Max mana"), "crit_chance": Loc.t("Crit chance"), "move_speed": Loc.t("Move speed"),
+		"max_hp_pct": Loc.t("Max health")}.get(k, k.replace("_", " ").capitalize())
 
 
 static func _fmt(k: String, v: float) -> String:

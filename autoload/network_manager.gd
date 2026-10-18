@@ -114,7 +114,7 @@ func host_enet(port: int = DEFAULT_PORT) -> void:
 	var peer := ENetMultiplayerPeer.new()
 	var err := peer.create_server(port, MAX_PLAYERS - 1)
 	if err != OK:
-		session_failed.emit("Could not host on port %d (error %d)" % [port, err])
+		session_failed.emit(Loc.f("Could not host on port %d (error %d)", [port, err]))
 		return
 	last_port = port
 	backend = Backend.ENET
@@ -128,7 +128,7 @@ func join_enet(address: String, port: int = DEFAULT_PORT) -> void:
 	var peer := ENetMultiplayerPeer.new()
 	var err := peer.create_client(address, port)
 	if err != OK:
-		session_failed.emit("Could not connect to %s:%d (error %d)" % [address, port, err])
+		session_failed.emit(Loc.f("Could not connect to %s:%d (error %d)", [address, port, err]))
 		return
 	last_port = port
 	backend = Backend.ENET
@@ -137,7 +137,7 @@ func join_enet(address: String, port: int = DEFAULT_PORT) -> void:
 
 func host_steam() -> void:
 	if not steam_ready:
-		session_failed.emit("Steam unavailable: %s" % steam_status)
+		session_failed.emit(Loc.f("Steam unavailable: %s", [steam_status]))
 		return
 	_reset()
 	_make_session()
@@ -147,7 +147,7 @@ func host_steam() -> void:
 
 func request_steam_lobbies() -> void:
 	if not steam_ready:
-		session_failed.emit("Steam unavailable: %s" % steam_status)
+		session_failed.emit(Loc.f("Steam unavailable: %s", [steam_status]))
 		return
 	steam.addRequestLobbyListStringFilter("game", GAME_TAG, STEAM_LOBBY_COMPARISON_EQUAL)
 	steam.addRequestLobbyListDistanceFilter(STEAM_DISTANCE_WORLDWIDE)
@@ -156,7 +156,7 @@ func request_steam_lobbies() -> void:
 
 func join_steam(target_lobby: int) -> void:
 	if not steam_ready:
-		session_failed.emit("Steam unavailable: %s" % steam_status)
+		session_failed.emit(Loc.f("Steam unavailable: %s", [steam_status]))
 		return
 	_reset()
 	_make_session()
@@ -349,7 +349,7 @@ func _on_connected_to_server() -> void:
 
 func _on_connection_failed() -> void:
 	leave()
-	session_failed.emit("Connection failed")
+	session_failed.emit(Loc.t("Connection failed"))
 
 
 func _on_server_disconnected() -> void:
@@ -361,7 +361,7 @@ func _on_server_disconnected() -> void:
 
 func _on_steam_lobby_created(result: int, new_lobby: int) -> void:
 	if result != STEAM_RESULT_OK:
-		session_failed.emit("Steam lobby creation failed (result %d)" % result)
+		session_failed.emit(Loc.f("Steam lobby creation failed (result %d)", [result]))
 		backend = Backend.NONE
 		return
 	lobby_id = new_lobby
@@ -380,14 +380,14 @@ func _on_steam_lobby_joined(joined_lobby: int, _permissions: int, _locked: bool,
 		return  # also fires for the lobby we created ourselves
 	_joining_lobby = false
 	if response != STEAM_ENTER_SUCCESS:
-		session_failed.emit("Could not join Steam lobby (response %d)" % response)
+		session_failed.emit(Loc.f("Could not join Steam lobby (response %d)", [response]))
 		backend = Backend.NONE
 		return
 	lobby_id = joined_lobby
 	var peer: MultiplayerPeer = ClassDB.instantiate("SteamMultiplayerPeer")
 	var err: int = peer.create_client(steam.getLobbyOwner(joined_lobby), 0)
 	if err != OK:
-		session_failed.emit("Could not connect to lobby host (error %d)" % err)
+		session_failed.emit(Loc.f("Could not connect to lobby host (error %d)", [err]))
 		return
 	peer.server_relay = true
 	multiplayer.multiplayer_peer = peer

@@ -8,9 +8,9 @@ Current phase goal: **full Game Design Document** — the MVP loop (menu → lob
 
 ## Language
 
-- **The game is in English**: all in-game text (UI, menus, item names, skills, talents, tooltips, enemy names) is English.
-- **All files are in English**: code, comments, identifiers, docs (`README.md`, `docs/*`), commit messages, data files.
-- Claude talks to the user in Polish in chat, but never writes Polish into the project.
+- **The game is in English and Polish** (#32): English is the source language of every in-game text (UI, menus, item names, skills, talents, tooltips, enemy names, lore); a language option switches to Polish. Every player-facing string goes through the translation system (`Loc.t` / `tr()`, keys = the English source text); Polish lives **only** in the translation data (`data/i18n/translations.csv`).
+- **All other files are in English**: code, comments, identifiers, docs (`README.md`, `docs/*`), commit messages, data files.
+- Claude talks to the user in Polish in chat, but never writes Polish into the project outside the translation data.
 
 ## Stack and tools
 
@@ -232,7 +232,7 @@ res://
 
 ## Out of scope (do NOT do now)
 
-Matchmaking, accounts and cloud, auction/trading UI, crafting, seasons, a story campaign, localization (the game is English-only), dedicated server, final soundtrack (the user makes it in Suno). (New worn armour sets are in scope since #20: leather and mail families next to plate and cloth, see `docs/DECISIONS.md`.)
+Matchmaking, accounts and cloud, auction/trading UI, crafting, seasons, a story campaign, languages other than English and Polish, dedicated server, final soundtrack (the user makes it in Suno). (New worn armour sets are in scope since #20: leather and mail families next to plate and cloth, see `docs/DECISIONS.md`.)
 
 ## PixelLab budget
 
@@ -247,4 +247,4 @@ Every PixelLab generation is counted (`get_balance` before and after each batch;
 - Don't add features outside the scope above. Don't refactor "while you're there".
 - Keep `docs/DECISIONS.md` and `docs/TODO.md` up to date.
 - Never delete or overwrite user-provided assets; add them next to placeholders and swap the references.
-- Talk to the user in Polish; everything in the project (code, docs, in-game text) in English.
+- Talk to the user in Polish; everything in the project (code, docs, in-game source text) in English, Polish only in `data/i18n/`.

@@ -65,6 +65,12 @@ func _ready() -> void:
 		header.add_child(UITheme.title(title_text, UITheme.FONT_TITLE))
 	subtitle = UITheme.label(subtitle_text, UITheme.TEXT_DIM, UITheme.FONT_BODY)
 	subtitle.size_flags_vertical = Control.SIZE_SHRINK_END
+	# A long subtitle (or a longer language, #32) is cut at a word instead of widening the window.
+	subtitle.clip_text = true
+	subtitle.text_overrun_behavior = TextServer.OVERRUN_TRIM_WORD_ELLIPSIS
+	subtitle.ellipsis_char = "..."  # the pixel font has no "\u2026"
+	subtitle.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	subtitle.size_flags_stretch_ratio = 4.0
 	header.add_child(subtitle)
 	if not menu_tab.is_empty():
 		header_spacer()
@@ -134,11 +140,11 @@ func _tab_strip() -> HBoxContainer:
 			b.add_theme_color_override("font_color", UITheme.GOLD)
 			b.add_theme_color_override("font_pressed_color", UITheme.GOLD)
 		# Icons tell the tabs apart; only the open tab spells out its name.
-		b.text = t[1] if t[0] == menu_tab else ""
+		b.text = Loc.t(t[1]) if t[0] == menu_tab else ""
 		b.icon = UITheme.icon_tex(TAB_ICONS.get(t[0], ""))
 		b.add_theme_constant_override("icon_max_width", 16)
 		b.custom_minimum_size.x = 0 if t[0] == menu_tab else 30
-		b.tooltip_text = "%s [%s]" % [t[1], InputSettings.prompt_for(t[0])]
+		b.tooltip_text = "%s [%s]" % [Loc.t(t[1]), InputSettings.prompt_for(t[0])]
 		var id: String = t[0]
 		b.pressed.connect(func():
 			if id != menu_tab:

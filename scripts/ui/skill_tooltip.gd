@@ -62,7 +62,7 @@ func _init() -> void:
 	_grid.add_theme_constant_override("h_separation", 10)
 	_grid.add_theme_constant_override("v_separation", 2)
 	v.add_child(_grid)
-	_foot = UITheme.label("Damage before the target's armor.", UITheme.TEXT_DIM, UITheme.FONT_SMALL)
+	_foot = UITheme.label(Loc.t("Damage before the target's armor."), UITheme.TEXT_DIM, UITheme.FONT_SMALL)
 	v.add_child(_foot)
 
 
@@ -108,18 +108,18 @@ func refresh() -> void:
 	_sig = sig
 	var sk := GameData.skill(skill_id)
 	_icon.texture = GameData.texture("icons." + str(sk.get("icon", "attack")))
-	_name.text = str(sk.get("name", "?"))
-	var place := "Not on the bar"
+	_name.text = Loc.t(str(sk.get("name", "?")))
+	var place := Loc.t("Not on the bar")
 	if slot == 0:
-		place = "Primary attack"
+		place = Loc.t("Primary attack")
 	elif slot > 0:
-		place = "Skill %d" % slot
+		place = Loc.f("Skill %d", [slot])
 	if sk.get("passive", false):
-		place = "Passive"
-	_tag.text = place + "  -  " + str(sk.get("element", sk.get("school", ""))).capitalize()
+		place = Loc.t("Passive")
+	_tag.text = place + "  -  " + Loc.t(str(sk.get("element", sk.get("school", ""))).capitalize())
 	_glyph.action = Player.SLOT_ACTIONS[slot] if slot >= 0 else ""
 	_glyph.visible = slot >= 0
-	_desc.text = str(sk.get("description", ""))
+	_desc.text = Loc.t(str(sk.get("description", "")))
 	for c in _grid.get_children():
 		_grid.remove_child(c)
 		c.queue_free()

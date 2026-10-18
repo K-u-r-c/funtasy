@@ -107,9 +107,9 @@ func host_door(p: Player, door: Node) -> void:
 			shop_open = true
 			_sync.rpc(stock, contracts, shop_open)
 			game.combat.fx.sound.rpc("key_unlock", door.interact_pos())
-			game.broadcast_message.rpc("%s opens Archibald's vault with the Gold Key" % p.display_name, "#f0c850")
+			game.broadcast_message.rpc("%s opens Archibald's vault with the Gold Key", "#f0c850", [p.display_name])
 		"blood":
-			_ask_tithe.rpc_id(p.peer_id, "Malphas's seal asks for blood: %s for the rest of the run. The door then stays open for the whole party." % mod_text(blood_price(int(game.layout.get("seed", 0)))))
+			_ask_tithe.rpc_id(p.peer_id, "Malphas's seal asks for blood: %s for the rest of the run. The door then stays open for the whole party.", [blood_price(int(game.layout.get("seed", 0)))])
 
 
 ## The floor's blood price at Malphas's door: one of merchants.json malphas.tithe, picked from the
@@ -154,8 +154,8 @@ func _is(npc: String) -> bool:
 
 
 static func stat_name(k: String) -> String:
-	return {"max_hp": "Max Health", "max_hp_pct": "Max Health", "crit_chance": "Critical Strike Chance",
-		"move_speed": "Movement Speed", "max_resource": "Max Mana"}.get(k, k.replace("_", " ").capitalize())
+	return Loc.t({"max_hp": "Max Health", "max_hp_pct": "Max Health", "crit_chance": "Critical Strike Chance",
+		"move_speed": "Movement Speed", "max_resource": "Max Mana"}.get(k, k.replace("_", " ").capitalize()))
 
 
 static func mod_text(m: Dictionary) -> String:
@@ -184,7 +184,7 @@ func request_buy(index: int) -> void:
 		_notice.rpc_id(peer, "Sold out")
 		return
 	if p.gold < int(e.price):
-		_notice.rpc_id(peer, "Not enough gold (%d needed)" % int(e.price))
+		_notice.rpc_id(peer, "Not enough gold (%d needed)", [int(e.price)])
 		return
 	var item: Dictionary = e.item.duplicate(true)
 	item.uid = ItemGenerator.new_uid(rng)
@@ -196,7 +196,7 @@ func request_buy(index: int) -> void:
 	e.left = int(e.left) - 1
 	game.combat.fx.sound.rpc("coin", p.global_position)
 	_sync.rpc(stock, contracts, shop_open)
-	_notice.rpc_id(peer, "Bought %s for %d gold" % [item.get("name", "item"), int(e.price)])
+	_notice.rpc_id(peer, "Bought %s for %d gold", [item.get("name", "item"), int(e.price)])
 
 
 @rpc("any_peer", "call_local", "reliable")
@@ -221,7 +221,7 @@ func request_sell(backpack_index: int) -> void:
 	p.host_add_gold(price)
 	p._inventory_changed()
 	game.combat.fx.sound.rpc("coin", p.global_position)
-	_notice.rpc_id(peer, "Sold %s for %d gold" % [item.get("name", "item"), price])
+	_notice.rpc_id(peer, "Sold %s for %d gold", [item.get("name", "item"), price])
 
 
 @rpc("any_peer", "call_local", "reliable")
@@ -236,7 +236,7 @@ func request_tithe(accept: bool) -> void:
 	p.host_add_run_mod(str(t.stat), float(t.value), "Demonic tithe")
 	game.dungeon.leaf_door("merchant").host_unseal()
 	game.combat.fx.sound.rpc("tithe", p.global_position)
-	game.broadcast_message.rpc("%s breaks Malphas's blood seal (%s)" % [p.display_name, mod_text(t)], "#e04050")
+	game.broadcast_message.rpc("%s breaks Malphas's blood seal (%s)", "#e04050", [p.display_name, t])
 
 
 @rpc("any_peer", "call_local", "reliable")
@@ -257,7 +257,7 @@ func request_contract(slot: int) -> void:
 	signed.append(slot)
 	_signed[peer] = signed
 	game.combat.fx.sound.rpc("tithe", p.global_position)
-	_notice.rpc_id(peer, "Signed: %s for %s" % [mod_text(c.give), mod_text(c.get)])
+	_notice.rpc_id(peer, "Signed: %s for %s", [c.give, c.get])
 
 
 @rpc("any_peer", "call_local", "reliable")
@@ -277,7 +277,7 @@ func request_pact(pact_id: String) -> void:
 	for c in def.cost:
 		p.host_add_run_mod(str(c.stat), float(c.value), def.name)
 	game.combat.fx.sound.rpc("tithe", p.global_position)
-	_notice.rpc_id(peer, "%s is yours. Malphas keeps %s" % [def.name, ", ".join(def.cost.map(func(c): return mod_text(c)))])
+	_notice.rpc_id(peer, "%s is yours. Malphas keeps %s", [def.name, def.cost])
 
 
 # =========================================================================================
@@ -301,12 +301,12 @@ func _open_ui(kind: String) -> void:
 
 
 @rpc("authority", "call_local", "reliable")
-func _ask_tithe(text: String) -> void:
+func _ask_tithe(text: String, args: Array = []) -> void:
 	var hud := get_tree().get_first_node_in_group("hud")
 	if hud and hud.has_method("ask_tithe"):
-		hud.ask_tithe(text)
+		hud.ask_tithe(Loc.f(text, args))
 
 
 @rpc("authority", "call_local", "reliable")
-func _notice(text: String) -> void:
-	EventBus.hud_message.emit(text, Color(1, 0.85, 0.5))
+func _notice(text: String, args: Array = []) -> void:
+	EventBus.hud_message.emit(Loc.f(text, args), Color(1, 0.85, 0.5))

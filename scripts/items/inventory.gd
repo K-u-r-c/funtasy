@@ -14,6 +14,7 @@ var equipment: Dictionary = {}
 var backpack: Array = []
 var capacity := 12
 var quick: Dictionary = {"q": "", "e": ""}
+var error_args: Array = []  ## format arguments of the last equip error
 
 
 func to_dict() -> Dictionary:
@@ -69,20 +70,24 @@ func can_add(item: Dictionary) -> bool:
 	return false
 
 
-## Equips backpack[index]. Displaced items go back into the backpack.
+## Equips backpack[index]. Displaced items go back into the backpack. An error is a
+## translation key; its format arguments are left in `error_args`.
 func equip_from_backpack(index: int, char_level: int) -> String:
+	error_args = []
 	if index < 0 or index >= backpack.size():
 		return "No such item"
 	var item: Dictionary = backpack[index]
 	if not item.get("kind") in ["weapon", "offhand", "armor", "jewelry"]:
 		return "Can't equip that"
 	if int(item.get("req", 1)) > char_level:
-		return "Requires level %d (you are level %d)" % [int(item.req), char_level]
+		error_args = [int(item.req), char_level]
+		return "Requires level %d (you are level %d)"
 	# D8: a ring legendary is unique - two copies can't be worn together.
 	if item.has("legendary") and str(item.get("slot", "")) == "ring":
 		for rs in ["ring_1", "ring_2"]:
 			if str(equipment.get(rs, {}).get("legendary", "")) == str(item.legendary):
-				return "You already wear %s" % item.name
+				error_args = [str(item.name)]
+				return "You already wear %s"
 	var targets := _target_slots(item)
 	var displaced: Array = []
 	for s in targets.clear:

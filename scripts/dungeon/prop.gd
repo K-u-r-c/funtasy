@@ -78,8 +78,9 @@ func interactable() -> bool:
 
 func interact_text() -> String:
 	if def.has("npc") or def.has("gate"):
-		return "%s %s" % [str(def.get("verb", "Open")), str(def.name)]
-	return "%s %s" % [str(def.get("verb", "Open")), str(def.name).to_lower()]
+		return Loc.t("%s %s" % [str(def.get("verb", "Open")), str(def.name)])
+	# Verb and name form one translation key (tools/i18n_extract.py builds the same).
+	return Loc.t("%s %s" % [str(def.get("verb", "Open")), str(def.name).to_lower()])
 
 
 func interact_pos() -> Vector2:

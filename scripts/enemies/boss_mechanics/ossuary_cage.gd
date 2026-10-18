@@ -26,7 +26,7 @@ func trigger() -> void:
 		spears.append(nm)
 	Combat.instance.apply_status(ctx(), victim, "caged", float(p("timer", 6.0)), 0.0)
 	_t = float(p("timer", 6.0))
-	g.broadcast_message.rpc("Ossuary Cage! Break the bone spears around %s!" % victim.display_name, "#e8e0c8")
+	g.broadcast_message.rpc("Ossuary Cage! Break the bone spears around %s!", "#e8e0c8", [victim.display_name])
 	Combat.instance.fx.sound.rpc("cage", victim.global_position)
 
 

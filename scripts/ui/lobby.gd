@@ -61,7 +61,7 @@ func _ready() -> void:
 	var head := HBoxContainer.new()
 	head.add_theme_constant_override("separation", 16)
 	col.add_child(head)
-	head.add_child(UITheme.title("Lobby", 34))
+	head.add_child(UITheme.title(Loc.t("Lobby"), 34))
 	head.add_child(UITheme.label(_session_text(), UITheme.TEXT_DIM, 14))
 
 	var body := HBoxContainer.new()
@@ -76,7 +76,7 @@ func _ready() -> void:
 	bottom.add_theme_constant_override("separation", 12)
 	col.add_child(bottom)
 	_start = AnimButton.new()
-	_start.text = "Start run"
+	_start.text = Loc.t("Start run")
 	_start.icon = UITheme.icon_tex("menu_play")
 	_start.add_theme_constant_override("icon_max_width", 16)
 	_start.visible = multiplayer.is_server()
@@ -84,7 +84,7 @@ func _ready() -> void:
 	_start.pressed.connect(_on_start)
 	bottom.add_child(_start)
 	var leave := AnimButton.new()
-	leave.text = "Leave"
+	leave.text = Loc.t("Leave")
 	leave.icon = UITheme.icon_tex("menu_leave")
 	leave.add_theme_constant_override("icon_max_width", 16)
 	leave.pressed.connect(func(): NetworkManager.leave_to_menu())
@@ -113,11 +113,11 @@ func _ready() -> void:
 func _session_text() -> String:
 	match NetworkManager.backend:
 		NetworkManager.Backend.STEAM:
-			return "Steam lobby" + (" (id %d)" % NetworkManager.lobby_id if multiplayer.is_server() else "")
+			return Loc.t("Steam lobby") + (Loc.f(" (id %d)", [NetworkManager.lobby_id]) if multiplayer.is_server() else "")
 		NetworkManager.Backend.ENET:
-			return "LAN game on port %d" % NetworkManager.last_port
+			return Loc.f("LAN game on port %d", [NetworkManager.last_port])
 		NetworkManager.Backend.SOLO:
-			return "Solo game"
+			return Loc.t("Solo game")
 	return ""
 
 
@@ -145,31 +145,31 @@ func _build_character_panel() -> Control:
 	var v := VBoxContainer.new()
 	v.add_theme_constant_override("separation", 6)
 	panel.add_child(v)
-	_hero_title = _step_title(1, "Choose your hero")
+	_hero_title = _step_title(1, Loc.t("Choose your hero"))
 	v.add_child(_hero_title)
 	# New game: name, body, class
 	_new_box = VBoxContainer.new()
 	_new_box.add_theme_constant_override("separation", 6)
 	v.add_child(_new_box)
-	_new_box.add_child(UITheme.label("Name", UITheme.TEXT_DIM, 13))
+	_new_box.add_child(UITheme.label(Loc.t("Name"), UITheme.TEXT_DIM, 13))
 	_name_edit = LineEdit.new()
 	_name_edit.max_length = 16
 	_name_edit.custom_minimum_size = Vector2(280, 30)
 	_name_edit.text_changed.connect(func(_t): _update_preview())
 	_new_box.add_child(_name_edit)
-	_new_box.add_child(UITheme.label("Body", UITheme.TEXT_DIM, 13))
+	_new_box.add_child(UITheme.label(Loc.t("Body"), UITheme.TEXT_DIM, 13))
 	var genders := HBoxContainer.new()
 	genders.add_theme_constant_override("separation", 6)
 	_new_box.add_child(genders)
 	for g in CharacterSprite.genders():
 		var gb := Button.new()
-		gb.text = str(GameData.assets.characters.genders[g].get("name", g.capitalize()))
+		gb.text = Loc.t(str(GameData.assets.characters.genders[g].get("name", g.capitalize())))
 		gb.toggle_mode = true
 		gb.custom_minimum_size = Vector2(137, 30)
 		gb.pressed.connect(_select_gender.bind(g))
 		genders.add_child(gb)
 		_gender_buttons[g] = gb
-	_new_box.add_child(UITheme.label("Class", UITheme.TEXT_DIM, 13))
+	_new_box.add_child(UITheme.label(Loc.t("Class"), UITheme.TEXT_DIM, 13))
 	var classes := GridContainer.new()
 	classes.columns = 2
 	classes.add_theme_constant_override("h_separation", 6)
@@ -179,7 +179,7 @@ func _build_character_panel() -> Control:
 		if not GameData.classes.has(cid):
 			continue
 		var b := Button.new()
-		b.text = GameData.classes[cid].name
+		b.text = Loc.t(GameData.classes[cid].name)
 		b.icon = UITheme.icon_tex("class_" + cid)
 		b.add_theme_constant_override("icon_max_width", 24)
 		b.toggle_mode = true
@@ -205,7 +205,7 @@ func _build_preview_panel() -> Control:
 	var v := VBoxContainer.new()
 	v.add_theme_constant_override("separation", 6)
 	panel.add_child(v)
-	v.add_child(_step_title(2, "Confirm"))
+	v.add_child(_step_title(2, Loc.t("Confirm")))
 	_preview = HeroPreview.new()
 	_preview.custom_minimum_size = Vector2(230, 170)
 	_preview.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -219,7 +219,7 @@ func _build_preview_panel() -> Control:
 	for step in [-1, 1]:
 		var tb := Button.new()
 		tb.text = "<" if step < 0 else ">"
-		tb.tooltip_text = "Turn left" if step < 0 else "Turn right"
+		tb.tooltip_text = Loc.t("Turn left") if step < 0 else Loc.t("Turn right")
 		tb.custom_minimum_size = Vector2(36, 28)
 		tb.pressed.connect(func(): _preview.turn(step))
 		turn.add_child(tb)
@@ -228,15 +228,15 @@ func _build_preview_panel() -> Control:
 			_gear_toggle = Button.new()
 			_gear_toggle.toggle_mode = true
 			_gear_toggle.button_pressed = true
-			_gear_toggle.text = "Class gear"
-			_gear_toggle.tooltip_text = "Heroes start with only a basic class weapon; this shows the class in typical gear."
+			_gear_toggle.text = Loc.t("Class gear")
+			_gear_toggle.tooltip_text = Loc.t("Heroes start with only a basic class weapon; this shows the class in typical gear.")
 			_gear_toggle.custom_minimum_size = Vector2(0, 28)
 			_gear_toggle.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			_gear_toggle.toggled.connect(func(_on): _update_preview())
 			turn.add_child(_gear_toggle)
 	_confirm = AnimButton.new()
 	_confirm.custom_minimum_size = Vector2(230, 38)
-	_confirm.text = "Confirm hero"
+	_confirm.text = Loc.t("Confirm hero")
 	_primary(_confirm)
 	_confirm.pressed.connect(_on_confirm)
 	v.add_child(_confirm)
@@ -269,7 +269,7 @@ func _wire_focus() -> void:
 
 func _refresh_games() -> void:
 	_game_opt.clear()
-	_game_opt.add_item("New game")
+	_game_opt.add_item(Loc.t("New game"))
 	_saved = SaveSystem.list_games() if multiplayer.is_server() else []
 	for g in _saved:
 		_game_opt.add_item(_game_title(g))
@@ -285,7 +285,7 @@ func _game_title(g: Dictionary) -> String:
 	var names: Array = []
 	for m in g.members:
 		names.append(m.name)
-	return "Floor %d - %d player%s - %s" % [int(g.get("depth", 1)), int(g.party_size), "" if int(g.party_size) == 1 else "s", ", ".join(names)]
+	return Loc.f("Floor %d - %s - %s", [int(g.get("depth", 1)), Loc.plural(int(g.party_size), "%d player", "%d players"), ", ".join(names)])
 
 
 func _on_game_selected(idx: int) -> void:
@@ -303,7 +303,7 @@ func _on_delete_game() -> void:
 	SaveSystem.delete_game(str(_saved[idx - 1].id))
 	GameState.select_new_game()
 	_refresh_games()
-	_status.text = "Saved game deleted."
+	_status.text = Loc.t("Saved game deleted.")
 
 
 func _select_class(cid: String) -> void:
@@ -313,7 +313,7 @@ func _select_class(cid: String) -> void:
 	for k in _class_buttons:
 		_class_buttons[k].set_pressed_no_signal(k == cid)
 	var c: Dictionary = GameData.classes[cid]
-	_class_desc.text = "%s  Resource: %s." % [c.description, str(c.resource).capitalize()]
+	_class_desc.text = Loc.f("%s  Resource: %s.", [c.description, str(c.resource).capitalize()])
 	_update_preview()
 
 
@@ -343,7 +343,7 @@ func _update_preview() -> void:
 			level = int(members[slot].level)
 	_preview.set_look(gender, class_look(cid) if _gear_toggle.button_pressed else {})
 	var gname := str(GameData.assets.characters.get("genders", {}).get(CharacterSprite.valid_gender(gender), {}).get("name", ""))
-	_hero_summary.text = "%s - %s %s, level %d" % [nm if not nm.is_empty() else "?", gname, GameData.classes.get(cid, {}).get("name", cid), level]
+	_hero_summary.text = Loc.f("%s - %s %s, level %d", [nm if not nm.is_empty() else "?", gname, GameData.classes.get(cid, {}).get("name", cid), level])
 
 
 ## The class's typical gear (data/classes/<id>.json "preview_gear", item base ids) in the
@@ -373,7 +373,7 @@ static func class_look(cid: String) -> Dictionary:
 func _on_confirm() -> void:
 	var nm := _name_edit.text.strip_edges()
 	if nm.is_empty():
-		_status.text = "Enter a name first."
+		_status.text = Loc.t("Enter a name first.")
 		return
 	GameState.choose_new_character(nm, _selected_class, _selected_gender)
 
@@ -395,8 +395,8 @@ func _refresh_slots() -> void:
 		b.custom_minimum_size = Vector2(280, 32)
 		var who := ""
 		if taken.has(i):
-			who = "  (you)" if taken[i] == multiplayer.get_unique_id() else "  (taken)"
-		b.text = "%s - %s, level %d%s" % [m.name, cdef.get("name", m.class_id), int(m.level), who]
+			who = Loc.t("  (you)") if taken[i] == multiplayer.get_unique_id() else Loc.t("  (taken)")
+		b.text = Loc.f("%s - %s, level %d%s", [m.name, cdef.get("name", m.class_id), int(m.level), who])
 		b.add_theme_color_override("font_color", UITheme.hex(cdef.get("color", "#ffffff")))
 		b.disabled = taken.has(i) and taken[i] != multiplayer.get_unique_id()
 		b.pressed.connect(func(): GameState.claim_slot(i))
@@ -420,7 +420,7 @@ func _build_party_panel() -> Control:
 	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.add_child(v)
 	# The game choice (host) sits with the party: it is about the whole run, not one hero.
-	v.add_child(UITheme.section("Game", "menu_save"))
+	v.add_child(UITheme.section(Loc.t("Game"), "menu_save"))
 	var game_row := HBoxContainer.new()
 	game_row.add_theme_constant_override("separation", 6)
 	v.add_child(game_row)
@@ -432,7 +432,7 @@ func _build_party_panel() -> Control:
 	_game_opt.fit_to_longest_item = false
 	game_row.add_child(_game_opt)
 	_delete_btn = Button.new()
-	_delete_btn.text = "Delete"
+	_delete_btn.text = Loc.t("Delete")
 	_delete_btn.visible = multiplayer.is_server()
 	_delete_btn.pressed.connect(_on_delete_game)
 	game_row.add_child(_delete_btn)
@@ -440,19 +440,19 @@ func _build_party_panel() -> Control:
 	_game_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_game_desc.custom_minimum_size = Vector2(240, 0)
 	v.add_child(_game_desc)
-	v.add_child(UITheme.section("Party", "ui_party"))
+	v.add_child(UITheme.section(Loc.t("Party"), "ui_party"))
 	_roster_box = VBoxContainer.new()
 	_roster_box.custom_minimum_size = Vector2(0, 60)
 	v.add_child(_roster_box)
-	v.add_child(UITheme.section("Game settings" + ("" if multiplayer.is_server() else " (host only)"), "menu_options"))
+	v.add_child(UITheme.section(Loc.t("Game settings") + ("" if multiplayer.is_server() else Loc.t(" (host only)")), "menu_options"))
 	_settings_box = GridContainer.new()
 	_settings_box.columns = 2
 	_settings_box.add_theme_constant_override("h_separation", 16)
 	_settings_box.add_theme_constant_override("v_separation", 6)
 	v.add_child(_settings_box)
 	for d in GameData.game_settings:
-		var l := UITheme.icon_label(str(d.get("icon", "sil_star")), str(d.label))
-		l.tooltip_text = d.get("description", "")
+		var l := UITheme.icon_label(str(d.get("icon", "sil_star")), Loc.t(str(d.label)))
+		l.tooltip_text = Loc.t(d.get("description", ""))
 		_settings_box.add_child(l)
 		var ctrl: Control
 		match d.type:
@@ -463,12 +463,12 @@ func _build_party_panel() -> Control:
 			"enum":
 				var ob := OptionButton.new()
 				for o in d.options:
-					ob.add_item(o)
+					ob.add_item(Loc.t(o))
 				ob.item_selected.connect(func(i: int): GameState.set_setting(d.id, i))
 				ctrl = ob
 			_:
 				ctrl = UITheme.label("?")
-		ctrl.tooltip_text = d.get("description", "")
+		ctrl.tooltip_text = Loc.t(d.get("description", ""))
 		if ctrl is BaseButton:
 			ctrl.disabled = not multiplayer.is_server()
 		_settings_box.add_child(ctrl)
@@ -490,31 +490,31 @@ func _refresh() -> void:
 	var cont := GameState.is_continuing()
 	_new_box.visible = not cont
 	_confirm.visible = not cont
-	_hero_title.text = "1  Take a hero of this game" if cont else "1  Choose your hero"
+	_hero_title.text = Loc.t("1  Take a hero of this game") if cont else Loc.t("1  Choose your hero")
 	_delete_btn.disabled = not cont
 	if cont:
 		var info: Dictionary = GameState.game_info
-		_game_desc.text = "Continue from floor %d. This game needs exactly %d player%s; each player takes one of its heroes." % [int(info.depth), int(info.party_size), "" if int(info.party_size) == 1 else "s"]
+		_game_desc.text = Loc.f("Continue from floor %d. This game needs exactly %s; each player takes one of its heroes.", [int(info.depth), Loc.plural(int(info.party_size), "%d player", "%d players")])
 		if not multiplayer.is_server():
 			_game_opt.clear()
-			_game_opt.add_item("Saved game: floor %d, %d players" % [int(info.depth), int(info.party_size)])
+			_game_opt.add_item(Loc.f("Saved game: floor %d, %d players", [int(info.depth), int(info.party_size)]))
 	else:
-		_game_desc.text = "Everyone starts a fresh level 1 hero. The game is saved by the host and ends for good if the whole party falls."
+		_game_desc.text = Loc.t("Everyone starts a fresh level 1 hero. The game is saved by the host and ends for good if the whole party falls.")
 		if not multiplayer.is_server():
 			_game_opt.clear()
-			_game_opt.add_item("New game")
+			_game_opt.add_item(Loc.t("New game"))
 	_refresh_slots()
 	_refresh_roster()
 	_update_preview()
 	var mine: Dictionary = GameState.roster.get(multiplayer.get_unique_id(), {})
 	if mine.is_empty():
-		_ready_label.text = "" if cont else "Not ready yet: confirm your hero."
+		_ready_label.text = "" if cont else Loc.t("Not ready yet: confirm your hero.")
 		_ready_label.add_theme_color_override("font_color", UITheme.TEXT_DIM)
-		_confirm.text = "Confirm hero"
+		_confirm.text = Loc.t("Confirm hero")
 	else:
-		_ready_label.text = "Ready as %s." % mine.name
+		_ready_label.text = Loc.f("Ready as %s.", [mine.name])
 		_ready_label.add_theme_color_override("font_color", UITheme.GOOD)
-		_confirm.text = "Update hero"
+		_confirm.text = Loc.t("Update hero")
 
 
 func _refresh_roster() -> void:
@@ -536,26 +536,26 @@ func _refresh_roster() -> void:
 			row.add_child(UITheme.icon("ui_check", 16))
 			if id == 1:
 				var crown := UITheme.icon("ui_crown", 16)
-				crown.tooltip_text = "Host"
+				crown.tooltip_text = Loc.t("Host")
 				row.add_child(crown)
 			row.add_child(UITheme.icon("class_" + str(r.class_id), 16))
-			row.add_child(UITheme.label("%s%s" % [r.name, "  (host)" if id == 1 else ""]))
+			row.add_child(UITheme.label("%s%s" % [r.name, Loc.t("  (host)") if id == 1 else ""]))
 			var gname := str(GameData.assets.characters.get("genders", {}).get(str(r.get("gender", "")), {}).get("name", ""))
-			row.add_child(UITheme.label("%s%s, level %d" % [gname + " " if not gname.is_empty() else "", cdef.get("name", r.class_id), int(r.level)], UITheme.hex(cdef.get("color", "#ffffff"))))
+			row.add_child(UITheme.label(Loc.f("%s%s, level %d", [Loc.t(gname) + " " if not gname.is_empty() else "", cdef.get("name", r.class_id), int(r.level)]), UITheme.hex(cdef.get("color", "#ffffff"))))
 		else:
 			row.add_child(UITheme.icon("menu_resume", 16, Color(1, 1, 1, 0.6)))
-			row.add_child(UITheme.label("Player %d" % id, UITheme.TEXT_DIM))
-			row.add_child(UITheme.label("choosing a hero...", UITheme.TEXT_DIM))
+			row.add_child(UITheme.label(Loc.f("Player %d", [id]), UITheme.TEXT_DIM))
+			row.add_child(UITheme.label(Loc.t("choosing a hero..."), UITheme.TEXT_DIM))
 		_roster_box.add_child(row)
 	if multiplayer.is_server():
 		var problem := GameState.start_problem()
 		_start.disabled = not problem.is_empty()
-		_start.text = "3  Start run (%d player%s)" % [ids.size(), "" if ids.size() == 1 else "s"]
+		_start.text = Loc.f("3  Start run (%s)", [Loc.plural(ids.size(), "%d player", "%d players")])
 		_status.text = problem
 	elif GameState.roster.has(multiplayer.get_unique_id()):
-		_status.text = "Waiting for the host to start..."
+		_status.text = Loc.t("Waiting for the host to start...")
 	else:
-		_status.text = "Pick your hero."
+		_status.text = Loc.t("Pick your hero.")
 
 
 func _on_start() -> void:

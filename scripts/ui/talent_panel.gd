@@ -23,9 +23,9 @@ var _last_points := -1
 
 
 func _init() -> void:
-	title_text = "Talents"
+	title_text = Loc.t("Talents")
 	menu_tab = "talents"
-	prompts = [["ui_accept", "Learn rank"], ["ui_cancel", "Close"]]
+	prompts = [["ui_accept", Loc.t("Learn rank")], ["ui_cancel", Loc.t("Close")]]
 
 
 func _build() -> void:
@@ -49,7 +49,7 @@ func _build() -> void:
 		tl.custom_minimum_size = Vector2(26, NODE_PX + 4)
 		tl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		if t == 2 or t == 5:
-			tl.text += "\nkey"
+			tl.text += "\n" + Loc.t("Key")
 			tl.add_theme_color_override("font_color", UITheme.GOLD_DIM)
 		tiers.add_child(tl)
 
@@ -69,7 +69,7 @@ func _build() -> void:
 		var head := PanelContainer.new()
 		head.theme_type_variation = &"GlassInset"
 		head.custom_minimum_size = Vector2(_cols_per_branch * CELL_W, 30)
-		head.tooltip_text = str(br.get("description", ""))
+		head.tooltip_text = Loc.t(str(br.get("description", "")))
 		head.mouse_filter = Control.MOUSE_FILTER_PASS
 		col.add_child(head)
 		# The branch's emblem, its name and the points spent in it (#29).
@@ -79,7 +79,7 @@ func _build() -> void:
 		hrow.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		head.add_child(hrow)
 		hrow.add_child(UITheme.icon("branch_" + str(br.id), 24))
-		var bl := UITheme.label(str(br.name), UITheme.GOLD, UITheme.FONT_SMALL)
+		var bl := UITheme.label(Loc.t(str(br.name)), UITheme.GOLD, UITheme.FONT_SMALL)
 		bl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		bl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		bl.custom_minimum_size = Vector2(_cols_per_branch * CELL_W - 40, 0)
@@ -110,7 +110,7 @@ func _build() -> void:
 	right.add_theme_constant_override("separation", 8)
 	body.add_child(right)
 	_points_chip = UITheme.chip("act_plus", "", UITheme.GOOD, UITheme.GOLD_DIM)
-	_points_chip.tooltip_text = "Talent points to spend"
+	_points_chip.tooltip_text = Loc.t("Talent points to spend")
 	_points_chip.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	UIFx.pulse(_points_chip)
 	right.add_child(_points_chip)
@@ -123,7 +123,7 @@ func _build() -> void:
 	_card.add_theme_constant_override("separation", 4)
 	card_panel.add_child(_card)
 	_reset = AnimButton.new()
-	_reset.text = "Reset talents (free)"
+	_reset.text = Loc.t("Reset talents (free)")
 	_reset.icon = UITheme.icon_tex("act_reset")
 	_reset.add_theme_constant_override("icon_max_width", 16)
 	_reset.custom_minimum_size = Vector2(230, 28)
@@ -141,8 +141,8 @@ func _build() -> void:
 
 func _node_name(nd: Dictionary) -> String:
 	if nd.get("type", "") == "skill":
-		return str(GameData.skills.get(str(nd.skill), {}).get("name", nd.skill))
-	return str(nd.get("name", nd.id))
+		return Loc.t(str(GameData.skills.get(str(nd.skill), {}).get("name", nd.skill)))
+	return Loc.t(str(nd.get("name", nd.id)))
 
 
 func _icon_for(node: Dictionary) -> Texture2D:
@@ -199,13 +199,13 @@ func _process(_delta: float) -> void:
 func _refresh() -> void:
 	_last_talents = player.talents.duplicate()
 	_last_points = player.talent_points
-	_points.text = "%s  -  %d point%s to spend" % [player.class_def.name, player.talent_points, "" if player.talent_points == 1 else "s"]
+	_points.text = "%s  -  %s" % [Loc.t(str(player.class_def.name)), Loc.plural(player.talent_points, "%d point to spend", "%d points to spend")]
 	if _points_chip:
 		_points_chip.get_meta("label").text = "%d" % player.talent_points
 		_points_chip.get_meta("label").add_theme_color_override("font_color", UITheme.GOOD if player.talent_points > 0 else UITheme.TEXT_DIM)
 	_points.add_theme_color_override("font_color", UITheme.GOOD if player.talent_points > 0 else UITheme.TEXT_DIM)
 	for br in _tree.get("branches", []):
-		_branch_labels[br.id].text = "%s (%d)" % [br.name, player.branch_points(br.id)]
+		_branch_labels[br.id].text = "%s (%d)" % [Loc.t(str(br.name)), player.branch_points(br.id)]
 	for id in _buttons:
 		var b: TalentNode = _buttons[id][0]
 		var node: Dictionary = _buttons[id][1]
@@ -234,11 +234,11 @@ func _show(node: Dictionary) -> void:
 	var rank := player.node_rank(node)
 	var kind := str(node.get("type", "passive"))
 	_card.add_child(UITheme.label(_node_name(node), UITheme.GOLD, UITheme.FONT_BODY))
-	var tag: String = {"skill": "Skill", "passive": "Passive talent", "keystone": "Keystone"}.get(kind, kind.capitalize())
+	var tag: String = {"skill": Loc.t("Skill"), "passive": Loc.t("Passive talent"), "keystone": Loc.t("Keystone")}.get(kind, kind.capitalize())
 	if player.is_free_node(node):
-		tag += " - known from the start"
+		tag += Loc.t(" - known from the start")
 	else:
-		tag += " - rank %d / %d" % [rank, int(node.get("max_rank", 1))]
+		tag += Loc.f(" - rank %d / %d", [rank, int(node.get("max_rank", 1))])
 	_card.add_child(UITheme.label(tag, UITheme.CYAN, UITheme.FONT_SMALL))
 	_card.add_child(HSeparator.new())
 	# Passives: what the ranks learned so far give and what the next one adds, with stat icons.
@@ -259,10 +259,10 @@ func _show(node: Dictionary) -> void:
 			nums.add_child(c)
 		if nums.get_child_count() > 0:
 			_card.add_child(nums)
-	var desc := str(node.get("description", ""))
+	var desc := Loc.t(str(node.get("description", "")))
 	if kind == "skill":
 		var sk: Dictionary = GameData.skills.get(str(node.skill), {})
-		desc = str(sk.get("description", "")) + ("\nPassive: always active once learned." if sk.get("passive", false) else "\nLearn it, then slot it in the Skill Book.")
+		desc = Loc.t(str(sk.get("description", ""))) + (Loc.t("\nPassive: always active once learned.") if sk.get("passive", false) else Loc.t("\nLearn it, then slot it in the Skill Book."))
 	var d := UITheme.label(desc, UITheme.TEXT, UITheme.FONT_SMALL)
 	d.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	d.custom_minimum_size = Vector2(210, 0)
@@ -270,7 +270,7 @@ func _show(node: Dictionary) -> void:
 	var need := int(node.get("tier", 0)) * int(_tree.get("tier_points", 2))
 	if need > 0 and not player.is_free_node(node):
 		var ok := _unlocked(node)
-		var rl := UITheme.label("Requires %d points in this branch" % need, UITheme.GOOD if ok else UITheme.DANGER, UITheme.FONT_SMALL)
+		var rl := UITheme.label(Loc.f("Requires %d points in this branch", [need]), UITheme.GOOD if ok else UITheme.DANGER, UITheme.FONT_SMALL)
 		rl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		rl.custom_minimum_size = Vector2(210, 0)
 		_card.add_child(rl)
@@ -325,7 +325,7 @@ class TalentNode:
 		else:
 			var f := UITheme.font()
 			var initials := ""
-			for w in str(node.get("name", "?")).split(" "):
+			for w in Loc.t(str(node.get("name", "?"))).split(" "):
 				if not w.is_empty() and initials.length() < 2:
 					initials += w[0]
 			var tw := f.get_string_size(initials, HORIZONTAL_ALIGNMENT_LEFT, -1, UITheme.FONT_BODY).x

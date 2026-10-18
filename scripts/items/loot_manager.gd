@@ -52,7 +52,7 @@ func try_pickup(player: Player, g: GroundItem) -> void:
 		return
 	if g.item.get("kind", "") == "gold_key":
 		game.add_party_key(1)
-		game.broadcast_message.rpc("%s found a Gold Key - Archibald will trade" % player.display_name, "#f0c850")
+		game.broadcast_message.rpc("%s found a Gold Key - Archibald will trade", "#f0c850", [player.display_name])
 		game.combat.fx.sound.rpc("key_unlock", g.global_position)
 		g.queue_free()
 		return
@@ -84,4 +84,4 @@ func split_gold(picker: Player, amount: int) -> void:
 	for pl in living:
 		var got: int = share + (rest if pl == picker else 0)
 		pl.host_add_gold(got)
-		pl._notify.rpc_id(pl.peer_id, "+%d gold" % got)
+		pl._notify.rpc_id(pl.peer_id, "+%d gold", [got])

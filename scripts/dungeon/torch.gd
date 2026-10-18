@@ -63,7 +63,7 @@ func interactable() -> bool:
 
 
 func interact_text() -> String:
-	return "Take the torch"
+	return Loc.t("Take the torch")
 
 
 func interact_pos() -> Vector2:

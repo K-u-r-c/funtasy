@@ -155,14 +155,14 @@ func interact_text() -> String:
 	if sealed:
 		match str(type_def.get("seal", "")):
 			"gold_key":
-				return "Unlock the vault (Gold Key)"
+				return Loc.t("Unlock the vault (Gold Key)")
 			"blood":
-				return "Break the blood seal (%s)" % Merchants.mod_text(Merchants.blood_price(_layout_seed()))
+				return Loc.f("Break the blood seal (%s)", [Merchants.mod_text(Merchants.blood_price(_layout_seed()))])
 	if floodgate and not is_open:
-		return "Floodgate - rusted shut"
+		return Loc.t("Floodgate - rusted shut")
 	if style == "bookshelf":
-		return "Turn the bookshelf" if not is_open else "Close the bookshelf"
-	return "Close door" if is_open else "Open door"
+		return Loc.t("Turn the bookshelf") if not is_open else Loc.t("Close the bookshelf")
+	return Loc.t("Close door") if is_open else Loc.t("Open door")
 
 
 func interact_pos() -> Vector2:

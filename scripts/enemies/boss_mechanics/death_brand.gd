@@ -15,7 +15,7 @@ func trigger() -> void:
 	victim = pool[randi() % pool.size()]
 	_t = float(p("delay", 5.0))
 	Combat.instance.apply_status(ctx(), victim, "death_brand", _t, 0.0)
-	game().broadcast_message.rpc("%s bears the Black Anointing - spread out!" % victim.display_name, "#a020a0")
+	game().broadcast_message.rpc("%s bears the Black Anointing - spread out!", "#a020a0", [victim.display_name])
 
 
 func physics(delta: float) -> void:

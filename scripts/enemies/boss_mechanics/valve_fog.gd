@@ -43,7 +43,7 @@ func on_interact(player: Player, node: Node) -> bool:
 	vented += 1
 	Combat.instance.fx.ring.rpc(node.global_position, 60.0, "#c0ffc0", "")
 	Combat.instance.fx.sound.rpc("acid_hiss", node.global_position)
-	game().broadcast_message.rpc("%s vents the green fog!" % player.display_name, "#c0ffc0")
+	game().broadcast_message.rpc("%s vents the green fog!", "#c0ffc0", [player.display_name])
 	return true
 
 

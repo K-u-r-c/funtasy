@@ -124,7 +124,7 @@ func _draw() -> void:
 func _level_badge(r: Rect2) -> void:
 	var f := UITheme.font()
 	var fs := UITheme.FONT_SMALL
-	var t := "Lv%d" % int(item.get("req", 1))
+	var t := Loc.f("Lv%d", [int(item.get("req", 1))])
 	var tw := f.get_string_size(t, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
 	var badge := Rect2(Vector2(1, 1), Vector2(tw + 11, 11))
 	draw_rect(badge, Color("3a0c0c"))

@@ -3,8 +3,8 @@ extends UIModal
 ## once; Cancel counts as "no".
 
 var body_text := ""
-var yes_text := "Accept"
-var no_text := "Refuse"
+var yes_text := Loc.t("Accept")
+var no_text := Loc.t("Refuse")
 var on_answer: Callable
 var yes_icon := ""
 var no_icon := ""
@@ -13,7 +13,7 @@ var _answered := false
 
 
 func _init() -> void:
-	prompts = [["ui_accept", "Choose"], ["ui_cancel", "Refuse"]]
+	prompts = [["ui_accept", Loc.t("Choose")], ["ui_cancel", Loc.t("Refuse")]]
 	max_size = Vector2(520, 260)
 
 

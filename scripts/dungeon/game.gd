@@ -391,7 +391,7 @@ func on_enemy_killed(e: Enemy) -> void:
 		_dyn_counter += 1
 		dungeon.spawn_prop.rpc("Altar_%d" % _dyn_counter, "elite_altar", nearest_floor(e.global_position))
 		loot.drop_item(LootTable.gold_pile("elite", item_level(), loot.rng), e.global_position + Vector2(12, 6))
-		broadcast_message.rpc("%s falls - an elite altar rises" % e.display_name, "#e8c040")
+		broadcast_message.rpc("%s falls - an elite altar rises", "#e8c040", [e.display_name])
 	if e.key_carrier:
 		loot.drop_item(gold_key_item(), e.global_position + Vector2(-12, 6))
 	for peer in e.contributors:
@@ -400,7 +400,7 @@ func on_enemy_killed(e: Enemy) -> void:
 		var p := player_by_peer(peer)
 		if p:
 			p.add_xp(xp)
-			fx.number.rpc_id(peer, p.global_position + Vector2(0, -12), "+%d XP" % xp, "xp")
+			fx.number.rpc_id(peer, p.global_position + Vector2(0, -12), "+%d XP", "xp", [xp])
 	if e.is_boss:
 		boss_alive = false
 		loot.roll_and_drop("boss", e.global_position, e.def.get("loot", {}))
@@ -633,7 +633,7 @@ func _build_floor(new_depth: int, floor_seed: int, ft_id: String, floor_boss: St
 	_wiped = false
 	AudioManager.play_music(str(floor_def.music))
 	EventBus.floor_started.emit(new_depth)
-	EventBus.hud_message.emit("%s - Floor %d" % [floor_def.name, new_depth], Color(0.95, 0.75, 0.4))
+	EventBus.hud_message.emit(Loc.f("%s - Floor %d", [floor_def.name, new_depth]), Color(0.95, 0.75, 0.4))
 
 
 ## Host -> all (reliable): owners stop streaming their position before the run is torn down,
@@ -698,7 +698,7 @@ func _boss_music(on: bool) -> void:
 func _boss_defeated(portal_pos: Vector2) -> void:
 	AudioManager.play_music(str(floor_def.music))
 	EventBus.boss_defeated.emit(null)
-	EventBus.hud_message.emit("The boss is defeated! A portal opens...", Color(0.75, 0.55, 1.0))
+	EventBus.hud_message.emit(Loc.t("The boss is defeated! A portal opens..."), Color(0.75, 0.55, 1.0))
 	portal = PORTAL_SCRIPT.new()
 	portal.name = "Portal"
 	portal.position = portal_pos
@@ -716,8 +716,8 @@ func _portal_status(ready_ids: Array, alive: int) -> void:
 
 
 @rpc("authority", "call_local", "reliable")
-func broadcast_message(text: String, color_html: String) -> void:
-	EventBus.hud_message.emit(text, Color.from_string(color_html, Color.WHITE))
+func broadcast_message(text: String, color_html: String, args: Array = []) -> void:
+	EventBus.hud_message.emit(Loc.f(text, args), Color.from_string(color_html, Color.WHITE))
 
 
 @rpc("authority", "call_local", "reliable")
@@ -881,7 +881,7 @@ func find_interactable(p: Player) -> Dictionary:
 			candidates.append([g.global_position, g, "item", g.interact_text(p.level)])
 	for o in players_root.get_children():
 		if o != p and o.life_state == Player.Life.DOWNED and pos.distance_to(o.global_position) < float(GameData.bal("world.revive_range")):
-			candidates.append([o.global_position, o, "revive", "Hold to revive %s" % o.display_name])
+			candidates.append([o.global_position, o, "revive", Loc.f("Hold to revive %s", [o.display_name])])
 	for door in dungeon.doors:
 		# Doors are wide: in reach when the nearest point of the doorway is.
 		if _distance_to_rect(pos, door.world_rect) < reach * 0.6:
@@ -894,8 +894,8 @@ func find_interactable(p: Player) -> Dictionary:
 			candidates.append([t.global_position, t, "torch", t.interact_text()])
 	if portal and pos.distance_to(portal.global_position) < portal.radius:
 		var ready := portal_ready.has(p.peer_id)
-		var text := "Cancel - stay on this floor" if ready else "Enter the portal"
-		candidates.append([portal.global_position, portal, "portal", "%s (%d/%d ready)" % [text, portal_ready.size(), _alive_count()]])
+		var text := Loc.t("Cancel - stay on this floor") if ready else Loc.t("Enter the portal")
+		candidates.append([portal.global_position, portal, "portal", Loc.f("%s (%d/%d ready)", [text, portal_ready.size(), _alive_count()])])
 	var best: Array = []
 	var best_score := INF
 	for c in candidates:

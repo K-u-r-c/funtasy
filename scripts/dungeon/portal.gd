@@ -48,7 +48,7 @@ func _ready() -> void:
 
 
 func interact_text() -> String:
-	return "Descend to the next floor"
+	return Loc.t("Descend to the next floor")
 
 
 func interact_pos() -> Vector2:

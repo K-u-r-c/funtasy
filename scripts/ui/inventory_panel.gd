@@ -34,7 +34,7 @@ var _last_level := -1
 
 
 func _init() -> void:
-	title_text = "Inventory"
+	title_text = Loc.t("Inventory")
 	menu_tab = "inventory"
 
 
@@ -49,7 +49,7 @@ func _build() -> void:
 	var left := VBoxContainer.new()
 	left.add_theme_constant_override("separation", 6)
 	body.add_child(left)
-	left.add_child(UITheme.section("Equipment", "slot_chest"))
+	left.add_child(UITheme.section(Loc.t("Equipment"), "slot_chest"))
 	_equip_root = HBoxContainer.new()
 	_equip_root.add_theme_constant_override("separation", 6)
 	left.add_child(_equip_root)
@@ -69,7 +69,7 @@ func _build() -> void:
 	for s in HAND_SLOTS:
 		_hands.add_child(_make_equip_slot(s))
 	_equip_root.add_child(_slot_column(RIGHT_SLOTS))
-	left.add_child(UITheme.section("Attributes", "nav_character"))
+	left.add_child(UITheme.section(Loc.t("Attributes"), "nav_character"))
 	_stats = GridContainer.new()
 	_stats.columns = 8
 	_stats.add_theme_constant_override("h_separation", 8)
@@ -82,7 +82,7 @@ func _build() -> void:
 	var bag := VBoxContainer.new()
 	bag.add_theme_constant_override("separation", 6)
 	body.add_child(bag)
-	bag.add_child(UITheme.section("Backpack", "slot_backpack"))
+	bag.add_child(UITheme.section(Loc.t("Backpack"), "slot_backpack"))
 	var scroll := ScrollContainer.new()
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll.custom_minimum_size = Vector2(COLS * (SLOT_PX + 4) + 4, 4 * (SLOT_PX + 4))
@@ -93,7 +93,7 @@ func _build() -> void:
 	_bag_grid.add_theme_constant_override("h_separation", 4)
 	_bag_grid.add_theme_constant_override("v_separation", 4)
 	scroll.add_child(_bag_grid)
-	bag.add_child(UITheme.section("Quick slots", "ui_potion"))
+	bag.add_child(UITheme.section(Loc.t("Quick slots"), "ui_potion"))
 	_quick_row = HBoxContainer.new()
 	_quick_row.add_theme_constant_override("separation", 8)
 	bag.add_child(_quick_row)
@@ -149,10 +149,10 @@ func _slot_column(slots: Array) -> VBoxContainer:
 func _make_equip_slot(slot: String) -> ItemSlot:
 	var b := ItemSlot.new(SLOT_PX)
 	b.slot_key = "e:" + slot
-	b.placeholder = {"head": "Head", "chest": "Chest", "legs": "Legs", "boots": "Feet", "gloves": "Hands",
-		"main_hand": "Main", "off_hand": "Off", "ring_1": "Ring", "ring_2": "Ring", "necklace": "Neck"}.get(slot, "")
+	b.placeholder = {"head": Loc.t("Head"), "chest": Loc.t("Chest"), "legs": Loc.t("Legs"), "boots": Loc.t("Feet"), "gloves": Loc.t("Hands"),
+		"main_hand": Loc.t("Main"), "off_hand": Loc.t("Off"), "ring_1": Loc.t("Ring"), "ring_2": Loc.t("Ring"), "necklace": Loc.t("Neck")}.get(slot, "")
 	b.placeholder_icon = UITheme.icon_tex(str(SLOT_ICONS.get(slot, "")))
-	b.tooltip_text = Inventory.SLOT_NAMES[slot]
+	b.tooltip_text = Loc.t(Inventory.SLOT_NAMES[slot])
 	b.accepts = func(d: Dictionary) -> bool: return str(d.from).begins_with("b:") and _fits(d.item, slot)
 	b.item_dropped.connect(func(d: Dictionary): _try_equip(int(str(d.from).get_slice(":", 1)), b))
 	b.pressed.connect(func(): player.request_unequip.rpc_id(1, slot))
@@ -184,7 +184,7 @@ func _process(_delta: float) -> void:
 		_refresh_stats()
 	var dragging := get_viewport().gui_is_dragging()
 	if dragging and not _dragging:
-		notice("Release outside the window to drop it on the ground", UITheme.CYAN)
+		notice(Loc.t("Release outside the window to drop it on the ground"), UITheme.CYAN)
 	_dragging = dragging
 	if player and is_instance_valid(player) and player.level != _last_level:
 		# Level-ups unlock gear: refresh the lock marks and the card.
@@ -233,7 +233,7 @@ func _rebuild() -> void:
 				"icon": GameData.consumables[base_id].icon, "count": inv.count_of(base_id),
 				"name": GameData.consumables[base_id].name}
 		_slots["q:" + k].set_item(qi)
-	_cap_label.text = "Backpack %d / %d" % [inv.backpack.size(), inv.capacity]
+	_cap_label.text = Loc.f("Backpack %d / %d", [inv.backpack.size(), inv.capacity])
 	_wire_focus()
 	_refresh_stats()
 	var target: ItemSlot = _slots.get(_focus_key, _slots.get("b:0"))
@@ -300,7 +300,7 @@ func _try_equip(i: int, from: ItemSlot) -> void:
 	if ItemGenerator.too_high_level(item, player.level):
 		AudioManager.play_sfx("ui_error", 0.0)
 		UIFx.flash(from, 0.6)
-		notice("%s requires level %d - you are level %d" % [item.get("name", "This item"), int(item.req), player.level])
+		notice(Loc.f("%s requires level %d - you are level %d", [item.get("name", Loc.t("This item")), int(item.req), player.level]))
 		return
 	player.request_equip.rpc_id(1, i)
 
@@ -347,10 +347,10 @@ func _show_card(b: ItemSlot) -> void:
 		var ei := UITheme.icon("", 32, Color(0.75, 0.82, 1.0, 0.45))
 		ei.texture = b.placeholder_icon if b.placeholder_icon else UITheme.icon_tex("slot_backpack")
 		eh.add_child(ei)
-		eh.add_child(UITheme.label("Empty slot", UITheme.TEXT_DIM))
+		eh.add_child(UITheme.label(Loc.t("Empty slot"), UITheme.TEXT_DIM))
 		_card.add_child(eh)
-		var hint := "Drag an item here or pick one from the backpack." if b.slot_key.begins_with("e:") \
-				else ("Drag a potion here to bind it." if b.slot_key.begins_with("q:") else "")
+		var hint := Loc.t("Drag an item here or pick one from the backpack.") if b.slot_key.begins_with("e:") \
+				else (Loc.t("Drag a potion here to bind it.") if b.slot_key.begins_with("q:") else "")
 		if not hint.is_empty():
 			_card.add_child(_wrap(UITheme.label(hint, UITheme.TEXT_DIM, UITheme.FONT_SMALL)))
 		return
@@ -378,7 +378,7 @@ func _show_card(b: ItemSlot) -> void:
 	if ItemGenerator.too_high_level(item, player.level):
 		var warn := PanelContainer.new()
 		warn.add_theme_stylebox_override("panel", UITheme.glass(Color("3a0c0cd8"), UITheme.DANGER, 1, 6))
-		var wl := _wrap(UITheme.label("Level too low to equip: needs level %d (you are %d)" % [int(item.get("req", 1)), player.level], Color("ffb3a8"), UITheme.FONT_SMALL))
+		var wl := _wrap(UITheme.label(Loc.f("Level too low to equip: needs level %d (you are %d)", [int(item.get("req", 1)), player.level]), Color("ffb3a8"), UITheme.FONT_SMALL))
 		warn.add_child(wl)
 		_card.add_child(warn)
 	_card.add_child(HSeparator.new())
@@ -390,13 +390,13 @@ func _show_card(b: ItemSlot) -> void:
 		var replaced: Array = player.inv.replaced_by(item)
 		_card.add_child(HSeparator.new())
 		if replaced.is_empty():
-			_card.add_child(UITheme.label("Nothing equipped there", UITheme.TEXT_DIM, UITheme.FONT_SMALL))
+			_card.add_child(UITheme.label(Loc.t("Nothing equipped there"), UITheme.TEXT_DIM, UITheme.FONT_SMALL))
 		else:
-			var vs: Array = replaced.map(func(r): return str(r.get("name", "?")))
+			var vs: Array = replaced.map(func(r): return Loc.item_name(r))
 			var top := 1
 			for r in replaced:
 				top = maxi(top, int(r.get("rarity", 1)))
-			_card.add_child(_wrap(UITheme.label("vs %s" % " + ".join(vs), UITheme.rarity_color(top), UITheme.FONT_SMALL)))
+			_card.add_child(_wrap(UITheme.label(Loc.f("vs %s", [" + ".join(vs)]), UITheme.rarity_color(top), UITheme.FONT_SMALL)))
 			for d in compare_lines(item, replaced):
 				_card.add_child(UITheme.label(d[0], d[1], UITheme.FONT_SMALL))
 
@@ -437,7 +437,7 @@ static func _diff(item: Dictionary, eq: Dictionary) -> Array:
 		var d := a - b
 		if absf(d) < 0.001:
 			continue
-		var label: String = names.get(k, k)
+		var label: String = Loc.t(str(names.get(k, k)))
 		var txt := ""
 		if pct.has(k):
 			txt = "%+d%% %s" % [roundi(d * 100.0), label]
@@ -447,7 +447,7 @@ static func _diff(item: Dictionary, eq: Dictionary) -> Array:
 			txt = "%+d %s" % [roundi(d), label]
 		out.append([txt, UITheme.GOOD if d > 0.0 else UITheme.DANGER])
 	if out.is_empty():
-		out.append(["No stat change", UITheme.TEXT_DIM])
+		out.append([Loc.t("No stat change"), UITheme.TEXT_DIM])
 	return out
 
 
@@ -455,24 +455,24 @@ func _prompts_for(item: Dictionary, key: String = "") -> Array:
 	var out: Array = []
 	var has := not item.is_empty() and item.has("uid")
 	if key.begins_with("q:"):
-		out.append(["ui_accept", "Clear slot"])
+		out.append(["ui_accept", Loc.t("Clear slot")])
 	elif has and key.begins_with("e:"):
-		out.append(["ui_accept", "Unequip"])
-		out.append(["ui_secondary", "Drop"])
+		out.append(["ui_accept", Loc.t("Unequip")])
+		out.append(["ui_secondary", Loc.t("Drop")])
 	elif has and item.get("kind") == "book":
-		out.append(["ui_accept", "Read"])
-		out.append(["ui_secondary", "Drop"])
+		out.append(["ui_accept", Loc.t("Read")])
+		out.append(["ui_secondary", Loc.t("Drop")])
 	elif has and item.get("kind") == "consumable":
-		out.append(["ui_accept", "Put on Q"])
-		out.append(["ui_tertiary", "Put on E"])
-		out.append(["ui_secondary", "Drop"])
+		out.append(["ui_accept", Loc.t("Put on Q")])
+		out.append(["ui_tertiary", Loc.t("Put on E")])
+		out.append(["ui_secondary", Loc.t("Drop")])
 	elif has and ItemGenerator.too_high_level(item, player.level):
-		out.append(["ui_accept", "Equip (needs level %d)" % int(item.get("req", 1))])
-		out.append(["ui_secondary", "Drop"])
+		out.append(["ui_accept", Loc.f("Equip (needs level %d)", [int(item.get("req", 1))])])
+		out.append(["ui_secondary", Loc.t("Drop")])
 	elif has:
-		out.append(["ui_accept", "Equip"])
-		out.append(["ui_secondary", "Drop"])
-	out.append(["ui_cancel", "Close"])
+		out.append(["ui_accept", Loc.t("Equip")])
+		out.append(["ui_secondary", Loc.t("Drop")])
+	out.append(["ui_cancel", Loc.t("Close")])
 	return out
 
 
@@ -498,13 +498,13 @@ func _refresh_stats() -> void:
 		"Dodge": "stat_dodge", "Leech": "stat_leech", "Level": "ui_crown"}
 	for r in rows:
 		var ic := UITheme.icon(str(icons.get(r[0], "sil_star")), 16)
-		ic.tooltip_text = r[0]
+		ic.tooltip_text = Loc.t(r[0])
 		_stats.add_child(ic)
 		var v := UITheme.label(r[1], UITheme.TEXT, UITheme.FONT_SMALL)
 		v.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 		v.custom_minimum_size = Vector2(34, 0)
-		v.tooltip_text = r[0]
+		v.tooltip_text = Loc.t(r[0])
 		v.mouse_filter = Control.MOUSE_FILTER_PASS
 		_stats.add_child(v)
-	_offclass.text = "Off-class weapon: -%d%% damage, slower cooldowns" % roundi((1.0 - float(GameData.bal("off_class.damage_mult"))) * 100) \
+	_offclass.text = Loc.f("Off-class weapon: -%d%% damage, slower cooldowns", [roundi((1.0 - float(GameData.bal("off_class.damage_mult"))) * 100)]) \
 			if bool(s.get("offclass", false)) else ""

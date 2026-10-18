@@ -13,7 +13,7 @@ func trigger() -> void:
 	var c := ctx()
 	for pl in living_players():
 		Combat.instance.apply_status(c, pl, st, float(p("duration", 4.0)), 0.0)
-	game().broadcast_message.rpc("Forbidden Inversion! %s" % ("Your steps betray you!" if st == "inverted_controls" else "Healing burns!"), "#a080ff")
+	game().broadcast_message.rpc("Forbidden Inversion! %s", "#a080ff", ["Your steps betray you!" if st == "inverted_controls" else "Healing burns!"])
 	boss.play_action.rpc("cast", boss.facing)
 	cast += 1
 

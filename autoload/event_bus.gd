@@ -31,3 +31,6 @@ signal input_device_changed(is_gamepad: bool)
 
 # UI overlays (inventory, talents, map, pause) block gameplay input while open.
 signal ui_overlay_changed(open: bool)
+
+## The interface language changed (#32): screens rebuild their texts.
+signal locale_changed

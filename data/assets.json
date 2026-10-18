@@ -425,6 +425,7 @@
 		"ui_party": "res://assets/sprites/pixellab/icons/ui/ui_party.png",
 		"ui_potion": "res://assets/sprites/pixellab/icons/ui/ui_potion.png",
 		"ui_video": "res://assets/sprites/pixellab/icons/ui/ui_video.png",
+		"ui_language": "res://assets/sprites/pixellab/icons/ui/nav_codex.png",
 		"tlo_w_might": "res://assets/sprites/pixellab/icons/talents/tlo_w_might.png",
 		"tlo_w_bloodlust": "res://assets/sprites/pixellab/icons/talents/tlo_w_bloodlust.png",
 		"tlo_w_bloodbath": "res://assets/sprites/pixellab/icons/talents/tlo_w_bloodbath.png",
@@ -811,7 +812,7 @@
 	},
 	"ui": {
 		"_comment": "UI art. The font is a 16 px pixel font (use sizes 16/32/48 for crisp glyphs); the ornate frame is a 9-slice drawn over glass windows (margin = slice size in px).",
-		"font": "res://assets/fonts/funtasy_pixel.ttf",
+		"font": "res://assets/fonts/funtasy_pixel_pl.ttf",
 		"frame_ornate": {"path": "res://assets/ui/frame_ornate.png", "margin": 24},
 		"menu_backdrop": "res://assets/ui/menu_backdrop.png",
 		"map_archibald": "res://assets/ui/map/map_archibald.png",

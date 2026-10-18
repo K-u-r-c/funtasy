@@ -10,6 +10,7 @@ const CAPTURE_TIMEOUT := 6.0
 
 var _tabs: TabContainer
 var _mode_opt: OptionButton
+var _lang_opt: OptionButton
 var _res_opt: OptionButton
 var _vsync: CheckButton
 var _shake: CheckButton
@@ -48,11 +49,11 @@ func _ready() -> void:
 	var head := HBoxContainer.new()
 	outer.add_child(head)
 	head.add_child(UITheme.icon("menu_options", 32))
-	head.add_child(UITheme.title("Options", UITheme.FONT_TITLE))
+	head.add_child(UITheme.title(Loc.t("Options"), UITheme.FONT_TITLE))
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	head.add_child(spacer)
-	head.add_child(PromptBar.new([["ui_tab_prev", "Prev tab"], ["ui_tab_next", "Next tab"], ["ui_cancel", "Back"]]))
+	head.add_child(PromptBar.new([["ui_tab_prev", Loc.t("Prev tab")], ["ui_tab_next", Loc.t("Next tab")], ["ui_cancel", Loc.t("Back")]]))
 
 	_tabs = TabContainer.new()
 	_tabs.custom_minimum_size = Vector2(840, 360)
@@ -68,7 +69,7 @@ func _ready() -> void:
 		_tabs.set_tab_icon(i, UITheme.icon_tex(["ui_video", "ui_audio", "ui_gamepad", "ui_keyboard"][mini(i, 3)]))
 
 	var back := AnimButton.new()
-	back.text = "Back"
+	back.text = Loc.t("Back")
 	back.icon = UITheme.icon_tex("menu_back")
 	back.add_theme_constant_override("icon_max_width", 16)
 	back.pressed.connect(_close)
@@ -79,9 +80,19 @@ func _ready() -> void:
 	_focus_first.call_deferred()
 
 
+## Builds the window again in the language just picked, keeping the Video tab open.
+func _relocalize() -> void:
+	if EventBus.bindings_changed.is_connected(_refresh_bindings):
+		EventBus.bindings_changed.disconnect(_refresh_bindings)
+	for c in get_children():
+		c.free()
+	_bind_buttons.clear()
+	_ready()
+
+
 func _bind_hint() -> String:
-	return "Select a binding and press %s, then the new input. %s clears it." % [
-		InputSettings.prompt_for("ui_accept"), InputSettings.prompt_for("ui_secondary")]
+	return Loc.f("Select a binding and press %s, then the new input. %s clears it.", [
+		InputSettings.prompt_for("ui_accept"), InputSettings.prompt_for("ui_secondary")])
 
 
 func _focus_first() -> void:
@@ -106,29 +117,41 @@ func _first_focusable(n: Node) -> Control:
 
 func _build_video() -> Control:
 	var page := VBoxContainer.new()
-	page.name = "Video"
+	page.name = Loc.t("Video")
 	page.add_theme_constant_override("separation", 10)
 	var grid := GridContainer.new()
 	grid.columns = 2
 	grid.add_theme_constant_override("h_separation", 24)
 	grid.add_theme_constant_override("v_separation", 10)
 	page.add_child(grid)
-	grid.add_child(UITheme.label("Window mode"))
+	# Language (#32): each name in its own language, applied at once.
+	grid.add_child(UITheme.icon_label("ui_language", Loc.t("Language")))
+	_lang_opt = OptionButton.new()
+	for l in Settings.LANGUAGES:
+		_lang_opt.add_item(l[1])
+		_lang_opt.set_item_metadata(_lang_opt.item_count - 1, l[0])
+		if l[0] == Settings.language:
+			_lang_opt.select(_lang_opt.item_count - 1)
+	_lang_opt.item_selected.connect(func(i: int):
+		Settings.set_language(str(_lang_opt.get_item_metadata(i)))
+		_relocalize.call_deferred())
+	grid.add_child(_lang_opt)
+	grid.add_child(UITheme.label(Loc.t("Window mode")))
 	_mode_opt = OptionButton.new()
 	for n in Settings.MODE_NAMES:
-		_mode_opt.add_item(n)
+		_mode_opt.add_item(Loc.t(n))
 	_mode_opt.item_selected.connect(func(_i): _res_opt.disabled = _mode_opt.selected != Settings.WindowMode.WINDOWED)
 	grid.add_child(_mode_opt)
-	grid.add_child(UITheme.label("Window size"))
+	grid.add_child(UITheme.label(Loc.t("Window size")))
 	_res_opt = OptionButton.new()
 	_sizes = Settings.available_sizes()
 	for s in _sizes:
 		_res_opt.add_item("%d x %d" % [s.x, s.y])
 	grid.add_child(_res_opt)
-	grid.add_child(UITheme.label("VSync"))
+	grid.add_child(UITheme.label(Loc.t("VSync")))
 	_vsync = CheckButton.new()
 	grid.add_child(_vsync)
-	grid.add_child(UITheme.label("Screen shake"))
+	grid.add_child(UITheme.label(Loc.t("Screen shake")))
 	_shake = CheckButton.new()
 	_shake.toggled.connect(func(on: bool):
 		Settings.screen_shake = on
@@ -136,7 +159,7 @@ func _build_video() -> Control:
 	grid.add_child(_shake)
 
 	_apply_btn = AnimButton.new()
-	_apply_btn.text = "Apply video settings"
+	_apply_btn.text = Loc.t("Apply video settings")
 	_apply_btn.pressed.connect(_on_apply)
 	page.add_child(_apply_btn)
 	_confirm_box = HBoxContainer.new()
@@ -146,12 +169,12 @@ func _build_video() -> Control:
 	_confirm_label = UITheme.label("", UITheme.ACCENT)
 	_confirm_box.add_child(_confirm_label)
 	var keep := AnimButton.new()
-	keep.text = "Keep"
+	keep.text = Loc.t("Keep")
 	keep.custom_minimum_size = Vector2(110, 32)
 	keep.pressed.connect(_keep)
 	_confirm_box.add_child(keep)
 	var revert := AnimButton.new()
-	revert.text = "Revert"
+	revert.text = Loc.t("Revert")
 	revert.custom_minimum_size = Vector2(110, 32)
 	revert.pressed.connect(_revert)
 	_confirm_box.add_child(revert)
@@ -205,12 +228,12 @@ func _end_confirm() -> void:
 
 func _build_audio() -> Control:
 	var page := GridContainer.new()
-	page.name = "Audio"
+	page.name = Loc.t("Audio")
 	page.columns = 2
 	page.add_theme_constant_override("h_separation", 24)
 	page.add_theme_constant_override("v_separation", 14)
 	for bus in Settings.BUSES:
-		page.add_child(UITheme.label(bus + " volume"))
+		page.add_child(UITheme.label(Loc.f("%s volume", [bus])))
 		var s := HSlider.new()
 		s.custom_minimum_size = Vector2(320, 24)
 		s.min_value = 0.0
@@ -232,17 +255,17 @@ func _build_audio() -> Control:
 
 func _build_controls() -> Control:
 	var page := VBoxContainer.new()
-	page.name = "Controls"
+	page.name = Loc.t("Controls")
 	page.add_theme_constant_override("separation", 6)
 	var top := HBoxContainer.new()
 	top.add_theme_constant_override("separation", 12)
 	page.add_child(top)
 	var reset := AnimButton.new()
-	reset.text = "Reset to defaults"
+	reset.text = Loc.t("Reset to defaults")
 	reset.custom_minimum_size = Vector2(200, 30)
 	reset.pressed.connect(func():
 		InputSettings.reset_to_defaults()
-		_bind_status.text = "All bindings reset to defaults.")
+		_bind_status.text = Loc.t("All bindings reset to defaults."))
 	top.add_child(reset)
 	_bind_status = UITheme.label(_bind_hint(), UITheme.TEXT_DIM, 13)
 	# The hint names the buttons of the device in use; refresh it when the player switches.
@@ -265,19 +288,19 @@ func _build_controls() -> Control:
 	grid.add_theme_constant_override("v_separation", 4)
 	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.add_child(grid)
-	grid.add_child(UITheme.label("Action", UITheme.ACCENT))
+	grid.add_child(UITheme.label(Loc.t("Action"), UITheme.ACCENT))
 	for i in InputSettings.kbm_slots:
-		grid.add_child(UITheme.label("Keyboard/Mouse %d" % (i + 1), UITheme.ACCENT, 13))
+		grid.add_child(UITheme.label(Loc.f("Keyboard/Mouse %d", [(i + 1)]), UITheme.ACCENT, 13))
 	for i in InputSettings.pad_slots:
-		grid.add_child(UITheme.label("Gamepad %d" % (i + 1), UITheme.ACCENT, 13))
+		grid.add_child(UITheme.label(Loc.f("Gamepad %d", [(i + 1)]), UITheme.ACCENT, 13))
 	var group := ""
 	for a in InputSettings.action_defs():
 		if a.group != group:
 			group = a.group
-			grid.add_child(UITheme.label("— %s —" % group, UITheme.TEXT_DIM, 13))
+			grid.add_child(UITheme.label("— %s —" % Loc.t(str(group)), UITheme.TEXT_DIM, 13))
 			for i in grid.columns - 1:
 				grid.add_child(Control.new())
-		var l := UITheme.label(a.label)
+		var l := UITheme.label(Loc.t(str(a.label)))
 		l.custom_minimum_size = Vector2(250, 0)
 		grid.add_child(l)
 		for kind in ["kbm", "pad"]:
@@ -311,7 +334,7 @@ func _on_bind_gui_input(ev: InputEvent, action: String, kind: String, index: int
 		return
 	if ev.is_action_pressed("ui_secondary"):
 		InputSettings.clear_binding(action, kind, index)
-		_bind_status.text = "Cleared %s binding of '%s'." % ["keyboard/mouse" if kind == "kbm" else "gamepad", InputSettings.action_label(action)]
+		_bind_status.text = Loc.f("Cleared %s binding of '%s'.", [Loc.t("Keyboard/mouse") if kind == "kbm" else Loc.t("Gamepad"), InputSettings.action_label(action)])
 		get_viewport().set_input_as_handled()
 
 
@@ -321,8 +344,8 @@ func _start_capture(b: Button, action: String, kind: String, index: int) -> void
 	_capturing = b
 	_capture_meta = [action, kind, index]
 	_capture_time = 0.0
-	b.text = "Press %s..." % ("key / mouse" if kind == "kbm" else "pad input")
-	_bind_status.text = "Waiting for input for '%s' (Esc cancels)." % InputSettings.action_label(action)
+	b.text = Loc.f("Press %s...", [(Loc.t("key / mouse") if kind == "kbm" else Loc.t("pad input"))])
+	_bind_status.text = Loc.f("Waiting for input for '%s' (Esc cancels).", [InputSettings.action_label(action)])
 
 
 func _input(ev: InputEvent) -> void:
@@ -334,7 +357,7 @@ func _input(ev: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 		return
 	if ev is InputEventKey and ev.pressed and ev.physical_keycode == KEY_ESCAPE:
-		_end_capture("Cancelled.")
+		_end_capture(Loc.t("Cancelled."))
 		get_viewport().set_input_as_handled()
 		return
 	var code := InputSettings.code_from_event(ev)
@@ -344,12 +367,12 @@ func _input(ev: InputEvent) -> void:
 	var kind: String = _capture_meta[1]
 	var is_pad := code.begins_with("button:") or code.begins_with("axis:")
 	if (kind == "pad") != is_pad:
-		_bind_status.text = "That slot only accepts %s input." % ("gamepad" if kind == "pad" else "keyboard/mouse")
+		_bind_status.text = Loc.f("That slot only accepts %s input.", [("gamepad" if kind == "pad" else "keyboard/mouse")])
 		return
 	var removed := InputSettings.bind(_capture_meta[0], kind, _capture_meta[2], code)
-	var msg := "'%s' bound to %s." % [InputSettings.action_label(_capture_meta[0]), InputSettings.code_display(code)]
+	var msg := Loc.f("'%s' bound to %s.", [InputSettings.action_label(_capture_meta[0]), InputSettings.code_display(code)])
 	if not removed.is_empty():
-		msg += " Conflict resolved: removed from %s." % ", ".join(removed)
+		msg += Loc.f(" Conflict resolved: removed from %s.", [", ".join(removed)])
 	_end_capture(msg)
 
 
@@ -369,10 +392,10 @@ func _process(delta: float) -> void:
 	if _capturing != null:
 		_capture_time += delta
 		if _capture_time > CAPTURE_TIMEOUT:
-			_end_capture("Timed out.")
+			_end_capture(Loc.t("Timed out."))
 	if _confirming:
 		_countdown -= delta
-		_confirm_label.text = "Keep these settings? Reverting in %d s" % ceili(maxf(_countdown, 0.0))
+		_confirm_label.text = Loc.f("Keep these settings? Reverting in %d s", [ceili(maxf(_countdown, 0.0))])
 		if _countdown <= 0.0:
 			_revert()
 

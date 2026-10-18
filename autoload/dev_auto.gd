@@ -247,6 +247,10 @@ func _run() -> void:
 				await EconomySuite.new(self).run()
 			"talents":
 				await TalentSuite.new(self).run()
+			"i18n":
+				await I18nSuite.new(self).run()
+			"i18n_lan":
+				await I18nSuite.new(self).run_lan()
 			"economy_lan":
 				await EconomySuite.new(self).run_lan()
 			"skills_lan":
@@ -514,6 +518,8 @@ func client_cmd(cmd: String, arg: Variant) -> void:
 			await EconomySuite.new(self).client_cmd(cmd, arg)
 		_ when cmd.begins_with("sk_"):
 			await SkillSuite.new(self).client_cmd(cmd, arg)
+		_ when cmd.begins_with("i18n_"):
+			await I18nSuite.new(self).client_cmd(cmd, arg)
 		_ when cmd.begins_with("an_"):
 			await AnimSuite.new(self).client_cmd(cmd, arg)
 		"leave":
@@ -1897,7 +1903,7 @@ func _ui_layout_scenario() -> void:
 		sizes.append(hud._overlay.window.size)
 		_action("ui_tab_next")
 		await _wait(0.35)
-	var expected_order: Array = UIModal.MENU_TABS.map(func(t): return t[1])
+	var expected_order: Array = UIModal.MENU_TABS.map(func(t): return Loc.t(t[1]))
 	check(order == expected_order and hud._overlay.get_script() == hud.CharacterPanel,
 			"tab next cycles %s and wraps around" % [order])
 	check(sizes.all(func(z): return z == sizes[0]), "all game menu panels share one window size %s" % [sizes])
@@ -1985,15 +1991,16 @@ func _ui_layout_scenario() -> void:
 	check(hslot.locked, "too-high-level gear is marked in the backpack")
 	panel._accept_backpack(hi)
 	await _wait(0.4)
-	check(p.inv.equipment.get("chest", {}).is_empty() and str(panel._notice.text).contains("requires level %d" % heavy.req),
+	# Language-neutral (#32): the message names the item and the level it needs.
+	check(p.inv.equipment.get("chest", {}).is_empty() and str(panel._notice.text).contains(Loc.item_name(heavy)) and str(panel._notice.text).contains(str(heavy.req)),
 			"equipping it is refused with a message: %s" % panel._notice.text)
 	panel._notice.text = ""
 	await _mouse_drag(hslot, panel._slots["e:chest"])
 	await _wait(0.4)
-	check(p.inv.equipment.get("chest", {}).is_empty() and str(panel._notice.text).contains("requires level"),
+	check(p.inv.equipment.get("chest", {}).is_empty() and str(panel._notice.text).contains(Loc.item_name(heavy)),
 			"dragging it onto the chest slot is refused with a message")
 	var desc := ItemGenerator.describe(heavy, p.class_id, p.level)
-	check(desc.any(func(l): return str(l[0]).contains("you are level %d" % p.level)), "item card says the required and current level")
+	check(desc.any(func(l): return str(l[0]) == Loc.f("Requires level %d (you are level %d)", [int(heavy.req), p.level])), "item card says the required and current level")
 	hud.close_overlay()
 	win.size = original
 	await _camera_lean_check()
@@ -2067,7 +2074,7 @@ func _skill_tooltip_checks(hud: Node, win: Window) -> void:
 				return str(r.v)
 		return ""
 	var base_value: int = expect.call()
-	check(str(shown.call()).begins_with("%d " % base_value) and _tip_text(tip2).contains("%d (crit" % base_value),
+	check(str(shown.call()).begins_with("%d " % base_value) and _tip_text(tip2).contains("%d (" % base_value),
 			"%s tooltip shows %d damage (host formula), cooldown %.1fs" % [sk.name, base_value, p0.stats.cooldown_for(sk)])
 	check(_tip_text(tip2).contains("%.1fs" % p0.stats.cooldown_for(sk)), "tooltip shows the effective cooldown")
 	var power_school := str(sk.get("power_school", sk.get("school")))
@@ -2075,7 +2082,7 @@ func _skill_tooltip_checks(hud: Node, win: Window) -> void:
 	p0.stats.final[school_power] = float(p0.stats.final.get(school_power, 0.0)) + 100.0
 	await _wait(0.1)
 	var boosted: int = expect.call()
-	check(boosted > base_value and _tip_text(tip2).contains("%d (crit" % boosted), "tooltip updates live with stats (%d -> %d)" % [base_value, boosted])
+	check(boosted > base_value and _tip_text(tip2).contains("%d (" % boosted), "tooltip updates live with stats (%d -> %d)" % [base_value, boosted])
 	p0.recompute_stats()
 	# A learned talent that changes this skill shows up in the tooltip.
 	var talent := ""

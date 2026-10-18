@@ -25,7 +25,7 @@ func _draw() -> void:
 		if e.get_meta("hide_bar", false):
 			continue
 		if e.is_elite():
-			_text(top + Vector2(0, -4), e.display_name, Color(0.95, 0.78, 0.3), 11)
+			_text(top + Vector2(0, -4), Loc.name(e.display_name), Color(0.95, 0.78, 0.3), 11)
 		if e.aggro or e.health.hp < e.health.max_hp:
 			_bar(top, 28.0, e.health.fraction(), Color(0.95, 0.7, 0.2) if e.is_elite() else Color(0.85, 0.2, 0.18))
 		_cast(e, top + Vector2(0, -6), now)
@@ -38,7 +38,7 @@ func _draw() -> void:
 			_text(head + Vector2(0, -8), p.display_name, Color.from_string(str(cdef.get("color", "#ffffff")), Color.WHITE), 12)
 			_bar(head, 30.0, p.health.fraction(), Color(0.3, 0.85, 0.35))
 		if p.life_state == Player.Life.DOWNED:
-			_text(p.global_position + Vector2(0, -36), "DOWNED %d" % ceili(p.downed_left), Color(1, 0.4, 0.35), 12)
+			_text(p.global_position + Vector2(0, -36), Loc.f("DOWNED %d", [ceili(p.downed_left)]), Color(1, 0.4, 0.35), 12)
 			if p.revive_progress > 0.0:
 				draw_arc(p.global_position + Vector2(0, -20), 16.0, -PI / 2.0, -PI / 2.0 + TAU * p.revive_progress, 24, Color(0.5, 1.0, 0.6), 3.0)
 		_cast(p, head + Vector2(0, -16), now)
@@ -49,9 +49,9 @@ func _draw() -> void:
 		for g in game.items_root.get_children():
 			if g.global_position.distance_to(lp.global_position) < 110.0:
 				var rar := GameData.rarity(int(g.item.get("rarity", 1)))
-				_text(g.global_position + Vector2(0, -30), str(g.item.get("name", "")), Color.from_string(rar.color, Color.WHITE), 12)
+				_text(g.global_position + Vector2(0, -30), Loc.item_name(g.item), Color.from_string(rar.color, Color.WHITE), 12)
 				if ItemGenerator.too_high_level(g.item, lp.level):
-					_text(g.global_position + Vector2(0, -20), "Requires level %d" % int(g.item.req), Color(1.0, 0.4, 0.35), 12)
+					_text(g.global_position + Vector2(0, -20), Loc.f("Requires level %d", [int(g.item.req)]), Color(1.0, 0.4, 0.35), 12)
 
 
 func _bar(center: Vector2, width: float, frac: float, color: Color) -> void:

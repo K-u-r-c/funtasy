@@ -13,10 +13,10 @@ var _gold_chip: PanelContainer
 
 
 func _init() -> void:
-	title_text = "Archibald the Gilded"
+	title_text = Loc.t("Archibald the Gilded")
 	title_icon = "hud_merchant"
 	fill_height = true
-	prompts = [["ui_accept", "Buy / sell"], ["ui_cancel", "Leave"]]
+	prompts = [["ui_accept", Loc.t("Buy / sell")], ["ui_cancel", Loc.t("Leave")]]
 
 
 func _build() -> void:
@@ -25,10 +25,10 @@ func _build() -> void:
 	body.add_theme_constant_override("separation", 12)
 	body.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	content.add_child(body)
-	_buy_list = _column(body, "For sale (shared with the party)", "hud_chest")
-	_sell_list = _column(body, "Your backpack - sell", "slot_backpack")
+	_buy_list = _column(body, Loc.t("For sale (shared with the party)"), "hud_chest")
+	_sell_list = _column(body, Loc.t("Your backpack - sell"), "slot_backpack")
 	_gold_chip = UITheme.chip("hud_gold", "", UITheme.GOLD, UITheme.GOLD_DIM)
-	_gold_chip.tooltip_text = "Your gold"
+	_gold_chip.tooltip_text = Loc.t("Your gold")
 	_gold_chip.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	header.add_child(_gold_chip)
 	var cardp := PanelContainer.new()
@@ -71,7 +71,7 @@ func _rebuild() -> void:
 	if not is_inside_tree():
 		return
 	_last_sig = "%d|%d" % [player.gold, player.inv.backpack.size()]
-	subtitle.text = "Gold: %d" % player.gold
+	subtitle.text = Loc.f("Gold: %d", [player.gold])
 	subtitle.visible = false  # the gold chip shows it
 	_gold_chip.get_meta("label").text = str(player.gold)
 	var focus_idx := -1
@@ -85,7 +85,7 @@ func _rebuild() -> void:
 	for i in merchants.stock.size():
 		var e: Dictionary = merchants.stock[i]
 		var sold_out := int(e.left) <= 0
-		var txt := "%s%s" % [e.item.get("name", "?"), "  x%d" % int(e.left) if int(e.left) > 1 else ""]
+		var txt := "%s%s" % [Loc.item_name(e.item), "  x%d" % int(e.left) if int(e.left) > 1 else ""]
 		var b := _row(txt, e.item, sold_out or player.gold < int(e.price), -1 if sold_out else int(e.price), player.gold >= int(e.price))
 		var idx: int = i
 		b.pressed.connect(func(): merchants.request_buy.rpc_id(1, idx))
@@ -93,12 +93,12 @@ func _rebuild() -> void:
 	for j in player.inv.backpack.size():
 		var it: Dictionary = player.inv.backpack[j]
 		var price := Merchants.sell_price(it)
-		var b2 := _row(str(it.get("name", "?")), it, price <= 0, price if price > 0 else -1, true, true)
+		var b2 := _row(Loc.item_name(it), it, price <= 0, price if price > 0 else -1, true, true)
 		var bj: int = j
 		b2.pressed.connect(func(): merchants.request_sell.rpc_id(1, bj))
 		_sell_list.add_child(b2)
 	if _sell_list.get_child_count() == 0:
-		_sell_list.add_child(UITheme.label("Nothing to sell.", UITheme.TEXT_DIM, UITheme.FONT_SMALL))
+		_sell_list.add_child(UITheme.label(Loc.t("Nothing to sell."), UITheme.TEXT_DIM, UITheme.FONT_SMALL))
 	var all: Array = _buy_list.get_children() + _sell_list.get_children()
 	all = all.filter(func(c): return c is Button)
 	if not all.is_empty():

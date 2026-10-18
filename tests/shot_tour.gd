@@ -137,6 +137,28 @@ func _menus(_arg: String) -> void:
 	hud.close_overlay()
 
 
+## Options from the pause menu (#32): the Video tab with the language choice, then Polish
+## picked there (the window and, after closing, the HUD in the new language).
+func _options(_arg: String) -> void:
+	var hud: Node = da.get_tree().get_first_node_in_group("hud")
+	hud.open_overlay(preload("res://scripts/ui/pause_menu.gd").new())
+	await da._wait(0.4)
+	hud._overlay._open_settings()
+	await da._wait(0.6)
+	await snap("options_video_%s" % Settings.language)
+	var menu: Node = hud._overlay.get_child(hud._overlay.get_child_count() - 1)
+	var other := "pl" if Settings.language == "en" else "en"
+	for i in menu._lang_opt.item_count:
+		if str(menu._lang_opt.get_item_metadata(i)) == other:
+			menu._lang_opt.select(i)
+			menu._lang_opt.item_selected.emit(i)
+	await da._wait(0.8)
+	await snap("options_video_%s" % other)
+	menu._close()
+	await da._wait(1.0)
+	await snap("options_hud_%s" % other)
+
+
 ## The merchant room of each merchant (#6): its sealed door seen from across the corridor and up
 ## close (#23), the door paid for and open, Archibald's shop, the blood price dialog and
 ## Malphas's bargains.

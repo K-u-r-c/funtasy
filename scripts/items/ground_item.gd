@@ -72,9 +72,9 @@ func _process(delta: float) -> void:
 
 ## `viewer_level` > 0 adds a warning when the viewer is too low level to wear the item.
 func interact_text(viewer_level: int = 0) -> String:
-	var t := "Pick up %s" % item.get("name", "item")
+	var t := Loc.f("Pick up %s", [Loc.item_name(item)])
 	if viewer_level > 0 and ItemGenerator.too_high_level(item, viewer_level):
-		t += " (requires level %d)" % int(item.get("req", 1))
+		t += Loc.f(" (requires level %d)", [int(item.get("req", 1))])
 	return t
 
 

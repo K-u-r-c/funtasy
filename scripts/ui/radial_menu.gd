@@ -109,9 +109,9 @@ func _draw() -> void:
 		draw_string(font, cp, cnt, HORIZONTAL_ALIGNMENT_LEFT, -1, UITheme.FONT_SMALL, Color.WHITE)
 	# Center: slot + selection
 	_text_center(font, c + Vector2(0, 8), slot.to_upper(), UITheme.FONT_TITLE, UITheme.CYAN)
-	var label := "Clear"
+	var label := Loc.t("Clear")
 	if _selected >= 0 and _selected < n and not str(_options[_selected]).is_empty():
-		label = str(GameData.consumables[_options[_selected]].name)
+		label = Loc.t(str(GameData.consumables[_options[_selected]].name))
 	_text_center(font, c + Vector2(0, OUTER * k + 26.0), label, UITheme.FONT_BODY, UITheme.GOLD)
 
 

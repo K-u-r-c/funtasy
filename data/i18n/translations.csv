@@ -1,0 +1,2376 @@
+keys,pl
+A loadout has %d slots,Zestaw umiejętności ma %d miejsc
+Not ready,Jeszcze niegotowe
+Busy,Zajęty
+No item assigned to %s,Brak przedmiotu przypisanego do %s
+No talent points left,Brak punktów talentów
+Spend %d points in this branch first,Najpierw wydaj %d pkt. w tej gałęzi
+Requires another talent first,Najpierw wymagany jest inny talent
+Learned %s - slot it in the Skill Book,Poznano: %s - umieść to w Księdze umiejętności
+You learned: %s,Poznano: %s
+ (Permanent), (na stałe)
+Can't change skills in combat,Nie można zmieniać umiejętności w walce
+No stat points left,Brak punktów cech
+You already have a backpack this big,Masz już tak duży plecak
+Backpack upgraded to %d slots,Plecak powiększony: %d miejsc
+Backpack is full,Plecak jest pełny
+No %s left,Brak: %s
+Item not ready,Przedmiot jeszcze niegotowy
+"Level %d! +%d talent points, +%d stat points","Poziom %d! Punkty talentów +%d, punkty cech +%d"
+Eternal Dawn,Wieczny Świt
+Revived!,Wskrzeszony!
+You take the torch,Bierzesz pochodnię
+Your torch burned out,Twoja pochodnia się wypaliła
+Unknown skill,Nieznana umiejętność
+Passive,Pasywna
+Can't act now,Nie możesz teraz działać
+Silenced,Uciszony
+Locked out,Zablokowane
+Cost x%.2f,Koszt x%.2f
+Not enough Mana,Za mało many
+Not enough Fury,Za mało furii
+No target,Brak celu
+Target health too high,Cel ma za dużo zdrowia
+Target not affected,Cel jest odporny na to
+Invalid target,Nieprawidłowy cel
+Immune,Odporny
+Miss,Pudło
+Dodge,Unik
+Parry,Parowanie
+Absorbed,Pochłonięto
+Resisted,Odparto
+Block,Blok
+Saved!,Ocalony!
+Ward shattered,Osłona pękła
+Interrupted,Przerwano
+Reflect,Odbicie
+Unlock the vault (Gold Key),Otwórz skarbiec (Złoty Klucz)
+Break the blood seal (%s),Złam krwawą pieczęć (%s)
+Floodgate - rusted shut,Wrota śluzy - zardzewiałe
+Turn the bookshelf,Obróć regał
+Close the bookshelf,Zamknij regał
+Close door,Zamknij drzwi
+Open door,Otwórz drzwi
+Merchant,Kupiec
++%d XP,+%d PD
+Rusted shut - find a lever,Zardzewiałe - znajdź dźwignię
+Descending...,Schodzenie...
+%s - Floor %d,%s - piętro %d
+The boss is defeated! A portal opens...,Boss pokonany! Otwiera się portal...
+Hold to revive %s,"Przytrzymaj, by wskrzesić: %s"
+Cancel - stay on this floor,Anuluj - zostań na tym piętrze
+Enter the portal,Wejdź do portalu
+%s (%d/%d ready),%s (gotowi: %d/%d)
+Gold Key,Złoty Klucz
+The vault is sealed: bring the floor's Gold Key (an elite or a chest carries it),Skarbiec jest zapieczętowany: przynieś Złoty Klucz z tego piętra (nosi go elita lub skrzynia)
+Malphas's seal asks for blood: %s for the rest of the run. The door then stays open for the whole party.,Pieczęć Malphasa żąda krwi: %s do końca wyprawy. Potem drzwi pozostają otwarte dla całej drużyny.
+Max Health,Maks. zdrowie
+Critical Strike Chance,Szansa na trafienie krytyczne
+Movement Speed,Szybkość ruchu
+Max Mana,Maks. mana
+Sold out,Wyprzedane
+Not enough gold (%d needed),Za mało złota (potrzeba %d)
+Bought %s for %d gold,Kupiono: %s za %d szt. złota
+Archibald won't buy that,Archibald tego nie kupi
+Sold %s for %d gold,Sprzedano: %s za %d szt. złota
+Demonic tithe,Demoniczna danina
+You already signed that contract,Ten kontrakt jest już podpisany
+Contract with Malphas,Kontrakt z Malphasem
+Signed: %s for %s,Podpisano: %s za %s
+Descend to the next floor,Zejdź na następne piętro
+Open,Otwórz
+Take the torch,Weź pochodnię
+A cloud of grave miasma bursts from the urn!,Z urny wybucha chmura grobowego miazmatu!
+Knocked off,Strącony
+Reassembles,Składa się na nowo
+Shell shattered!,Pancerz pękł!
+Vespera takes wing! Light both consecrated shrines to bring her down!,"Vespera wzbija się w powietrze! Zapal obie poświęcone kapliczki, by ją strącić!"
+Vespera crashes to the ground!,Vespera spada na ziemię!
+Antler Stampede!,Szarża poroży!
+Cernunnos crashes into the wall!,Cernunnos wbija się w ścianę!
+Anvil of Doom! Ingots fall from the rafters!,Kowadło Zagłady! Sztaby spadają z krokwi!
+Boulders smash the outer walkway!,Głazy miażdżą zewnętrzny pomost!
+The Blood Thread snaps!,Krwawa Nić pęka!
+Morvath draws the bones of the fallen into a shield!,Morvath zbiera kości poległych w tarczę!
+Time slows to a crawl!,Czas zwalnia do pełzania!
+The briar creeps inward!,Ciernie pełzną do środka!
+Cernunnos drinks the blood of the fallen!,Cernunnos pije krew poległych!
+Echoes of Regret replay your past...,Echa Żalu odtwarzają twoją przeszłość...
+The Amalgam engulfs %s! Burst it down!,Amalgamat pochłania: %s! Zniszcz go!
+Forbidden Inversion! %s,Zakazana Inwersja! %s
+Your steps betray you!,Twoje kroki cię zdradzają!
+Healing burns!,Leczenie parzy!
+Ossuary Cage! Break the bone spears around %s!,Klatka z Kości! Rozbij kościane włócznie wokół: %s!
+The Bell of Heresy tolls - your companions turn on you!,Dzwon Herezji bije - towarzysze zwracają się przeciw tobie!
+Runes of Damnation burn into the floor - watch your step!,"Runy Potępienia wypalają się w posadzce - uważaj, gdzie stąpasz!"
+Shower of Thorns! Shelter under a dolmen!,Deszcz Cierni! Schowaj się pod dolmenem!
+Slag Overflow! Get behind an ingot!,Wylew Żużlu! Schowaj się za sztabą!
+Bone Whirlwind!,Kościany Wir!
+Malazar seals you inside the Tome Prison! Break the 4 Authorial Seals!,Malazar więzi cię w Więzieniu Księgi! Rozbij 4 Pieczęcie Autora!
+The Tome Prison collapses - the seals held!,Więzienie Księgi upada - pieczęcie wytrzymały!
+Reality returns - the Archivist is weakened!,Rzeczywistość wraca - Archiwista słabnie!
+A vermin swarm darkens the air!,Rój robactwa zaćmiewa powietrze!
+Tidal Flush! Climb a raised platform!,Wielkie Płukanie! Wejdź na podniesioną platformę!
+Pick up %s,Podnieś: %s
+Head,Głowa
+Chest,Tors
+Legs,Nogi
+Boots,Buty
+Gloves,Rękawice
+Right hand,Prawa ręka
+Left hand,Lewa ręka
+Ring,Pierścień
+Necklace,Naszyjnik
+No such item,Nie ma takiego przedmiotu
+Can't equip that,Nie można tego założyć
+Requires level %d (you are level %d),Wymaga poziomu %d (masz poziom %d)
+You already wear %s,Już nosisz: %s
+Not enough backpack space,Za mało miejsca w plecaku
+Nothing equipped,Nic nie założono
+Main Hand,Główna ręka
+Off Hand,Druga ręka
+Weapon,Broń
+%s (%d slots),%s (miejsca: %d)
+Consumable  x%d,Zużywalny  x%d
+Backpack: %d slots (pick up to equip),"Plecak: %d miejsc (podnieś, by założyć)"
+Lore book,Księga wiedzy
+Tome of Enlightenment,Księga Oświecenia
+Legendary tome,Legendarna księga
+Book,Księga
+ for this run, do końca wyprawy
+Read it: Accept / click,Przeczytaj: Akceptuj / kliknij
+Two-handed,Dwuręczna
+One-handed,Jednoręczna
+%.1f DPS,%.1f DPS
+Legendary,Legendarny
+%d Armor,Pancerz %d
+Requires level %d,Wymaga poziomu %d
+"  (-%d%% damage, slower cooldowns for you)","  (-%d%% obrażeń, dłuższe odnowienia dla ciebie)"
+Class: %s%s,Klasa: %s%s
+Rewind,Cofnięcie
+Dodge ready,Unik gotowy
+Echo,Echo
+%d Gold,%d szt. złota
+Health,Zdrowie
+Maximum health. Raised by Stamina.,Maksymalne zdrowie. Zwiększa je Wytrzymałość.
+Strength,Siła
+Melee damage and a little damage reduction.,Obrażenia wręcz i trochę redukcji obrażeń.
+Stamina,Wytrzymałość
+Maximum health.,Maksymalne zdrowie.
+Agility,Zręczność
+Ranged damage and critical strike chance.,Obrażenia dystansowe i szansa na trafienie krytyczne.
+Intellect,Intelekt
+Spell damage and mana / fury generation.,Obrażenia czarów oraz generowanie many / furii.
+Armor,Pancerz
+Reduces physical damage taken.,Zmniejsza otrzymywane obrażenia fizyczne.
+Weapon DPS,DPS broni
+Base damage of your weapons; every attack and skill scales with it.,Bazowe obrażenia twojej broni; skaluje się z nimi każdy atak i umiejętność.
+Crit chance,Szansa na kryt.
+Chance for a hit to be critical.,"Szansa, że trafienie będzie krytyczne."
+Crit damage,Obrażenia kryt.
+Extra damage of critical hits.,Dodatkowe obrażenia trafień krytycznych.
+Haste,Pośpiech
+"Shorter cooldowns and cast times, faster attacks.","Krótsze odnowienia i czas rzucania, szybsze ataki."
+Chance to avoid a hit completely.,Szansa na całkowite uniknięcie trafienia.
+Leech,Wysysanie
+Heals you for a share of the damage you deal.,Leczy cię o część zadanych obrażeń.
+Melee power,Moc wręcz
+Weapon DPS + Strength bonus used by melee skills.,DPS broni + premia z Siły używana przez umiejętności wręcz.
+Ranged power,Moc dystansowa
+Weapon DPS + Agility bonus used by ranged skills.,DPS broni + premia ze Zręczności używana przez umiejętności dystansowe.
+Spell power,Moc czarów
+Weapon DPS + Intellect bonus used by spells.,DPS broni + premia z Intelektu używana przez czary.
+Damage reduction,Redukcja obrażeń
+Reduction against every hit from Strength.,Redukcja każdego trafienia dzięki Sile.
+Move speed,Szybkość ruchu
+Walking speed in pixels per second.,Szybkość chodu w pikselach na sekundę.
+Character,Postać
+Close,Zamknij
+%s  -  Level %d %s,"%s  -  poziom %d, %s"
+Level,Poziom
+Gold,Złoto
+Attributes,Cechy
+Free stat points,Wolne punkty cech
+Run blessings and curses,Błogosławieństwa i klątwy wyprawy
+Skills,Umiejętności
+"Off-class weapon: -%d%% damage, slower cooldowns","Broń innej klasy: -%d%% obrażeń, dłuższe odnowienia"
+Mana regen,Regeneracja many
+Mana,Mana
+Fury,Furia
+%s  (primary),%s  (główny)
+"None yet: tomes, the demonic tithe, contracts and pacts change you for the whole run.","Jeszcze nic: księgi, demoniczna danina, kontrakty i pakty zmieniają cię na całą wyprawę."
+Max health,Maks. zdrowie
+Max mana,Maks. mana
+Codex,Kodeks
+Read,Czytaj
+%d / %d books read,Przeczytane księgi: %d / %d
+Read books to fill the codex. It is kept across every run.,"Czytaj księgi, by zapełnić kodeks. Zostaje na wszystkie wyprawy."
+"Not read yet. Books drop from bookshelves, secret containers and elite altars.","Jeszcze nieprzeczytana. Księgi wypadają z regałów, ukrytych schowków i elitarnych ołtarzy."
+Accept,Akceptuj
+Refuse,Odmów
+Choose,Wybierz
+Switch spectated player,Zmień obserwowanego gracza
+Lv 1,Poz. 1
+Talent point,Punkt talentu
+Talent points to spend,Punkty talentów do wydania
+Stat points,Punkty cech
+Stat points to spend,Punkty cech do wydania
+Gold Key: Archibald trades for it,Złoty Klucz: Archibald za niego handluje
+Floor %d%s,Piętro %d%s
+Empty slot - learn skills in the Talents tab,Puste miejsce - poznaj umiejętności w zakładce Talenty
+Quick slot %s (hold to choose),"Szybkie miejsce %s (przytrzymaj, by wybrać)"
+Lv %d,Poz. %d
+The way down is open: step into the portal,Droga w dół otwarta: wejdź do portalu
+Defeat %s,Pokonaj: %s
+Find and defeat the floor boss,Znajdź i pokonaj bossa piętra
+No light - take a torch from a wall,Brak światła - weź pochodnię ze ściany
+Torch %d:%02d,Pochodnia %d:%02d
+You are a ghost until the next floor.,Jesteś duchem do następnego piętra.
+You are down! A teammate can revive you (%ds),Jesteś powalony! Towarzysz może cię wskrzesić (%ds)
+%s  - Phase 2,%s  - faza 2
+Phase %d,Faza %d
+You are held,Jesteś unieruchomiony
+%s is held,%s jest unieruchomiony
+%s - Burst it down! %.1f s,%s - zniszcz go! %.1f s
+Burst it down! %.1f s,Zniszcz go! %.1f s
+Portal: %d / %d players ready,Portal: gotowi gracze %d / %d
+Your party has fallen,Twoja drużyna poległa
+"Reached floor %d. This game is over and its heroes are gone.
+Returning to the lobby...","Osiągnięto piętro %d. Ta gra się skończyła, a jej bohaterowie przepadli.
+Powrót do lobby..."
+Malphas the Soul Broker,Malphas Handlarz Dusz
+Pay the tithe,Zapłać daninę
+Turn away,Odejdź
+%ds,%ds
+  DOWN %d,  POWALONY %d
+  GHOST,  DUCH
+%s  Lv%d%s,%s  Poz.%d%s
+Inventory,Ekwipunek
+Equipment,Wyposażenie
+Backpack,Plecak
+Quick slots,Szybkie miejsca
+Feet,Stopy
+Hands,Dłonie
+Main,Główna
+Off,Druga
+Neck,Szyja
+Release outside the window to drop it on the ground,"Upuść poza oknem, by rzucić przedmiot na ziemię"
+Backpack %d / %d,Plecak %d / %d
+%s requires level %d - you are level %d,%s wymaga poziomu %d - masz poziom %d
+This item,Ten przedmiot
+Empty slot,Puste miejsce
+Drag an item here or pick one from the backpack.,Przeciągnij tu przedmiot albo wybierz go z plecaka.
+Drag a potion here to bind it.,"Przeciągnij tu miksturę, by ją przypisać."
+Level too low to equip: needs level %d (you are %d),Za niski poziom: potrzeba %d (masz %d)
+Nothing equipped there,Nic tu nie założono
+vs %s,vs %s
+No stat change,Bez zmian cech
+Clear slot,Wyczyść miejsce
+Unequip,Zdejmij
+Drop,Upuść
+Put on Q,Przypisz do Q
+Put on E,Przypisz do E
+Equip (needs level %d),Załóż (wymaga poziomu %d)
+Equip,Załóż
+DPS,DPS
+Crit,Kryt.
+Crit dmg,Obr. kryt.
+Lv%d,Poz.%d
+Lobby,Lobby
+Start run,Rozpocznij wyprawę
+Leave,Wyjdź
+Steam lobby,Lobby Steam
+ (id %d), (id %d)
+LAN game on port %d,Gra LAN na porcie %d
+Solo game,Gra solo
+Choose your hero,Wybierz bohatera
+Name,Imię
+Body,Ciało
+Class,Klasa
+Confirm,Potwierdź
+Turn left,Obróć w lewo
+Turn right,Obróć w prawo
+Class gear,Ekwipunek klasy
+Heroes start with only a basic class weapon; this shows the class in typical gear.,Bohaterowie zaczynają tylko z podstawową bronią klasy; podgląd pokazuje klasę w typowym ekwipunku.
+Confirm hero,Potwierdź bohatera
+New game,Nowa gra
+Floor %d - %s - %s,Piętro %d - %s - %s
+%d player,%d gracz
+%d players,%d graczy|%d graczy
+Saved game deleted.,Zapisana gra usunięta.
+%s  Resource: %s.,%s  Zasób: %s.
+"%s - %s %s, level %d","%s - %s, %s, poziom %d"
+Enter a name first.,Najpierw wpisz imię.
+  (you),  (ty)
+  (taken),  (zajęty)
+"%s - %s, level %d%s","%s - %s, poziom %d%s"
+Game,Gra
+Delete,Usuń
+Party,Drużyna
+Game settings,Ustawienia gry
+ (host only), (tylko host)
+1  Take a hero of this game,1  Weź bohatera z tej gry
+1  Choose your hero,1  Wybierz bohatera
+Continue from floor %d. This game needs exactly %s; each player takes one of its heroes.,Kontynuacja od piętra %d. Ta gra wymaga dokładnie: %s; każdy gracz bierze jednego z jej bohaterów.
+"Saved game: floor %d, %d players","Zapisana gra: piętro %d, graczy: %d"
+Everyone starts a fresh level 1 hero. The game is saved by the host and ends for good if the whole party falls.,"Każdy zaczyna nowym bohaterem na 1. poziomie. Grę zapisuje host i kończy się ona na dobre, gdy polegnie cała drużyna."
+Not ready yet: confirm your hero.,Jeszcze niegotowy: potwierdź bohatera.
+Ready as %s.,Gotowy jako %s.
+Update hero,Zaktualizuj bohatera
+Host,Host
+  (host),  (host)
+"%s%s, level %d","%s%s, poziom %d"
+Player %d,Gracz %d
+choosing a hero...,wybiera bohatera...
+3  Start run (%s),3  Rozpocznij wyprawę (%s)
+Waiting for the host to start...,"Czekanie, aż host rozpocznie..."
+Pick your hero.,Wybierz bohatera.
+Scroll,Zwój
+Lore,Wiedza
+ for the rest of the run, do końca wyprawy
+FUNTASY,FUNTASY
+Select,Wybierz
+Back,Wstecz
+Play,Graj
+Options,Opcje
+Quit,Wyjdź z gry
+Solo,Solo
+Host LAN game,Załóż grę LAN
+Join LAN game,Dołącz do gry LAN
+Host Steam lobby,Załóż lobby Steam
+Join Steam lobby,Dołącz do lobby Steam
+Steam lobbies (test app 480),Lobby Steam (aplikacja testowa 480)
+Refresh,Odśwież
+Host address,Adres hosta
+Port,Port
+Connect,Połącz
+Creating Steam lobby...,Tworzenie lobby Steam...
+Hosting on port %d...,Hostowanie na porcie %d...
+Connecting...,Łączenie...
+No lobbies found,Nie znaleziono lobby
+Joining lobby...,Dołączanie do lobby...
+Map,Mapa
+Toggle map,Pokaż/ukryj mapę
+Floor %d  -  %s,Piętro %d  -  %s
+You / party,Ty / drużyna
+Portal,Portal
+Door,Drzwi
+Lava,Lawa
+Archibald,Archibald
+Malphas,Malphas
+Boss,Boss
+Sealed,Zapieczętowane
+DOWNED %d,POWALONY %d
+Make the pact,Zawrzyj pakt
+Every price is paid in flesh - for the rest of the run,Każdą cenę płaci się ciałem - do końca wyprawy
+Contracts,Kontrakty
+Sacrifice %s  ->  gain %s,Poświęć %s  ->  zyskaj %s
+Contract,Kontrakt
+Pact potions,Mikstury paktu
+Resume,Wznów
+Paused,Pauza
+The game keeps running for your party,Gra toczy się dalej dla twojej drużyny
+Leave to main menu,Wyjdź do menu głównego
+End session (host),Zakończ sesję (host)
+Clear,Wyczyść
+Prev tab,Poprz. zakładka
+Next tab,Nast. zakładka
+"Select a binding and press %s, then the new input. %s clears it.","Wybierz przypisanie i naciśnij %s, potem nowy klawisz. %s je czyści."
+Video,Obraz
+Language,Język
+Window mode,Tryb okna
+Window size,Rozmiar okna
+VSync,VSync
+Screen shake,Wstrząsy ekranu
+Apply video settings,Zastosuj ustawienia obrazu
+Keep,Zachowaj
+Revert,Przywróć
+Audio,Dźwięk
+%s volume,Głośność: %s
+Controls,Sterowanie
+Reset to defaults,Przywróć domyślne
+All bindings reset to defaults.,Wszystkie przypisania przywrócone do domyślnych.
+Action,Akcja
+Keyboard/Mouse %d,Klawiatura/mysz %d
+Gamepad %d,Pad %d
+Cleared %s binding of '%s'.,Wyczyszczono przypisanie (%s) akcji '%s'.
+Keyboard/mouse,Klawiatura/mysz
+Gamepad,Pad
+Press %s...,Naciśnij %s...
+key / mouse,klawisz / mysz
+pad input,przycisk pada
+Waiting for input for '%s' (Esc cancels).,Czekam na wejście dla '%s' (Esc anuluje).
+Cancelled.,Anulowano.
+That slot only accepts %s input.,To miejsce przyjmuje tylko wejście: %s.
+'%s' bound to %s.,'%s' przypisano do %s.
+ Conflict resolved: removed from %s., Konflikt rozwiązany: usunięto z %s.
+Timed out.,Przekroczono czas.
+Keep these settings? Reverting in %d s,Zachować te ustawienia? Przywrócenie za %d s
+Archibald the Gilded,Archibald Pozłacany
+Buy / sell,Kup / sprzedaj
+For sale (shared with the party),Na sprzedaż (wspólne dla drużyny)
+Your backpack - sell,Twój plecak - sprzedaż
+Your gold,Twoje złoto
+Gold: %d,Złoto: %d
+Nothing to sell.,Nic do sprzedania.
+Skill Book,Księga umiejętności
+Pick / place,Weź / połóż
+"%s  -  pick a skill, then a slot",%s - wybierz i umieść
+Skill bar,Pasek umiejętności
+Unlocked skills,Odblokowane umiejętności
+  (passive),  (pasywna)
+%d skills unlocked. Learn more in the Talents tab.,Odblokowane umiejętności: %d. Więcej poznasz w zakładce Talenty.
+Now choose a slot for %s.,Teraz wybierz miejsce dla: %s.
+Passive skills work as soon as they are learned.,Umiejętności pasywne działają od razu po poznaniu.
+Pick a skill below first.,Najpierw wybierz umiejętność poniżej.
+Primary attack,Atak główny
+%+d%% effect,%+d%% efektu
+%+d%% healing,%+d%% leczenia
+%+d%% cooldown,%+d%% odnowienia
+%+d%% cost,%+d%% kosztu
+%+d%% radius,%+d%% promienia
+%+d%% duration,%+d%% czasu trwania
+Type,Typ
+Passive: always active once learned,Pasywna: zawsze aktywna po poznaniu
+Toggle: switch on and off,Przełącznik: włącz i wyłącz
+Cooldown,Odnowienie
+%.1fs,%.1fs
+Charges,Ładunki
+Cost,Koszt
+"%.1fs, every %.2fs","%.1fs, co %.2fs"
+", moving stops it",", ruch go przerywa"
+Channel,Kanałowanie
+Charge,Ładowanie
+"hold up to %.1fs, release to fire (weaker if early)","przytrzymaj do %.1fs, puść, by wystrzelić (słabiej, gdy za wcześnie)"
+Cast time,Czas rzucania
+%.2fs,%.2fs
+Instant,Natychmiastowa
+Requires,Wymaga
+target below %d%% health,cel poniżej %d%% zdrowia
+target %s,cel: %s
+ target, cel
+%s window,okno: %s
+Health cost,Koszt zdrowia
+%d%% of current health,%d%% obecnego zdrowia
+Consumes,Zużywa
+all %s,całą: %s
+Per tick: ,Na tik: 
+", self",", na siebie"
+On hit,Przy trafieniu
+Scaling,Skalowanie
+Power,Moc
+Critical,Krytyk
+"%d%% chance, +%d%% damage","%d%% szansy, +%d%% obrażeń"
+%d%% of damage,%d%% obrażeń
+%+d projectiles,%+d pocisków
+%+d pierce,%+d przebicia
+Damage,Obrażenia
+Reach,Zasięg
+"%s, %d° arc, up to %d targets","%s, łuk %d°, do %d celów"
+%s range,zasięg %s
+", pierces %d",", przebija %d"
+Projectile,Pocisk
+Explosion,Wybuch
+ in %s, w promieniu %s
+around you,wokół ciebie
+at the cursor,przy kursorze
+Area damage,Obrażenia obszarowe
+Area heal,Leczenie obszarowe
+%s radius %s,promień %s %s
+", after %.1fs",", po %.1fs"
+Area,Obszar
+ every %.1fs, co %.1fs
+Healing,Leczenie
+%d every %.1fs,%d co %.1fs
+Zone,Strefa
+%s radius for %.0fs,promień %s przez %.0fs
+Trap,Pułapka
+"arms in %.1fs, lasts %.0fs","uzbraja się w %.1fs, trwa %.0fs"
+Trap: ,Pułapka: 
+Dash,Zryw
+On arrival: ,Po dotarciu: 
+Teleport,Teleport
+Decoy,Wabik
+a mirror image draws aggro for %.1fs,lustrzane odbicie ściąga agresję przez %.1fs
+Heal,Leczenie
+Shield,Tarcza
+absorbs %d for %.0fs%s,pochłania %d przez %.0fs%s
+Taunt,Prowokacja
+"%.1fs, enemies within %s","%.1fs, wrogowie w promieniu %s"
+Cone,Stożek
+%d° over %s,%d° na %s
+the enemy at the cursor,wróg przy kursorze
+the enemy or ally at the cursor,wróg lub sojusznik przy kursorze
+a random enemy,losowy wróg
+the healthiest enemy,najzdrowszy wróg
+the same target,ten sam cel
+Target,Cel
+On an ally: ,Na sojusznika: 
+Drain,Wyssanie
+heals you for %d%% of the damage,leczy cię o %d%% obrażeń
+%s long,długość %s
+", through walls (x%.0f damage)",", przez ściany (x%.0f obrażeń)"
+Line,Linia
+Chain,Łańcuch
+"%d jumps, +%d%% per jump","skoków: %d, +%d%% na skok"
+Beam damage,Obrażenia promienia
+Beam heal,Leczenie promienia
+%d to allies in the beam,%d dla sojuszników w promieniu
+Beam,Promień
+Leap,Skok
+ backwards, do tyłu
+On take-off: ,Przy wybiciu: 
+On landing: ,Przy lądowaniu: 
+Path damage,Obrażenia na drodze
+On impact: ,Przy uderzeniu: 
+"%s radius, %d force","promień %s, siła %d"
+After %.1fs: ,Po %.1fs: 
+Deploys,Rozstawia
+"for %.0fs, acts every %.1fs","na %.0fs, działa co %.1fs"
+%d every %.1fs%s,%d co %.1fs%s
+ (below %d%% health), (poniżej %d%% zdrowia)
+Each shot: ,Każdy strzał: 
+Detonates,Detonuje
+every %s on the target at once,każdy efekt %s na celu naraz
+Cleanses,Oczyszcza
+", refunds %d",", zwraca %d"
+Dispels,Rozprasza
+Destroys,Niszczy
+hostile projectiles within %s,wrogie pociski w promieniu %s
+Terrain,Teren
+%s for %.0fs,%s przez %.0fs
+Threat,Zagrożenie
+drops %d%%,spada o %d%%
+Reveals,Odsłania
+stealth and darkness within %s for %.0fs,ukrycie i ciemność w promieniu %s przez %.0fs
+Interrupts,Przerywa
+spellcasting%s,rzucanie czarów%s
+", locks the school for %.0fs",", blokuje szkołę na %.0fs"
+Cooldowns,Odnowienia
+Costs,Koszty
+%d%% of your health,%d%% twojego zdrowia
+Tether,Więź
+%.0fs,%.0fs
+Every %.1fs: ,Co %.1fs: 
+Pulls,Przyciąga
+the ally to your feet,sojusznika do twoich stóp
+Inside: ,Wewnątrz: 
+Allies: ,Sojusznicy: 
+Knockback,Odrzut
+%d force,siła %d
+On hit: ,Przy trafieniu: 
+%d every %.1fs for %.1fs (%d total),%d co %.1fs przez %.1fs (razem %d)
+%d every %.1fs for %.1fs%s,%d co %.1fs przez %.1fs%s
+while active,gdy aktywne
+%d (crit %d)%s,%d (kryt. %d)%s
+%+d%% speed,%+d%% szybkości
+%+d%% damage,%+d%% obrażeń
+%+d%% damage taken,%+d%% otrzymywanych obrażeń
+%+d%% haste,%+d%% pośpiechu
+%+d%% crit,%+d%% kryt.
+", party within %s",", drużyna w promieniu %s"
+", ally at the cursor",", sojusznik przy kursorze"
+%.1fm,%.1fm
+Damage before the target's armor.,Obrażenia przed uwzględnieniem pancerza celu.
+Not on the bar,Nie na pasku
+Skill %d,Umiejętność %d
+Talents,Talenty
+Learn rank,Poznaj rangę
+Key,Klucz
+Reset talents (free),Zresetuj talenty (za darmo)
+%d point to spend,%d punkt do wydania
+%d points to spend,%d punkty do wydania|%d punktów do wydania
+Skill,Umiejętność
+Passive talent,Talent pasywny
+Keystone,Talent kluczowy
+ - known from the start, - znana od początku
+ - rank %d / %d, - ranga %d / %d
+"
+Passive: always active once learned.","
+Pasywna: zawsze aktywna po poznaniu."
+"
+Learn it, then slot it in the Skill Book.","
+Poznaj ją, a potem umieść w Księdze umiejętności."
+Requires %d points in this branch,Wymaga %d pkt. w tej gałęzi
+SFX,Efekty
+Music,Muzyka
+Waiting for every player to pick a hero.,"Czekanie, aż każdy gracz wybierze bohatera."
+This saved game needs exactly 1 player (%d connected).,Ta zapisana gra wymaga dokładnie 1 gracza (połączonych: %d).
+This saved game needs exactly %d players (%d connected).,Ta zapisana gra wymaga dokładnie %d graczy (połączonych: %d).
+Hero,Bohater
+View,View
+Guide,Guide
+Menu,Menu
+L-Stick click,Klik L-gałki
+R-Stick click,Klik P-gałki
+LB,LB
+RB,RB
+D-Pad Up,Krzyżak góra
+D-Pad Down,Krzyżak dół
+D-Pad Left,Krzyżak lewo
+D-Pad Right,Krzyżak prawo
+L-Stick Left,L-gałka lewo
+L-Stick Right,L-gałka prawo
+L-Stick Up,L-gałka góra
+L-Stick Down,L-gałka dół
+R-Stick Left,P-gałka lewo
+R-Stick Right,P-gałka prawo
+R-Stick Up,P-gałka góra
+R-Stick Down,P-gałka dół
+LT,LT
+RT,RT
+LMB,LPM
+RMB,PPM
+MMB,ŚPM
+Mouse ,Mysz 
+Unbound,Brak
+Escape,Escape
+Esc,Esc
+Enter,Enter
+Space,Spacja
+Shift,Shift
+Ctrl,Ctrl
+Alt,Alt
+Tab,Tab
+Bksp,Bksp
+Backspace,Backspace
+Up,Góra
+Down,Dół
+Dn,Dół
+Left,Lewo
+Lt,Lw
+Right,Prawo
+Rt,Pr
+Whl,Kół
+Home,Home
+LS,LS
+RS,RS
+Steam,Steam
+Player,Gracz
+Could not host on port %d (error %d),Nie udało się założyć gry na porcie %d (błąd %d)
+Could not connect to %s:%d (error %d),Nie udało się połączyć z %s:%d (błąd %d)
+Steam unavailable: %s,Steam niedostępny: %s
+The host ended the session,Host zakończył sesję
+Connection failed,Połączenie nieudane
+Host disconnected,Host się rozłączył
+Steam lobby creation failed (result %d),Nie udało się utworzyć lobby Steam (wynik %d)
+%s's game,Gra gracza %s
+Could not join Steam lobby (response %d),Nie udało się dołączyć do lobby Steam (odpowiedź %d)
+Could not connect to lobby host (error %d),Nie udało się połączyć z hostem lobby (błąd %d)
+Windowed,W oknie
+Borderless fullscreen,Pełny ekran bez ramek
+Exclusive fullscreen,Wyłączny pełny ekran
+Master,Główna
+English,English
+Polski,Polski
+Physical,Fizyczne
+Fire,Ogień
+Frost,Mróz
+Earth,Ziemia
+Lightning,Błyskawica
+Holy,Świętość
+Shadow,Cień
+Nature,Natura
+Arcane,Arkana
+True,Czyste
+Vampiric,Wampiryczny
+Frenzied,Szalejący
+Shielded,Osłonięty
+Stoneskin,Kamiennoskóry
+Molten,Magmowy
+Venomous,Jadowity
+Thunderous,Grzmiący
+Friendly fire,Ogień sojuszniczy
+"Projectiles, AoE, explosions and traps also hurt allies.","Pociski, obszary, wybuchy i pułapki ranią też sojuszników."
+Difficulty,Poziom trudności
+Easy,Łatwy
+Normal,Normalny
+Hard,Trudny
+Multiplies monster health and damage.,Mnoży zdrowie i obrażenia potworów.
+Shared vision,Wspólne widzenie
+Enemies seen by any teammate are visible to everyone.,Wrogowie widziani przez dowolnego towarzysza są widoczni dla wszystkich.
+Move up,Ruch w górę
+Movement,Ruch
+Move down,Ruch w dół
+Move left,Ruch w lewo
+Move right,Ruch w prawo
+Aim up (stick),Celuj w górę (gałka)
+Aim down (stick),Celuj w dół (gałka)
+Aim left (stick),Celuj w lewo (gałka)
+Aim right (stick),Celuj w prawo (gałka)
+Combat,Walka
+Skill 1,Umiejętność 1
+Skill 2,Umiejętność 2
+Skill 3,Umiejętność 3
+Skill 4,Umiejętność 4
+Skill 5,Umiejętność 5
+Quick item Q (hold: choose),Szybki przedmiot Q (przytrzymaj: wybór)
+Items,Przedmioty
+Quick item E (hold: choose),Szybki przedmiot E (przytrzymaj: wybór)
+Interact / revive,Interakcja / wskrzeszanie
+Menus,Menu
+Pause menu,Menu pauzy
+Diary of the Last Gravedigger,Dziennik Ostatniego Grabarza
+The Forgotten Crypt,Zapomniana Krypta
+None (Pure Lore),Brak (czysta wiedza)
+"""Day 42. I have ceased counting coffins. The ground here is hard, and the dead insist on knocking from within. Yesterday I buried the blacksmith, Master Orlov. This morning he stood shivering upon my threshold, humbly requesting his boots. I informed him I had already traded them to the tavern keeper for mutton. He hung his hollow jaw and shuffled off into the mist. Now I dare not visit the tavern.""","""Dzień 42. Przestałem liczyć trumny. Ziemia jest tu twarda, a umarli uparcie pukają od środka. Wczoraj pochowałem kowala, mistrza Orłowa. Dziś rano stał, dygocząc, na moim progu i pokornie prosił o swoje buty. Oznajmiłem mu, że już wymieniłem je u karczmarza na baraninę. Spuścił pustą szczękę i powlókł się we mgłę. Teraz nie śmiem zajrzeć do karczmy."""
+Treatise on Cold Iron and Bone,Traktat o Zimnym Żelazie i Kości
++15 Armor (Permanent),+15 Pancerza (na stałe)
+"""The bone of a sinner hardens after death, but iron remains the only true ward against the restless. When forging a blade for the crypts, quench the steel not in well water, but in brine mixed with powdered saint-graves. The edge will bite through calcium and marrow alike, turning even ancient kings into brittle gravel.""","""Kość grzesznika twardnieje po śmierci, lecz tylko żelazo pozostaje prawdziwą ochroną przed niespokojnymi. Kując ostrze do krypt, hartuj stal nie w wodzie ze studni, lecz w solance zmieszanej z proszkiem ze świętych grobów. Ostrze przetnie wapń i szpik jednako, zmieniając nawet pradawnych królów w kruchy żwir."""
+Litany of the Hollow Monarch,Litania Pustego Monarchy
+"""Before Morvath took the crown of bones, he was a just lord who wept for his dying soldiers. But justice does not stop the winter plague. When his daughter succumbed, he traded his heartbeat to the entities below the bedrock. Now his crown sits fused to his skull, and his tears have frozen into black glass.""","""Zanim Morvath przyjął koronę z kości, był sprawiedliwym panem, który płakał nad swymi umierającymi żołnierzami. Lecz sprawiedliwość nie powstrzyma zimowej zarazy. Gdy zmarła jego córka, oddał bicie swego serca istotom spod macierzystej skały. Teraz korona zrosła się z jego czaszką, a łzy zamarzły w czarne szkło."""
+The Ghoul's Palate,Podniebienie Ghula
+"""An excerpt from an anonymous cultist's journal: 'Do not strike the ghoul while it feeds upon your fallen companion. It enters a state of near-religious ecstasy, blind to all worldly light. If you must strike, aim for the nape where the spine joins the bloated neck. If you miss, you become the second course.'""","""Fragment dziennika anonimowego kultysty: 'Nie uderzaj ghula, gdy pożera twego poległego towarzysza. Wpada wtedy w niemal religijną ekstazę, ślepy na wszelkie światło tego świata. Jeśli musisz uderzyć, celuj w kark, tam gdzie kręgosłup łączy się z nabrzmiałą szyją. Jeśli chybisz, staniesz się drugim daniem.'"""
+Prioress Vespera's Confession,Spowiedź Przeoryszy Vespery
+"""My sisters believed the holy water would cleanse the necrosis spreading through the lower parish. They poured it into the wells until the font ran dry. But the water turned dark as bile in our goblets. Now my hands itch with thorns of silver, and when I pray, only the dead answer with wet, rasping sighs.""","""Moje siostry wierzyły, że święcona woda oczyści martwicę szerzącą się w dolnej parafii. Wlewały ją do studni, aż chrzcielnica wyschła. Lecz woda w naszych kielichach pociemniała jak żółć. Teraz moje dłonie swędzą od srebrnych cierni, a gdy się modlę, odpowiadają mi tylko umarli, mokrymi, chrapliwymi westchnieniami."""
+Ossuary Masonry: Volume I,Murarstwo Ossuariów: Tom I
++2 Strength (Permanent),+2 Siły (na stałe)
+"""To raise an archway of human skulls, one must wedge the keystones with ground limestone and hardened sinew. A wall of bones breathes with the weather; in damp seasons it moans, in dry seasons it chatters. Lift with your thighs, novice, for stone is heavy, but the weight of unburied souls is heavier.""","""Aby wznieść łuk z ludzkich czaszek, trzeba zaklinować zworniki mielonym wapieniem i stwardniałym ścięgnem. Mur z kości oddycha razem z pogodą; w wilgotne pory jęczy, w suche szczęka zębami. Dźwigaj z nóg, nowicjuszu, bo kamień jest ciężki, lecz ciężar niepogrzebanych dusz jest cięższy."""
+Eulogy for the Nameless Vanguard,Mowa Pogrzebowa dla Bezimiennej Straży
+"""They marched down into the crypts with polished brass lanterns and shields bearing the white hawk. No herald recorded their names. Thirty years later, we found their armor standing upright against the wall, empty of flesh, polished immaculately by the scuttling beetles.""","""Zeszli do krypt z wypolerowanymi mosiężnymi latarniami i tarczami z białym jastrzębiem. Żaden herold nie zapisał ich imion. Trzydzieści lat później znaleźliśmy ich zbroje stojące prosto pod ścianą, bez śladu ciała, wypolerowane do połysku przez biegające chrząszcze."""
+The Screaming Urn,Krzycząca Urna
+"""Never shatter an urn sealed with grey wax. The priests did not seal ashes within; they sealed the final screams of plague victims boiled alive in rosemary oil. Break the seal, and the vapor will blister your lungs before your knees find the floor.""","""Nigdy nie rozbijaj urny zapieczętowanej szarym woskiem. Kapłani nie zamykali w nich prochów; zamykali ostatnie krzyki ofiar zarazy gotowanych żywcem w olejku rozmarynowym. Złam pieczęć, a opary poparzą ci płuca, zanim twoje kolana dotkną posadzki."""
+Rune of the Skeletal Guard,Runa Kościanego Strażnika
++1% Dodge (Permanent),+1% Uniku (na stałe)
+"""Watch the movement of the skeleton. It possesses neither muscle nor breath to telegraph its strike. It moves with the pure, economical geometry of lever and pivot. To evade the dead, one must not anticipate their eyes, but listen to the dry friction of their knee joints.""","""Patrz, jak porusza się szkielet. Nie ma mięśni ani oddechu, które zdradziłyby jego cios. Porusza się czystą, oszczędną geometrią dźwigni i osi. By uniknąć umarłych, nie wypatruj ich oczu, lecz nasłuchuj suchego tarcia ich stawów kolanowych."""
+Fallen Paladin's Scrap,Strzęp Upadłego Paladyna
+"""My shield is dented beyond repair. Brother Justin turned two hours ago; his eyes burned with that sickly violet glow. I had to crush his throat with my pommel. God has abandoned this floor. If anyone finds this scrap, tell Brenda I kept her ribbon under my chainmail.""","""Moja tarcza jest pogięta nie do naprawy. Brat Justyn przemienił się dwie godziny temu; jego oczy płonęły tym chorobliwym fioletowym blaskiem. Musiałem zmiażdżyć mu gardło głowicą miecza. Bóg opuścił to piętro. Jeśli ktoś znajdzie ten strzęp, niech powie Brendzie, że trzymałem jej wstążkę pod kolczugą."""
+Anatomy of the Banshee,Anatomia Banshee
+"""The wail of the crypt banshee is not sound; it is a frequency of absolute grief that resonates directly with the calcium in your bones. Those who survive her shriek report that their teeth vibrate loose in their gums and the flame in their torches shrinks to a dying blue bead.""","""Zawodzenie banshee z krypty nie jest dźwiękiem; to częstotliwość absolutnej rozpaczy, która rezonuje wprost z wapniem w twoich kościach. Ci, którzy przeżyli jej wrzask, mówią, że zęby chwiały im się w dziąsłach, a płomień pochodni kurczył się do gasnącej niebieskiej kropli."""
+Tome of Marrow Transmutation,Księga Przemiany Szpiku
++1% Leech (Permanent),+1% Wysysania (na stałe)
+"""Blood is fleeting and spills onto the flagstones to be lapped up by vermin. But the marrow hidden within the femurs holds the concentrated warmth of life. Crack the bone open upon an anvil, recite the Third Syllable of Vorash, and draw the vital warmth into your own veins.""","""Krew jest ulotna i spływa na płyty posadzki, by wylizało ją robactwo. Lecz szpik ukryty w kościach udowych kryje skupione ciepło życia. Rozłup kość na kowadle, wyrecytuj Trzecią Sylabę Vorasha i wciągnij życiodajne ciepło do własnych żył."""
+Ballad of the Red Duke,Ballada o Czerwonym Księciu
+"""Ten verses detailing Duke Cassian, who walled himself inside his family vault with twelve cases of vintage wine, his finest hounds, and his personal jester. By day fifteen, only the hounds were singing. By day twenty, the jester was the Duke.""","""Dziesięć zwrotek o księciu Kasjanie, który zamurował się w rodowym grobowcu z dwunastoma skrzyniami starego wina, najlepszymi psami i osobistym błaznem. Piętnastego dnia śpiewały już tylko psy. Dwudziestego dnia błaznem był książę."""
+Notes on Tomb Moss,Notatki o Mchu Grobowym
+"""The luminous moss that coats the sarcophagi tastes like bitter almonds and damp linen. Chewing it numbs toothache, but causes vivid dreams of drowning in cold tallow. Recommended only when rations run out completely.""","""Świecący mech, który pokrywa sarkofagi, smakuje jak gorzkie migdały i wilgotne płótno. Żucie go uśmierza ból zęba, lecz przynosi żywe sny o tonięciu w zimnym łoju. Zalecany tylko wtedy, gdy zapasy skończą się zupełnie."""
+The Scribe's Broken Quill,Złamane Pióro Skryby
+"""I was ordered to catalogue the ancestral treasures of House Valerius. But there are no rubies here. There are only lead coffins soldered shut from the outside with warnings etched in three dead languages. Something is scratching at the lead from within. It has been scratching for two hundred years.""","""Kazano mi spisać rodowe skarby Domu Waleriuszów. Lecz nie ma tu rubinów. Są tylko ołowiane trumny zalutowane od zewnątrz, z ostrzeżeniami wyrytymi w trzech martwych językach. Coś drapie ołów od środka. Drapie od dwustu lat."""
+Malediction of the Tomb Robber,Klątwa Rabusia Grobów
++1% Critical Strike Chance (Permanent),+1% Szansy na trafienie krytyczne (na stałe)
+"""He who takes the gold coin from the dead man's tongue must be swift as the adder. The dead strike not with fury, but with patience. Aim your dagger between the ribs where the shroud has rotted away, for there lies the brittle heart-cord.""","""Kto zabiera złotą monetę z języka umarłego, musi być szybki jak żmija. Umarli nie uderzają z furią, lecz z cierpliwością. Celuj sztyletem między żebra, tam gdzie całun przegnił, bo tam leży kruchy sznur serca."""
+Fragment: The First Burial,Fragment: Pierwszy Pochówek
+"""They dug into the bedrock before the kingdom had a name. The elders said: 'The deeper the dead lie, the less they dream of the sun.' They were wrong. Depth only sharpens their envy of those who walk beneath the daylight.""","""Wkopali się w skałę, zanim królestwo miało imię. Starsi mówili: 'Im głębiej leżą umarli, tym mniej śnią o słońcu.' Mylili się. Głębia tylko wyostrza ich zawiść wobec tych, którzy chodzą w świetle dnia."""
+Lament of the Gatekeeper,Lament Odźwiernego
+"""The key to the lower crypt is made of brass and weighed seven pounds. I dropped it down the dry well because I could no longer endure the sound of the things pacing behind the threshold. Now the door is bowing outward under their combined weight.""","""Klucz do dolnej krypty był z mosiądzu i ważył siedem funtów. Wrzuciłem go do suchej studni, bo nie mogłem dłużej znieść odgłosu tego, co krąży za progiem. Teraz drzwi wyginają się na zewnątrz pod ich wspólnym ciężarem."""
+Catalogue of Broken Crests,Katalog Strzaskanych Herbów
++3 Stamina (Permanent),+3 Wytrzymałości (na stałe)
+"""Eighty shields recovered from the western crypt gallery. Each crest battered flat by morningstars. Yet the iron endures. True resilience is not born of gilded pride, but of scars borne in silence upon the breastplate.""","""Osiemdziesiąt tarcz odzyskanych z zachodniej galerii krypty. Każdy herb rozpłaszczony morgensternami. A jednak żelazo trwa. Prawdziwa wytrwałość nie rodzi się z pozłacanej dumy, lecz z blizn noszonych w milczeniu na napierśniku."""
+Last Rites for the Condemned,Ostatnie Namaszczenie Skazańców
+"""May the dirt sit heavy upon your breast. May the earthworms reject your flesh. May no candle be lit in your memory, lest you remember the shape of flame and seek to burn our roofs in your longing.""","""Niech ziemia ciąży ci na piersi. Niech dżdżownice odrzucą twe ciało. Niech żadna świeca nie zapłonie ku twej pamięci, byś nie przypomniał sobie kształtu płomienia i nie zapragnął w tęsknocie spalić naszych dachów."""
+The Ratcatcher's Secret Recipes,Tajne Przepisy Szczurołapa
+Sewers of Heresy,Kanały Herezji
+"""Vermin from the lower cisterns must be parboiled thrice in wild vinegar. Failure to do so will result in their tail twitching in your throat well after dinner. If the flesh glows emerald in the dark, rejoice—it saves on candle wax, and adds a zesty tang to stale hardtack.""","""Robactwo z dolnych cystern trzeba trzykrotnie obgotować w dzikim occie. W przeciwnym razie ich ogony będą drgać ci w gardle długo po kolacji. Jeśli mięso świeci szmaragdowo w ciemności, raduj się - oszczędzasz na wosku do świec, a czerstwe suchary zyskują pikantny posmak."""
+Heretical Alchemy: Dissolving Flesh,Heretycka Alchemia: Rozpuszczanie Ciała
++2 Intellect (Permanent),+2 Intelektu (na stałe)
+"""Mix two drams of vitriol with the distilled bile of an acid slime. Heat over charcoal until green vapors ascend. This solvent dissolves bone in seconds while leaving glass and lead untouched. Knowledge is the ultimate solvent; it dissolves morality faster than acid dissolves skin.""","""Zmieszaj dwie drachmy witriolu z destylowaną żółcią żrącego szlamu. Podgrzewaj nad węglem drzewnym, aż uniosą się zielone opary. Ten rozpuszczalnik w kilka chwil rozpuszcza kość, nie tykając szkła ani ołowiu. Wiedza jest ostatecznym rozpuszczalnikiem; rozpuszcza moralność szybciej, niż kwas rozpuszcza skórę."""
+Ode to the Great Green Eye,Oda do Wielkiego Zielonego Oka
+"""We cast our offal into the central drain, and the drain gazed back at us. A single yellow pupil, three paces wide, floating beneath the scum. It did not blink when we lowered the lantern. It smiled with eighty needle teeth, and we knelt in the foul water and wept with joy.""","""Wrzucaliśmy podroby do głównego ścieku, a ściek spojrzał na nas. Jedna żółta źrenica, szeroka na trzy kroki, unosząca się pod kożuchem szumowin. Nie mrugnęła, gdy opuściliśmy latarnię. Uśmiechnęła się osiemdziesięcioma igłowatymi zębami, a my uklękliśmy w cuchnącej wodzie i płakaliśmy z radości."""
+Journal of the Flesh-Stitcher,Dziennik Zszywacza Ciał
+"""The human forearm is sadly limited by its singular elbow joint. Today I grafted the knee of a trench hound to brother Barth's shoulder. He complained of the phantom barking for three days, but his reach with the halberd has improved by half a fathom.""","""Ludzkie przedramię jest niestety ograniczone swym pojedynczym stawem łokciowym. Dziś przeszczepiłem kolano okopowego ogara do ramienia brata Bartha. Przez trzy dni skarżył się na fantomowe szczekanie, lecz jego zasięg z halabardą wzrósł o pół sążnia."""
+Krazik's Gospel of the Gutter,Ewangelia Rynsztoka według Krazika
+"""The surface men live in their towers of brittle stone, dreading the rain. But we who dwell in the run-off know that all their glory eventually washes down to our feet. Their perfumes, their crown jewels, their dead bastards—all belong to the gutter king at last.""","""Ludzie z powierzchni żyją w swych wieżach z kruchego kamienia, drżąc przed deszczem. Lecz my, którzy mieszkamy w ściekach, wiemy, że cała ich chwała w końcu spływa nam pod stopy. Ich perfumy, ich klejnoty koronne, ich martwe bękarty - wszystko w końcu należy do króla rynsztoka."""
+Toxicity Tolerance Field Guide,Polowy Przewodnik Odporności na Toksyny
++8 Max Health (Permanent),+8 Maks. zdrowia (na stałe)
+"""To survive the noxious vapors of the lower collectors, swallow a pinch of sulfur and dried marsh toad skin each morning. Your breath will curdle milk and dogs will howl at your passing, but your lungs will turn leathery as boiled shoe leather.""","""Aby przetrwać trujące opary dolnych kolektorów, połykaj co rano szczyptę siarki i suszonej skóry ropuchy bagiennej. Twój oddech zważy mleko, a psy będą wyć, gdy przechodzisz, lecz płuca stwardnieją ci jak gotowana skóra na buty."""
+The Drowner's Lullaby,Kołysanka Topielca
+"""Down in the culvert where shadows weep, / Green scum blankets the sinner's sleep. / Open your mouth and let in the tide, / For bloated things in the dark abide. / No bells will ring, no candles gleam, / Only the bubbles of your final dream.""","""W przepuście, gdzie płaczą cienie, / Zielony kożuch tuli grzesznych w śnie. / Otwórz usta, niech wpłynie fala, / Bo w mroku spuchłe licho się czai. / Nie zadzwoni dzwon, nie błyśnie świeca, / Tylko bąbelki twego ostatniego snu."""
+Slime Husbandry for Ambitious Novices,Hodowla Szlamów dla Ambitnych Nowicjuszy
+"""Acid slimes make poor watchdogs, as they are prone to dissolving their own kennels. However, if fed on a steady diet of rusted nails and criminal fingers, they produce a pungent slime that makes excellent axle grease for dungeon drawbridges.""","""Żrące szlamy to marne psy stróżujące, bo mają skłonność do rozpuszczania własnych bud. Jeśli jednak karmić je stale zardzewiałymi gwoździami i palcami przestępców, wytwarzają cuchnący śluz, który jest wyśmienitym smarem do osi lochowych zwodzonych mostów."""
+Confessions of a City Sewer Engineer,Wyznania Miejskiego Inżyniera Kanałów
+"""I warned the magistrate that the aqueduct connected directly to the pre-human vaults. He insisted on cutting costs. When the water in the public bathhouses turned red and began chanting in tongues, he had me arrested and thrown down the very drain I designed.""","""Ostrzegałem sędziego, że akwedukt łączy się wprost z przedludzkimi kryptami. Uparł się, by ciąć koszty. Gdy woda w miejskich łaźniach zrobiła się czerwona i zaczęła śpiewać w obcych językach, kazał mnie aresztować i wrzucić do tego samego ścieku, który zaprojektowałem."""
+The Stalker's Camouflage,Kamuflaż Tropiciela
++2 Agility (Permanent),+2 Zręczności (na stałe)
+"""Coat yourself in river silt and grease from dead eels. The eye of the surface dweller is drawn to shine and movement; break your silhouette against the slime-stained brick. Breathe through a hollow reed and strike only when their lantern flickers.""","""Wysmaruj się rzecznym mułem i tłuszczem z martwych węgorzy. Oko mieszkańca powierzchni przyciąga połysk i ruch; rozbij swą sylwetkę na tle cegieł poplamionych szlamem. Oddychaj przez pustą trzcinę i uderzaj tylko wtedy, gdy zamigocze ich latarnia."""
+The Feast of the Murk Amalgam,Uczta Mrocznego Amalgamatu
+"""It does not chew. It simply folds its bulk over the unwary like a wet carpet made of rotting meat. Inside its gut, you remain alive for twenty minutes, listening to the murmurs of the three hundred men who were digested before you.""","""On nie przeżuwa. Po prostu nakrywa nieostrożnych swym cielskiem jak mokry dywan z gnijącego mięsa. W jego wnętrzu żyjesz jeszcze dwadzieścia minut, słuchając szeptów trzystu ludzi strawionych przed tobą."""
+Warning: The Red Discharge,Ostrzeżenie: Czerwony Wyciek
+"""If valve four begins leaking crimson foam, do not attempt to tighten the brass spigot with a wrench. The valve is no longer metal; it has developed teeth. Abandon the pump room immediately and bar the door with heavy timber.""","""Jeśli z zaworu czwartego zacznie cieknąć szkarłatna piana, nie próbuj dokręcać mosiężnego kurka kluczem. Zawór nie jest już z metalu; wyrosły mu zęby. Natychmiast opuść pompownię i zabarykaduj drzwi ciężką belką."""
+Leech-Gatherer's Manual,Podręcznik Zbieracza Pijawek
+"""Abyssal leeches are twice the size of a man's thumb and possess three concentric rings of obsidian teeth. If one latches to your wrist, do not pull—it will rip the tendon. Apply a burning ember to its tail, and catch the extracted blood in a pewter cup. Drink it while warm.""","""Pijawki otchłani są dwa razy większe od męskiego kciuka i mają trzy koncentryczne pierścienie zębów z obsydianu. Jeśli któraś przyssie się do nadgarstka, nie ciągnij - rozerwie ścięgno. Przyłóż jej do ogona żarzący się węgielek, a wyssaną krew złap do cynowego kubka. Wypij, póki ciepła."""
+Fever Dreams in the Sump,Gorączkowe Sny w Studzience
+"""Day 14 without sunlight. The dripping has formed a language. Four short drips, one long splatter. It translates to: 'She is coming down the pipe.' I put my ear to the drain grate and heard the rustle of wet silk.""","""Dzień 14 bez słońca. Kapanie ułożyło się w język. Cztery krótkie kapnięcia, jedno długie chlupnięcie. Znaczy to: 'Ona schodzi rurą.' Przyłożyłem ucho do kraty ścieku i usłyszałem szelest mokrego jedwabiu."""
+The Bell of Heresy,Dzwon Herezji
+"""Cast from the melted crucifixes of seven sacked chapels, the bell rests in the flooded sanctuary of the sewer. When struck with a femur, its sound makes the listener believe their skin is covered in swarming fleas until they claw their own veins open.""","""Odlany z przetopionych krucyfiksów siedmiu złupionych kaplic, dzwon spoczywa w zalanym sanktuarium kanałów. Uderzony kością udową wydaje dźwięk, po którym słuchacz wierzy, że jego skórę oblazły pchły, dopóki nie rozdrapie sobie żył."""
+Apothecary's Contraband Ledger,Księga Kontrabandy Aptekarza
++5 Max Mana (Permanent),+5 Maks. many (na stałe)
+"""Smuggled goods ledger: Three crates of powdered basilisk spleen, sixteen vials of blind mole-rat distillate, forty jars of black lotus tincture. The guards were paid in silver sovereigns dipped in sewer oil so they could not be spent without suspicion.""","""Rejestr przemytu: trzy skrzynie sproszkowanej śledziony bazyliszka, szesnaście fiolek destylatu ze ślepca, czterdzieści słojów nalewki z czarnego lotosu. Strażnikom płacono srebrnymi suwerenami umoczonymi w oleju kanałowym, by nie dało się ich wydać bez podejrzeń."""
+The Trench Hermit's Last Words,Ostatnie Słowa Pustelnika z Rowu
+"""You think you walk through sewage, young knight? You walk through the digestive tract of something slumbering beneath the continent. Every brick we laid is merely a parasite's egg clinging to its intestinal lining.""","""Myślisz, że brodzisz w ściekach, młody rycerzu? Brodzisz w przewodzie pokarmowym czegoś, co drzemie pod kontynentem. Każda cegła, którą położyliśmy, to tylko jajo pasożyta przyczepione do wyściółki jego jelit."""
+Mutagenic Salve Recipe,Przepis na Maść Mutagenną
+"""Mix crushed sewer beetles, tallow from a drowned woman, and the bile of a giant rat. Rub into the skin before battle. The resulting hives will thicken into chiton plates within an hour, though the scratching will drive you mad by dusk.""","""Zmieszaj rozgniecione chrząszcze kanałowe, łój z utopionej kobiety i żółć olbrzymiego szczura. Wetrzyj w skórę przed bitwą. Powstałe bąble w ciągu godziny zgrubieją w płytki chitynowe, choć swędzenie doprowadzi cię do szaleństwa przed zmierzchem."""
+The Rat King's Scepter,Berło Króla Szczurów
+"""It was not made of gold or silver, but of forty-eight living rats whose tails were knotted into an intricate spiral by dried blood. When the ratman holding it pointed, the horde moved like a single wave of black fur.""","""Nie było ze złota ani srebra, lecz z czterdziestu ośmiu żywych szczurów, których ogony zasupłano zaschłą krwią w misterną spiralę. Gdy szczuroczłek, który je dzierżył, wskazywał kierunek, horda ruszała jak jedna fala czarnego futra."""
+Drainage Worker's Strike Notice,Ogłoszenie o Strajku Kanalarzy
+"""We refuse to enter Sector 9 until the management provides torches that cannot be extinguished by wet screams. Three men were dragged into the overflow pipe this week. We have our heavy iron pipe wrenches, and we know how to swing them.""","""Odmawiamy wejścia do Sektora 9, dopóki zarząd nie zapewni pochodni, których nie zgaszą mokre krzyki. W tym tygodniu trzech ludzi wciągnięto do rury przelewowej. Mamy ciężkie żelazne klucze do rur i wiemy, jak nimi machać."""
+The Smith's Soul-Pact,Pakt Dusz Kowala
+Infernal Foundry,Piekielna Odlewnia
+"""To forge metal that never dulls, one must temper the blade in the screams of an unbaptized apprentice. Master Ignis traded his four sons to the pit demons for a crucible that burns with black flame. Now he stands at the anvil day and night, hammering out collars for beasts yet unborn.""","""Aby wykuć metal, który nigdy się nie stępi, trzeba zahartować ostrze w krzykach nieochrzczonego czeladnika. Mistrz Ignis oddał demonom otchłani swych czterech synów za tygiel płonący czarnym ogniem. Teraz stoi przy kowadle dzień i noc, wykuwając obroże dla bestii, które jeszcze się nie narodziły."""
+Treatise on Basalt Smelting,Traktat o Wytopie Bazaltu
++20 Armor (Permanent),+20 Pancerza (na stałe)
+"""Common iron bends under the weight of a troll's club. True defense requires folding volcanic slag with crushed diamond dust under eight hundred blows of the steam hammer. The resulting plate is black as midnight, cold to the touch, and rejects all fire.""","""Zwykłe żelazo gnie się pod ciężarem trollowej maczugi. Prawdziwa obrona wymaga składania wulkanicznego żużlu z kruszonym pyłem diamentowym pod ośmiuset uderzeniami młota parowego. Powstała płyta jest czarna jak północ, zimna w dotyku i odpycha wszelki ogień."""
+Ode to the Living Magma,Oda do Żywej Magmy
+"""It flows like blood from the cracked belly of the mountain. It has no eyes, yet it seeks out the hollow places of the dungeon. When it cools, it traps the bones of giants in glassy amber. Respect the stone that melts, for you too are made of clay.""","""Płynie jak krew z pękniętego brzucha góry. Nie ma oczu, a jednak szuka pustych miejsc lochu. Gdy stygnie, więzi kości olbrzymów w szklistym bursztynie. Szanuj kamień, który się topi, bo i ty jesteś ulepiony z gliny."""
+Diary of an Escaped Slave,Dziennik Zbiegłego Niewolnika
+"""The taskmasters do not carry whips of leather; their whips are made of braided copper wire heated white-hot in the blast furnace. If you show weakness, they brand your back with the foundry sigil. I have crawled through the soot flues for three miles. My hair has burned away, but I can hear the cooler air above.""","""Nadzorcy nie noszą batów ze skóry; ich baty są z plecionego miedzianego drutu rozgrzanego do białości w wielkim piecu. Jeśli okażesz słabość, wypalają ci na plecach znak odlewni. Przeczołgałem się przez kanały sadzy trzy mile. Włosy mi spłonęły, ale słyszę już chłodniejsze powietrze w górze."""
+The Golem's Internal Architecture,Wewnętrzna Architektura Golema
+"""A golem of cast iron possesses no soul to bargain with, which makes it reliable. Inside its chest cavity sits a caged flame elemental driven mad by cold iron runes. Starve the fire, and the golem slows; feed it pitch and bones, and it crushes fortress gates like dry straw.""","""Golem z lanego żelaza nie ma duszy, z którą można by się targować, i dlatego jest niezawodny. W jego piersi siedzi uwięziony żywiołak ognia, doprowadzony do szaleństwa runami z zimnego żelaza. Zagłódź ogień, a golem zwolni; nakarm go smołą i kośćmi, a skruszy bramy twierdzy jak suchą słomę."""
+Vulkania's Brood Cycle,Cykl Lęgowy Vulkanii
+"""Every hundred years, the magma wyrm lays seven eggs of solid obsidian in the deepest lava trenches. The hatchlings feed upon sulfur crystals and molten zinc until their scales turn harder than forged steel. Woe to the miners who dig into their nursery.""","""Co sto lat magmowy smok składa siedem jaj z litego obsydianu w najgłębszych rowach lawy. Pisklęta żywią się kryształami siarki i roztopionym cynkiem, aż ich łuski stają się twardsze od kutej stali. Biada górnikom, którzy przekopią się do ich gniazda."""
+The Four Hammers of Ignis,Cztery Młoty Ignisa
+"""First hammer: Grief, which shapes the raw ingot. Second hammer: Wrath, which draws out the blade. Third hammer: Cruelty, which hardens the edge. Fourth hammer: Silence, which shatters the soul of the bearer when the work is complete.""","""Pierwszy młot: Żal, który kształtuje surowy wlewek. Drugi młot: Gniew, który wyciąga ostrze. Trzeci młot: Okrucieństwo, które hartuje krawędź. Czwarty młot: Cisza, która roztrzaskuje duszę nosiciela, gdy dzieło jest ukończone."""
+Cinder Sprites: A Pestilence,Żarzące Chochliki: Plaga
+"""Do not leave dry rations near the forge vents. Ash imps crawl up the flue pipes like fiery spiders, defecating hot coals into your flour barrels and giggling with voices like crackling dry pine needles. Extinguish them with sand; water only makes them steam with laughter.""","""Nie zostawiaj suchego prowiantu przy wylotach kuźni. Popielne chochliki wpełzają rurami kominowymi jak ogniste pająki, srają gorącymi węglami do beczek z mąką i chichoczą głosami jak trzaskające suche igły sosny. Gaś je piaskiem; woda sprawia tylko, że parują ze śmiechu."""
+Pyromancer's Final Formula,Ostatnia Formuła Piromanty
+"""Fire is not an element; it is an appetite. To cast the true meteor, you must not invoke arcane words—you must surrender a portion of your own warmth to the void until your fingertips turn black with frost while your palms shoot roaring flame.""","""Ogień nie jest żywiołem; jest apetytem. By rzucić prawdziwy meteor, nie wolno ci wzywać tajemnych słów - musisz oddać pustce część własnego ciepła, aż koniuszki palców sczernieją od mrozu, a z dłoni bucha ryczący płomień."""
+The Chained Titan of Forge Three,Skuty Tytan z Kuźni Trzeciej
+"""He was taller than the pillars, with a beard of rusted iron filings. They bolted his wrists to the cavern floor with links as thick as oak trunks. His breath drives the giant bellows day and night. When he sighs, earthquakes shake the kingdoms above.""","""Był wyższy niż kolumny, z brodą z zardzewiałych opiłków żelaza. Przykuli jego nadgarstki do dna jaskini ogniwami grubymi jak pnie dębów. Jego oddech napędza olbrzymie miechy dzień i noc. Gdy wzdycha, trzęsienia ziemi wstrząsają królestwami w górze."""
+Operating Manual: The Soul Crucible,Instrukcja Obsługi: Tygiel Dusz
+"""Warning: Never open the viewing latch without amber glass goggles. The light of three thousand souls vaporizing under liquid brimstone will scorch your retinas permanently. If the molten bath turns purple, add two barrels of crushed saltpeter immediately.""","""Uwaga: nigdy nie otwieraj wizjera bez gogli z bursztynowego szkła. Światło trzech tysięcy dusz parujących pod płynną siarką na zawsze wypali ci siatkówki. Jeśli roztopiona kąpiel zrobi się fioletowa, natychmiast dodaj dwie beczki kruszonej saletry."""
+Cooling Techniques for Heavy Sabatons,Metody Chłodzenia Ciężkich Trzewików
++10 Movement Speed (Permanent),+10 Szybkości ruchu (na stałe)
+"""When marching across magma crusts, line your boots with three layers of wool soaked in rendered lard and powdered talc. The fat will sizzle and smoke, but your soles will remain blister-free long enough to cross the slag lake.""","""Maszerując po skorupie magmy, wyłóż buty trzema warstwami wełny nasączonej wytopionym smalcem i sproszkowanym talkiem. Tłuszcz będzie skwierczał i dymił, lecz podeszwy pozostaną bez pęcherzy dość długo, by przejść przez jezioro żużlu."""
+The Iron Taskmaster's Brand,Piętno Żelaznego Nadzorcy
+"""The mark stamped upon the forehead of the foundry slaves is shaped like a cracked anvil. It burns with phantom heat whenever the master strikes his great hammer five miles away, reminding them that escape is an illusion.""","""Znak odciśnięty na czołach niewolników odlewni ma kształt pękniętego kowadła. Płonie fantomowym żarem za każdym razem, gdy mistrz uderza swym wielkim młotem pięć mil dalej, przypominając im, że ucieczka to złudzenie."""
+The Slag Trench Mass Grave,Masowy Grób w Rowie Żużlu
+"""When the slaves die of heat exhaustion, their bodies are thrown directly into the slag runoff. Their bones burn away, but their teeth survive, floating like white pearls upon the glowing crimson surface of the waste channels.""","""Gdy niewolnicy umierają z wyczerpania żarem, ich ciała wrzuca się prosto do spływu żużlu. Kości się wypalają, lecz zęby przetrwają, unosząc się jak białe perły na żarzącej się szkarłatnej powierzchni kanałów odpadowych."""
+Hymn to the Black Anvil,Hymn do Czarnego Kowadła
+"""Strike while the iron is pale! / Strike till the shadows quail! / The hammer does not weep for the ore, / The anvil remembers the blood on the floor. / Shatter the brittle, temper the keen, / For death is the sharpest tool ever seen.""","""Bij, póki żelazo blade! / Bij, aż cienie padną w zwadę! / Młot nie płacze nad rudą ni chwilę, / Kowadło pamięta krew na posadzce w pyle. / Kruche roztrzaskaj, ostre zahartuj, / Bo śmierć to najostrzejsze z narzędzi, co czuje."""
+The Brimstone Hound's Muzzle,Kaganiec Siarczanego Ogara
+"""Iron muzzles for hell hounds must be forged without seams. If the beast's saliva touches raw lead, it dissolves into green smoke. Feed them scrap iron dipped in pig blood to keep their teeth sharp and their temper ferocious.""","""Żelazne kagańce dla piekielnych ogarów trzeba kuć bez szwów. Jeśli ślina bestii dotknie surowego ołowiu, rozpuszcza się w zielony dym. Karm je złomem maczanym w świńskiej krwi, by zęby miały ostre, a temperament dziki."""
+Lava Bridge Maintenance Protocol,Protokół Konserwacji Mostu nad Lawą
+"""Inspect the iron turnbuckles every dawn. The heat causes the chains to stretch three inches each month. If a chain snaps while a supply cart is on the bridge, do not reach for the driver—jump for the southern ledge and commend your soul to the stone.""","""Sprawdzaj żelazne napinacze co świt. Od żaru łańcuchy wydłużają się o trzy cale co miesiąc. Jeśli łańcuch pęknie, gdy wóz z zaopatrzeniem jest na moście, nie sięgaj po woźnicę - skacz na południową półkę skalną i polecaj duszę kamieniowi."""
+The Obsidian Heart,Obsydianowe Serce
+"""A warrior who swallows a fragment of polished volcanic glass will feel his blood boil for seven days. If his heart does not burst from the pressure, his muscles will harden like cooled basalt, capable of deflecting blows that would fell an ox.""","""Wojownik, który połknie odłamek polerowanego szkła wulkanicznego, poczuje, jak krew wrze mu przez siedem dni. Jeśli serce nie pęknie mu od ciśnienia, mięśnie stwardnieją jak ostygły bazalt, zdolne odbić ciosy, które powaliłyby wołu."""
+The Smelter's Cough,Kaszel Wytapiacza
+"""After ten years in the lower foundry, a man does not cough phlegm; he coughs black soot and glittering iron dust. When he dies, his lungs do not rot—they are sold to the blacksmiths as high-grade polishing sponges.""","""Po dziesięciu latach w dolnej odlewni człowiek nie wykasłuje flegmy; wykasłuje czarną sadzę i błyszczący pył żelaza. Gdy umiera, jego płuca nie gniją - sprzedaje się je kowalom jako najlepsze gąbki do polerowania."""
+Farewell Letter from Foreman Dirk,List Pożegnalny Brygadzisty Dirka
+"""The magma rose two feet higher during the night shift. The sluice gates are warped shut. Ignis refuses to blow the blast vents because it would ruin the temper on his giant sword. Tell my wife I left the silver under the hearthstone. The heat is coming through the floorboards now.""","""Na nocnej zmianie magma podniosła się o dwie stopy. Wrota śluz wypaczyły się i nie dają się otworzyć. Ignis nie chce przedmuchać otworów wentylacyjnych, bo zepsułoby to hartowanie jego olbrzymiego miecza. Powiedzcie mojej żonie, że zostawiłem srebro pod kamieniem paleniska. Żar przechodzi już przez deski podłogi."""
+The Astrologer's Madness,Szaleństwo Astrologa
+The Shrouded Archives,Spowite Archiwa
+"""The stars on the ceiling of the crypt are not dead stones. They are eyes. Billions of unblinking pupils that pulse in synchrony with our heartbeat. Yesterday, one of them blinked back at me. I wrote down its coordinates in blood from my nose. Now I can hear it scratching at the ceiling tiles above my bed.""","""Gwiazdy na sklepieniu krypty nie są martwymi kamieniami. Są oczami. Miliardy niemrugających źrenic, które pulsują w rytm naszego serca. Wczoraj jedna z nich mrugnęła do mnie. Zapisałem jej współrzędne krwią z nosa. Teraz słyszę, jak drapie w płyty sufitu nad moim łóżkiem."""
+Principles of Astral Mirroring,Zasady Astralnego Odbicia
+"""An astral mirror reflects not what is, but what ought to be. When an enemy casts a projectile through your mirrored ward, they are striking at their own future corpse. The spell merely fulfills the timeline by returning to its origin with doubled velocity.""","""Astralne lustro odbija nie to, co jest, lecz to, co być powinno. Gdy wróg ciska pocisk przez twą lustrzaną osłonę, uderza we własne przyszłe zwłoki. Czar jedynie dopełnia biegu czasu, wracając do źródła z podwójną prędkością."""
+The Anatomy of a Mimic,Anatomia Mimika
+"""A book mimic does not use teeth of bone; its pages are sharpened vellum coated in a fast-acting paralytic enzyme. When you reach to turn the page, the book snaps shut, severing your fingers and absorbing your ink and blood directly into its marginalia.""","""Mimik-księga nie używa zębów z kości; jego stronice to zaostrzony welin pokryty szybko działającym paraliżującym enzymem. Gdy sięgasz, by przewrócić kartę, księga zatrzaskuje się, odcinając ci palce i wchłaniając twój atrament i krew wprost w swe marginalia."""
+Chronos and the Stolen Seconds,Chronos i Skradzione Sekundy
+"""Where do the seconds go when an hourglass runs empty? Chronos collects them in crystal phials. He drinks the childhood of kings and the final moments of dying soldiers like vintage wine. In his library, yesterday is tomorrow, and your grave is already open.""","""Dokąd idą sekundy, gdy klepsydra się opróżni? Chronos zbiera je w kryształowych fiolkach. Pije dzieciństwo królów i ostatnie chwile umierających żołnierzy jak stare wino. W jego bibliotece wczoraj jest jutrem, a twój grób jest już otwarty."""
+The Scribe's Bleeding Hands,Krwawiące Dłonie Skryby
+"""I have copied the Grand Grimoire forty times. Each time, the letters shift when the ink dries. Words of praise become instructions for human sacrifice; recipes for bread turn into rituals for summoning insect swarms. The ink has its own will, and it hates the white paper.""","""Przepisałem Wielki Grimoire czterdzieści razy. Za każdym razem litery przesuwają się, gdy atrament wysycha. Słowa chwały stają się instrukcjami ludzkiej ofiary; przepisy na chleb zmieniają się w rytuały przywoływania rojów owadów. Atrament ma własną wolę i nienawidzi białego papieru."""
+Void Displacement Theory,Teoria Przemieszczenia w Pustce
+"""Space is not a solid canvas; it is a loosely woven carpet full of holes. To evade an oncoming spear, one need not leap aside. One need only step into the threadbare gap between seconds and re-emerge two paces behind the thrust.""","""Przestrzeń nie jest litym płótnem; to luźno tkany dywan pełen dziur. By uniknąć nadlatującej włóczni, nie trzeba odskakiwać w bok. Wystarczy wejść w wytartą szczelinę między sekundami i wyłonić się dwa kroki za pchnięciem."""
+Catalogue of Forbidden Shelves,Katalog Zakazanych Półek
+"""Shelf 44-B: Do not read aloud, or your tongue will split like a serpent's. Shelf 44-C: Contains books bound in the skin of drowned babies; handles with silver tongs only. Shelf 44-D: Empty, yet weighs three hundred pounds. The air around it smells of ozone and dead carnations.""","""Półka 44-B: Nie czytać na głos, bo język rozszczepi się jak u węża. Półka 44-C: Zawiera księgi oprawione w skórę utopionych niemowląt; dotykać tylko srebrnymi szczypcami. Półka 44-D: Pusta, a jednak waży trzysta funtów. Powietrze wokół pachnie ozonem i martwymi goździkami."""
+The Gargoyle's Vigil,Czuwanie Gargulca
+"""They are not stone carved by human hands. They are wizards who cast a silence ward so powerful it froze their own blood into granite. Now they sit upon the library rafters, waiting for someone to chant a spell so they may dive down and shatter the blasphemy.""","""To nie kamień rzeźbiony ludzką ręką. To czarodzieje, którzy rzucili osłonę ciszy tak potężną, że ich własna krew zamarzła w granit. Teraz siedzą na krokwiach biblioteki, czekając, aż ktoś zaintonuje zaklęcie, by spaść w dół i roztrzaskać bluźnierstwo."""
+The Living Inscription,Żywa Inskrypcja
+"""Read the words upon the marble archway backward while holding a black candle in your left palm. The letters will crawl off the stone and burrow beneath your fingernails, leaving permanent blue runes that channel the ambient mana of the dungeon.""","""Przeczytaj słowa na marmurowym łuku od tyłu, trzymając czarną świecę w lewej dłoni. Litery zejdą z kamienia i wgryzą się pod twoje paznokcie, zostawiając trwałe niebieskie runy, które przewodzą manę unoszącą się w lochu."""
+Malazar's Golden Mask,Złota Maska Malazara
+"""Behind the polished silver mask of Grand Archivist Malazar, there is no face. There is only a swirling vortex of shredded manuscript scraps fluttering in a perpetual draft. When he speaks, it sounds like thousands of dry pages turning in an abandoned house.""","""Za wypolerowaną srebrną maską Wielkiego Archiwisty Malazara nie ma twarzy. Jest tylko wirujący lej strzępów rękopisów, trzepoczących w wiecznym przeciągu. Gdy mówi, brzmi to jak tysiące suchych stronic przewracanych w opuszczonym domu."""
+The Tome of Endless Hallways,Księga Niekończących się Korytarzy
+"""I opened page 14 and stepped through the margin. I have walked for three days between two lines of text. The sentences are walls of solid basalt fifty cubits high. The punctuation marks are pits of bubbling tar. I cannot find the back cover.""","""Otworzyłem stronę 14 i przeszedłem przez margines. Od trzech dni idę między dwiema linijkami tekstu. Zdania to mury z litego bazaltu wysokie na pięćdziesiąt łokci. Znaki przestankowe to doły bulgoczącej smoły. Nie mogę znaleźć tylnej okładki."""
+The Memory Eater's Appetite,Apetyt Pożeracza Wspomnień
+"""First, it takes your mother's name. You do not notice the loss; you simply feel a mild breeze pass through your skull. Next, it takes the memory of fire, so when your hand burns on the brazier, you only stare in wonder at the smell of roasting meat. Finally, it takes your name.""","""Najpierw zabiera imię twojej matki. Nie zauważasz straty; czujesz tylko łagodny powiew przechodzący przez czaszkę. Potem zabiera wspomnienie ognia, więc gdy dłoń płonie ci na koksowniku, tylko patrzysz z zachwytem na zapach pieczonego mięsa. W końcu zabiera twoje imię."""
+Runic Script of the Nethermancers,Runiczne Pismo Nekromagów
+"""The glyph of destruction must be inscribed with a diamond stylus dipped in viper venom. When drawn with absolute geometric symmetry, it vibrates at a frequency that fractures the crystalline lattice of enemy shields.""","""Glif zniszczenia trzeba wyryć diamentowym rylcem maczanym w jadzie żmii. Narysowany z absolutną symetrią geometryczną drga z częstotliwością, która kruszy krystaliczną sieć wrogich tarcz."""
+A Warning to Curious Scholars,Ostrzeżenie dla Ciekawskich Uczonych
+"""If you hear weeping from inside a hollow volume, do not pry open the clasp. It is the unfinished draft of a dead poet who realized that beauty cannot save him from the worms. His grief is contagious; three scholars have hanged themselves from the spiral staircase after reading his second sonnet.""","""Jeśli słyszysz płacz z wnętrza pustego tomu, nie podważaj zapięcia. To niedokończony szkic martwego poety, który pojął, że piękno nie ocali go przed robakami. Jego żal jest zaraźliwy; trzech uczonych powiesiło się na kręconych schodach po przeczytaniu jego drugiego sonetu."""
+The Astrolabe of Broken Constellations,Astrolabium Strzaskanych Gwiazdozbiorów
+"""The brass rings do not track the sun or moon. They track the slow convergence of seven outer terrors whose bodies are larger than whole solar systems. The smallest ring just clicked into place. We have less time than the church claims.""","""Mosiężne pierścienie nie śledzą słońca ani księżyca. Śledzą powolne zbliżanie się siedmiu zewnętrznych grozy, których ciała są większe niż całe układy słoneczne. Najmniejszy pierścień właśnie wskoczył na miejsce. Mamy mniej czasu, niż twierdzi Kościół."""
+Discipline of the Mind Bastion,Dyscyplina Bastionu Umysłu
+"""When confronted by psychic horrors, visualize your consciousness as a granite fortress with narrow arrow slits and iron portcullises. Let the alien thoughts break against the stone like winter waves against a cliffside.""","""W starciu z grozą psychiczną wyobraź sobie świadomość jako granitową twierdzę z wąskimi strzelnicami i żelaznymi broną. Niech obce myśli rozbijają się o kamień jak zimowe fale o urwisko."""
+The Ink Horror's Lifecycle,Cykl Życia Atramentowej Grozy
+"""When ten thousand lies are written in the dark, the ink upon the parchment gains sentience. It drips from the books like black honey, gathering into puddles that crawl across the marble. It seeks out open mouths, eager to drown the living in ancient falsehoods.""","""Gdy w ciemności spisze się dziesięć tysięcy kłamstw, atrament na pergaminie zyskuje świadomość. Kapie z ksiąg jak czarny miód, zbierając się w kałuże, które pełzną po marmurze. Szuka otwartych ust, chętny utopić żywych w pradawnych fałszach."""
+The Echo of the Unwritten,Echo Nienapisanego
+"""You will meet yourself in the eastern reading room. He will be holding your weapons and wearing your face, but his eyes will be blank white paper. He knows every strike you have practiced since childhood, for he was born of your self-doubt.""","""Spotkasz samego siebie we wschodniej czytelni. Będzie trzymał twoją broń i nosił twoją twarz, ale jego oczy będą z czystego białego papieru. Zna każdy cios, który ćwiczyłeś od dzieciństwa, bo zrodził się z twego zwątpienia w siebie."""
+Preservation of Arcane Vellum,Konserwacja Tajemnego Welinu
+"""Rub the leather covers with cedar oil and ground dragon scales to protect against moisture and rot. Armor treated with this concoction turns glossy as beetle wings and shrugs off corrosive arcane acid.""","""Nacieraj skórzane okładki olejkiem cedrowym i mielonymi łuskami smoka, by chronić je przed wilgocią i zgnilizną. Zbroja potraktowana tą miksturą lśni jak skrzydła chrząszcza i strząsa z siebie żrący tajemny kwas."""
+The Last Entry in the Grand Index,Ostatni Wpis w Wielkim Indeksie
+"""Book #999,999: Title: The Reader. Synopsis: A miserable fool standing in the dark with a lantern, reading about his own doom while the creature behind him silently raises its claws. (Do not turn around).""","""Księga nr 999 999: Tytuł: Czytelnik. Streszczenie: Żałosny głupiec stojący w ciemności z latarnią, czytający o własnej zgubie, podczas gdy stwór za nim bezgłośnie unosi szpony. (Nie odwracaj się)."""
+The Blood-Tree's Thirst,Pragnienie Krwawego Drzewa
+The Blighted Kurgan,Zarażony Kurhan
+"""The weeping oaks of the Kurgan do not drink rain. Their roots reach deep into the mass graves of the third heresy, drawing up gallons of clotted blood to nourish their swollen black acorns. If you carve into their bark, they bleed warm crimson sap that smells of iron and fever.""","""Płaczące dęby Kurhanu nie piją deszczu. Ich korzenie sięgają głęboko w masowe groby trzeciej herezji, wysysając galony skrzepłej krwi, by karmić swe nabrzmiałe czarne żołędzie. Jeśli natniesz ich korę, krwawią ciepłym szkarłatnym sokiem, który pachnie żelazem i gorączką."""
+Hymn to the Antlered Lord,Hymn do Rogatego Pana
+"""He who runs with the stag must shed his human skin! / The forest demands bone for bone, blood for leaf. / Strike with the fury of the rutting elk; / Let your horns tear the sky and your hooves crush the weak into soft loam.""","""Kto biegnie z jeleniem, musi zrzucić ludzką skórę! / Las żąda kości za kość, krwi za liść. / Uderzaj z furią łosia w rui; / Niech twe rogi rozedrą niebo, a kopyta zetrą słabych na miękki ił."""
+Lady Isolde's Wedding Gift,Prezent Ślubny Lady Isolde
+"""Her husband gave her a pearl necklace with twelve matching gems. On their wedding night, she discovered the pearls were the dried eggs of subterranean corpse-spiders. By morning, the eggs had hatched into her throat. Now she sings with eight voices from within her silk bower.""","""Mąż podarował jej perłowy naszyjnik z dwunastoma dobranymi klejnotami. W noc poślubną odkryła, że perły to zasuszone jaja podziemnych pająków trupojadów. Do rana jaja wykluły się w jej gardle. Teraz śpiewa ośmioma głosami ze swej jedwabnej altany."""
+The Bramble's Snare,Sidła Jeżyn
+"""The thorns of the blighted forest have backwards-facing barbs like fishing hooks. When caught in a snare, struggling only drives the barbs deeper into muscle tissue. Breathe slowly, flex the limb in the direction of the vine's curve, and slide free like an eel through marsh grass.""","""Ciernie zarażonego lasu mają zadziory skierowane do tyłu, jak haczyki na ryby. Kto wpadnie w sidła, ten szamotaniem tylko wbija zadziory głębiej w mięśnie. Oddychaj powoli, zginaj kończynę zgodnie z krzywizną pnącza i wyślizgnij się jak węgorz przez bagienną trawę."""
+The Barrow Hag's Stew,Gulasz Kurhanowej Wiedźmy
+"""Throw in three hemlock roots dug by midnight, the gall bladder of a black bear, and the wedding band of an unfaithful widow. Simmer over peat smoke until the grease forms faces upon the surface. Drink it, and you will see the ghosts of everyone you have ever wronged, pointing and laughing.""","""Wrzuć trzy korzenie szaleju wykopane o północy, woreczek żółciowy czarnego niedźwiedzia i obrączkę niewiernej wdowy. Duś na torfowym dymie, aż tłuszcz ułoży się w twarze na powierzchni. Wypij, a ujrzysz duchy wszystkich, których kiedykolwiek skrzywdziłeś, jak wskazują cię palcami i się śmieją."""
+Anatomy of the Rotwood Treant,Anatomia Zgniłodrzewca
+"""It is not wood, but calcified bone and petrified fungi woven into the shape of a tree. Its heartwood contains a screaming corpse encased in resin sixty years ago. To kill it, do not bring fire—it will only become a walking conflagration. Bring axes of cold iron and sever the taproot.""","""To nie drewno, lecz zwapniała kość i skamieniałe grzyby splecione w kształt drzewa. W jego twardzieli tkwi krzyczący trup zatopiony w żywicy sześćdziesiąt lat temu. By go zabić, nie przynoś ognia - stanie się tylko chodzącą pożogą. Przynieś topory z zimnego żelaza i przetnij korzeń palowy."""
+The Crimson Dolmen,Szkarłatny Dolmen
+"""The ancient megaliths were dragged from the mountains before men learned to forge iron. Lie naked upon the central stone during the eclipse, allowing the cold stone to leech the weakness from your spine. You will rise with bones like black oak.""","""Pradawne megality przywleczono z gór, zanim ludzie nauczyli się kuć żelazo. Połóż się nago na środkowym kamieniu podczas zaćmienia, pozwalając zimnemu kamieniowi wyssać słabość z twego kręgosłupa. Wstaniesz z kośćmi jak czarny dąb."""
+The Screaming Larvae,Krzyczące Larwy
+"""They hatch in the puddles of stagnant blood left after battle. Smaller than a thumb, with faces resembling distorted infants. They screech when stepped upon, and their screech draws every bloodhound within three miles. Crush them with your heel and do not look back.""","""Wykluwają się w kałużach zastałej krwi, które zostają po bitwie. Mniejsze niż kciuk, z twarzami jak zniekształcone niemowlęta. Piszczą, gdy się na nie nadepnie, a ich pisk ściąga każdego krwawego ogara w promieniu trzech mil. Zmiażdż je obcasem i nie oglądaj się za siebie."""
+Diary of a Lost Woodsman,Dziennik Zaginionego Drwala
+"""The trees moved while I slept. I left my blazing axe marks on the trunk of the weeping ash, but when I woke, the marks were gone and the branches had woven themselves into an arch above my bedroll. The ground is breathing beneath my boots.""","""Drzewa poruszyły się, gdy spałem. Zostawiłem wyraźne nacięcia siekierą na pniu płaczącego jesionu, ale gdy się obudziłem, znaków nie było, a gałęzie splotły się w łuk nad moim posłaniem. Ziemia oddycha pod moimi butami."""
+The Cannibal's Covenant,Przymierze Kanibala
+"""The marrow of the beast gives strength to the arm, but the marrow of your fellow warrior gives cunning to the mind. Wash your hands in the cold brook, slice thin along the rib, and remember that survival is the only morality recognized by the wolves.""","""Szpik bestii daje siłę ramieniu, lecz szpik twego towarzysza broni daje przebiegłość umysłowi. Umyj ręce w zimnym strumieniu, krój cienko wzdłuż żebra i pamiętaj, że przetrwanie to jedyna moralność, jaką uznają wilki."""
+The Will-o'-the-Blight's Dance,Taniec Zarazognika
+"""Do not follow the pale blue flame through the peat moss. It is not the lantern of a lost traveler; it is the burning methane of three hundred corpses decomposing beneath the sod. Step where the light leads, and the ground will open its wet mouth to swallow you whole.""","""Nie podążaj za bladym niebieskim płomieniem przez torfowisko. To nie latarnia zagubionego wędrowca; to płonący metan trzystu trupów rozkładających się pod darnią. Stąp tam, dokąd prowadzi światło, a ziemia otworzy mokrą paszczę, by połknąć cię w całości."""
+The Stag Skull Helmet,Hełm z Czaszki Jelenia
+"""Carved from an eight-point elk that drowned in the blood well. The bone has absorbed the iron of a hundred sacrifices. Wear it, and the trees will bow as you pass, but you will never taste cooked meat again—your mouth will water only for bitter moss and salt licks.""","""Wyrzeźbiony z ośmiorogiego łosia, który utonął w studni krwi. Kość wchłonęła żelazo setki ofiar. Załóż go, a drzewa będą się kłaniać, gdy przechodzisz, lecz nigdy już nie posmakujesz gotowanego mięsa - ślinka będzie ci ciekła tylko na gorzki mech i lizawki solne."""
+Curse of the Withered Crop,Klątwa Zwiędłych Plonów
+"""The wheat in the border valley grew tall and golden, but when the farmers ground the kernels between stones, black blood oozed from the flour. The bread smelled of burnt tallow. Those who ate of it gave birth to children with hands like thorn branches.""","""Pszenica w pogranicznej dolinie wyrosła wysoka i złota, lecz gdy chłopi mielili ziarno między kamieniami, z mąki sączyła się czarna krew. Chleb pachniał przypalonym łojem. Ci, którzy go jedli, rodzili dzieci o dłoniach jak cierniste gałęzie."""
+Secrets of the Barrow Snipers,Sekrety Kurhanowych Strzelców
+"""A bone javelin must be carved from the tibia of a predator and feathered with crow quills dipped in adder poison. Release the string upon the exhalation, aiming for the hollow behind the collarbone where the heart-vessel thrums.""","""Kościany oszczep trzeba wyrzeźbić z piszczeli drapieżnika i opierzyć piórami wrony maczanymi w jadzie żmii. Puszczaj cięciwę przy wydechu, celując w dołek za obojczykiem, gdzie pulsuje naczynie serca."""
+The Weeping Dolmen of Karr,Płaczący Dolmen z Karr
+"""Every winter solstice, the standing stone of Karr sheds clear tears that smell of lilacs. If caught in a crystal vial, the water heals blindness, but causes the patient to see the world as a decaying charnel house crawling with transparent worms.""","""W każde przesilenie zimowe menhir z Karr roni czyste łzy, które pachną bzem. Złapana w kryształową fiolkę woda leczy ślepotę, lecz sprawia, że chory widzi świat jako rozkładającą się kostnicę pełną przezroczystych robaków."""
+The Spider-Silk Shroud,Całun z Pajęczego Jedwabiu
+"""Lady Isolde's maids spin thread not from flax, but from the silk glands of subterranean widow-beasts. The resulting fabric is lighter than breath and stronger than iron wire. A shirt woven of this silk will turn a sword thrust, but slowly burrow into your ribs like living wires.""","""Dworki Lady Isolde przędą nić nie z lnu, lecz z gruczołów przędnych podziemnych bestii-wdów. Powstała tkanina jest lżejsza od oddechu i mocniejsza od żelaznego drutu. Koszula utkana z tego jedwabiu zatrzyma pchnięcie miecza, lecz powoli wgryzie się w twoje żebra jak żywe druty."""
+The Graverobber's Stake,Kołek Rabusia Grobów
+"""When digging into an ancient kurgan mound, drive an ash-wood stake through the turf before striking with the shovel. If the stake bleeds, fill the hole immediately and run. The chieftain inside has not finished rotting.""","""Kopiąc w pradawnym kurhanie, wbij jesionowy kołek w darń, zanim uderzysz łopatą. Jeśli kołek krwawi, natychmiast zasyp dół i uciekaj. Wódz w środku jeszcze nie skończył gnić."""
+The Totem of Living Bone,Totem z Żywej Kości
+"""Splice the jawbones of wolves into the rib cages of bears, binding them with copper wire and wet sinew. Stand the totem at the threshold of your camp. The spirits of the wild will recognize the sovereign geometry of predation and turn away.""","""Wszczep szczęki wilków w klatki piersiowe niedźwiedzi, wiążąc je miedzianym drutem i mokrym ścięgnem. Postaw totem na progu obozu. Duchy dziczy rozpoznają suwerenną geometrię drapieżnictwa i odejdą."""
+Lament of the Blighted Queen,Lament Zarażonej Królowej
+"""I had castles of white limestone and gardens of pale roses. Now I have only roots that crawl through my eye sockets and spiders that whisper of treason in the dark. Come closer, sweet champion. Let me wrap you in my cold, sticky embrace.""","""Miałam zamki z białego wapienia i ogrody bladych róż. Teraz mam tylko korzenie, które pełzną przez moje oczodoły, i pająki, które szepczą w ciemności o zdradzie. Podejdź bliżej, słodki czempionie. Pozwól mi otulić cię moim zimnym, lepkim uściskiem."""
+The Final Hunt,Ostatnie Łowy
+"""When the horn of Cernunnos blows through the midnight forest, every beast lays its ears flat and trembles in its den. The quarry of the wild hunt is never the deer or the boar; it is the last scrap of human mercy left in the heart of the wanderer.""","""Gdy róg Cernunnosa zagrzmi w północnym lesie, każda bestia kładzie uszy po sobie i drży w swej norze. Zwierzyną dzikiego gonu nigdy nie jest jeleń ani dzik; jest nią ostatni strzęp ludzkiej litości w sercu wędrowca."""
+Genesis of the Hollow Sovereign,Geneza Pustego Władcy
+Ancient Lore,Pradawna Wiedza
+"""Before the five dungeons were partitioned, there stood a single empire whose towers pierced the clouds. But its emperor feared the silent rot of age. He dug into the primeval mantle, unearthing the Five Seals of the Void. In breaking them, he divided his kingdom into five eternal prisons, crowning himself ruler of nothingness.""","""Zanim podzielono pięć lochów, stało jedno imperium, którego wieże przebijały chmury. Lecz jego cesarz bał się cichej zgnilizny starości. Wkopał się w pierwotny płaszcz ziemi i wydobył Pięć Pieczęci Pustki. Łamiąc je, podzielił swe królestwo na pięć wiecznych więzień, koronując się na władcę nicości."""
+The Merchant's Secret Ledger,Tajna Księga Kupca
+"""Archibald and Malphas are not two distinct souls; they are the left and right hands of the same ancient collector. Archibald takes the gilded toys of your vanity; Malphas takes the vital essence of your beating heart. Both smile as you walk toward the boss chamber, knowing you will not return.""","""Archibald i Malphas nie są dwiema odrębnymi duszami; to lewa i prawa ręka tego samego pradawnego kolekcjonera. Archibald zabiera pozłacane zabawki twej próżności; Malphas zabiera życiową esencję twego bijącego serca. Obaj się uśmiechają, gdy idziesz ku komnacie bossa, wiedząc, że nie wrócisz."""
+The Mystery of the Gilded Keys,Tajemnica Złotych Kluczy
+"""Why does the golden key appear on only half the floors? It is not chance. The key is drawn to the smell of despair. It manifests only when a soul in the party has contemplated abandoning their companions. The key does not unlock salvation; it unlocks an opportunity to spend your gold before you die.""","""Czemu złoty klucz pojawia się tylko na połowie pięter? To nie przypadek. Klucz przyciąga zapach rozpaczy. Zjawia się tylko wtedy, gdy któraś dusza w drużynie rozważała porzucenie towarzyszy. Klucz nie otwiera zbawienia; otwiera okazję, by wydać złoto, zanim umrzesz."""
+The Five Seals of the Chasm,Pięć Pieczęci Otchłani
+"+10 Max Health, +10 Max Mana (Permanent)","+10 Maks. zdrowia, +10 Maks. many (na stałe)"
+"""Study the geometry of the five dungeon levels: The Crypt of Bone, the Sewers of Rot, the Foundry of Slag, the Archives of Ink, and the Kurgan of Blood. They are not random caverns. They are the five internal organs of a dead god, suspended in eternal putrefaction beneath the surface of the world.""","""Zbadaj geometrię pięciu poziomów lochu: Kryptę Kości, Kanały Zgnilizny, Odlewnię Żużlu, Archiwa Atramentu i Kurhan Krwi. To nie są przypadkowe jaskinie. To pięć narządów wewnętrznych martwego boga, zawieszonych w wiecznym gniciu pod powierzchnią świata."""
+Tome of Forbidden Apotheosis,Księga Zakazanej Apoteozy
+Transcendent Mystery,Transcendentna Tajemnica
++1 Skill Point & +5 Stat Points (Permanent Free Allocation),"+1 punkt umiejętności i +5 punktów cech (na stałe, do wolnego rozdania)"
+"""Before the dawn of light and shadow, there was only the Unshaped Will. Gaze into this abyssal vellum, mortal, and take the chisel of creation into your trembling hands. Rewrite the fundamental architecture of your soul. Distribute five drops of divine potency among your faculties, and unlock the secret art of your chosen lineage. No deity has the courage to stay your hand.""","""Przed świtem światła i cienia była tylko Nieukształtowana Wola. Spójrz w ten otchłanny welin, śmiertelniku, i weź dłuto stworzenia w swe drżące ręce. Przepisz podstawową architekturę swej duszy. Rozdziel pięć kropli boskiej mocy między swe zdolności i odblokuj tajną sztukę wybranego rodu. Żadne bóstwo nie ma odwagi powstrzymać twej ręki."""
+Wall of Fire,Ściana Ognia
+Living Thorns,Żywe Ciernie
+Wooden Stakes,Drewniane Pale
+Icy Trail,Lodowy Szlak
+Iron Ingot,Żelazna Sztaba
+Bone Spears,Kościane Włócznie
+Magma Fissure,Szczelina Magmy
+Creeping Briar,Pełzające Jeżyny
+Arcane Prism,Tajemny Pryzmat
+Fallen Sarcophagus Lid,Zrzucone Wieko Sarkofagu
+Table,Stół
+Chair,Krzesło
+Crate,Skrzynia
+Barrel,Beczka
+Explosive Barrel,Wybuchowa beczka
+Pillar,Kolumna
+Elite Altar,Elitarny Ołtarz
+Secret Sarcophagus,Tajny Sarkofag
+Bookshelf,Regał
+Sarcophagus,Sarkofag
+Grave Urn,Urna Grobowa
+Rotted Banner,Zbutwiały Sztandar
+Bone Pile,Stos Kości
+Crusader Remains,Szczątki Krzyżowca
+Consecrated Shrine,Poświęcona Kapliczka
+Drainage Pipe,Rura Odpływowa
+Fungal Bloom,Kwiat Grzyba
+Vermin Carcass,Truchło Robactwa
+Sludge Barrel,Beczka Szlamu
+Corpse-Gas Pocket,Kieszeń Trupiego Gazu
+Sewer Strongbox,Kasetka z Kanałów
+Rusty Lever,Zardzewiała Dźwignia
+Exhaust Valve,Zawór Wydechowy
+Raised Platform,Podniesiona Platforma
+Anvil,Kowadło
+Slag Heap,Hałda Żużlu
+Hanging Chains,Wiszące Łańcuchy
+Blast Furnace,Wielki Piec
+Boiling Cauldron,Wrzący Kocioł
+Ore Cart,Wózek z Rudą
+Slag Safe,Sejf z Żużlu
+Lectern,Pulpit
+Spectral Candles,Widmowe Świece
+Arcane Lantern,Tajemna Latarnia
+Shattered Astral Mirror,Strzaskane Astralne Lustro
+Reading Table,Stół do Czytania
+Celestial Orrery,Niebiańskie Planetarium
+Locked Lectern,Zamknięty Pulpit
+Authorial Seal,Pieczęć Autora
+Temporal Prism,Pryzmat Czasu
+Petrified Tree,Skamieniałe Drzewo
+Thorn Bush,Krzew Cierni
+Weeping Root,Płaczący Korzeń
+Bone Cairn,Kościany Kopiec
+Stone Dolmen,Kamienny Dolmen
+Dread Totem,Totem Grozy
+Barrow Coffer,Kufer z Kurhanu
+Poison,Trucizna
+Burning,Płonięcie
+Bleeding,Krwawienie
+Shadow Rot,Zgnilizna Cienia
+Holy Fire,Święty Ogień
+Frostbite,Odmrożenie
+Disease,Choroba
+Slowed,Spowolniony
+Chilled,Wychłodzony
+Rooted,Unieruchomiony
+Frozen,Zamrożony
+Stunned,Ogłuszony
+Knocked Down,Powalony
+Incapacitated,Obezwładniony
+Blinded,Oślepiony
+Feared,Przerażony
+Disoriented,Zdezorientowany
+Asleep,Uśpiony
+Shackled,Skuty
+Paralyzing Venom,Paraliżujący Jad
+Inverted,Odwrócony
+Invert Move,Odwrócony ruch
+Ink,Atrament
+Ink Obscure,Atramentowa mgła
+Latched,Przyssany
+Cannot Sprint,Bez sprintu
+Armor Shred,Rozdarty Pancerz
+Corroded,Skorodowany
+Sundered,Rozłupany
+Acid,Kwas
+Grievous Wound,Ciężka Rana
+Blighted Taint,Zaraźliwa Skaza
+Heat,Żar
+Weakened,Osłabiony
+Blurred Sight,Zamglony Wzrok
+Eroded Wards,Zatarte Osłony
+Fortified,Umocniony
+Battle Cry,Okrzyk Bojowy
+Holy Shield,Święta Tarcza
+Renew,Odnowa
+Regeneration,Regeneracja
+Well Fed,Najedzony
+Enraged,Rozwścieczony
+Dark Pact,Mroczny Pakt
+Focus,Skupienie
+Unstoppable,Niepowstrzymany
+Cc Immune,Odporność na kontrolę
+Knockback Immune,Odporność na odrzut
+Steadfast,Niezłomny
+Invulnerable,Nietykalny
+Untargetable,Poza zasięgiem
+Shadow Meld,Wtopienie w Cień
+Stealthed,Ukryty
+Revealed,Odsłonięty
+Undying,Nieumierający
+Damage Floor,Raniąca podłoga
+Locked Out,Zablokowany
+Sure-footed,Pewny Krok
+Trap Immune,Odporność na pułapki
+Forbidden Inversion,Zakazana Inwersja
+Heal Inverted,Odwrócone leczenie
+Gore (test),Rozpruwanie (test)
+Bomb (test),Bomba (test)
+No Crits (test),Bez krytyków (test)
+Mana Shield (test),Tarcza Many (test)
+Thorns (test),Ciernie (test)
+Static (test),Ładunek (test)
+Colossus Draught,Wywar Kolosa
+Butcher's Distillate,Destylat Rzeźnika
+Void-Eye Tincture,Nalewka Oka Pustki
+Astral Nectar,Astralny Nektar
+Phantasmal Phial,Fiolka Widm
+Hellfire Ichor,Piekielna Posoka
+Serum of Damnation,Serum Potępienia
+Liquid Magma Flask,Flaszka Płynnej Magmy
+Unholy Leech Oil,Bezbożny Olej Pijawki
+Party Leech,Wysysanie drużyny
+Barrow Thorns Brew,Napar z Kurhanowych Cierni
+Whirlwind,Wir
+Movement Immune,Odporność na wymuszony ruch
+Riposte,Riposta
+Shield Wall,Mur Tarcz
+Berserker Rage,Szał Berserkera
+Hamstrung,Podcięte Ścięgna
+Stoneform,Kamienna Postać
+Last Stand,Ostatni Bastion
+Feral Ferocity,Dzika Zaciekłość
+Thorns of Steel,Stalowe Ciernie
+Overpower,Przełamanie
+Iron Will,Żelazna Wola
+Rallying Cry,Okrzyk Zbiórki
+Victory Rush,Zryw Zwycięstwa
+Avatar,Awatar
+Concussed,Wstrząśnięty
+Ravenous Hunger,Wilczy Głód
+Indomitable Titan,Nieugięty Tytan
+Undying (test),Nieumierający (test)
+Hunter's Mark,Znak Łowcy
+Pinned Down,Przygwożdżony
+Arterial Bleed,Krwotok Tętniczy
+Shadow Flare,Cienisty Rozbłysk
+Constricted,Zduszony
+Smoke Screen,Zasłona Dymna
+Rapid Fire,Szybki Ostrzał
+Bola,Bola
+Tangled,Spętany
+Double Tap,Podwójny Strzał
+Eagle Eye,Sokole Oko
+Thrill of the Hunt,Dreszcz Łowów
+Gore Arrow,Strzała Rozpruwająca
+Death Mark,Znak Śmierci
+Next Hit Crit,Następne trafienie krytyczne
+Corrosive Rot,Żrąca Zgnilizna
+Phantasmal Step,Widmowy Krok
+Dance of Shadows,Taniec Cieni
+Living Bomb,Żywa Bomba
+Ice Barrier,Lodowa Bariera
+Deep Freeze,Głębokie Zamrożenie
+Granite Armor,Granitowy Pancerz
+Static Charge,Ładunek Statyczny
+Spell,Czar
+Dark Bargain,Mroczny Targ
+Mana Shield,Tarcza Many
+Time Warp,Zakrzywienie Czasu
+Light Charge,Ładunek Światła
+Dark Charge,Ładunek Mroku
+Eclipse,Zaćmienie
+Permafrost,Wieczna Zmarzlina
+Power Word: Shield,Słowo Mocy: Tarcza
+Blessing of Might,Błogosławieństwo Potęgi
+Divine Aegis,Boska Egida
+Judgement,Osąd
+Shadow Word: Pain,Słowo Cienia: Ból
+Crown of Thorns,Korona Cierniowa
+Leap of Faith,Skok Wiary
+Bastion Sigil,Pieczęć Bastionu
+Guardian Spirit,Duch Opiekuńczy
+Vampiric Embrace,Wampiryczny Uścisk
+Crusader's Zeal,Zapał Krzyżowca
+Apotheosis,Apoteoza
+Martyrdom,Męczeństwo
+Unwavering Citadel,Niewzruszona Cytadela
+Uninterruptible,Nie do przerwania
+Ecstasy in Torment,Ekstaza w Męce
+Splintered,Rozszczepiony
+Feeding Frenzy,Szał Żerowania
+Caged,Uwięziony w Klatce
+Black Anointing,Czarne Namaszczenie
+Airborne,W powietrzu
+Chant of the Damned,Pieśń Potępionych
+Bone Whirlwind,Kościany Wir
+Reflect Projectiles,Odbija pociski
+Chilling Breath,Mroźny Oddech
+Foul Serum,Plugawe Serum
+Submerged,Zanurzony
+Grasping Mud,Chwytające Błoto
+Leeched,Wyssany
+No Dash,Bez zrywu
+Wading,Brodzący
+Engulfed,Pochłonięty
+Lethal Green Fog,Zabójcza Zielona Mgła
+Frenzied Agility,Szalona Zwinność
+Divided,Rozdzielony
+Branded,Napiętnowany
+Scorched Armor,Spalony Pancerz
+Abyssal Heat,Żar Otchłani
+White Heat,Biały Żar
+Molten Blood,Roztopiona Krew
+Prism Wall,Ściana Pryzmatów
+Anguish,Udręka
+Ink-Blinded,Oślepiony Atramentem
+Inverted Healing,Odwrócone Leczenie
+Tome Prison,Więzienie Księgi
+Monochrome,Monochromia
+Beyond Reality,Poza Rzeczywistością
+Chronostasis,Chronostaza
+Slow Projectiles,Wolne pociski
+Frenzied Hunt,Szalone Łowy
+Wither Hex,Klątwa Uwiądu
+Rooted Giant,Zakorzeniony Olbrzym
+Camouflaged,Zamaskowany
+Crippled,Okaleczony
+Frenzy of the Feast,Szał Uczty
+Unyielding Crag,Nieugięta Turnia
+Colossus Stance,Postawa Kolosa
+Magma Surge,Fala Magmy
+King's Curse,Klątwa Króla
+Eater of Battles,Pożeracz Bitew
+Iron Vow,Żelazny Ślub
+Next Melee Crit,Następny cios wręcz krytyczny
+Warlord's Mark,Znak Wodza
+Mist Veil,Zasłona Mgły
+Steady Aim,Pewny Cel
+Shadowbound,Związany z Cieniem
+Enfeebling Venom,Osłabiający Jad
+Apex Mark,Znak Drapieżcy
+Wolfpack,Wilcza Wataha
+Paranoia,Paranoja
+Charmed,Zauroczony
+Elemental Flux,Przepływ Żywiołów
+Archon's Footing,Postawa Archonta
+Storm Weave,Splot Burzy
+Absolute Stasis,Absolutna Staza
+Cinder Drag,Popielny Ciąg
+Martyr's Halo,Aureola Męczennika
+Penitent Grace,Łaska Pokutnika
+Guided Path,Wskazana Ścieżka
+Bleak Pain,Posępny Ból
+Covenant Barrier,Bariera Przymierza
+Penitence,Skrucha
+Elemental,Żywiołak
+Cernunnos the Blighted Stag-God,"Cernunnos, Zarażony Bóg-Jeleń"
+Blood Drinker,Pijący Krew
+Cernunnos drives his antlers into the loam!,Cernunnos wbija poroże w ziemię!
+Demon,Demon
+"Ignis, the Damned Forgemaster","Ignis, Przeklęty Mistrz Kuźni"
+Ignis glows white-hot!,Ignis rozżarza się do białości!
+Aberration,Aberracja
+Lady Isolde the Carrion Queen,"Lady Isolde, Królowa Ścierwa"
+Carrion Queen,Królowa Ścierwa
+The cocoon tears open - Isolde's true form feasts!,Kokon pęka - prawdziwa postać Isolde zaczyna ucztę!
+Beast,Bestia
+Krazik the Unclean,Krazik Nieczysty
+Unmounted,Bez wierzchowca
+Krazik's mount crashes into the flooded pit!,Wierzchowiec Krazika wpada do zalanego dołu!
+Undead,Nieumarły
+Grand Archivist Malazar,Wielki Archiwista Malazar
+The Archivist opens the Tome Prison!,Archiwista otwiera Więzienie Księgi!
+The Memory Devourer,Pożeracz Wspomnień
+Death Paradox,Paradoks Śmierci
+Time fractures - the dead will not rest!,Czas pęka - umarli nie zaznają spoczynku!
+Morvath the Bone Sovereign,"Morvath, Kościany Władca"
+Morvath absorbs the bones of the fallen!,Morvath wchłania kości poległych!
+Bone Shield,Kościana Tarcza
+The Murk Amalgam,Mroczny Amalgamat
+The Amalgam tears itself in two!,Amalgamat rozdziera się na dwoje!
+Prioress Vespera,Przeorysza Vespera
+Vespera unfolds leathery wings!,Vespera rozkłada skórzaste skrzydła!
+Ascension,Wniebowstąpienie
+Vulkania the Magma Wyrm,"Vulkania, Magmowy Smok"
+Boulder Storm,Burza Głazów
+Vulkania hurls volcanic boulders!,Vulkania ciska wulkanicznymi głazami!
+Mage,Mag
+"Master of the elements. Fragile, but devastating from afar.","Mistrz żywiołów. Kruchy, lecz niszczycielski z daleka."
+Apprentice Wand,Różdżka Ucznia
+Priest,Kapłan
+"Holy tank and healer. Shields allies, mends wounds and draws enemies in.","Święty obrońca i uzdrowiciel. Osłania sojuszników, leczy rany i ściąga wrogów na siebie."
+Acolyte Staff,Kostur Akolity
+Ranger,Łowca
+"Deadly at range with bows, crossbows and slings. Lays traps and poisons foes.","Zabójczy z dystansu z łukiem, kuszą i procą. Zastawia pułapki i truje wrogów."
+Short Bow,Krótki Łuk
+Warrior,Wojownik
+Melee fighter fuelled by Fury. Holds the line as a tank or cleaves through crowds.,"Wojownik walczący wręcz, napędzany Furią. Trzyma linię jako obrońca albo przebija się przez tłumy."
+Worn Sword,Zużyty Miecz
+Forgotten Crypt,Zapomniana Krypta
+of the Bear,Niedźwiedzia
+of the Ox,Wołu
+of the Falcon,Sokoła
+of the Owl,Sowy
+of Ruin,Zagłady
+of Swiftness,Chyżości
+of Evasion,Uników
+of the Leech,Pijawki
+Dodge chance,Szansa na unik
+Critical Chance,Szansa na kryt.
+Move Speed,Szybkość ruchu
+Block Chance,Szansa na blok
+Magic Resistance,Odporność na magię
+Mana Regen,Regeneracja many
+Ranged Damage,Obrażenia dystansowe
+Damage to Bosses,Obrażenia przeciw bossom
+Fire Damage,Obrażenia od ognia
+Magic Penetration,Przebicie magii
+Low-health heal threshold,Próg leczenia przy niskim zdrowiu
+Healing on low-health allies,Leczenie sojuszników z niskim zdrowiem
+Health Potion,Mikstura Zdrowia
+Restores 40% of maximum health.,Przywraca 40% maksymalnego zdrowia.
+Mana Potion,Mikstura Many
+Restores 45% of maximum mana (or fills Fury).,Przywraca 45% maksymalnej many (albo napełnia Furię).
+Haste Potion,Mikstura Pośpiechu
++30% haste and +15% movement speed for 12 seconds.,+30% pośpiechu i +15% szybkości ruchu przez 12 sekund.
+Hearty Ration,Sycąca Racja
+Regenerate 25% health over 10 s and deal 5% more damage for 60 s.,Regeneruje 25% zdrowia przez 10 s i zwiększa zadawane obrażenia o 5% na 60 s.
+Torch,Pochodnia
+Light a fresh torch that burns for 120 seconds.,"Zapala świeżą pochodnię, która płonie 120 sekund."
+Crown of the Blood Chieftain,Korona Krwawego Wodza
+A cracked iron crown caked in gore with twin horns.,"Pęknięta żelazna korona oblepiona posoką, z dwoma rogami."
+Fury Strike generates x3 Fury; reaching 100 Fury erupts a blood nova dealing 10% of max HP to all nearby enemies.,Cios Furii generuje x3 Furii; po osiągnięciu 100 Furii wybucha krwawa nowa zadająca 10% maks. zdrowia wszystkim pobliskim wrogom.
+Executioner's Iron Visor,Żelazna Przyłbica Kata
+An enclosed steel helm with a narrow cruciform slit.,Zamknięty stalowy hełm z wąską szczeliną w kształcie krzyża.
+Execute can be cast on targets below 40% HP (up from 25%) and resets its cooldown on kill.,"Egzekucję można rzucić na cele poniżej 40% zdrowia (zamiast 25%), a zabójstwo odnawia jej czas odnowienia."
+Skull of the Ancient Behemoth,Czaszka Pradawnego Behemota
+"A carved, fossilized giant-bone helm.",Rzeźbiony hełm ze skamieniałej kości olbrzyma.
+"Reduces the duration of all crowd-control effects (stuns, roots) on you by 75%.","Skraca czas działania wszystkich efektów kontroli (ogłuszenia, unieruchomienia) na tobie o 75%."
+Cuirass of the Unyielding Crag,Kirys Nieugiętej Turni
+Basalt plate glowing with internal embers.,Bazaltowa płyta żarząca się wewnętrznym żarem.
+"When falling below 30% HP, gain complete invulnerability to all damage for 3s (90s cooldown).","Gdy spadniesz poniżej 30% zdrowia, zyskujesz pełną niewrażliwość na wszelkie obrażenia na 3 s (odnowienie 90 s)."
+Mail of the Infernal Berserker,Kolczuga Piekielnego Berserkera
+Blackened mail dripping soot.,Poczerniała kolczuga ociekająca sadzą.
+Fury never decays out of combat. Gain +5% damage per missing 10% HP.,Furia nigdy nie zanika poza walką. +5% obrażeń za każde brakujące 10% zdrowia.
+No Fury Decay,Furia nie zanika
+Berserker Wrath,Gniew Berserkera
+Warmaster's Battlegarb,Strój Bojowy Mistrza Wojny
+Gilded plate with a crimson mantle.,Pozłacana płyta ze szkarłatnym płaszczem.
+Battle Cry grants allies a 200-damage ward and restores 20% of their primary resource.,Okrzyk Bojowy daje sojusznikom osłonę na 200 obrażeń i przywraca 20% ich głównego zasobu.
+Greaves of the Iron Colossus,Nagolenniki Żelaznego Kolosa
+Massive riveted dark-iron greaves.,Masywne nitowane nagolenniki z ciemnego żelaza.
+Immune to knockbacks and pulls; standing stationary for 2s doubles your total Armor.,Odporność na odrzuty i przyciąganie; stanie w miejscu przez 2 s podwaja twój Pancerz.
+Tendon Rippers,Rozrywacze Ścięgien
+Plate leggings with serrated blades along the calves.,Płytowe nogawice z ząbkowanymi ostrzami wzdłuż łydek.
+Hamstring affects all targets in an 80 px circle and roots them for 1.5s.,"Podcięcie Ścięgien trafia wszystkie cele w kręgu 80 px i unieruchamia je na 1,5 s."
+Pants of the Blood Pilgrim,Spodnie Krwawego Pielgrzyma
+Chain-leather leggings with etched sacrificial script.,Nogawice z kolczej skóry z wyrytym pismem ofiarnym.
+Increases Leech efficiency by 50%; critical hits restore 2% maximum HP.,Zwiększa skuteczność Wysysania o 50%; trafienia krytyczne przywracają 2% maks. zdrowia.
+Earthquake Treads,Stąpanie Trzęsienia Ziemi
+Broad iron sabatons.,Szerokie żelazne trzewiki.
+Landing from Heroic Leap or ending Deadly Charge triggers a localized earthquake (120 px radius).,Lądowanie po Heroicznym Skoku lub koniec Śmiercionośnej Szarży wywołuje lokalne trzęsienie ziemi (promień 120 px).
+Boots of Unstoppable March,Buty Niepowstrzymanego Marszu
+Steel sabatons glowing with wind runes.,Stalowe trzewiki lśniące runami wiatru.
+"Immune to terrain movement penalties (mud, web, water); lava damage reduced by 80%.","Odporność na spowolnienia od terenu (błoto, sieć, woda); obrażenia od lawy mniejsze o 80%."
+Terrain Immune,Odporność na teren
+Lava Resist,Odporność na lawę
+Spurs of Cruelty,Ostrogi Okrucieństwa
+Riding boots with serrated iron rowels.,Buty jeździeckie z ząbkowanymi żelaznymi kółkami.
+Dodge-rolling through an enemy trips and knocks it down for 1.2s while dealing physical damage.,"Przewrót przez wroga podcina go i powala na 1,2 s, zadając obrażenia fizyczne."
+Grip of the Titan,Uchwyt Tytana
+Colossal gauntlets with glowing rune joints.,Kolosalne rękawice ze świecącymi runicznymi stawami.
+Allows equipping a two-handed weapon in Main Hand alongside an Off-Hand shield (-10% attack speed).,Pozwala dzierżyć broń dwuręczną w głównej ręce razem z tarczą w drugiej (-10% szybkości ataku).
+Titan Grip,Uchwyt Tytana
+Bonecrusher Gauntlets,Rękawice Łamacza Kości
+Spiked gauntlets with monster-fang knuckles.,Kolczaste rękawice z kłykciami z kłów potworów.
+Melee attacks have a 15% chance to reset the cooldown of Shield Slam or Cleave.,Ataki wręcz mają 15% szansy na odnowienie Uderzenia Tarczą lub Rozpłatania.
+Melee,Wręcz
+Chains of the Defiant,Łańcuchy Buntownika
+Vambraces with broken dangling iron chains.,Karwasze ze zwisającymi zerwanymi żelaznymi łańcuchami.
+Taking a critical hit instantly grants 30 Fury and cleanses movement slows.,Otrzymanie trafienia krytycznego natychmiast daje 30 Furii i usuwa spowolnienia ruchu.
+Worldbreaker,Łamacz Światów
+A titanic two-handed obsidian warhammer.,Tytaniczny dwuręczny obsydianowy młot bojowy.
+Melee strikes emit shockwaves behind targets dealing 30% splash damage.,"Ciosy wręcz wysyłają fale uderzeniowe za cele, zadające 30% obrażeń rozpryskowych."
+Edge of the Forgotten King,Ostrze Zapomnianego Króla
+A broken runic greatsword glowing with wraith-blue light.,Złamany runiczny miecz dwuręczny świecący upiornym błękitem.
+"Hits apply King's Curse; at 5 stacks, the target explodes for 300 physical damage.","Trafienia nakładają Klątwę Króla; przy 5 ładunkach cel wybucha, zadając 300 obrażeń fizycznych."
+A greataxe with a blinking eye above the shaft.,Wielki topór z mrugającym okiem nad trzonkiem.
+Slain enemies permanently increase weapon damage by +1 for the current floor (up to +40).,Zabici wrogowie trwale zwiększają obrażenia broni o +1 na bieżącym piętrze (do +40).
+Black Sun Aegis,Egida Czarnego Słońca
+A circular black buckler with an eclipsed sun sigil.,Okrągły czarny puklerz z godłem zaćmionego słońca.
+Blocking blinds the attacker for 2s and reflects a fireball equal to blocked damage.,Blok oślepia atakującego na 2 s i odbija kulę ognia równą zablokowanym obrażeniom.
+Voidglass Bulwark,Bastion ze Szkła Pustki
+A triangular shield of polished purple obsidian.,Trójkątna tarcza z polerowanego fioletowego obsydianu.
+Ranged hostile spells striking the shield have a 40% chance to reflect back at the caster.,Wrogie czary dystansowe trafiające w tarczę mają 40% szansy na odbicie w rzucającego.
+Rib of the Leviathan,Żebro Lewiatana
+A bone shield carved from an abyssal sea beast's rib cage.,Kościana tarcza wyrzeźbiona z klatki piersiowej bestii z morskiej otchłani.
+Increases Threat generation by +50%; Shield Slam restores 5% of max HP.,Zwiększa generowanie Zagrożenia o +50%; Uderzenie Tarczą przywraca 5% maks. zdrowia.
+Signet of the Iron Vow,Sygnet Żelaznego Ślubu
+A heavy steel signet with a forge-anvil motif.,Ciężki stalowy sygnet z motywem kuziennego kowadła.
+Blocking an attack guarantees your next melee attack is a critical hit.,"Zablokowanie ataku gwarantuje, że twój następny atak wręcz będzie krytyczny."
+Ring of the Ruptured Heart,Pierścień Pękniętego Serca
+A dark gold band setting a pulsing anatomical ruby.,Obręcz z ciemnego złota z pulsującym anatomicznym rubinem.
+Bleed ticks can critically strike using your character's Critical Chance.,Tiki Krwawienia mogą trafiać krytycznie z użyciem szansy na kryt. twojej postaci.
+Dot Can Crit,Obrażenia w czasie mogą być krytyczne
+Band of the Steadfast Ward,Obręcz Niezłomnej Straży
+A carved dwarven runestone ring.,Rzeźbiony krasnoludzki pierścień z kamienia runicznego.
+"When an ally within 150 px takes >30% damage in a single hit, gain 50 Fury and grant them a shield.","Gdy sojusznik w promieniu 150 px otrzyma ponad 30% obrażeń jednym trafieniem, zyskujesz 50 Furii i dajesz mu tarczę."
+Steadfast Ward,Niezłomna Straż
+Talisman of the Ruthless Warlord,Talizman Bezlitosnego Wodza
+A beast-fang torc with an iron pendant.,Naszyjnik z kłów bestii z żelaznym wisiorem.
+Taunting Shout causes taunted foes to take +20% damage from all party members.,"Prowokujący Okrzyk sprawia, że sprowokowani wrogowie otrzymują +20% obrażeń od całej drużyny."
+Ymir's Blood Drop,Kropla Krwi Ymira
+A crystalline vial holding black giant blood.,Kryształowa fiolka z czarną krwią olbrzyma.
+Converts 20% of total Armor into flat Melee Weapon Power.,Zamienia 20% całego Pancerza na stałą Moc broni wręcz.
+Armor To Power,Pancerz w moc
+Amulet of the Last Stand,Amulet Ostatniego Bastionu
+A silver medallion showing a burning watchtower.,Srebrny medalion z płonącą strażnicą.
+Reduces Last Stand cooldown by 30s; activating it knocks back all surrounding enemies.,Skraca odnowienie Ostatniego Bastionu o 30 s; jego użycie odrzuca wszystkich otaczających wrogów.
+Cowl of the Silent Stalker,Kaptur Cichego Tropiciela
+A basilisk-leather hood with a mouth cowl.,Kaptur ze skóry bazyliszka z osłoną ust.
+Attacks from stealth or beyond 200 px completely ignore enemy armor.,Ataki z ukrycia lub z odległości ponad 200 px całkowicie ignorują pancerz wroga.
+Ambush Armor Pen,Przebicie pancerza z zasadzki
+Mask of the Timber Shaman,Maska Leśnego Szamana
+A carved timber-wolf mask with phosphorescent markings.,Rzeźbiona maska leśnego wilka z fosforyzującymi znakami.
+Viper Arrow spreads to 2 adjacent foes whenever the primary target takes a critical hit.,"Strzała Żmii przeskakuje na 2 sąsiednich wrogów, gdy główny cel otrzyma trafienie krytyczne."
+Falconer's Focus Band,Opaska Skupienia Sokolnika
+A leather headband with a bronze raptor feather.,Skórzana opaska z brązowym piórem drapieżnego ptaka.
+Increases ranged skill range by 35% and eliminates darkness vision penalties.,Zwiększa zasięg umiejętności dystansowych o 35% i usuwa kary za widzenie w ciemności.
+Darkvision,Widzenie w ciemności
+Wyvernscale Jerkin,Kaftan z Łusek Wiwerny
+A supple green dragon-scale vest.,Giętka kamizelka z zielonej smoczej łuski.
+100% immune to poison; standing in poison clouds regenerates 10 Mana per second.,100% odporności na truciznę; stanie w chmurach trucizny regeneruje 10 many na sekundę.
+Poison Immune,Odporność na truciznę
+Toxic Feeder,Żywi się toksynami
+Cloak of the Mist Strider,Płaszcz Wędrowca Mgły
+A tattered gossamer cloak of shifting fog.,Postrzępiony pajęczynowy płaszcz z kłębiącej się mgły.
+"Disengage leaves behind an illusory decoy that holds aggro for 3s, turning you invisible for 2s.","Odskok zostawia iluzoryczny wabik, który trzyma agresję przez 3 s, a ty stajesz się niewidzialny na 2 s."
+Wasteland Marksman Hauberk,Kolczuga Strzelca z Pustkowi
+A quilted leather brigandine with a shoulder scope.,Pikowana skórzana brygantyna z lunetą na ramieniu.
+Standing still for >1.5s increases your next shot's damage by 50% (resets on move).,"Stanie w miejscu dłużej niż 1,5 s zwiększa obrażenia następnego strzału o 50% (ruch to resetuje)."
+Predator's Breeches,Bryczesy Drapieżcy
+Dark leather breeches with reinforced cordovan knees.,Ciemne skórzane bryczesy ze wzmocnionymi kolanami z kordowanu.
+Killing a poisoned enemy instantly resets Dodge Roll cooldown.,Zabicie zatrutego wroga natychmiast odnawia Przewrót.
+Trapper's Sturdy Chaps,Mocne Nogawice Trapera
+Studded hide chaps with tool pouches.,Nabijane skórzane nogawice z sakwami na narzędzia.
+Deploy up to double the maximum active traps; trap trigger radius increased by 50%.,Możesz rozstawić dwa razy więcej aktywnych pułapek; promień wyzwalania pułapek większy o 50%.
+Shadowbound Leggings,Nogawice Związanego z Cieniem
+Pitch-black leggings that absorb torchlight.,"Smoliście czarne nogawice, które pochłaniają światło pochodni."
+Gain +20% extra Dodge chance whenever standing in unlit floor tiles.,"+20% dodatkowej szansy na unik, gdy stoisz na nieoświetlonych polach podłogi."
+Specter's Softsteps,Miękkie Kroki Widma
+Panther-skin slippers without hard soles.,Pantofle ze skóry pantery bez twardych podeszew.
+Never triggers floor pressure plates; monsters cannot hear your approach through walls.,"Nigdy nie uruchamiasz płyt naciskowych; potwory nie słyszą, jak zbliżasz się zza ścian."
+No Plates,Bez płyt naciskowych
+Silent Steps,Ciche kroki
+Viperleap Boots,Buty Skoku Żmii
+Emerald boots with spring-steel rowels.,Szmaragdowe buty z kółkami ze sprężynowej stali.
+Dodge-rolling automatically fires a free Viper Arrow at the nearest enemy.,Przewrót automatycznie wystrzeliwuje darmową Strzałę Żmii w najbliższego wroga.
+Frostpath Boots,Buty Mroźnej Ścieżki
+White-fur-trimmed boots with glacial crystal soles.,"Buty obszyte białym futrem, z podeszwami z lodowego kryształu."
+"Leaves an icy trail for 3s, chilling and slowing pursuing enemies by 40%.","Zostawia lodowy ślad na 3 s, który wychładza ścigających wrogów i spowalnia ich o 40%."
+Stormstring Gloves,Rękawice Burzowej Cięciwy
+Silk archery gloves with electrified fingertips.,Jedwabne rękawice łucznicze z naelektryzowanymi palcami.
+Critical hits trigger chain lightning jumping to 2 targets for 50% damage.,"Trafienia krytyczne wywołują łańcuch błyskawic, który przeskakuje na 2 cele za 50% obrażeń."
+Venomtouch Grips,Rękawice Jadowitego Dotyku
+Dark leather gloves with dorsal venom ampoules.,Ciemne skórzane rękawice z ampułkami jadu na grzbiecie.
+All poisons can stack up to 6 times (up from 3).,Wszystkie trucizny kumulują się do 6 razy (zamiast 3).
+Poison Stacks 6,Trucizny do 6 ładunków
+Surehand Bracers,Karwasze Pewnej Ręki
+Heavy cordovan wrist bracers.,Ciężkie karwasze z kordowanu.
+Ranged attacks cannot miss and cannot be blocked by monster shields.,Ataki dystansowe nie mogą chybić ani zostać zablokowane przez tarcze potworów.
+Cannot Miss,Nie chybia
+Unblockable,Nie do zablokowania
+Blacksong Greatbow,Wielki Łuk Czarnej Pieśni
+A yew longbow wrapped in barbed wire.,Cisowy długi łuk owinięty drutem kolczastym.
+Power Shot charges 50% faster and silences all enemies it pierces for 2 seconds.,Potężny Strzał ładuje się o 50% szybciej i ucisza wszystkich przebitych wrogów na 2 sekundy.
+Bone Harvest Arbalest,Arbalet Kościanego Żniwa
+A heavy steel crossbow with a skull cocking winch.,Ciężka stalowa kusza z korbą naciągową w kształcie czaszki.
+"Quarrels shatter inside targets, launching 3 bone shrapnel shards at adjacent enemies.","Bełty rozpadają się w celach, ciskając 3 kościane odłamki w sąsiednich wrogów."
+Ranged,Dystansowe
+Bramblethorn Recurve,Refleksyjny Łuk z Jeżyn
+A living recurve bow of weeping bramble root.,Żywy refleksyjny łuk z korzenia płaczącej jeżyny.
+Basic attacks have a 20% chance to root targets for 1.5s.,"Podstawowe ataki mają 20% szansy na unieruchomienie celu na 1,5 s."
+Quiver of the Endless Abyss,Kołczan Bezdennej Otchłani
+A black quiver radiating purple void light.,Czarny kołczan emanujący fioletowym światłem pustki.
+25% of shots consume 0 Mana; arrows pierce through the first enemy struck.,25% strzałów kosztuje 0 many; strzały przebijają pierwszego trafionego wroga.
+Free Shot Chance,Szansa na darmowy strzał
+Brimstone Quiver,Siarczany Kołczan
+An iron quiver with smoking embers.,Żelazny kołczan z dymiącymi węgielkami.
+All ranged attacks ignite targets with a lingering Burn DoT for 3s.,"Wszystkie ataki dystansowe podpalają cele, zadając trwałe obrażenia od Płonięcia przez 3 s."
+Viperfang Case,Futerał z Kłów Żmii
+A cobra-skin quiver with hollow fangs.,Kołczan z kobrzej skóry z pustymi kłami.
+Explosive Trap detonation also releases an expansive venom gas cloud.,Wybuch Pułapki Wybuchowej uwalnia też rozległą chmurę jadowitego gazu.
+Ring of the Forest Phantom,Pierścień Leśnego Widma
+A nephrite jade ring carved with fern leaves.,Pierścień z nefrytu z wyrzeźbionymi liśćmi paproci.
+Slain enemies grant 2 seconds of 100% invisibility.,Zabici wrogowie dają 2 sekundy pełnej niewidzialności.
+Eye-Piercer Band,Obręcz Przebijacza Oczu
+A silver band holding a cat's-eye emerald.,Srebrna obręcz ze szmaragdem kocie oko.
+Critical hits restore 8 Mana and reduce trap cooldowns by 1 second.,Trafienia krytyczne przywracają 8 many i skracają odnowienie pułapek o 1 sekundę.
+Band of the Last Gasp,Obręcz Ostatniego Tchnienia
+A wrought-iron band with coiling vipers.,Obręcz z kutego żelaza ze zwiniętymi żmijami.
+Enemies afflicted by your poisons deal 15% reduced damage to all party members.,Wrogowie dotknięci twoimi truciznami zadają o 15% mniej obrażeń całej drużynie.
+Pendant of the Apex Predator,Wisior Szczytowego Drapieżcy
+Beast fangs holding a heart ruby.,Kły bestii obejmujące rubinowe serce.
+Hunter's Mark lasts permanently on bosses and boosts party crit against them by 10%.,Znak Łowcy trwa na bossach bez końca i zwiększa szansę drużyny na kryt. przeciw nim o 10%.
+Wolfpack Talisman,Talizman Wilczej Watahy
+A silver wolf amulet howling beneath a moonstone.,Srebrny amulet wilka wyjącego pod kamieniem księżycowym.
++3% damage per living party member in proximity.,+3% obrażeń za każdego żywego członka drużyny w pobliżu.
+Brierheart Choker,Obroża Cierniowego Serca
+A woven thorn collar with an amber droplet.,Pleciona obroża z cierni z kroplą bursztynu.
+Enemies triggering your Snare Trap are struck by a free Power Shot immediately.,"Wrogowie, którzy uruchomią twoją Pułapkę Sidłową, od razu dostają darmowy Potężny Strzał."
+Crown of Astral Flame,Korona Astralnego Płomienia
+A gold diadem with a hovering blue flame.,Złoty diadem z unoszącym się niebieskim płomieniem.
+Fireball leaves a vortex at impact pulling lesser foes inward for 2s.,"Kula Ognia zostawia w miejscu uderzenia wir, który przez 2 s wciąga słabszych wrogów."
+Cowl of the Frozen Spire,Kaptur Zamarzniętej Iglicy
+A frost-rimmed velvet hood.,Aksamitny kaptur obrzeżony szronem.
+Frost Nova pulses a second shockwave 2 seconds after the initial cast.,Mroźna Nowa wysyła drugą falę uderzeniową 2 sekundy po pierwszym rzuceniu.
+Visage of the Dark Singularity,Oblicze Mrocznej Osobliwości
+A featureless ebonite mask that distorts light.,"Gładka maska z ebonitu, która zakrzywia światło."
+Dark spells cause paranoia - afflicted enemies attack the nearest monsters for 3s.,Mroczne czary wywołują paranoję - dotknięci wrogowie atakują najbliższe potwory przez 3 s.
+Robe of Seven Cataclysms,Szata Siedmiu Kataklizmów
+A shifting silk robe mirroring elemental spectrums.,Mieniąca się jedwabna szata odbijająca widma żywiołów.
+Casting a spell from one school boosts the next spell of a different school by 25%.,Rzucenie czaru jednej szkoły wzmacnia następny czar innej szkoły o 25%.
+Chitin of the Earth Archon,Chityna Archonta Ziemi
+A robe reinforced with granite plates.,Szata wzmocniona granitowymi płytami.
+Granite Armor grants immunity to knockbacks/pulls and heals 15% HP on cast.,Granitowy Pancerz daje odporność na odrzuty i przyciąganie oraz leczy 15% zdrowia przy rzuceniu.
+Shroud of the Nethermancer,Całun Nekromaga
+Shredded black vestments with swirling wraiths.,Postrzępione czarne szaty z wirującymi upiorami.
+Foes slain by dark spells explode for 15% of their max HP in splash damage.,"Wrogowie zabici mrocznymi czarami wybuchają, zadając 15% ich maks. zdrowia obrażeń rozpryskowych."
+Stormspark Trousers,Spodnie Burzowej Iskry
+Loose azure silks embroidered with gold sparks.,Luźne lazurowe jedwabie haftowane złotymi iskrami.
+Each Chain Lightning jump trims Thunderstorm cooldown by 0.5s.,"Każdy przeskok Łańcucha Błyskawic skraca odnowienie Burzy z Piorunami o 0,5 s."
+Glacial Pleated Skirt,Plisowana Lodowa Spódnica
+A rime-crusted skirt rustling like breaking ice.,"Spódnica oszroniona lodem, szeleszcząca jak pękająca kra."
+Taking a melee hit freezes the attacker solid for 1.5s (8s internal cooldown).,"Otrzymanie ciosu wręcz zamraża atakującego na 1,5 s (wewnętrzne odnowienie 8 s)."
+Magma Tectonic Slacks,Tektoniczne Spodnie Magmy
+Basalt-plated slacks showing glowing seams.,Spodnie w bazaltowych płytach ze świecącymi szwami.
+Walking on lava heals you instead of dealing damage and boosts fire damage by 30%.,Chodzenie po lawie leczy cię zamiast ranić i zwiększa obrażenia od ognia o 30%.
+Lava Walker,Chodzący po lawie
+Warpstrider Sandals,Sandały Wędrowca Osnowy
+Leather sandals with ethereal wings.,Skórzane sandały z eterycznymi skrzydłami.
+Blink gains 2 charges and recharges 30% faster.,Mignięcie zyskuje 2 ładunki i ładuje się o 30% szybciej.
+Boots of the Flame Trail,Buty Płomiennego Szlaku
+Iron-toed boots sparking flames with each step.,"Buty z żelaznymi noskami, sypiące płomieniami przy każdym kroku."
+Running leaves a burning path that scorches pursuers and lights darkness.,"Bieg zostawia płonącą ścieżkę, która przypala ścigających i rozświetla ciemność."
+Granite Footfalls,Granitowe Stąpnięcia
+Levitating carved stone sabatons.,Lewitujące trzewiki z rzeźbionego kamienia.
+"Prevents teleporting, but grants +80 Armor and converts 10% of damage taken into Mana.","Blokuje teleportację, ale daje +80 Pancerza i zamienia 10% otrzymanych obrażeń w manę."
+No Teleport,Bez teleportacji
+Stormweaver Grips,Rękawice Tkacza Burzy
+Dark silk gloves crackling with static.,Ciemne jedwabne rękawice trzeszczące od ładunków.
+Casting a lightning spell reduces the Mana cost of your next spell by 20% (stacks 3 times).,Rzucenie czaru błyskawicy zmniejsza koszt many następnego czaru o 20% (kumuluje się 3 razy).
+Grip of Absolute Zero,Uścisk Zera Absolutnego
+Hands covered in diamond ice crystals.,Dłonie pokryte diamentowymi kryształkami lodu.
+Freeze durations extended by 1s; frozen foes shatter into ice shrapnel on death.,Zamrożenia trwają o 1 s dłużej; zamrożeni wrogowie rozpadają się przy śmierci na lodowe odłamki.
+Deep Frost,Głęboki mróz
+Hellfire Mitts,Rękawice Piekielnego Ognia
+Dragonhide gloves with eternal-flame claw tips.,Rękawice ze smoczej skóry z pazurami wiecznego płomienia.
+Burn DoT damage heals you for 20% of value dealt.,Obrażenia od Płonięcia leczą cię o 20% zadanej wartości.
+Burn Leech,Wysysanie z płonięcia
+Staff of the Shattered Sky,Kostur Strzaskanego Nieba
+A titan-bone staff crowned with an orrery.,Kostur z kości tytana zwieńczony planetarium.
+Every 5th spell cast triggers an automatic lightning strike on a random nearby foe.,Co piąty rzucony czar wywołuje automatyczne uderzenie pioruna w losowego pobliskiego wroga.
+Wand of the Primal Cinder,Różdżka Pierwotnego Żaru
+An obsidian wand with a pulsing fire-elemental heart.,Obsydianowa różdżka z pulsującym sercem żywiołaka ognia.
+Fireball has zero cooldown and -30% Mana cost.,Kula Ognia nie ma odnowienia i kosztuje o 30% mniej many.
+Void Needle Athame,Atame Igły Pustki
+A black crystal ceremonial blade humming with the void.,"Czarne kryształowe ostrze obrzędowe, buczące pustką."
+Drain Soul can be channeled into 2 targets simultaneously.,Wyssanie Duszy można kanałować w 2 cele jednocześnie.
+Grimoire of Forbidden Truths,Grimoire Zakazanych Prawd
+A human-skin tome with a brass ocular fitting.,Księga z ludzkiej skóry z mosiężnym okularem.
+Spells have a 10% chance to cast a duplicate projectile at no extra Mana cost.,Czary mają 10% szansy na rzucenie podwójnego pocisku bez dodatkowego kosztu many.
+Orb of Absolute Stasis,Kula Absolutnej Stazy
+A hovering glacial orb emitting frozen mist.,Unosząca się lodowa kula wydzielająca mroźną mgłę.
+"When HP reaches zero, encase in solid ice for 4s, restoring 40% HP (180s cooldown).","Gdy zdrowie spadnie do zera, zamykasz się w litym lodzie na 4 s, odzyskując 40% zdrowia (odnowienie 180 s)."
+Eye of the Cataclysm,Oko Kataklizmu
+A triangular crystal lens focusing rays.,Trójkątna kryształowa soczewka skupiająca promienie.
+Spells ignore 40% of monster elemental resistances.,Czary ignorują 40% odporności potworów na żywioły.
+Resist Ignore 40,Ignoruje 40% odporności
+Mana-Weave Loop,Pętla Tkanej Many
+A braided silver ring set with minute sapphires.,Pleciony srebrny pierścień z drobnymi szafirami.
+Critical spell hits instantly restore 5% of maximum Mana.,Krytyczne trafienia czarami natychmiast przywracają 5% maks. many.
+Signet of the Cinder Spark,Sygnet Żarzącej Iskry
+A copper ring with a smoldering ruby.,Miedziany pierścień z tlącym się rubinem.
+Burning enemies have their attack speed reduced by 20%.,Płonący wrogowie atakują o 20% wolniej.
+Band of Astral Shackles,Obręcz Astralnych Kajdan
+A seamless violet crystal ring.,Bezszwowy pierścień z fioletowego kryształu.
+"Chilled, slowed, or rooted foes take +20% damage from all sources.","Wychłodzeni, spowolnieni lub unieruchomieni wrogowie otrzymują +20% obrażeń ze wszystkich źródeł."
+Astral Shackles,Astralne Kajdany
+Heart of the North Star,Serce Gwiazdy Polarnej
+An eight-pointed stellar sapphire pendant.,Ośmioramienny gwiezdny wisior z szafiru.
+Blizzard slowly drifts toward enemy clusters instead of remaining static.,"Zamieć powoli dryfuje ku skupiskom wrogów, zamiast stać w miejscu."
+Drifting Blizzard,Dryfująca Zamieć
+Chronomancer's Hourglass,Klepsydra Chronomanty
+A miniature gold hourglass holding dark sand.,Miniaturowa złota klepsydra z ciemnym piaskiem.
+Reduces all spell cooldowns by 20%; Time Warp duration increased by 5s.,Skraca odnowienie wszystkich czarów o 20%; Zakrzywienie Czasu trwa o 5 s dłużej.
+Bloodmage's Choker,Obroża Krwawego Maga
+A silk cord with a ruby vial of living blood.,Jedwabny sznur z rubinową fiolką żywej krwi.
+"If Mana is insufficient for a cast, spend HP instead (1 Mana = 2 HP).","Jeśli brakuje many na czar, płacisz zdrowiem (1 mana = 2 zdrowia)."
+Hp For Mana,Zdrowie za manę
+Halo of the Divine Martyr,Aureola Boskiego Męczennika
+A hovering golden halo weeping blood beads.,Unosząca się złota aureola roniąca krople krwi.
+20% of damage taken by allies within 180 px is redirected to you and halved.,20% obrażeń otrzymywanych przez sojuszników w promieniu 180 px przechodzi na ciebie i jest zmniejszane o połowę.
+Mitre of the Grand Inquisitor,Mitra Wielkiego Inkwizytora
+A scarlet velvet peaked mitre with a gold eye.,Szkarłatna aksamitna mitra ze złotym okiem.
+Smite has 100% crit chance against targets above 80% HP and applies Holy Fire.,Porażenie ma 100% szansy na kryt. przeciw celom powyżej 80% zdrowia i nakłada Święty Ogień.
+Inquisitor Smite,Porażenie Inkwizytora
+Cowl of Penance,Kaptur Pokuty
+A coarse sackcloth hood lined with iron thorns.,Szorstki kaptur z worka podszyty żelaznymi cierniami.
+Taking damage reduces your next heal's cooldown by 1s and boosts healing by 10%.,Otrzymywanie obrażeń skraca odnowienie następnego leczenia o 1 s i wzmacnia leczenie o 10%.
+Cuirass of the Radiant Dawn,Kirys Promiennego Świtu
+A mirror-polished gold breastplate with a sun crest.,Wypolerowany na lustro złoty napierśnik z herbem słońca.
+Consecration heals allies inside for 3% max HP per second.,Konsekracja leczy sojuszników w jej obrębie o 3% maks. zdrowia na sekundę.
+Radiant Consecration,Promienna Konsekracja
+Vestment of the Merciful Mother,Szaty Miłosiernej Matki
+White-blue vestments with golden thread.,Biało-niebieskie szaty ze złotą nicią.
+"When Power Word: Shield expires or breaks, it heals the target for 100% of the shield value.","Gdy Słowo Mocy: Tarcza wygaśnie lub pęknie, leczy cel o 100% wartości tarczy."
+Merciful Shield,Miłosierna Tarcza
+Shroud of the Shadow Confessor,Całun Cienistego Spowiednika
+A black-purple vestment with a bone rosary.,Czarno-fioletowe szaty z kościanym różańcem.
+Healing an ally deals 50% of the healed value as shadow damage to the nearest enemy.,Leczenie sojusznika zadaje 50% uleczonej wartości jako obrażenia od cienia najbliższemu wrogowi.
+Crusader's Greaves,Nagolenniki Krzyżowca
+Heavy plate greaves etched with litanies.,Ciężkie płytowe nagolenniki z wyrytymi litaniami.
+"While standing in your Consecration, Shield Block is 100% and melee strikes hit all foes in the ring.","Gdy stoisz w swojej Konsekracji, blok tarczą wynosi 100%, a ciosy wręcz trafiają wszystkich wrogów w kręgu."
+Crusader Ground,Ziemia Krzyżowca
+Guide's Radiant Leggings,Promienne Nogawice Przewodnika
+Immaculate silver-threaded trousers.,Nieskazitelne spodnie przetykane srebrną nicią.
+Allies running behind you gain +25% movement speed.,Sojusznicy biegnący za tobą zyskują +25% szybkości ruchu.
+Breeches of Absolution,Bryczesy Rozgrzeszenia
+Grey trousers bound by penitent scourge cords.,Szare spodnie przewiązane sznurami pokutnej dyscypliny.
+Cleansing a debuff via Purify heals the entire party for 15% max HP.,Usunięcie osłabienia Oczyszczeniem leczy całą drużynę o 15% maks. zdrowia.
+Boots of Righteous Zeal,Buty Słusznego Zapału
+Gilded plate sabatons with iron spurs.,Pozłacane płytowe trzewiki z żelaznymi ostrogami.
+Casting Rebuke teleports you up to 100 px directly in front of the target.,Rzucenie Upomnienia teleportuje cię do 100 px wprost przed cel.
+Slippers of Grace,Pantofle Łaski
+Humble leather slippers emitting warm golden light.,Skromne skórzane pantofle emanujące ciepłym złotym światłem.
+Casting healing spells does not slow your movement or break sprint.,Rzucanie czarów leczących nie spowalnia ruchu ani nie przerywa sprintu.
+Mobile Caster,Czary w ruchu
+Exorcist's Iron Striders,Żelazne Kroki Egzorcysty
+Heavy iron boots stamped with warding seals.,Ciężkie żelazne buty z odciśniętymi pieczęciami ochronnymi.
+Trampling undead or demons stuns them for 1s and deals 100 bonus holy damage.,Tratowanie nieumarłych lub demonów ogłusza ich na 1 s i zadaje 100 dodatkowych obrażeń od świętości.
+Blessed Touch Gloves,Rękawice Błogosławionego Dotyku
+White kidskin gloves with gold rings.,Białe rękawiczki z koźlęcej skóry ze złotymi pierścieniami.
+Renew stacks up to 3 times on a single target and ticks 25% faster.,Odnowa kumuluje się do 3 razy na jednym celu i tyka o 25% szybciej.
+Renew Mastery,Mistrzostwo Odnowy
+Vindicator's Vambraces,Karwasze Mściciela
+Chunky dwarven plate vambraces.,Masywne krasnoludzkie płytowe karwasze.
+Successfully blocking or parrying triggers a free Holy Nova around you.,Udany blok lub parowanie wywołuje darmową Świętą Nową wokół ciebie.
+Grip of the Bleak Shepherd,Uchwyt Posępnego Pasterza
+Black leather gloves with bone thimbles.,Czarne skórzane rękawice z kościanymi naparstkami.
+Shadow Word: Pain reduces target damage dealt by 20% and heals you for its initial tick.,Słowo Cienia: Ból zmniejsza obrażenia zadawane przez cel o 20% i leczy cię o jego pierwszy tik.
+Mace of Veracity,Buława Prawdomówności
+A sunburst-headed golden warmace.,Złota buława bojowa z głowicą w kształcie słońca.
+Melee strikes generate 300% Threat and heal the most injured ally for 20 HP per hit.,Ciosy wręcz generują 300% Zagrożenia i leczą najbardziej rannego sojusznika o 20 zdrowia za trafienie.
+Crosier of Eternal Dawn,Pastorał Wiecznego Świtu
+A tall white pastoral staff with a seraph crest.,Wysoki biały pastorał z herbem serafina.
+"Once per floor: if an ally dies, revive them immediately at 50% HP/Mana with zero penalty.","Raz na piętro: jeśli sojusznik zginie, natychmiast wskrzesza go z 50% zdrowia i many, bez żadnej kary."
+Dawn Crosier,Pastorał Świtu
+Scythe of the Black Sacrament,Kosa Czarnego Sakramentu
+A two-handed dark scythe forged from tomb iron.,Dwuręczna mroczna kosa wykuta z grobowego żelaza.
+Shadow Word: Death resets its cooldown and heals the Priest for 30% max HP if it kills.,"Słowo Cienia: Śmierć odnawia się i leczy Kapłana o 30% maks. zdrowia, jeśli zabije."
+Bulwark of the Covenant,Pawęż Przymierza
+A tower shield displaying commandments.,Tarcza wieżowa z wypisanymi przykazaniami.
+Blocking forms an impenetrable energy barrier behind you blocking all hostile missiles.,"Blok tworzy za tobą nieprzenikalną barierę energii, która zatrzymuje wszystkie wrogie pociski."
+Reliquary of the First Martyr,Relikwiarz Pierwszego Męczennika
+A silver locket holding a martyr's bone.,Srebrny medalion skrywający kość męczennika.
+Critical heals apply a free Power Word: Shield equal to 20% of the amount healed.,Krytyczne leczenie nakłada darmowe Słowo Mocy: Tarcza równe 20% uleczonej wartości.
+Tome of Dire Anathema,Księga Strasznej Klątwy
+An iron-bound tome chained in purple wards.,Okuta żelazem księga skuta fioletowymi osłonami.
+Healing spells cast on enemies deal double damage as shadow unholy fire.,Czary leczące rzucone na wrogów zadają podwójne obrażenia jako bezbożny ogień cienia.
+Anathema,Anatema
+Band of Endless Grace,Obręcz Niekończącej się Łaski
+A seamless platinum band glowing softly.,Bezszwowa platynowa obręcz łagodnie lśniąca.
+Healing spells cast on allies below 30% HP heal for +60% additional potency.,Czary leczące rzucone na sojuszników poniżej 30% zdrowia leczą o +60% mocniej.
+Signet of the Iron Zealot,Sygnet Żelaznego Zeloty
+A templar-cross seal ring.,Pierścień z pieczęcią krzyża templariuszy.
+Converts 15% of maximum Mana into flat permanent Armor.,Zamienia 15% maks. many na stały Pancerz.
+Mana To Armor,Mana w pancerz
+Crown of Thorns Loop,Pętla Korony Cierniowej
+A silver ring lined with inner pricks.,Srebrny pierścień z kolcami od wewnątrz.
+Healing an ally heals you for 20% of the healed amount.,Leczenie sojusznika leczy też ciebie o 20% uleczonej wartości.
+Pectoral of the Undying Sun,Pektorał Nieumierającego Słońca
+A broad sunburst pectoral collar.,Szeroki pektorał w kształcie słonecznych promieni.
+Apotheosis duration extended by 6s; it emits continuous radiant light scorching undead.,"Apoteoza trwa o 6 s dłużej; emituje nieustanne promienne światło, które pali nieumarłych."
+Black Iron Penitent Cross,Czarny Żelazny Krzyż Pokutnika
+A heavy iron crucifix digging into flesh.,Ciężki żelazny krucyfiks wbijający się w ciało.
+Physical damage dealt reduces Mana costs of healing spells by 10% (stacks to 50%).,Zadawane obrażenia fizyczne zmniejszają koszt many czarów leczących o 10% (do 50%).
+Tear of the Weeping Goddess,Łza Płaczącej Bogini
+A teardrop sapphire set in white gold.,Szafir w kształcie łzy oprawiony w białe złoto.
+Guardian Spirit cooldown reduced by 20s; when it triggers it restores 100% of the target's HP and Mana.,Odnowienie Ducha Opiekuńczego krótsze o 20 s; po zadziałaniu przywraca celowi 100% zdrowia i many.
+Goddess Tear,Łza Bogini
++100 Stamina (at level 30) and 30% larger for 1 minute.,+100 Wytrzymałości (na poziomie 30) i 30% większa postać przez 1 minutę.
++80 Strength (at level 30) and +15% Leech for 1 minute.,+80 Siły (na poziomie 30) i +15% Wysysania przez 1 minutę.
+Every attack and spell is a critical strike for 45 seconds.,Każdy atak i czar jest trafieniem krytycznym przez 45 sekund.
+Spells cost no mana and +75 Spell Power (at level 30) for 1 minute.,Czary nie kosztują many i +75 Mocy czarów (na poziomie 30) przez 1 minutę.
+Dodge every physical attack for 30 seconds.,Unikasz każdego ataku fizycznego przez 30 sekund.
++100% Haste and +50% Movement Speed for 1 minute.,+100% Pośpiechu i +50% Szybkości ruchu przez 1 minutę.
+Your health can't drop below 1 for 20 seconds.,Twoje zdrowie nie spadnie poniżej 1 przez 20 sekund.
+A flame aura burns nearby foes for 150 fire damage per second (at level 30) for 1 minute.,Aura płomieni pali pobliskich wrogów za 150 obrażeń od ognia na sekundę (na poziomie 30) przez 1 minutę.
+20% of all damage the party deals heals you for 1 minute.,20% wszystkich obrażeń zadanych przez drużynę leczy cię przez 1 minutę.
+Reflect 300% of melee damage taken as true damage for 1 minute.,Odbijasz 300% otrzymanych obrażeń wręcz jako obrażenia czyste przez 1 minutę.
+Common,Pospolity
+Uncommon,Niepospolity
+Rare,Rzadki
+Epic,Epicki
+Relic,Reliktowy
+Arcane Wand,Różdżka Arkanów
+Axe,Topór
+Battle Staff,Kostur Bojowy
+Bow,Łuk
+Crossbow,Kusza
+Greataxe,Wielki Topór
+Greatsword,Wielki Miecz
+Greaves,Nagolenniki
+Holy Staff,Święty Kostur
+Holy Wand,Święta Różdżka
+Hood,Kaptur
+Mace,Buława
+Breastplate,Napierśnik
+Helm,Hełm
+Quiver,Kołczan
+Robe,Szata
+Sling,Proca
+Sword,Miecz
+Trinket,Talizman
+Warhammer,Młot Bojowy
+Abyssal Leech,Pijawka Otchłani
+Acid Slime,Żrący Szlam
+Acid Slimeling,Mały Żrący Szlam
+Construct,Konstrukt
+Archive Gargoyle,Gargulec Archiwów
+Ash Imp,Popielny Chochlik
+Astral Warden,Astralny Strażnik
+Banshee of the Crypt,Banshee z Krypty
+Barrow Abomination,Kurhanowa Ohyda
+Bloodhound of the Barrow,Krwawy Ogar z Kurhanu
+Humanoid,Humanoid
+Barrow Hag,Kurhanowa Wiedźma
+The Bile Twin,Bliźniak Żółci
+Bloated Drowner,Nabrzmiały Topielec
+Blood Tick,Krwawy Kleszcz
+Bramble Warden,Strażnik Jeżyn
+Brier-Choked Thrall,Sługa Zduszony Cierniem
+Brimstone Hound,Siarczany Ogar
+Carrion Crawler,Ścierwojad
+Cultist,Kultysta
+Cursed Scribe,Przeklęty Skryba
+Dread Wight,Straszliwy Upiór
+Echo of Regret,Echo Żalu
+Echo of the Unwritten,Echo Nienapisanego
+Flame Revenant,Płomienny Upiór
+Heretic Flesh-Stitcher,Heretycki Zszywacz Ciał
+Foundry Taskmaster,Nadzorca Odlewni
+Ghoul,Ghul
+The Gristle Twin,Bliźniak Chrząstki
+Gutter Stalker,Rynsztokowy Łowca
+Hellfire Cultist,Piekielny Kultysta
+Ink Horror,Atramentowa Groza
+Iron Punisher,Żelazny Kat
+Magma Carapace,Magmowy Pancerzowiec
+Mirror Image,Lustrzane Odbicie
+Heretic Phantom,Heretycki Fantom
+Plague Rat,Szczur Zarazy
+Plague Ratman,Szczuroczłek Zarazy
+Rotwood Treant,Zgniłodrzewiec
+Skeletal Footman,Kościany Piechur
+Skeleton Archer,Szkielet Łucznik
+Sludge Lobber,Miotacz Szlamu
+Tomebound Mimic,Mimik Spętany Księgą
+Training Dummy,Manekin Treningowy
+Warded Dummy,Manekin z Osłoną
+Void Weaver,Tkacz Pustki
+Will-o'-the-Blight,Zarazognik
+Fireball,Kula Ognia
+"An exploding fireball (260 px, 60 px blast): heavy damage and a 4 s burn.","Wybuchająca kula ognia (260 px, wybuch 60 px): duże obrażenia i 4 s płonięcia."
+Flame Wave,Fala Płomieni
+A sheet of flame in a 70° cone (150 px) that burns enemies and incinerates incoming projectiles.,"Płachta ognia w stożku 70° (150 px), która pali wrogów i spopiela nadlatujące pociski."
+Combustion,Samozapłon
+Consume every burn on the target (220 px) and deal all their remaining damage at once.,Pochłania każde płonięcie na celu (220 px) i zadaje naraz wszystkie pozostałe obrażenia.
+Meteor Strike,Uderzenie Meteoru
+A meteor falls after 1.5 s: catastrophic damage in 140 px and burning lava for 6 s.,"Po 1,5 s spada meteor: katastrofalne obrażenia w promieniu 140 px i płonąca lawa przez 6 s."
+"Imbue the target (240 px) with volatile heat: it explodes after 5 s, hurting neighbours and spreading to one more.","Nasyca cel (240 px) niestabilnym żarem: wybucha po 5 s, raniąc sąsiadów i przenosząc się na jeszcze jednego."
+Frostbolt,Lodowy Pocisk
+"A razor ice shard (270 px): frost damage and Chill (-40% movement, -15% haste for 4 s, stacks into a freeze).","Ostry jak brzytwa odłamek lodu (270 px): obrażenia od mrozu i Wychłodzenie (-40% ruchu, -15% pośpiechu na 4 s, kumuluje się do zamrożenia)."
+Frost Nova,Mroźna Nowa
+An explosive ring of frost around you freezes every enemy within 110 px for 3 s.,Wybuchowy pierścień mrozu wokół ciebie zamraża każdego wroga w promieniu 110 px na 3 s.
+A crystalline barrier absorbs damage equal to 40% of your maximum health; melee attackers get Chilled.,Krystaliczna bariera pochłania obrażenia równe 40% twojego maks. zdrowia; atakujący wręcz zostają Wychłodzeni.
+Encase a Chilled target (220 px) in ice for 4 s; critical strikes against it deal +50% damage.,Zamyka Wychłodzony cel (220 px) w lodzie na 4 s; trafienia krytyczne w niego zadają +50% obrażeń.
+Blizzard,Zamieć
+A 6 s blizzard (150 px): frost damage every tick and Chill that builds until enemies freeze solid.,"Zamieć na 6 s (150 px): obrażenia od mrozu co tik i narastające Wychłodzenie, aż wrogowie zamarzną na kość."
+Earth Spike,Ziemny Kolec
+"A granite spike erupts under the target (230 px), knocking it up and stunning it for 0.5 s.","Granitowy kolec wyrasta pod celem (230 px), podrzucając go i ogłuszając na 0,5 s."
+"Basalt skin for 10 s: +100 armor, immune to knockbacks, and the next 3 melee hits are absorbed entirely.","Bazaltowa skóra na 10 s: +100 pancerza, odporność na odrzuty, a 3 następne ciosy wręcz zostają całkowicie pochłonięte."
+Tremor,Drżenie Ziemi
+A seismic wave (160 px) knocks enemies down and sunders their armor by 30%.,Fala sejsmiczna (160 px) powala wrogów i rozłupuje ich pancerz o 30%.
+Boulder Crush,Miażdżący Głaz
+Hurl a rolling boulder (200 px) that crushes everything in its path and shatters hostile projectiles.,"Ciska toczący się głaz (200 px), który miażdży wszystko na swej drodze i rozbija wrogie pociski."
+Chain Lightning,Łańcuch Błyskawic
+"An arc (250 px) that jumps to 5 more enemies, +10% damage per jump.","Łuk elektryczny (250 px), który przeskakuje na 5 kolejnych wrogów, +10% obrażeń za skok."
+Lightning Orb,Kula Błyskawic
+A slow ball of plasma that zaps every enemy within 80 px as it drifts.,"Wolna kula plazmy, która razi każdego wroga w promieniu 80 px, gdy dryfuje."
+Charge the target (240 px) for 6 s: every spell that hits it releases a shockwave.,"Ładuje cel (240 px) na 6 s: każdy czar, który go trafi, wyzwala falę uderzeniową."
+Thunderstorm,Burza z Piorunami
+"A tempest (160 px) hurls a thunderbolt at a random foe every second for 6 s, stunning for 0.8 s.","Nawałnica (160 px) ciska co sekundę piorun w losowego wroga przez 6 s, ogłuszając na 0,8 s."
+Luminance,Jasność
+Light,Światło
+"A beam of radiance (250 px): heals allies on its path, burns enemies and blinds undead and demons for 3 s.","Promień blasku (250 px): leczy sojuszników na swej drodze, pali wrogów i oślepia nieumarłych oraz demony na 3 s."
+Blinding Radiance,Oślepiający Blask
+Holy fire blinds every enemy within 120 px and leaves them wandering aimlessly for 2.5 s.,"Święty ogień oślepia każdego wroga w promieniu 120 px i sprawia, że błądzą bez celu przez 2,5 s."
+Solar Prism,Słoneczny Pryzmat
+A hovering prism for 12 s that focuses solar beams on the healthiest enemy in range.,"Unoszący się pryzmat na 12 s, który skupia promienie słońca na najzdrowszym wrogu w zasięgu."
+Shadow Bolt,Pocisk Cienia
+Dark,Mrok
+Condensed void (260 px): shadow damage that erodes magic resistance by 10% (stacks).,"Skondensowana pustka (260 px): obrażenia od cienia, które kruszą odporność na magię o 10% (kumuluje się)."
+Drain Soul,Wyssanie Duszy
+"Channel a necrotic beam (200 px), draining life: 50% of the damage heals you. 10 Mana per second.","Kanałuje nekrotyczny promień (200 px), wysysając życie: 50% obrażeń leczy ciebie. 10 many na sekundę."
+Grasp of the Void,Uścisk Pustki
+Tentacles (100 px) pull every enemy toward the centre and root them for 2 s.,Macki (100 px) przyciągają każdego wroga do środka i unieruchamiają go na 2 s.
+Sacrifice 20% of your current health: restore 60 Mana and +25% spell damage for 8 s.,Poświęć 20% obecnego zdrowia: przywraca 60 many i +25% obrażeń czarów na 8 s.
+Blink,Mignięcie
+"Teleport 160 px along the aim, leaving a mirror image that draws aggro for 2 s.","Teleport o 160 px w kierunku celowania, zostawiający lustrzane odbicie, które ściąga agresję przez 2 s."
+Toggle: half of the damage you take drains Mana instead (1 damage = 1.2 Mana).,"Przełącznik: połowa otrzymanych obrażeń zamiast tego wysysa manę (1 obrażenie = 1,2 many)."
+Counterspell,Kontrzaklęcie
+Interrupt the target's spell (250 px) and lock that school of magic for 4 s.,Przerywa czar celu (250 px) i blokuje tę szkołę magii na 4 s.
+Warp spacetime: the whole party gains +40% haste and +30% movement speed for 15 s.,Zakrzywia czasoprzestrzeń: cała drużyna zyskuje +40% pośpiechu i +30% szybkości ruchu na 15 s.
+Singularity,Osobliwość
+"A black hole (160 px) drags enemies and projectiles in for 4 s, then erupts in a cosmic blast.","Czarna dziura (160 px) wciąga wrogów i pociski przez 4 s, po czym wybucha kosmicznym podmuchem."
+Claw,Szpon
+Bone Arrow,Kościana Strzała
+Dark Ritual,Mroczny Rytuał
+Unholy Mend,Bezbożne Łatanie
+Bone Cleave,Kościane Rozpłatanie
+Bone Nova,Kościana Nowa
+Grave Slam,Grobowe Uderzenie
+Raise Dead,Wskrzeszenie Umarłych
+Enrage,Wściekłość
+Rusty Slash,Zardzewiałe Cięcie
+Bone Splinter Shot,Strzał Kościanym Odłamkiem
+Pounce,Skok na Ofiarę
+Shield Charge,Szarża z Tarczą
+Door Smash,Wyważenie Drzwi
+Venomous Bite,Jadowite Ukąszenie
+Burst from Below,Wybuch spod Ziemi
+Mournful Shriek,Żałobny Wrzask
+Grave Wail,Grobowe Zawodzenie
+Crushing Stomp,Miażdżące Tupnięcie
+Aspergillum Spikes,Kolce Kropidła
+Plague Bolt,Pocisk Zarazy
+Raise the Legion,Wskrzeszenie Legionu
+Poisoned Dagger,Zatruty Sztylet
+Filth Flask,Flaszka Plugastwa
+Caustic Bile,Żrąca Żółć
+Acid Touch,Dotyk Kwasu
+Toxic Burst,Toksyczny Wybuch
+Thrown Scalpel,Rzucony Skalpel
+Backstab,Cios w Plecy
+Mud Splash,Chlapnięcie Błotem
+Sludge Mortar,Moździerz Szlamu
+Leech Bite,Ukąszenie Pijawki
+Nibble,Podgryzanie
+Phantom Strike,Upiorny Cios
+Sludge Slam,Uderzenie Szlamem
+Offal Slam,Uderzenie Podrobami
+Bile Spew,Plucie Żółcią
+Toxic Censer,Toksyczna Kadzielnica
+Incendiary Flask,Flaszka Zapalająca
+Scurrying Horde,Pełzająca Horda
+Frenzied Claws,Szalone Pazury
+Cinder Bolt,Żarzący Pocisk
+Obsidian Crush,Obsydianowe Zgniecenie
+Red-Hot Chain Hook,Rozżarzony Hak na Łańcuchu
+Branding Strike,Cios Piętnujący
+Blazing Leap,Płonący Skok
+Brimstone Breath,Siarczany Oddech
+Bite,Ugryzienie
+Forging Hammer,Młot Kowalski
+Magma Glyph,Glif Magmy
+Hellfire Bolt,Piekielny Pocisk
+Heat Shockwave,Fala Żaru
+Searing Touch,Parzący Dotyk
+Twin Hammers,Bliźniacze Młoty
+Soul Pincers,Szczypce Dusz
+Obsidian Fangs,Obsydianowe Kły
+Tail Sweep,Zamiach Ogonem
+Molten Stare,Roztopione Spojrzenie
+Paper Jaws,Papierowe Szczęki
+Rune Polearm,Runiczna Glewia
+Shadow Missile,Pocisk Cienia
+Glyph of Anguish,Glif Udręki
+Stone Dive,Kamienne Nurkowanie
+Stone Claw,Kamienny Szpon
+Ink Tendrils,Atramentowe Macki
+Echoed Cleave,Echo Rozpłatania
+Echoed Charge,Echo Szarży
+Echoed Arrow,Echo Strzały
+Echoed Volley,Echo Salwy
+Echoed Bolt,Echo Pocisku
+Echoed Nova,Echo Nowej
+Echoed Smite,Echo Porażenia
+Echoed Mend,Echo Łatania
+Parchment Ribbons,Pergaminowe Wstęgi
+Mirror Flash,Lustrzany Błysk
+Stellar Tentacle,Gwiezdna Macka
+Glass Shards,Szklane Odłamki
+Maul,Szarpanie
+Thorned Claw,Cierniowy Szpon
+Thorn Burst,Wybuch Cierni
+Barrow Curse,Klątwa Kurhanu
+Root Slam,Uderzenie Korzeniem
+Stake Line,Linia Pali
+Tendon Grapple,Chwyt za Ścięgna
+Ravenous Maw,Wygłodniała Paszcza
+Barbed Javelin,Zadziorny Oszczep
+Tick Burst,Wybuch Kleszcza
+Antler Gore,Cios Porożem
+Grasping Roots,Chwytające Korzenie
+Razor Appendages,Brzytwy Odnóży
+Crimson Tears,Szkarłatne Łzy
+Holy Strike,Święty Cios
+"Primary melee swing charged with holy force: hits up to 3 enemies in an arc before you, breaks props and barrels and bursts closed doors open. Scales with Intellect.","Główny zamach wręcz naładowany świętą mocą: trafia do 3 wrogów w łuku przed tobą, niszczy rekwizyty i beczki oraz wyważa zamknięte drzwi. Skaluje się z Intelektem."
+Smite,Porażenie
+"A beam of holy fire (250 px): damages the enemy at the cursor, or heals the ally you aim at.","Promień świętego ognia (250 px): rani wroga przy kursorze albo leczy sojusznika, w którego celujesz."
+Flash Heal,Błyskawiczne Leczenie
+"A fast burst heal on the ally at the cursor (240 px), or yourself.","Szybkie, silne leczenie sojusznika przy kursorze (240 px) albo ciebie."
+Divine grace on an ally (240 px): healing every second for 12 s.,Boska łaska na sojuszniku (240 px): leczenie co sekundę przez 12 s.
+A radiant shield on an ally (220 px) absorbing damage equal to 35% of your maximum health.,"Promienna tarcza na sojuszniku (220 px), pochłaniająca obrażenia równe 35% twojego maks. zdrowia."
+Consecration,Konsekracja
+Sanctify the ground (100 px) for 8 s: holy damage to enemies inside; you generate 200% threat.,Uświęca ziemię (100 px) na 8 s: obrażenia od świętości dla wrogów w środku; generujesz 200% zagrożenia.
+Rebuke,Upomnienie
+A mace strike filled with righteousness: silences the target for 2 s and draws a lot of threat.,Cios buławą pełen prawości: ucisza cel na 2 s i ściąga dużo zagrożenia.
+"Bless the whole party: +10% Strength, Agility and Intellect for 3 minutes.","Błogosławi całą drużynę: +10% Siły, Zręczności i Intelektu na 3 minuty."
+Prayer of Healing,Modlitwa Uzdrowienia
+A wave of divine light heals every party member within 180 px.,Fala boskiego światła leczy każdego członka drużyny w promieniu 180 px.
++60% armor and +30% block chance for 8 s; every block heals you for 3% of your maximum health.,+60% pancerza i +30% szansy na blok na 8 s; każdy blok leczy cię o 3% maks. zdrowia.
+Purify,Oczyszczenie
+"Cleanse one poison, curse and disease from an ally (240 px). A successful cleanse refunds 15 Mana.","Usuwa z sojusznika jedną truciznę, klątwę i chorobę (240 px). Udane oczyszczenie zwraca 15 many."
+A hammer of justice (220 px): the target takes +20% damage from melee attacks for 6 s.,Młot sprawiedliwości (220 px): cel otrzymuje +20% obrażeń od ataków wręcz przez 6 s.
+Holy Nova,Święta Nowa
+A burst of holy light (90 px): damages nearby enemies and heals nearby allies.,Wybuch świętego światła (90 px): rani pobliskich wrogów i leczy pobliskich sojuszników.
+"An eldritch syllable (260 px): shadow damage every second for 10 s, growing each tick.","Niesamowita sylaba (260 px): obrażenia od cienia co sekundę przez 10 s, rosnące z każdym tikiem."
+A crown of holy thorns on you or an ally: 40% of the damage taken is reflected for 8 s.,Korona świętych cierni na tobie lub sojuszniku: 40% otrzymanych obrażeń jest odbijane przez 8 s.
+"Pull an ally (280 px) to your feet, breaking roots and saving them from a fatal blow for 3 s.","Przyciąga sojusznika (280 px) do twoich stóp, zrywając unieruchomienia i chroniąc go przed śmiertelnym ciosem przez 3 s."
+Sacred flame (240 px): high holy damage and a 6 s burn.,Święty płomień (240 px): wysokie obrażenia od świętości i 6 s płonięcia.
+Penance,Pokuta
+Channel 4 bolts of holy light over 2 s (220 px): they damage an enemy or heal an ally. 12 Mana per second.,Kanałuje 4 pociski świętego światła przez 2 s (220 px): ranią wroga albo leczą sojusznika. 12 many na sekundę.
+A rune circle (120 px) for 8 s: allies inside take 25% less damage; for the first 3 s enemies are pushed out.,Krąg run (120 px) na 8 s: sojusznicy w środku otrzymują 25% mniej obrażeń; przez pierwsze 3 s wrogowie są wypychani.
+Chastise,Skarcenie
+A pillar of blinding light (220 px) incapacitates the target for 3.5 s.,"Słup oślepiającego światła (220 px) obezwładnia cel na 3,5 s."
+An angel over an ally (240 px) for 8 s: +40% healing taken; a fatal blow is prevented and restores 50% health instead.,Anioł nad sojusznikiem (240 px) na 8 s: +40% otrzymywanego leczenia; śmiertelny cios zostaje powstrzymany i zamiast tego przywraca 50% zdrowia.
+Hammer of the Righteous,Młot Sprawiedliwych
+A warhammer strike (60 px) whose holy shockwave hits 3 enemies around the target.,"Cios młotem bojowym (60 px), którego święta fala uderzeniowa trafia 3 wrogów wokół celu."
+Mind Blast,Wstrząs Umysłu
+Psychic agony (240 px): heavy shadow damage and -15% damage dealt for 4 s.,Psychiczna męka (240 px): ciężkie obrażenia od cienia i -15% zadawanych obrażeń na 4 s.
+Lightwell,Studnia Światła
+A sacred well for 20 s: allies within 100 px below half health are healed strongly every second.,Święta studnia na 20 s: sojusznicy w promieniu 100 px poniżej połowy zdrowia są co sekundę mocno leczeni.
+Exorcism,Egzorcyzm
+"Purge evil (200 px): a certain critical hit on undead and demons, and it interrupts spellcasting.","Wypędza zło (200 px): pewne trafienie krytyczne w nieumarłych i demony, przerywa też rzucanie czarów."
+"For 12 s, 35% of the shadow damage you deal heals the party, split evenly.","Przez 12 s 35% zadawanych przez ciebie obrażeń od cienia leczy drużynę, po równo."
+Passive. Blocks and critical strikes give +5% haste (stacks 5x) and shorten Consecration's cooldown by 0.5 s.,"Pasywna. Bloki i trafienia krytyczne dają +5% pośpiechu (kumuluje się 5x) i skracają odnowienie Konsekracji o 0,5 s."
+Shackle Undead,Skucie Nieumarłego
+Shackle an undead or demon (220 px) for 15 s: it can't move or attack; any damage frees it.,Skuwa nieumarłego lub demona (220 px) na 15 s: nie może się ruszać ani atakować; każde obrażenia go uwalniają.
+For 8 s you take 40% of all damage dealt to an ally (250 px).,Przez 8 s przyjmujesz 40% wszystkich obrażeń zadawanych sojusznikowi (250 px).
+Shadow Word: Death,Słowo Cienia: Śmierć
+"A lethal curse (260 px): x3 damage below 20% health; if the target survives, you take recoil.","Śmiertelna klątwa (260 px): x3 obrażeń poniżej 20% zdrowia; jeśli cel przeżyje, otrzymujesz odrzut."
+Holy wings for 15 s: spells cost 50% less and cooldowns are 60% shorter.,"Święte skrzydła na 15 s: czary kosztują 50% mniej, a odnowienia są o 60% krótsze."
+Aimed Shot,Celny Strzał
+Standard bow / crossbow shot (280 px). Critical hits restore 5 Mana.,Zwykły strzał z łuku / kuszy (280 px). Trafienia krytyczne przywracają 5 many.
+Power Shot,Potężny Strzał
+"Hold to draw (1 s), release: a piercing heavy bolt (320 px) for 260% weapon damage that knocks back every enemy in the line.","Przytrzymaj, by naciągnąć (1 s), puść: przebijający ciężki bełt (320 px) za 260% obrażeń broni, który odrzuca każdego wroga na linii."
+Multishot,Salwa
+Fire a fan of 5 arrows in a 60° cone (220 px).,Wystrzeliwuje wachlarz 5 strzał w stożku 60° (220 px).
+Viper Arrow,Strzała Żmii
+A venom-tipped arrow (260 px): instant damage and nature poison every second for 8 s.,Strzała z zatrutym grotem (260 px): natychmiastowe obrażenia i trucizna natury co sekundę przez 8 s.
+Snare Trap,Pułapka Sidłowa
+A spring-loaded trap: the victim is rooted for 3 s and bleeds.,Pułapka na sprężynie: ofiara jest unieruchomiona na 3 s i krwawi.
+Explosive Trap,Pułapka Wybuchowa
+A proximity mine: the blast knocks enemies back and sets the floor on fire for 5 s.,Mina zbliżeniowa: wybuch odrzuca wrogów i podpala podłogę na 5 s.
+Brand a target (300 px) for 15 s: all allies deal +15% ranged damage to it and it can't stealth.,Naznacza cel (300 px) na 15 s: wszyscy sojusznicy zadają mu +15% obrażeń dystansowych i nie może się ukryć.
+Disengage,Odskok
+"Leap 140 px backwards, breaking roots and slows, leaving a blinding smoke cloud for 2 s.","Odskok o 140 px do tyłu, zrywający unieruchomienia i spowolnienia, zostawiający oślepiającą chmurę dymu na 2 s."
+Rain of Arrows,Deszcz Strzał
+Barrage a 120 px zone for 4 s: continuous damage and -40% movement speed.,Ostrzeliwuje strefę 120 px przez 4 s: ciągłe obrażenia i -40% szybkości ruchu.
+Arterial Shot,Strzał w Tętnicę
+"Strike an artery (260 px): bleeding for 6 s, tripled while the target moves.","Trafia w tętnicę (260 px): krwawienie na 6 s, potrojone, gdy cel się porusza."
+A skyward flare: reveals stealthed units and lights 250 px of darkness; the party gains +10% crit chance.,Raca w niebo: odsłania ukryte jednostki i rozświetla 250 px ciemności; drużyna zyskuje +10% szansy na kryt.
+Serpent's Grip,Uścisk Węża
+"A spectral serpent constricts the target (220 px), silencing and suffocating it for 4 s.","Widmowy wąż dusi cel (220 px), uciszając go i dławiąc przez 4 s."
+A smoke bomb (100 px): allies inside gain +50% dodge and drop all their threat.,Bomba dymna (100 px): sojusznicy w środku zyskują +50% uniku i zrzucają całe zagrożenie.
+Piercing Bolt,Przebijający Bełt
+A heavy quarrel (300 px) through walls and armor; +100% damage when it went through a wall.,"Ciężki bełt (300 px) przez ściany i pancerz; +100% obrażeń, gdy przeszedł przez ścianę."
+"+70% haste for 5 s, but your shots reach 20% less far.","+70% pośpiechu na 5 s, ale twoje strzały lecą o 20% krócej."
+Acid Flask,Flaszka Kwasu
+Shatter a vitriol orb: everything in the splash loses 40% armor for 6 s.,Rozbija kulę witriolu: wszystko w rozprysku traci 40% pancerza na 6 s.
+Tranquilizer Dart,Strzałka Usypiająca
+Put the target to sleep for 8 s (damage wakes it) and dispel its enrage.,Usypia cel na 8 s (obrażenia go budzą) i rozprasza jego wściekłość.
+Bola Throw,Rzut Bolą
+"Entangle the target's legs (200 px): -80% speed for 2 s, easing off over 2 more seconds.","Oplata nogi celu (200 px): -80% szybkości na 2 s, słabnące przez kolejne 2 sekundy."
+Vanish for 6 s (attacking ends it). Your opening strike from stealth is a certain critical hit.,Znikasz na 6 s (atak to kończy). Twój pierwszy cios z ukrycia jest pewnym trafieniem krytycznym.
+"Your next Aimed Shot or Power Shot fires twice, the second for free.","Twój następny Celny Strzał lub Potężny Strzał wystrzeli dwa razy, drugi za darmo."
+Caltrops,Kolczatki
+Scatter caltrops behind you: chasing enemies take damage and move 50% slower.,Rozsypuje za tobą kolczatki: ścigający wrogowie otrzymują obrażenia i poruszają się o 50% wolniej.
+Toggle: your view widens by 30% and you deal +25% damage to targets beyond 180 px.,"Przełącznik: twoje pole widzenia rośnie o 30%, a zadajesz +25% obrażeń celom dalszym niż 180 px."
+Concussive Blast,Wstrząsający Wybuch
+"Point-blank black powder in a 45° cone (90 px), blasting enemies back 120 px.","Czarny proch z bliska w stożku 45° (90 px), odrzucający wrogów o 120 px."
+Passive. Critical strikes give +8% movement speed and +10% mana regeneration for 4 s (stacks 3x).,Pasywna. Trafienia krytyczne dają +8% szybkości ruchu i +10% regeneracji many na 4 s (kumuluje się 3x).
+Venomous Vapors,Jadowite Opary
+A spore bomb (140 px): maximum poison stacks on everything inside and -30% accuracy.,Bomba z zarodnikami (140 px): maksymalne ładunki trucizny na wszystkim w środku i -30% celności.
+Trickshot,Strzał Rykoszetem
+"An arrow (250 px) that bounces to up to 3 more targets, +15% damage per bounce.","Strzała (250 px), która odbija się do 3 kolejnych celów, +15% obrażeń za odbicie."
+A barbed arrowhead (260 px). After 4 s it tears free for all the damage the target took meanwhile.,"Zadziorny grot (260 px). Po 4 s wyrywa się, zadając wszystkie obrażenia, jakie cel w tym czasie otrzymał."
+Survival Instinct,Instynkt Przetrwania
+"Cleanse every debuff, restore 30% health and ignore floor traps for 8 s.","Usuwa wszystkie osłabienia, przywraca 30% zdrowia i ignoruje pułapki w podłodze przez 8 s."
+Bone Harpoon,Kościany Harpun
+A tethered harpoon (250 px): pins standard enemies to the wall (stun 2.5 s) or reels you to a boss.,"Harpun na linie (250 px): przyszpila zwykłych wrogów do ściany (ogłuszenie 2,5 s) albo przyciąga cię do bossa."
+Shadow Ballista,Cienista Balista
+Deploy a shadow ballista for 15 s that snipes the heaviest enemy with piercing bolts.,"Rozstawia cienistą balistę na 15 s, która ostrzeliwuje najcięższego wroga przebijającymi bełtami."
+Test Hit,Test: Trafienie
+Test Line,Test: Linia
+Test Cone,Test: Stożek
+Test Chain,Test: Łańcuch
+Test Beam,Test: Promień
+Test Leap,Test: Skok
+Test Charge,Test: Ładowanie
+Test Knockback,Test: Odrzut
+Test Pull,Test: Przyciąganie
+Test Delayed,Test: Opóźnienie
+Test Combustion,Test: Samozapłon
+Test Purify,Test: Oczyszczenie
+Test Tranquilizer,Test: Usypianie
+Test Flame Wave,Test: Fala Płomieni
+Test Fire Wall,Test: Ściana Ognia
+Test Smoke Screen,Test: Zasłona Dymna
+Test Shadow Flare,Test: Cienisty Rozbłysk
+Test Counterspell,Test: Kontrzaklęcie
+Test Reset,Test: Reset
+Test Dark Bargain,Test: Mroczny Targ
+Test Tether,Test: Więź
+Test Gore Arrow,Test: Strzała Rozpruwająca
+Test Living Bomb,Test: Żywa Bomba
+Test Teleport,Test: Teleport
+Test Turret,Test: Wieżyczka
+Test Mana Shield,Test: Tarcza Many
+Test Drain Soul,Test: Wyssanie Duszy
+Test Power Shot,Test: Potężny Strzał
+Test Blink,Test: Mignięcie
+Test Execute,Test: Egzekucja
+Test Blizzard,Test: Zamieć
+Test Thorns,Test: Ciernie
+Test Resist,Test: Odporność
+Test Immunity,Test: Niewrażliwość
+Test Mirror Image,Test: Lustrzane Odbicie
+Test Proc,Test: Efekt
+Test Leap of Faith,Test: Skok Wiary
+Test Cheat Death,Test: Oszukanie Śmierci
+Test Extinguish,Test: Gaszenie
+Test Break Absorb,Test: Przełamanie Osłony
+Test Free Cast,Test: Darmowe Rzucenie
+Test Replay Skill,Test: Powtórzenie Umiejętności
+Test Threat Bonus,Test: Premia Zagrożenia
+Fury Strike,Cios Furii
+Primary cleave swing. Builds 10 Fury and shreds armor by 3% for 5 s (stacks 3x).,Główny zamach tnący. Generuje 10 Furii i rozdziera pancerz o 3% na 5 s (kumuluje się 3x).
+Cleave,Rozpłatanie
+"Heavy swing in a 170° arc hitting up to 8 targets for 180% weapon damage, and making them bleed for 4 s.","Ciężki zamach w łuku 170°, trafiający do 8 celów za 180% obrażeń broni i wywołujący krwawienie na 4 s."
+Shield Slam,Uderzenie Tarczą
+Stuns the target for 1.8 s. Damage grows with your armor and shield block. Triple threat.,"Ogłusza cel na 1,8 s. Obrażenia rosną z pancerzem i blokiem tarczą. Potrójne zagrożenie."
+Taunting Shout,Prowokujący Okrzyk
+"Forces enemies within 180 px to attack you for 4 s, and you take 30% less damage for 5 s. +15 Fury.","Zmusza wrogów w promieniu 180 px do atakowania ciebie przez 4 s, a ty otrzymujesz 30% mniej obrażeń przez 5 s. +15 Furii."
+Deadly Charge,Śmiercionośna Szarża
+"Charge along the aim, knocking enemies aside; the impact stuns for 1 s. +20 Fury.","Szarża w kierunku celowania, roztrącająca wrogów; uderzenie ogłusza na 1 s. +20 Furii."
+Rally the party within 250 px: +15% physical damage and +10% movement speed for 10 s.,Zagrzewa drużynę w promieniu 250 px: +15% obrażeń fizycznych i +10% szybkości ruchu na 10 s.
+"Spin for 2.5 s, hitting everything within 80 px every 0.3 s. Slows can't touch you while spinning.","Wirujesz przez 2,5 s, trafiając wszystko w promieniu 80 px co 0,3 s. Podczas wirowania spowolnienia cię nie imają."
+Execute,Egzekucja
+"Only on targets below 25% health. Consumes all Fury: massive damage, +2% per Fury above 30.","Tylko na cele poniżej 25% zdrowia. Zużywa całą Furię: potężne obrażenia, +2% za każdy punkt Furii powyżej 30."
+Parry the next melee attack within 1.2 s and counter with a critical strike.,"Paruje następny atak wręcz w ciągu 1,2 s i kontruje trafieniem krytycznym."
+"Take 60% less damage for 6 s, at -20% movement speed.","Otrzymujesz 60% mniej obrażeń przez 6 s, przy -20% szybkości ruchu."
+Earthshaker,Wstrząs Ziemi
+Slam the ground: fissures in a 90° cone (120 px) knock enemies down for 1.2 s.,"Uderza w ziemię: szczeliny w stożku 90° (120 px) powalają wrogów na 1,2 s."
+Bloodthirst,Żądza Krwi
+A brutal strike that heals you for 40% of the damage dealt.,"Brutalny cios, który leczy cię o 40% zadanych obrażeń."
+"Break free of stuns, fears and roots. Double Fury generation and +30% haste for 8 s.","Wyrywasz się z ogłuszeń, strachu i unieruchomień. Podwójne generowanie Furii i +30% pośpiechu na 8 s."
+Hamstring,Podcięcie Ścięgien
+Slash the tendons: -60% movement speed and -15% damage dealt for 5 s.,Tnie ścięgna: -60% szybkości ruchu i -15% zadawanych obrażeń na 5 s.
+"Harden to granite: cleanse poisons and bleeds, +50% armor for 6 s.","Twardniejesz w granit: usuwa trucizny i krwawienia, +50% pancerza na 6 s."
+Armor Sunder,Rozłupanie Pancerza
+"Thrust through every enemy in a 70 px line, ignoring 50% of their armor and leaving a laceration.","Pchnięcie przez każdego wroga na linii 70 px, ignorujące 50% ich pancerza i zostawiające ranę szarpaną."
+Intimidating Roar,Zastraszający Ryk
+Enemies within 150 px panic and flee in fear for 3 s.,Wrogowie w promieniu 150 px wpadają w panikę i uciekają w strachu przez 3 s.
+Heroic Throw,Heroiczny Rzut
+"Hurl a spectral copy of your weapon (220 px): heavy damage, silences casters for 3 s.","Ciska widmową kopią twojej broni (220 px): duże obrażenia, ucisza rzucających czary na 3 s."
++40% maximum and current health for 12 s. Below 15% health it also heals 25% of your maximum health.,+40% maks. i obecnego zdrowia na 12 s. Poniżej 15% zdrowia leczy też 25% twojego maks. zdrowia.
+Passive. Every melee hit adds +4% critical strike chance for 4 s (up to +20%).,Pasywna. Każde trafienie wręcz daje +4% szansy na trafienie krytyczne na 4 s (do +20%).
+Heroic Leap,Heroiczny Skok
+"Leap up to 200 px and crash down, stunning enemies around the landing for 1.5 s.","Skacze do 200 px i spada z impetem, ogłuszając wrogów wokół miejsca lądowania na 1,5 s."
+Spiked wards reflect 35% of the melee damage you take for 8 s.,Kolczaste osłony odbijają 35% otrzymywanych obrażeń wręcz przez 8 s.
+Usable for 5 s after an enemy dodges or parries you. Can't be dodged; +50% critical damage.,"Do użycia przez 5 s po tym, jak wróg uniknie twojego ciosu lub go sparuje. Nie da się go uniknąć; +50% obrażeń krytycznych."
+"Immune to knockbacks, pulls and forced movement for 10 s; hits you take give extra Fury.","Odporność na odrzuty, przyciąganie i wymuszony ruch przez 10 s; otrzymywane trafienia dają dodatkową Furię."
+Mortal Strike,Śmiertelny Cios
+A grievous wound: the target receives 50% less healing for 6 s.,Ciężka rana: cel otrzymuje o 50% mniej leczenia przez 6 s.
+The party within 300 px gains +20% maximum health for 10 s and is healed for the amount.,Drużyna w promieniu 300 px zyskuje +20% maks. zdrowia na 10 s i zostaje uleczona o tę wartość.
+Usable for 15 s after a kill that gives experience: a strong blow that heals you for 20% of your maximum health.,"Do użycia przez 15 s po zabójstwie dającym doświadczenie: mocny cios, który leczy cię o 20% maks. zdrowia."
+Skull Crack,Pęknięcie Czaszki
+Disorient the target for 3 s: it can't attack or cast. Damage breaks it.,Dezorientuje cel na 3 s: nie może atakować ani rzucać czarów. Obrażenia to przerywają.
+Devastate,Dewastacja
+Weapon and shield in one crushing blow; refreshes Armor Shred and detonates its stacks for extra damage.,Broń i tarcza w jednym miażdżącym ciosie; odświeża Rozdarty Pancerz i detonuje jego ładunki za dodatkowe obrażenia.
+"Become an iron colossus for 15 s: +30% damage, immune to crowd control, melee swings send out shockwaves.","Stajesz się żelaznym kolosem na 15 s: +30% obrażeń, odporność na kontrolę tłumu, zamachy wręcz wysyłają fale uderzeniowe."
+Pyromancer & Stormcaller,Piromanta i Przywoływacz Burz
+Fire and lightning burst.,Wybuch ognia i błyskawic.
+Glacial & Tectonic Warden,Strażnik Lodu i Tektoniki
+Frost and earth control.,Kontrola mrozem i ziemią.
+Void & Solar Weaver,Tkacz Pustki i Słońca
+"Dark and light, reversal.","Mrok i światło, odwrócenie."
+Ignite,Podpalenie
+Fireball deals +12% damage per rank.,Kula Ognia zadaje +12% obrażeń na rangę.
+Conduit,Przewodnik
+Chain Lightning cooldown -15% per rank.,Odnowienie Łańcucha Błyskawic -15% na rangę.
+Plasma Overload,Przeciążenie Plazmy
+Keystone. Lightning that strikes a burning foe triggers a shockwave that stuns for 1.5 s.,"Kluczowy. Błyskawica, która trafi płonącego wroga, wywołuje falę uderzeniową ogłuszającą na 1,5 s."
+Cataclysm,Kataklizm
+Meteor Strike deals +30% damage.,Uderzenie Meteoru zadaje +30% obrażeń.
+Pyromania,Piromania
++6% fire and lightning damage per rank.,+6% obrażeń od ognia i błyskawic na rangę.
+Elemental Cataclysm,Kataklizm Żywiołów
+"Master keystone. Every 30 s, your next fire or lightning spell refunds 30 Mana and calls down a meteor and a thunderstorm as well.",Mistrzowski kluczowy. Co 30 s twój następny czar ognia lub błyskawicy zwraca 30 many i przywołuje też meteor oraz burzę z piorunami.
+Clarity,Jasność Umysłu
++20% mana regeneration per rank.,+20% regeneracji many na rangę.
+Frost Nova radius +10% and freeze +15% per rank.,Promień Mroźnej Nowej +10% i zamrożenie +15% na rangę.
+Shatterstone,Kamieniołom
+Keystone. Frozen targets take 4x damage from physical attacks and earth spells.,Kluczowy. Zamrożone cele otrzymują 4x obrażeń od ataków fizycznych i czarów ziemi.
+Glacial Mastery,Mistrzostwo Lodu
++6% frost and earth damage per rank.,+6% obrażeń od mrozu i ziemi na rangę.
+Bedrock,Skała Macierzysta
++8% armor and +5% maximum health per rank.,+8% pancerza i +5% maks. zdrowia na rangę.
+Permafrost Aura,Aura Wiecznej Zmarzliny
+Master keystone. An aura of cold: enemies that stay within 60 px of you for 2 s freeze.,"Mistrzowski kluczowy. Aura zimna: wrogowie, którzy pozostaną w promieniu 60 px od ciebie przez 2 s, zamarzają."
+Arcane Mind,Tajemny Umysł
++4% Intellect per rank.,+4% Intelektu na rangę.
+Efficiency,Wydajność
+All spells cost 8% less mana per rank.,Wszystkie czary kosztują 8% mniej many na rangę.
+Keystone. Dark damage builds Light charges and light damage builds Dark charges; a light spell at 3 Light charges deals double damage.,"Kluczowy. Obrażenia mroku budują ładunki Światła, a obrażenia światła ładunki Mroku; czar światła przy 3 ładunkach Światła zadaje podwójne obrażenia."
+Spellsurge,Przypływ Czarów
++20% critical damage and +8% haste.,+20% obrażeń krytycznych i +8% pośpiechu.
+Void Mastery,Mistrzostwo Pustki
++6% shadow and holy damage per rank.,+6% obrażeń od cienia i świętości na rangę.
+Temporal Singularity,Osobliwość Czasu
+"Master keystone. A fatal blow rewinds you 5 s, to where you were and the health you had (180 s cooldown).","Mistrzowski kluczowy. Śmiertelny cios cofa cię o 5 s, do miejsca, w którym byłeś, i zdrowia, które miałeś (odnowienie 180 s)."
+Kindling,Rozpałka
++4% fire damage per rank.,+4% obrażeń od ognia na rangę.
+Overload,Przeciążenie
++4% lightning damage per rank.,+4% obrażeń od błyskawic na rangę.
+Firestarter,Podpalacz
++2% critical strike chance per rank.,+2% szansy na trafienie krytyczne na rangę.
+Static Mind,Statyczny Umysł
++4% haste per rank.,+4% pośpiechu na rangę.
+Inferno,Inferno
++10% critical damage per rank.,+10% obrażeń krytycznych na rangę.
+Flashpoint,Punkt Zapłonu
+Flame Wave and Living Bomb radius +10% per rank.,Promień Fali Płomieni i Żywej Bomby +10% na rangę.
+Storm Lord,Władca Burzy
++6% spell damage per rank.,+6% obrażeń czarów na rangę.
++4% frost damage per rank.,+4% obrażeń od mrozu na rangę.
+Stone Skin,Kamienna Skóra
++6% armor per rank.,+6% pancerza na rangę.
+Deep Roots,Głębokie Korzenie
++5% earth damage per rank.,+5% obrażeń od ziemi na rangę.
+Cold Blood,Zimna Krew
+-5% damage taken per rank.,-5% otrzymywanych obrażeń na rangę.
+Glacier,Lodowiec
++5% Stamina per rank.,+5% Wytrzymałości na rangę.
+Long Winter,Długa Zima
+Blizzard and Frost Nova last 12% longer per rank.,Zamieć i Mroźna Nowa trwają o 12% dłużej na rangę.
+Avalanche,Lawina
++8% damage to bosses per rank.,+8% obrażeń przeciw bossom na rangę.
+Deep Well,Głęboka Studnia
++6% maximum mana per rank.,+6% maks. many na rangę.
+Void-Touched,Dotknięty Pustką
++4% shadow damage per rank.,+4% obrażeń od cienia na rangę.
+Radiant Mind,Promienny Umysł
++4% holy damage per rank.,+4% obrażeń od świętości na rangę.
+Arcane Flow,Tajemny Przepływ
++15% mana regeneration per rank.,+15% regeneracji many na rangę.
+Spell Piercing,Przebicie Czarów
+Your spells ignore 6% of magic resistance per rank.,Twoje czary ignorują 6% odporności na magię na rangę.
+Warding,Osłona
++6% magic resistance per rank.,+6% odporności na magię na rangę.
+Arcane Power,Tajemna Moc
++5% Intellect per rank.,+5% Intelektu na rangę.
+Divine Shepherd,Boski Pasterz
+"Healing, wards and renewal.","Leczenie, osłony i odnowa."
+Paladin Bastion,Bastion Paladyna
+"Holy tank, shields and retribution.","Święty obrońca, tarcze i odpłata."
+Dark Inquisitor,Mroczny Inkwizytor
+"Smite, shadow and penance.","Porażenie, cień i pokuta."
+Devotion,Oddanie
++8% healing done per rank.,+8% zadawanego leczenia na rangę.
+Swift Mend,Szybkie Łatanie
+Flash Heal cooldown -10% per rank.,Odnowienie Błyskawicznego Leczenia -10% na rangę.
+Overflowing Grace,Przelewająca się Łaska
+Keystone. Overhealing becomes an absorb shield (up to 30% of the target's maximum health).,Kluczowy. Nadmiarowe leczenie staje się tarczą pochłaniającą (do 30% maks. zdrowia celu).
+Wellspring,Źródło
+Prayer of Healing heals +20% per rank.,Modlitwa Uzdrowienia leczy +20% na rangę.
+Benediction,Benedykcja
+All spells cost 15% less mana.,Wszystkie czary kosztują 15% mniej many.
+Primordial Radiance,Pierwotny Blask
+Master keystone. Direct heals also heal every other party member on the floor for 25% of the amount.,Mistrzowski kluczowy. Bezpośrednie leczenie leczy też każdego innego członka drużyny na piętrze o 25% tej wartości.
+Faith,Wiara
++4% Stamina and +4% armor per rank.,+4% Wytrzymałości i +4% pancerza na rangę.
+Aegis,Egida
+Power Word: Shield absorbs +15% per rank.,Słowo Mocy: Tarcza pochłania +15% na rangę.
+Righteous Retribution,Słuszna Odpłata
+Keystone. 50% of the damage you block is reflected to the attacker as true holy damage.,Kluczowy. 50% zablokowanych obrażeń wraca do atakującego jako czyste obrażenia od świętości.
+Zealous Ground,Gorliwa Ziemia
+Consecration radius and damage +12% per rank.,Promień i obrażenia Konsekracji +12% na rangę.
+Bastion,Bastion
++30% threat and 10% less damage taken.,+30% zagrożenia i 10% mniej otrzymywanych obrażeń.
+Master keystone. -1% damage taken per enemy within 100 px (up to 30%); your casts can't be interrupted.,Mistrzowski kluczowy. -1% otrzymywanych obrażeń za każdego wroga w promieniu 100 px (do 30%); twoich czarów nie da się przerwać.
+Shadow Weaving,Tkanie Cieni
++6% shadow damage per rank.,+6% obrażeń od cienia na rangę.
+Zealotry,Gorliwość
++6% holy damage per rank.,+6% obrażeń od świętości na rangę.
+Keystone. Every tick of your shadow damage over time adds +2% melee damage (up to +30%).,Kluczowy. Każdy tik twoich obrażeń od cienia w czasie dodaje +2% obrażeń wręcz (do +30%).
+Torment,Męka
++3% critical strike chance per rank.,+3% szansy na trafienie krytyczne na rangę.
++5% haste per rank.,+5% pośpiechu na rangę.
+Twilight Conjunction,Koniunkcja Zmierzchu
+Master keystone. Smite and Shadow Word merge: every Smite also deals shadow damage and inflicts Shadow Word: Pain.,Mistrzowski kluczowy. Porażenie i Słowo Cienia łączą się: każde Porażenie zadaje też obrażenia od cienia i nakłada Słowo Cienia: Ból.
+Mercy,Miłosierdzie
++4% healing done per rank.,+4% zadawanego leczenia na rangę.
+Serenity,Spokój
++12% mana regeneration per rank.,+12% regeneracji many na rangę.
+Deep Faith,Głęboka Wiara
+Quick Prayers,Szybkie Modlitwy
+Sanctuary,Sanktuarium
++8% healing received per rank.,+8% otrzymywanego leczenia na rangę.
+Wisdom,Mądrość
+Grace,Łaska
+Renew lasts 15% longer per rank.,Odnowa trwa o 15% dłużej na rangę.
+Holy Armor,Święty Pancerz
++5% armor per rank.,+5% pancerza na rangę.
++4% block chance per rank.,+4% szansy na blok na rangę.
+Vigil,Czuwanie
++5% maximum health per rank.,+5% maks. zdrowia na rangę.
+Righteous Fury,Słuszna Furia
++15% threat per rank.,+15% zagrożenia na rangę.
+Sacred Ground,Święta Ziemia
+-6% spell damage taken per rank.,-6% otrzymywanych obrażeń od czarów na rangę.
+Crusader,Krzyżowiec
++5% melee damage per rank.,+5% obrażeń wręcz na rangę.
+Unyielding,Nieugięty
+"Stuns, roots and other control on you last 15% shorter per rank.","Ogłuszenia, unieruchomienia i inna kontrola trwają na tobie o 15% krócej na rangę."
+Dark Thoughts,Mroczne Myśli
++3% spell damage per rank.,+3% obrażeń czarów na rangę.
+Searing Light,Parzące Światło
++8% critical damage per rank.,+8% obrażeń krytycznych na rangę.
+Mind Spike,Kolec Umysłu
+Lingering Pain,Trwały Ból
+Shadow Word: Pain lasts 15% longer per rank.,Słowo Cienia: Ból trwa o 15% dłużej na rangę.
+Soul Leech,Pijawka Dusz
++2% leech per rank.,+2% wysysania na rangę.
+Judge of the Damned,Sędzia Potępionych
+Shadowform,Postać Cienia
+Sniper,Snajper
+"Heavy hits, crits and range.","Ciężkie trafienia, krytyki i zasięg."
+Toxicologist,Toksykolog
+"Poisons, bleeds and traps.","Trucizny, krwawienia i pułapki."
+Shadow Strider,Wędrowiec Cieni
+"Mobility, dodge and stealth.","Mobilność, uniki i ukrycie."
+Precision,Precyzja
++4% Agility per rank.,+4% Zręczności na rangę.
+Deadeye,Bystre Oko
+Ballistic Precision,Precyzja Balistyczna
+Keystone. Projectiles deal +10% damage per 50 px to the target (up to +60%).,Kluczowy. Pociski zadają +10% obrażeń za każde 50 px do celu (do +60%).
+Volley,Grad Strzał
+Multishot fires 1 more arrow per rank.,Salwa wystrzeliwuje 1 strzałę więcej na rangę.
+Piercing Shots,Przebijające Strzały
+Power Shot deals +20% damage.,Potężny Strzał zadaje +20% obrażeń.
+Marksman,Strzelec Wyborowy
++15% critical damage per rank.,+15% obrażeń krytycznych na rangę.
+Master keystone. Every 4th shot is a certain critical strike with a 300% critical multiplier.,Mistrzowski kluczowy. Co 4. strzał jest pewnym trafieniem krytycznym z mnożnikiem krytycznym 300%.
+Trapper,Traper
+Trap cooldowns -8% per rank.,Odnowienia pułapek -8% na rangę.
+Toxicology,Toksykologia
+Viper Arrow deals +15% damage per rank.,Strzała Żmii zadaje +15% obrażeń na rangę.
+Keystone. Your poisons strip 3% armor and magic resistance per stack.,Kluczowy. Twoje trucizny zdzierają 3% pancerza i odporności na magię za ładunek.
+Big Boom,Wielkie Bum
+Explosive Trap blast radius +15% per rank.,Promień wybuchu Pułapki Wybuchowej +15% na rangę.
+Lingering Venom,Trwały Jad
+Viper Arrow and Venomous Vapors poisons last 20% longer per rank.,Trucizny Strzały Żmii i Jadowitych Oparów trwają o 20% dłużej na rangę.
+Chain Reaction,Reakcja Łańcuchowa
+"Master keystone. Poisoned enemies burst when they die, giving maximum poison stacks to every foe on screen.","Mistrzowski kluczowy. Zatruci wrogowie pękają przy śmierci, dając maksymalne ładunki trucizny każdemu wrogowi na ekranie."
+Swift,Chyży
++10% haste and +8% movement speed.,+10% pośpiechu i +8% szybkości ruchu.
+Evasion,Uchylanie
++3% dodge per rank.,+3% uniku na rangę.
+Keystone. Every dodge restores 15 Mana and gives +20% movement speed for 3 s.,Kluczowy. Każdy unik przywraca 15 many i daje +20% szybkości ruchu na 3 s.
+Fleet-footed,Prędkonogi
++5% movement speed per rank.,+5% szybkości ruchu na rangę.
+Ambusher,Zasadzkowicz
++20% critical damage per rank.,+20% obrażeń krytycznych na rangę.
+Master keystone. Leaving stealth gives 100% dodge chance for 5 s.,Mistrzowski kluczowy. Wyjście z ukrycia daje 100% szansy na unik przez 5 s.
+Dance Of Shadows,Taniec Cieni
++3% ranged damage per rank.,+3% obrażeń dystansowych na rangę.
+Long Shot,Daleki Strzał
++8% range of ranged attacks per rank.,+8% zasięgu ataków dystansowych na rangę.
+Hawk Eye,Jastrzębie Oko
+Armor Piercer,Przebijacz Pancerzy
+Your attacks ignore 8% of armor per rank.,Twoje ataki ignorują 8% pancerza na rangę.
+Big Game Hunter,Łowca Grubej Zwierzyny
+Lethality,Zabójczość
++12% critical damage per rank.,+12% obrażeń krytycznych na rangę.
+Venom Glands,Gruczoły Jadowe
++5% nature (poison) damage per rank.,+5% obrażeń od natury (trucizny) na rangę.
+Trap Engineer,Inżynier Pułapek
+Trap blast radius +10% per rank.,Promień wybuchu pułapek +10% na rangę.
+Spare Springs,Zapasowe Sprężyny
+One more trap can be armed at a time.,Można mieć uzbrojoną jedną pułapkę więcej naraz.
+Field Alchemist,Polowy Alchemik
+Adrenal Toxins,Toksyny Adrenaliny
+Serrated Heads,Ząbkowane Groty
++5% physical damage per rank.,+5% obrażeń fizycznych na rangę.
+Plaguebearer,Roznosiciel Zarazy
+"Viper Arrow, Acid Flask and Venomous Vapors deal +10% damage per rank.","Strzała Żmii, Flaszka Kwasu i Jadowite Opary zadają +10% obrażeń na rangę."
+Light Feet,Lekkie Stopy
++3% movement speed per rank.,+3% szybkości ruchu na rangę.
+Nimble,Zwinny
++3% Agility per rank.,+3% Zręczności na rangę.
+Shadow Veil,Zasłona Cienia
+-6% ranged damage taken per rank.,-6% otrzymywanych obrażeń dystansowych na rangę.
+Slippery,Śliski
+"Stuns, roots and other control on you last 12% shorter per rank.","Ogłuszenia, unieruchomienia i inna kontrola trwają na tobie o 12% krócej na rangę."
+Quick Hands,Szybkie Ręce
+All cooldowns 4% shorter per rank.,Wszystkie odnowienia o 4% krótsze na rangę.
+Survivor,Ocalały
+Phantom,Fantom
++3% dodge chance per rank.,+3% szansy na unik na rangę.
+Berserker,Berserker
+"DPS, bleeds and Fury.","DPS, krwawienia i Furia."
+Juggernaut,Juggernaut
+"Tank: armor, shields and threat.","Obrońca: pancerz, tarcze i zagrożenie."
+War Leader,Wódz Wojenny
+"Tactics, crowd control and party buffs.","Taktyka, kontrola tłumu i wzmocnienia drużyny."
+Might,Potęga
++4% Strength per rank.,+4% Siły na rangę.
+Brutal Cleave,Brutalne Rozpłatanie
+Cleave deals +12% damage per rank.,Rozpłatanie zadaje +12% obrażeń na rangę.
+"Keystone. Generate 50% more Fury, but lose 1% of your current health every second in combat.","Kluczowy. Generujesz 50% więcej Furii, ale tracisz 1% obecnego zdrowia co sekundę w walce."
+Bloodlust,Żądza Krwi
++4% Leech.,+4% Wysysania.
+Bloodbath,Krwawa Łaźnia
+Butcher of the Void,Rzeźnik Pustki
+Master keystone. Critical strikes with Execute or Cleave cause a blood detonation (100% splash) and 3 s of invulnerability.,Mistrzowski kluczowy. Trafienia krytyczne Egzekucją lub Rozpłataniem wywołują krwawą detonację (100% rozprysku) i 3 s niewrażliwości.
+Toughness,Twardość
+Bulwark,Przedmurze
++6% armor and +10% threat per rank.,+6% pancerza i +10% zagrożenia na rangę.
+Living Fortress,Żywa Twierdza
+"Keystone. Your armor also reduces elemental and magic damage, at 50% effectiveness.","Kluczowy. Twój pancerz zmniejsza też obrażenia od żywiołów i magii, z 50% skutecznością."
+Concussion,Wstrząs
+Shield Slam stuns 25% longer per rank.,Uderzenie Tarczą ogłusza o 25% dłużej na rangę.
+Unbreakable,Niezniszczalny
++8% block chance and +10 block value per rank.,+8% szansy na blok i +10 wartości bloku na rangę.
+Master keystone. A fatal blow gives you an armor-scaled shield for 6 s instead of death; killing an enemy meanwhile restores 30% health (90 s cooldown).,Mistrzowski kluczowy. Śmiertelny cios zamiast śmierci daje ci tarczę zależną od pancerza na 6 s; zabicie wroga w tym czasie przywraca 30% zdrowia (odnowienie 90 s).
+Relentless,Nieustępliwy
+Deadly Charge cooldown -15% per rank.,Odnowienie Śmiercionośnej Szarży -15% na rangę.
+Battle Cry and Taunting Shout cooldowns -25%.,Odnowienie Okrzyku Bojowego i Prowokującego Okrzyku -25%.
+Concussive Resonance,Wstrząsający Rezonans
+Keystone. Stuns and knockdowns last 1 s longer and strip 25% of the target's armor.,Kluczowy. Ogłuszenia i powalenia trwają o 1 s dłużej i zdzierają 25% pancerza celu.
+Tactician,Taktyk
+All skill cooldowns -5% per rank.,Odnowienia wszystkich umiejętności -5% na rangę.
+Inspiring Presence,Inspirująca Obecność
++5% Stamina and +5% Strength per rank.,+5% Wytrzymałości i +5% Siły na rangę.
+Mandate of Victory,Mandat Zwycięstwa
+Master keystone. Your battle cries reach the whole floor; every kill while Battle Cry is up heals the party for 5% of their maximum health.,"Mistrzowski kluczowy. Twoje okrzyki bojowe sięgają całego piętra; każde zabójstwo, gdy trwa Okrzyk Bojowy, leczy drużynę o 5% jej maks. zdrowia."
+Floor Wide Shouts,Okrzyki na całe piętro
+Blood Rage,Krwawy Szał
++3% melee damage per rank.,+3% obrażeń wręcz na rangę.
+Keen Edge,Ostra Krawędź
+Frenzy,Amok
+Savagery,Dzikość
+Wellspring of Fury,Źródło Furii
++12% Fury generation per rank.,+12% generowania Furii na rangę.
+Sanguine Hunger,Krwawy Głód
++2% leech and +10% leech healing per rank.,+2% wysysania i +10% leczenia z wysysania na rangę.
+Slayer,Pogromca
+Iron Hide,Żelazna Skóra
+Stalwart,Wytrwały
++4% Stamina per rank.,+4% Wytrzymałości na rangę.
+Shield Master,Mistrz Tarczy
++5% block chance per rank.,+5% szansy na blok na rangę.
+Rampart,Wał Obronny
+-4% damage taken per rank.,-4% otrzymywanych obrażeń na rangę.
+Provoker,Prowokator
+Tenacity,Zawziętość
+Colossus,Kolos
++6% maximum health per rank.,+6% maks. zdrowia na rangę.
+Battle Drill,Musztra Bojowa
++3% Strength per rank.,+3% Siły na rangę.
+Quickstep,Szybki Krok
++4% movement speed per rank.,+4% szybkości ruchu na rangę.
+Commander,Dowódca
+Sunderer,Łamacz Pancerzy
+Your attacks ignore 6% of armor per rank.,Twoje ataki ignorują 6% pancerza na rangę.
+Warlord,Wódz
++6% physical damage per rank.,+6% obrażeń fizycznych na rangę.
+Resolve,Determinacja
+Echoing Shouts,Echo Okrzyków
+Battle Cry and Rallying Cry last 15% longer per rank.,Okrzyk Bojowy i Okrzyk Zbiórki trwają o 15% dłużej na rangę.
+Open chest,Otwórz skrzynię
+Pray at elite altar,Pomódl się przy elitarnym ołtarzu
+Search secret sarcophagus,Przeszukaj tajny sarkofag
+Trade with Archibald the Gilded,Handluj z Archibaldem Pozłacanym
+Bargain with Malphas the Soul Broker,Targuj się z Malphasem Handlarzem Dusz
+Light consecrated shrine,Zapal poświęconą kapliczkę
+Pry open sewer strongbox,Podważ kasetkę z kanałów
+Pull rusty lever,Pociągnij zardzewiałą dźwignię
+Vent exhaust valve,Upuść parę z zaworu wydechowego
+Crack open slag safe,Rozbij sejf z żużlu
+Unlock locked lectern,Otwórz zamek pulpitu
+Open barrow coffer,Otwórz kufer z kurhanu
+Male,Mężczyzna
+Female,Kobieta
+%s %s,%s - %s

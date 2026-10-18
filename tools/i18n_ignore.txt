@@ -1,0 +1,6 @@
+# Code literals that look like text but are never shown (one per line, exact match).
+# Lines starting with "# " are comments.
+"heal"
+"coef"
+q:<quick slot>
+GodotSteam extension not loaded

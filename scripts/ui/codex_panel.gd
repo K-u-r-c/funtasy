@@ -12,13 +12,13 @@ var _page_title: Label
 
 
 func _init() -> void:
-	title_text = "Codex"
+	title_text = Loc.t("Codex")
 	menu_tab = "codex"  ## the main menu clears it (standalone)
-	prompts = [["ui_accept", "Read"], ["ui_cancel", "Close"]]
+	prompts = [["ui_accept", Loc.t("Read")], ["ui_cancel", Loc.t("Close")]]
 
 
 func _build() -> void:
-	subtitle.text = "%d / %d books read" % [Codex.count(), GameData.lore_order.size()]
+	subtitle.text = Loc.f("%d / %d books read", [Codex.count(), GameData.lore_order.size()])
 	# Progress as a gauge next to the title (the count stays in the subtitle).
 	var gauge := StatBar.new(UITheme.GOLD, Vector2(140, 8))
 	gauge.show_text = false
@@ -55,7 +55,7 @@ func _build() -> void:
 	ps.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	ps.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	rv.add_child(ps)
-	_page = UITheme.label("Read books to fill the codex. It is kept across every run.", LoreReader.INK, UITheme.FONT_SMALL)
+	_page = UITheme.label(Loc.t("Read books to fill the codex. It is kept across every run."), LoreReader.INK, UITheme.FONT_SMALL)
 	_page.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_page.custom_minimum_size = Vector2(320, 0)
 	_page.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -66,10 +66,10 @@ func _build() -> void:
 		var b: Dictionary = GameData.lore_books[id]
 		if str(b.origin) != origin:
 			origin = str(b.origin)
-			_list.add_child(UITheme.section(origin, "nav_codex"))
+			_list.add_child(UITheme.section(Loc.t(origin), "nav_codex"))
 		var known := Codex.is_read(id)
 		var btn := Button.new()
-		btn.text = ("%03d  %s" % [int(b.number), b.title]) if known else "%03d  ???" % int(b.number)
+		btn.text = ("%03d  %s" % [int(b.number), Loc.t(str(b.title))]) if known else "%03d  ???" % int(b.number)
 		# Read books show a scroll in their class's colour, the rest a padlock (#29).
 		btn.icon = UITheme.icon_tex("menu_save" if known else "sil_lock")
 		btn.add_theme_constant_override("icon_max_width", 16)
@@ -94,11 +94,11 @@ func _build() -> void:
 func _show(id: String) -> void:
 	if not Codex.is_read(id):
 		_page_title.text = "???"
-		_page.text = "Not read yet. Books drop from bookshelves, secret containers and elite altars."
+		_page.text = Loc.t("Not read yet. Books drop from bookshelves, secret containers and elite altars.")
 		return
 	var b: Dictionary = GameData.lore_books[id]
-	_page_title.text = str(b.title)
-	_page.text = "%s\n\n%s" % [b.origin, b.text]
+	_page_title.text = Loc.t(str(b.title))
+	_page.text = "%s\n\n%s" % [Loc.t(str(b.origin)), Loc.t(str(b.text))]
 
 
 func _unhandled_input(ev: InputEvent) -> void:

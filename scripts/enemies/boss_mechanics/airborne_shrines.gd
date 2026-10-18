@@ -55,7 +55,7 @@ func on_interact(player: Player, node: Node) -> bool:
 	lit[node.prop_id] = true
 	game().dungeon.open_chest.rpc(node.prop_id)
 	Combat.instance.fx.ring.rpc(node.global_position, 40.0, "#fff6c0", "")
-	game().broadcast_message.rpc("%s lights a shrine (%d / 2)" % [player.display_name, lit.size()], "#fff6c0")
+	game().broadcast_message.rpc("%s lights a shrine (%d / 2)", "#fff6c0", [player.display_name, lit.size()])
 	if lit.size() >= shrines.size():
 		_land(true)
 	return true

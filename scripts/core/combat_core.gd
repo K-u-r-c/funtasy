@@ -424,7 +424,7 @@ func deal_damage(ctx: Dictionary, target: Actor, amount: float, opts: Dictionary
 		if leech > 0.0 and caster.is_alive():
 			var healed := caster.health.heal(amount * leech * caster.stats.mult("healing_taken"))
 			if healed >= 1.0:
-				fx.number.rpc(caster.global_position, "+%d" % int(healed), "heal")
+				fx.number.rpc(caster.global_position, "+%d", "heal", [int(healed)])
 	# Threat and XP contribution.
 	if target.has_method("add_threat") and caster and caster.team != target.team:
 		target.add_threat(caster, amount * float(ctx.threat_mult))
@@ -487,7 +487,7 @@ func heal(ctx: Dictionary, target: Actor, amount: float) -> float:
 	var before := target.health.hp
 	var healed := target.health.heal(roundf(amount))
 	if healed >= 1.0:
-		fx.number.rpc(target.global_position, "+%d" % int(healed), "heal")
+		fx.number.rpc(target.global_position, "+%d", "heal", [int(healed)])
 	_credit_support(ctx, target, healed * float(GameData.bal("threat.heal_threat_mult")))
 	if caster and not ctx.get("from_proc", false):
 		fire(caster, "on_heal", {"target": target, "amount": healed, "overheal": maxf(amount - healed, 0.0),

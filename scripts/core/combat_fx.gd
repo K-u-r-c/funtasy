@@ -192,11 +192,11 @@ func zone_end(id: int) -> void:
 ## Host -> all (unreliable): floating combat text. kind: damage, crit, hurt, heal, dot, info, xp,
 ## optionally ":#rrggbb" for the damage type colour (fire, frost, ...).
 @rpc("authority", "call_local", "unreliable")
-func number(pos: Vector2, text: String, kind: String) -> void:
+func number(pos: Vector2, text: String, kind: String, args: Array = []) -> void:
 	if world_ui == null:
 		return
 	var l := Label.new()
-	l.text = text
+	l.text = Loc.f(text, args)
 	var size := 14
 	var color := Color(1, 1, 1)
 	var type_color := ""

@@ -10,15 +10,15 @@ var _last_sig := ""
 
 
 func _init() -> void:
-	title_text = "Malphas the Soul Broker"
+	title_text = Loc.t("Malphas the Soul Broker")
 	title_icon = "stat_leech"
 	fill_height = true
-	prompts = [["ui_accept", "Make the pact"], ["ui_cancel", "Leave"]]
+	prompts = [["ui_accept", Loc.t("Make the pact")], ["ui_cancel", Loc.t("Leave")]]
 
 
 func _build() -> void:
 	merchants = get_tree().get_first_node_in_group("game").merchants
-	subtitle.text = "Every price is paid in flesh - for the rest of the run"
+	subtitle.text = Loc.t("Every price is paid in flesh - for the rest of the run")
 	var body := HBoxContainer.new()
 	body.add_theme_constant_override("separation", 12)
 	body.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -88,32 +88,32 @@ func _rebuild() -> void:
 	for c in _list.get_children():
 		_list.remove_child(c)
 		c.queue_free()
-	_list.add_child(UITheme.section("Contracts", "menu_save"))
+	_list.add_child(UITheme.section(Loc.t("Contracts"), "menu_save"))
 	var pool: Array = GameData.merchants.get("malphas", {}).get("contracts", [])
 	for i in merchants.contracts.size():
 		var c: Dictionary = pool[int(merchants.contracts[i])]
 		var b := _row("")
 		# What it takes (red) and what it gives (green), each with its stat's icon (#29).
 		b.add_child(_chips([[c.give, UITheme.DANGER]], 10, "menu_back", [[c.get, UITheme.GOOD]]))
-		b.tooltip_text = "Sacrifice %s  ->  gain %s" % [Merchants.mod_text(c.give), Merchants.mod_text(c.get)]
+		b.tooltip_text = Loc.f("Sacrifice %s  ->  gain %s", [Merchants.mod_text(c.give), Merchants.mod_text(c.get)])
 		var slot: int = i
 		b.pressed.connect(func(): merchants.request_contract.rpc_id(1, slot))
-		b.focus_entered.connect(_show_mods.bind("Contract", "", [c.give, c.get]))
-		b.mouse_entered.connect(_show_mods.bind("Contract", "", [c.give, c.get]))
+		b.focus_entered.connect(_show_mods.bind(Loc.t("Contract"), "", [c.give, c.get]))
+		b.mouse_entered.connect(_show_mods.bind(Loc.t("Contract"), "", [c.give, c.get]))
 		_list.add_child(b)
-	_list.add_child(UITheme.section("Pact potions", "ui_potion"))
+	_list.add_child(UITheme.section(Loc.t("Pact potions"), "ui_potion"))
 	var ids: Array = GameData.pact_consumables.keys()
 	for pid in ids:
 		var d: Dictionary = GameData.pact_consumables[pid]
-		var b2 := _row(str(d.name))
+		var b2 := _row(Loc.t(str(d.name)))
 		b2.add_child(_chips(d.cost.map(func(c): return [c, UITheme.DANGER]), -1))
 		b2.icon = GameData.texture(str(d.icon))
 		b2.expand_icon = true
 		b2.add_theme_constant_override("icon_max_width", 22)
 		var id: String = pid
 		b2.pressed.connect(func(): merchants.request_pact.rpc_id(1, id))
-		b2.focus_entered.connect(_show_mods.bind(d.name, d.description, d.cost))
-		b2.mouse_entered.connect(_show_mods.bind(d.name, d.description, d.cost))
+		b2.focus_entered.connect(_show_mods.bind(Loc.t(d.name), Loc.t(d.description), d.cost))
+		b2.mouse_entered.connect(_show_mods.bind(Loc.t(d.name), Loc.t(d.description), d.cost))
 		_list.add_child(b2)
 	var first := _list.get_children().filter(func(c): return c is Button)
 	if not first.is_empty():

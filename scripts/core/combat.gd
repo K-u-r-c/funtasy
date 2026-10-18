@@ -108,7 +108,7 @@ func try_use_skill(caster: Actor, skill_id: String, aim: Vector2, opts: Dictiona
 	if cost > 0.0 and caster is Player and game and game.dungeon.in_anomaly(caster.global_position):
 		var roll := rng.randf_range(1.0 - float(GameData.bal("anomaly.cost_swing", 0.3)), 1.0 + float(GameData.bal("anomaly.cost_swing", 0.3)))
 		cost *= roll
-		fx.number.rpc(caster.global_position + Vector2(0, -24), "Cost x%.2f" % roll, "info")
+		fx.number.rpc(caster.global_position + Vector2(0, -24), "Cost x%.2f", "info", [roll])
 	if skill.has("channel"):
 		cost = 0.0  # channels pay per second
 	if caster.resource.kind != "none" and cost > 0.0:
@@ -122,7 +122,7 @@ func try_use_skill(caster: Actor, skill_id: String, aim: Vector2, opts: Dictiona
 				caster.health.hp -= hp_cost
 				caster.resource.value = 0.0
 			else:
-				return "Not enough %s" % caster.resource.kind.capitalize()
+				return "Not enough Fury" if caster.resource.kind == "fury" else "Not enough Mana"
 		else:
 			caster.resource.pay(cost)
 	var extra := {}

@@ -38,7 +38,7 @@ func trigger() -> void:
 	victim.held_by = boss.get_path()
 	boss.burst_bar = Vector2(0.0, _left)
 	Combat.instance.fx.sound.rpc("engulf", boss.global_position)
-	game().broadcast_message.rpc("The Amalgam engulfs %s! Burst it down!" % victim.display_name, "#7fd94a")
+	game().broadcast_message.rpc("The Amalgam engulfs %s! Burst it down!", "#7fd94a", [victim.display_name])
 
 
 func physics(delta: float) -> void:
@@ -79,7 +79,7 @@ func _release(burst: bool) -> void:
 		victim.host_teleport(game().nearest_floor(boss.global_position + Vector2(0, 50)))
 		if burst:
 			freed = true
-			game().broadcast_message.rpc("%s is torn free!" % victim.display_name, "#c0ff90")
+			game().broadcast_message.rpc("%s is torn free!", "#c0ff90", [victim.display_name])
 	victim = null
 	_left = -1.0
 	if is_instance_valid(boss):
