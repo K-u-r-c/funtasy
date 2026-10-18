@@ -161,6 +161,15 @@ All assets are referenced by key in **`data/assets.json`**; nothing else needs t
 Regenerate placeholders: `godot --headless --path . -s tools/gen_placeholders.gd` then
 `godot --headless --path . --import`.
 
+## Languages
+
+The game is in English and Polish (Options -> Video -> Language, or `--lang=pl` on the command
+line). English text in code and data is the translation key; the Polish lives in
+`data/i18n/translations.csv`. After adding or changing player-facing text run
+`python3 tools/i18n_extract.py` (adds new keys with an empty Polish entry, drops stale ones), fill
+in the Polish, and check with `python3 tools/i18n_extract.py --check` (also run by
+`tools/run_tests.sh`). Godot builds the `.translation` file from the CSV on import.
+
 ## Tests
 
 ```sh
