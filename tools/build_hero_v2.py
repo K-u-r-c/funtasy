@@ -20,8 +20,10 @@ SOURCES_JSON (tools/hero_<gender>_v2.json):
    "clips": {"<game anim>": {"from": "<zip animation folder>", "pick": [frame indices],
                               "pick_dir": {"<direction>": [same count, other frames]},
                               "from_dir": {"<direction>": "<other zip animation folder>"},
-                              "dup": {"<direction>": {"<slot>": <slot>}}}, ...},  # a slot shows another
+                              "dup": {"<direction>": {"<slot>": <slot>}},  # a slot shows another
                               # slot's frame (body and outfits alike): a picked frame that drew a weapon
+                              "erase": {"<direction>": {"<slot>": [[x0, y0, x1, y1], ...]}}}, ...},
+                              # pixels cleared in that slot (body and outfits): a stray blade tip
    "batches": [["walk", "idle", "hit"], ...],           # 15 frames each
    "strip_glow": ["cast"],                              # clips whose frames may show spell glow
    "ghost": {"from": "ghost", "state": "Ghost", "pick": [...]},
@@ -143,6 +145,16 @@ def step_sheets(src, work):
             row = rows[DIRS.index(d)]
             for k, j in slots.items():
                 row[int(k)] = row[int(j)]
+        for d, slots in src["clips"].get(anim, {}).get("erase", {}).items():
+            row = rows[DIRS.index(d)]
+            for k, rects in slots.items():
+                if int(k) >= len(row):
+                    continue
+                out = os.path.join(work, "erased", "%s_%s_%s_%s" % (anim, d, k, os.path.basename(row[int(k)])))
+                os.makedirs(os.path.dirname(out), exist_ok=True)
+                inside = "||".join("(i>=%d&&i<=%d&&j>=%d&&j<=%d)" % (x0, x1, y0, y1) for x0, y0, x1, y1 in rects)
+                run("magick", row[int(k)], "-alpha", "set", "-channel", "A", "-fx", "(%s)?0:u" % inside, "+channel", out)
+                row[int(k)] = out
         return rows
 
     anims = list(src["clips"].keys()) + (["ghost"] if src.get("ghost") else [])
