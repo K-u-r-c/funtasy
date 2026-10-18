@@ -62,7 +62,7 @@ func _init() -> void:
 					else:
 						var pp: Vector2 = paths[hand][f]
 						track[hand] = {"pos": pp, "grip": Vector2i(pp.round()), "vec": Vector2.DOWN, "rad": Vector2.DOWN, "pix": {}, "hidden": true}
-				var hands := _hands(regions, used, d, track)
+				var hands := _hands(regions, used, d, track, anim in LOW_HAND_ANIMS)
 				for layer in layers:
 					var res := _held(cfg.held[layer], regions, hands, src, anim, d)
 					if not res.is_empty():
@@ -116,13 +116,19 @@ func _tracked_paths(anim: String, d: int, per_frame: Array) -> Dictionary:
 
 ## The hand blobs of a frame: [[centroid, {pixel: true}], ...]. Skin of the nape between the hair
 ## and the shirt (seen from behind) reads as "hands" to the body regions; blobs in that neck zone
-## (centred on the torso, at its top edge) are left out.
-func _hand_blobs(regions: Dictionary) -> Array:
+## (centred on the torso, at its top edge) are left out. With "low" (an animation where the arms
+## hang: idle / walk / dash) so is any blob above the chest: bare shoulders, the neck and the face
+## of the tank-top body read as "hands" too, and a hand never rises that high there.
+func _hand_blobs(regions: Dictionary, low := false) -> Array:
 	var hand_px := {}
 	var top := 999
 	var xs := 0.0
 	var n := 0
+	var fig_top := 999
+	var fig_bot := -999
 	for p in regions:
+		fig_top = mini(fig_top, p.y)
+		fig_bot = maxi(fig_bot, p.y)
 		if regions[p] == "hands":
 			hand_px[p] = true
 		elif regions[p] == "torso":
@@ -139,6 +145,8 @@ func _hand_blobs(regions: Dictionary) -> Array:
 			px[q] = true
 		c /= comp.size()
 		if n > 0 and absf(c.x - cx) <= 5.0 and absf(c.y - top) <= 4.0:
+			continue
+		if low and c.y < fig_top + (fig_bot - fig_top + 1) * LOW_HAND_LINE:
 			continue
 		out.append([c, px])
 	return out
@@ -179,7 +187,7 @@ func _hand_paths(per_frame: Array, anim: String, d: int, weapon_rest := Vector2.
 	for f in per_frame.size():
 		var blobs: Array = []
 		if per_frame[f] != null:
-			for b in _hand_blobs(per_frame[f][2]):
+			for b in _hand_blobs(per_frame[f][2], anim in LOW_HAND_ANIMS):
 				blobs.append(b[0])
 		# Greedy by distance: each track takes its nearest free blob; a track left over may share a
 		# blob (both fists together on a two-handed grip).
@@ -256,12 +264,12 @@ func _hand_paths(per_frame: Array, anim: String, d: int, weapon_rest := Vector2.
 ## pix: {Vector2i: true} the hand's pixels}}. Hand blobs are the "hands" regions; the first frame
 ## of a direction assigns them along the direction's hand vectors, later frames follow the nearest
 ## blob (a swinging hand keeps its role). A hand hidden behind the body keeps its last place.
-func _hands(regions: Dictionary, used: Rect2i, d: int, track: Dictionary) -> Dictionary:
+func _hands(regions: Dictionary, used: Rect2i, d: int, track: Dictionary, low := false) -> Dictionary:
 	var arm_px: Array = []
 	for p in regions:
 		if regions[p] == "arms":
 			arm_px.append(p)
-	var blobs: Array = _hand_blobs(regions)  # [centroid, pixels]
+	var blobs: Array = _hand_blobs(regions, low)  # [centroid, pixels]
 	var center := Vector2(used.get_center())
 	var torso: Array = regions.keys().filter(func(q): return regions[q] == "torso")
 	var shoulder := center
@@ -360,6 +368,8 @@ func _hands(regions: Dictionary, used: Rect2i, d: int, track: Dictionary) -> Dic
 
 
 const REST_ANIMS := ["idle", "walk", "dash", "hit", "downed"]
+const LOW_HAND_ANIMS := ["idle", "walk", "dash"]  ## the arms hang: no hand above LOW_HAND_LINE
+const LOW_HAND_LINE := 0.32  ## of the figure's height from its top (head, neck and shoulders)
 
 
 ## [front image, back image] of one held item for one frame, or [] when its hand is unknown.
