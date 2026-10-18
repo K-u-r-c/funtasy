@@ -645,6 +645,10 @@ func _full_scenario() -> void:
 		pack.append(g.spawn_monster(mid, at, false))
 	await _wait(0.3)
 	for e in pack:
+		# Test only: the heroes' attacks must not kill a monster before it shows its abilities.
+		e.hp_mult *= 20.0
+		e.recompute_stats()
+		e.health.hp = e.health.max_hp
 		e.add_threat(host_p, 5.0)
 	pack[0].health.hp = pack[0].health.max_hp * 0.3  # something for the cultists to heal
 	var m_ids := ["ghoul_claw", "skeleton_arrow", "cultist_bolt", "cultist_curse", "cultist_mend"]
