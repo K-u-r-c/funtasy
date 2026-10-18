@@ -1190,9 +1190,12 @@ func _tank_scenario() -> void:
 		e.recompute_stats()
 		e.health.hp = e.health.max_hp
 	_fight = true
-	# The tank opens the fight, the damage dealer joins a moment later (as a party would): both
-	# starting together let the first spell win some monsters before the warrior reached them.
-	await _wait(1.5)
+	# The tank opens the fight and gathers the pack, the damage dealer joins once every monster
+	# is on the tank (as a party would): a spell landing first won monsters the warrior - who
+	# doesn't walk in the auto-fight - could never reach again.
+	await _wait(1.0)
+	await _wait_until(func(): return pack.all(func(e): return not is_instance_valid(e) or not e.is_alive() or e.target == tank), 5.0)
+	log_line("pack on the tank before the mage joins: %d / %d" % [pack.filter(func(e): return is_instance_valid(e) and e.target == tank).size(), pack.size()])
 	NetworkManager.to_clients("DevAuto", "client_cmd", ["fight", true])
 	var on_tank := 0
 	var samples := 0
@@ -1206,6 +1209,22 @@ func _tank_scenario() -> void:
 			p.iframe_left = 2.0
 			if p.life_state != Player.Life.ALIVE:
 				p.revive(1.0)
+		# The tank keeps to the pack and goes after a monster that turned to the damage dealer
+		# (the auto-fight doesn't walk): Shield Slam knocks monsters out of melee reach, where a
+		# player would step after them.
+		var alive_pack := pack.filter(func(e): return is_instance_valid(e) and e.is_alive())
+		if not alive_pack.is_empty():
+			var mid := Vector2.ZERO
+			for e in alive_pack:
+				mid += e.global_position
+			mid /= alive_pack.size()
+			# A monster that turned to the damage dealer is the one to go and win back (peel).
+			for e in alive_pack:
+				if e.target == dps:
+					mid = e.global_position
+					break
+			if tank.global_position.distance_to(mid) > 50.0:
+				tank.host_teleport(g.nearest_floor(mid + Vector2(-30, 0)))
 		await _wait(0.5)
 		t += 0.5
 		if t < 2.0:
