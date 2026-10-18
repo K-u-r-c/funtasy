@@ -45,7 +45,8 @@ func _init() -> void:
 				var src := body.get_region(Rect2i(f * cell, d * cell, cell, cell))
 				var used := src.get_used_rect()
 				per_frame.append([src, used, regions_tool.segment(src)] if used.size.y >= 4 else null)
-			var paths := _tracked_paths(anim, d, per_frame)
+			var anchored: bool = cfg.has("rest_hands") and anim in LOW_HAND_ANIMS
+			var paths := _anchor_paths(per_frame, d) if anchored else _tracked_paths(anim, d, per_frame)
 			if paths.is_empty():
 				paths = _hand_paths(per_frame, anim, d)
 			var track := {}  # hand ("main" / "off") -> last {pos, vec} along this direction's frames
@@ -62,7 +63,7 @@ func _init() -> void:
 					else:
 						var pp: Vector2 = paths[hand][f]
 						track[hand] = {"pos": pp, "grip": Vector2i(pp.round()), "vec": Vector2.DOWN, "rad": Vector2.DOWN, "pix": {}, "hidden": true}
-				var hands := _hands(regions, used, d, track, anim in LOW_HAND_ANIMS)
+				var hands := _hands(regions, used, d, track, anim in LOW_HAND_ANIMS, anchored)
 				for layer in layers:
 					var res := _held(cfg.held[layer], regions, hands, src, anim, d)
 					if not res.is_empty():
@@ -110,6 +111,29 @@ func _tracked_paths(anim: String, d: int, per_frame: Array) -> Dictionary:
 			if per_frame[f] != null and full_frames[i] != null:
 				dy = float(per_frame[f][1].end.y - full_frames[i][1].end.y)
 			path.append(Vector2(full_paths[hand][i]) + Vector2(0, dy))
+		out[hand] = path
+	return out
+
+
+var _idle_tops := {}
+
+
+## Hands from the config's "rest_hands" (where the arms hang, for a body whose skin the regions
+## misread - the female tank top): {hand: [anchor per direction]} measured on idle frame 0, each
+## frame's anchor moved by the body's bob (its top against idle frame 0's). _hands then takes the
+## nearest fist blob within ANCHOR_REACH of it (an arm's swing) or the anchor itself, so a hand
+## never jumps to the face, the midriff or the other side.
+func _anchor_paths(per_frame: Array, d: int) -> Dictionary:
+	if not _idle_tops.has(d):
+		var idle := _load(str(cfg.body_dir).path_join("idle.png"))
+		_idle_tops[d] = idle.get_region(Rect2i(0, d * cell, cell, cell)).get_used_rect().position.y
+	var out := {}
+	for hand in cfg.rest_hands:
+		var a: Array = cfg.rest_hands[hand][d]
+		var path: Array = []
+		for f in per_frame.size():
+			var bob: int = per_frame[f][1].position.y - int(_idle_tops[d]) if per_frame[f] != null else 0
+			path.append(Vector2(float(a[0]), float(a[1]) + bob))
 		out[hand] = path
 	return out
 
@@ -264,7 +288,7 @@ func _hand_paths(per_frame: Array, anim: String, d: int, weapon_rest := Vector2.
 ## pix: {Vector2i: true} the hand's pixels}}. Hand blobs are the "hands" regions; the first frame
 ## of a direction assigns them along the direction's hand vectors, later frames follow the nearest
 ## blob (a swinging hand keeps its role). A hand hidden behind the body keeps its last place.
-func _hands(regions: Dictionary, used: Rect2i, d: int, track: Dictionary, low := false) -> Dictionary:
+func _hands(regions: Dictionary, used: Rect2i, d: int, track: Dictionary, low := false, anchored := false) -> Dictionary:
 	var arm_px: Array = []
 	for p in regions:
 		if regions[p] == "arms":
@@ -294,7 +318,7 @@ func _hands(regions: Dictionary, used: Rect2i, d: int, track: Dictionary, low :=
 			var bd := INF
 			for i in blobs.size():
 				var dd: float = blobs[i][0].distance_to(track[hand].pos)
-				if not taken.has(i) and dd < bd and dd < 16.0:
+				if not taken.has(i) and dd < bd and dd < (ANCHOR_REACH if anchored else 16.0):
 					bd = dd
 					best = i
 		else:
@@ -306,6 +330,12 @@ func _hands(regions: Dictionary, used: Rect2i, d: int, track: Dictionary, low :=
 				if not taken.has(i) and sc > bs:
 					bs = sc
 					best = i
+		if best < 0 and anchored:
+			# The fist read as arm or shirt (the female tank-top body): it hangs at its anchor.
+			var at: Vector2 = track[hand].pos
+			out[hand] = {"pos": at, "grip": Vector2i(at.round()), "vec": Vector2.DOWN, "rad": Vector2.DOWN, "pix": {}, "hidden": false}
+			track[hand] = out[hand]
+			continue
 		if best < 0 and track.has(hand):
 			# No hand blob there: a hand read as arm (a whipping throw) - the arm pixel nearest the
 			# tracked place, when close; else hidden behind the body at its last place.
@@ -368,6 +398,7 @@ func _hands(regions: Dictionary, used: Rect2i, d: int, track: Dictionary, low :=
 
 
 const REST_ANIMS := ["idle", "walk", "dash", "hit", "downed"]
+const ANCHOR_REACH := 8.0  ## how far a swinging fist may be from its "rest_hands" anchor
 const LOW_HAND_ANIMS := ["idle", "walk", "dash"]  ## the arms hang: no hand above LOW_HAND_LINE
 const LOW_HAND_LINE := 0.32  ## of the figure's height from its top (head, neck and shoulders)
 

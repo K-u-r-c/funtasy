@@ -697,5 +697,76 @@
 		"flick": "main",
 		"throw": "main"
 	},
-	"weapon_side_clip": "slash"
+	"weapon_side_clip": "slash",
+	"rest_hands": {
+		"main": [
+			[
+				34,
+				42
+			],
+			[
+				28,
+				41
+			],
+			[
+				24,
+				38
+			],
+			[
+				35,
+				41
+			],
+			[
+				29,
+				42
+			],
+			[
+				37.5,
+				36
+			],
+			[
+				23.5,
+				40
+			],
+			[
+				25.5,
+				36
+			]
+		],
+		"off": [
+			[
+				32,
+				40
+			],
+			[
+				38,
+				40
+			],
+			[
+				41,
+				38
+			],
+			[
+				25,
+				40
+			],
+			[
+				31,
+				40
+			],
+			[
+				23,
+				40.5
+			],
+			[
+				40.5,
+				40
+			],
+			[
+				40,
+				40.5
+			]
+		]
+	},
+	"_rest_hands": "Where the arms hang (idle / walk / dash) the fists are looked for near these anchors (idle frame 0, per direction E..NE; W / SW / NW mirror E / SE / NE), because the tank-top body's bare shoulders, midriff and legs read as hands. The main hand is the side the sword is on at slash frame 0, so it never changes hands when the hero attacks."
 }

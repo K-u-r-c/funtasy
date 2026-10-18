@@ -20,6 +20,7 @@ func run() -> void:
 	await equip_midanim_test()
 	audit()
 	head_on_top()
+	held_side()
 	legendary_looks()
 
 
@@ -319,6 +320,49 @@ func head_on_top() -> void:
 					if best != "head":
 						bad.append("%s %s dir %d frame %d (%s)" % [g, anim, d, f, best])
 	da.check(checked > 0 and bad.is_empty(), "the head tops all %d idle / walk / dash body frames, so pieces are cut on the right body part (%s)" % [checked, bad])
+
+
+## A held item never changes hands while the hero stands or walks (#16): facing south or north the
+## hands are on either side of the body, so the item's centre stays on one side of the body's
+## centre in every idle and walk frame (a centre within 2 px of it counts for either side).
+func held_side() -> void:
+	var chars: Dictionary = GameData.assets.characters
+	var bad: Array = []
+	var checked := 0
+	for g in CharacterSprite.genders():
+		var body_entry := GameData.asset_entry(CharacterSprite.body_key(g))
+		var cell := int(body_entry.get("frame_size", chars.frame_size))
+		for key in chars.layers:
+			var entry: Dictionary = chars.layers[key]
+			if not str(key).begins_with(str(chars.genders[g].prefix)) or not (str(key).contains("weapon") or str(key).contains("offhand")):
+				continue
+			for anim in ["idle", "walk"]:
+				var body := _img(str(body_entry.path) + anim + ".png")
+				var front := _img(str(entry.path) + anim + ".png")
+				var back := _img(str(entry.path) + "back/" + anim + ".png") if entry.get("back", false) else null
+				if body == null or front == null:
+					continue
+				for d in [2, 6]:
+					var sides := {}
+					for f in body.get_width() / cell:
+						var r := Rect2i(f * cell, d * cell, cell, cell)
+						var sum := 0.0
+						var n := 0
+						for y in cell:
+							for x in cell:
+								var p := r.position + Vector2i(x, y)
+								if front.get_pixelv(p).a >= 0.5 or (back != null and back.get_pixelv(p).a >= 0.5):
+									sum += x
+									n += 1
+						if n < 4:
+							continue
+						checked += 1
+						var dx := sum / n - float(body.get_region(r).get_used_rect().get_center().x)
+						if absf(dx) >= 2.0:
+							sides[signf(dx)] = true
+					if sides.size() > 1:
+						bad.append("%s %s dir %d" % [str(key), anim, d])
+	da.check(checked > 0 and bad.is_empty(), "held items keep their side of the body in all %d idle / walk frames facing south and north (%s)" % [checked, bad])
 
 
 ## Every worn legendary gets its own colours from its icon (#20): the looks differ from each
