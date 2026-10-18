@@ -339,13 +339,24 @@ func _puff(pos: Vector2, color: Color, amount: int) -> void:
 
 
 func _anim_sprite(key: String) -> AnimatedSprite2D:
+	return CombatFx.anim_sprite(key, false)
+
+
+static var _strip_cache: Dictionary = {}
+
+
+## An additive animated sprite from a one-row strip asset ({path, frames, fps, anchor}); its anchor
+## (the effect's origin inside a frame) sits on the node's position.
+static func anim_sprite(key: String, loop: bool) -> AnimatedSprite2D:
 	var entry := GameData.asset_entry(key)
-	var tex := _tex(key)
+	if not _strip_cache.has(key):
+		_strip_cache[key] = GameData.texture(key)
+	var tex: Texture2D = _strip_cache[key]
 	if tex == null:
 		return null
 	var frames := int(entry.get("frames", 1))
 	var sf := SpriteFrames.new()
-	sf.set_animation_loop("default", false)
+	sf.set_animation_loop("default", loop)
 	sf.set_animation_speed("default", float(entry.get("fps", 12)))
 	var w := tex.get_width() / frames
 	for f in frames:
@@ -355,10 +366,26 @@ func _anim_sprite(key: String) -> AnimatedSprite2D:
 		sf.add_frame("default", at)
 	var a := AnimatedSprite2D.new()
 	a.sprite_frames = sf
+	if entry.has("anchor"):
+		var an: Array = entry.anchor
+		a.offset = Vector2(w / 2.0 - float(an[0]), tex.get_height() / 2.0 - float(an[1]))
 	var mat := CanvasItemMaterial.new()
 	mat.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
 	a.material = mat
 	return a
+
+
+## Host -> all (unreliable): a one-shot effect of `role` (data/fx.json "actor": heal, buff,
+## cleanse...) on an actor (#33). Peers that don't have the actor ignore it.
+@rpc("authority", "call_local", "unreliable")
+func actor_fx(actor_path: NodePath, role: String) -> void:
+	var a := get_node_or_null(actor_path)
+	if a == null or not a.has_node("ActorFx"):
+		return
+	a.get_node("ActorFx").play(role)
+	var log: Array = get_meta("actor_fx_log", [])
+	log.append([String(actor_path), role])
+	set_meta("actor_fx_log", log.slice(-50))  # read by the test harness
 
 
 ## Host -> all (unreliable): a line effect (thrust, beam, chain lightning, bolt) from a to b.

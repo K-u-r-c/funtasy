@@ -257,6 +257,8 @@ func _run() -> void:
 				await PartySuite.new(self).run_lan()
 			"target_lan":
 				await TargetSuite.new(self).run_lan()
+			"fx_lan":
+				await FxSuite.new(self).run_lan()
 			"interact_lan":
 				await InteractSuite.new(self).run_lan()
 			"i18n_lan":
@@ -528,6 +530,8 @@ func client_cmd(cmd: String, arg: Variant) -> void:
 			await EconomySuite.new(self).client_cmd(cmd, arg)
 		_ when cmd.begins_with("sk_"):
 			await SkillSuite.new(self).client_cmd(cmd, arg)
+		_ when cmd.begins_with("fx_"):
+			await FxSuite.new(self).client_cmd(cmd, arg)
 		_ when cmd.begins_with("tg_"):
 			await TargetSuite.new(self).client_cmd(cmd, arg)
 		_ when cmd.begins_with("pt_"):

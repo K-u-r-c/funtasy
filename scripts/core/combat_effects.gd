@@ -106,8 +106,14 @@ func run_effect(eff: Dictionary, ctx: Dictionary, origin: Vector2, aim: Vector2)
 					t.status.remove(str(eff.status))
 					if times <= 0:
 						continue
+				var landed := false
 				for i in times:
-					apply_status(ctx, t, str(eff.status), float(eff.duration) * float(ctx.duration_mult), _magnitude(eff, ctx, t))
+					landed = apply_status(ctx, t, str(eff.status), float(eff.duration) * float(ctx.duration_mult), _magnitude(eff, ctx, t)) or landed
+				# A buff a skill puts on a teammate (or the party) flashes on each of them (#33).
+				var sdef: Dictionary = GameData.status_effects.get(str(eff.status), {})
+				if landed and caster and t.team == caster.team and not sdef.get("debuff", false) and str(sdef.get("kind", "")) != "hot" \
+						and (t != caster or str(st_eff.get("target", "self")) in ["party", "allies_radius"]) and not ctx.get("from_proc", false):
+					fx.actor_fx.rpc(t.get_path(), "buff")
 		"remove_status":
 			for t in select_targets(eff, ctx, origin, aim):
 				t.status.remove(str(eff.status))
@@ -126,7 +132,7 @@ func run_effect(eff: Dictionary, ctx: Dictionary, origin: Vector2, aim: Vector2)
 				t.health.absorb_time = float(eff.duration)
 				t.status.apply(str(eff.get("status", "holy_shield")), float(eff.duration), amount2, ctx)
 				_credit_support(ctx, t, amount2)
-				fx.ring.rpc(t.global_position, 24.0, "#ffe680", "")
+				# The shield bubble shows while the absorb holds (ActorFx, #33).
 		"taunt":
 			var r := float(eff.radius) * float(ctx.radius_mult)
 			var taunter: Actor = caster
@@ -173,7 +179,10 @@ func run_effect(eff: Dictionary, ctx: Dictionary, origin: Vector2, aim: Vector2)
 		"cleanse", "dispel":
 			var n := 0
 			for t in select_targets(eff, ctx, origin, aim, "self" if eff.type == "cleanse" else "aim_enemy"):
-				n += t.status.cleanse(Array(eff.get("categories", [])), int(eff.get("count", 99)), eff.type == "cleanse")
+				var removed: int = t.status.cleanse(Array(eff.get("categories", [])), int(eff.get("count", 99)), eff.type == "cleanse")
+				n += removed
+				if eff.type == "cleanse":
+					fx.actor_fx.rpc(t.get_path(), "cleanse")
 			if n > 0 and caster:
 				if eff.has("refund"):
 					caster.resource.gain(float(eff.refund))
@@ -400,7 +409,7 @@ func hit_target(target: Actor, eff: Dictionary, ctx: Dictionary, area: bool) -> 
 		last_dealt = maxf(dealt, 0.0)
 		# Drain Soul / Vampiric strikes: heal the caster for a share of the damage.
 		if dealt > 0.0 and eff.has("drain") and is_instance_valid(ctx.caster):
-			heal(ctx, ctx.caster, dealt * float(eff.drain))
+			heal(ctx, ctx.caster, dealt * float(eff.drain), false)
 	if not landed:
 		return false
 	for oh in eff.get("on_hit", []):
@@ -997,14 +1006,14 @@ func _zone_tick(z: Dictionary) -> void:
 	# Cuirass of the Radiant Dawn: Consecration heals allies inside for 3% max HP a second.
 	if str(z.ctx.get("skill", "")) == "priest_consecration" and is_instance_valid(z.ctx.get("caster")) and z.ctx.caster.stats.has_flag("radiant_consecration"):
 		for ra in allies_of(z.ctx.team, z.pos, z.radius):
-			heal(z.ctx, ra, ra.health.max_hp * 0.03 * float(eff.get("tick", 1.0)))
+			heal(z.ctx, ra, ra.health.max_hp * 0.03 * float(eff.get("tick", 1.0)), false)
 	if eff.has("damage"):
 		for a in hostile_in_radius(z.ctx, z.pos, z.radius, true):
 			hit_target(a, eff, z.ctx, true)
 	if eff.has("heal"):
 		for a in allies_of(z.ctx.team, z.pos, z.radius):
 			if a.health.fraction() < float(eff.get("heal_below", 1.01)):
-				heal(z.ctx, a, _heal_amount(eff, z.ctx, a, "heal"))
+				heal(z.ctx, a, _heal_amount(eff, z.ctx, a, "heal"), false)
 	if eff.has("status_inside"):
 		var who := str(eff.get("affects", "enemies"))
 		var pool: Array = []

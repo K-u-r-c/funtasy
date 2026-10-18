@@ -33,6 +33,9 @@ func run(tour: String) -> void:
 func snap(name_: String) -> void:
 	await da.get_tree().process_frame
 	await da.get_tree().process_frame
+	if is_instance_valid(p):
+		var sp := p.get_global_transform_with_canvas().origin
+		da.log_line("hero_at %s %d %d" % [name_, roundi(sp.x), roundi(sp.y)])
 	var img := da.get_viewport().get_texture().get_image()
 	var path := dir.path_join("%s_%dx%d.png" % [name_, img.get_width(), img.get_height()])
 	img.save_png(path)
@@ -210,6 +213,40 @@ func _target(_arg: String) -> void:
 	await da._wait(0.8)
 	await snap("target_%s" % Settings.language)
 	hud.preview_full = false
+
+
+## #33: a heal burst, the heal-over-time glow, the shield bubble, its shatter, a buff flash and a
+## cleanse flash on the hero next to training dummies (each shot near the effect's peak).
+func _allyfx(_arg: String) -> void:
+	await arena(3)
+	p.skills = ["priest_holy_strike", "priest_heal", "priest_holy_shield", "priest_renew", "priest_blessing_of_might", "priest_purify"]
+	var fx: Node = Combat.instance.fx
+	p.health.hp = p.health.max_hp * 0.4
+	p.resource.value = p.resource.max_value
+	var hp0 := p.health.hp
+	p.request_skill.rpc_id(1, 1, p.global_position, p.peer_id)
+	await da._wait_until(func(): return p.health.hp > hp0, 3.0)
+	await da._wait(0.2)
+	await snap("allyfx_heal")
+	await da._wait(0.8)
+	p.request_skill.rpc_id(1, 3, p.global_position, p.peer_id)
+	await da._wait(0.9)
+	await snap("allyfx_hot")
+	p.request_skill.rpc_id(1, 2, p.global_position, p.peer_id)
+	await da._wait(0.8)
+	await snap("allyfx_shield")
+	p.health.absorb = 0.0
+	await da._wait(0.25)
+	await snap("allyfx_shield_break")
+	await da._wait(0.6)
+	p.request_skill.rpc_id(1, 4, p.global_position, 0)
+	await da._wait(0.35)
+	await snap("allyfx_buff")
+	await da._wait(0.8)
+	p.status.apply("poison", 6.0, 1.0, null)
+	p.request_skill.rpc_id(1, 5, p.global_position, p.peer_id)
+	await da._wait(0.2)
+	await snap("allyfx_cleanse")
 
 
 ## The merchant room of each merchant (#6): its sealed door seen from across the corridor and up

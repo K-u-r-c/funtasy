@@ -481,7 +481,9 @@ func _frontal(target: Actor, from: Vector2) -> bool:
 	return absf(target.facing.angle_to(to)) <= deg_to_rad(float(GameData.bal("combat.block_arc", 120.0)) / 2.0)
 
 
-func heal(ctx: Dictionary, target: Actor, amount: float) -> float:
+## `burst`: show the heal burst on the target (#33); ticks of drains, zones and heals over time
+## don't (they have their own looks).
+func heal(ctx: Dictionary, target: Actor, amount: float, burst: bool = true) -> float:
 	if not is_instance_valid(target) or not target.is_alive() or amount <= 0.0:
 		return 0.0
 	var caster: Actor = ctx.caster if is_instance_valid(ctx.caster) else null
@@ -493,6 +495,9 @@ func heal(ctx: Dictionary, target: Actor, amount: float) -> float:
 	var healed := target.health.heal(roundf(amount))
 	if healed >= 1.0:
 		fx.number.rpc(target.global_position, "+%d", "heal", [int(healed)])
+		if burst and not ctx.get("hot", false):
+			var big := healed >= target.health.max_hp * float(GameData.fx.get("big_heal_fraction", 0.25))
+			fx.actor_fx.rpc(target.get_path(), "big_heal" if big else "heal")
 	_credit_support(ctx, target, healed * float(GameData.bal("threat.heal_threat_mult")))
 	if caster and not ctx.get("from_proc", false):
 		fire(caster, "on_heal", {"target": target, "amount": healed, "overheal": maxf(amount - healed, 0.0),

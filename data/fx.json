@@ -1,0 +1,16 @@
+{
+	"_comment": "Visual effects by role (#33 / #34). Keys are asset keys (data/assets.json fx.*). at: where on an actor (center / feet); scale: size multiplier; light: a coloured light on the actor (one-shots fade it over its time, loops hold it) so the effect reads in the dark. burst / zone: per element, the AoE impact and the lingering ground look; an effect's own \"fx\" key overrides the element.",
+
+	"actor": {
+		"heal": {"key": "fx.heal_burst", "at": "center", "scale": 1.4, "light": {"color": "#4dff7a", "energy": 1.6, "radius": 56, "time": 0.6}},
+		"big_heal": {"key": "fx.heal_burst", "at": "center", "scale": 1.9, "light": {"color": "#4dff7a", "energy": 2.2, "radius": 72, "time": 0.8}},
+		"buff": {"key": "fx.buff_flash", "at": "feet", "scale": 1.0, "light": {"color": "#ffc850", "energy": 1.4, "radius": 56, "time": 0.7}},
+		"cleanse": {"key": "fx.cleanse_flash", "at": "center", "scale": 1.7, "light": {"color": "#b8f8ff", "energy": 2.0, "radius": 60, "time": 0.6}},
+		"shield_break": {"key": "fx.shield_break", "at": "center", "scale": 1.0, "light": {"color": "#9fd0ff", "energy": 1.4, "radius": 50, "time": 0.5}}
+	},
+	"loop": {
+		"hot": {"key": "fx.hot_glow", "at": "feet", "scale": 1.2, "behind": true, "light": {"color": "#4dff7a", "energy": 0.7, "radius": 40}},
+		"shield": {"key": "fx.shield_bubble", "at": "center", "scale": 0.95, "light": {"color": "#9fc8ff", "energy": 0.6, "radius": 44}}
+	},
+	"big_heal_fraction": 0.25
+}

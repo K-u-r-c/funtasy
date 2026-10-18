@@ -77,6 +77,7 @@ func _ready() -> void:
 	sprite = CharacterSprite.new()
 	sprite.name = "Sprite"
 	add_child(sprite)
+	add_child(ActorFx.new(self))
 	var shape := CollisionShape2D.new()
 	var circle := CircleShape2D.new()
 	circle.radius = radius

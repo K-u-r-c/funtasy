@@ -484,7 +484,7 @@ func status_tick(actor: Actor, e: Dictionary) -> void:
 	elif kind == "hot":
 		var hc := ctx.duplicate()
 		hc.hot = true
-		heal(hc, actor, float(e.magnitude) * int(e.stacks))
+		heal(hc, actor, float(e.magnitude) * int(e.stacks), false)
 	for eff in e.def.get("tick_effects", []):
 		var tc: Dictionary = (ctx if e.source is Dictionary and is_instance_valid(ctx.get("caster")) else make_ctx(actor, {"id": e.id, "school": "spell"})).duplicate()
 		tc.event_target = actor

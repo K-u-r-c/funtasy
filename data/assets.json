@@ -335,6 +335,12 @@
 		"bone": "res://assets/sprites/pixellab/projectiles/bone.png"
 	},
 	"fx": {
+		"cleanse_flash": {"path": "res://assets/sprites/pixellab/fx/cleanse_flash.png", "frames": 10, "fps": 16, "anchor": [16, 25], "loop": false},
+		"buff_flash": {"path": "res://assets/sprites/pixellab/fx/buff_flash.png", "frames": 13, "fps": 14, "anchor": [19, 53], "loop": false},
+		"shield_break": {"path": "res://assets/sprites/pixellab/fx/shield_break.png", "frames": 8, "fps": 12, "anchor": [29, 24], "loop": false},
+		"shield_bubble": {"path": "res://assets/sprites/pixellab/fx/shield_bubble.png", "frames": 12, "fps": 10, "anchor": [22, 22], "loop": true},
+		"hot_glow": {"path": "res://assets/sprites/pixellab/fx/hot_glow.png", "frames": 12, "fps": 12, "anchor": [18, 51], "loop": true},
+		"heal_burst": {"path": "res://assets/sprites/pixellab/fx/heal_burst.png", "frames": 11, "fps": 14, "anchor": [18, 42], "loop": false},
 		"light": "res://assets/sprites/placeholder/fx/light_soft.png",
 		"spark": "res://assets/sprites/pixellab/fx/spark.png",
 		"pixel": "res://assets/sprites/placeholder/fx/pixel.png",
