@@ -37,7 +37,7 @@ func stat_points() -> void:
 	p.request_spend_stat.rpc_id(1, "strength", 2)
 	await da._wait(0.3)
 	da.check(p.stats.get_stat("strength") >= str_before + 1.99, "spending 2 points raises Strength (%.1f -> %.1f)" % [str_before, p.stats.get_stat("strength")])
-	da.check(p.stat_points == before_pts + 3, "two points were spent")
+	da.check(p.stat_points == before_pts + int(GameData.bal("progression.stat_points_per_level")) - 2, "two points were spent")
 	p.request_spend_stat.rpc_id(1, "luck", 1)
 	await da._wait(0.2)
 	da.check(not p.allocated.has("luck"), "unknown stats are refused")

@@ -139,6 +139,17 @@ Estimate before the next batch (female cleave S lifts the forearms over the head
 Estimate before the next batch (female slash east kept the blade behind her and drew a blade into the body; female crossbow south is a T-pose): v3 re-rolls of slash east and shoot_crossbow south (1 each, up to 3 tries: <= 6) + transfer_outfit of batch 1 east and batch 3 south for the 4 outfits (8 x 10 = 80): <= 86, goal spend <= 2404 of 2800.
 
 
+Second playtest goal (#23-#32), start 2026-10-18: **used 4221, remaining 585**, resets 2026-11-14.
+Goal cap: 430 generations, 150 kept in reserve, never above the remaining allowance. Planned spend
+(DECISIONS "#25" decided the walk needs no art): talent and stat icons ~8, merchant and boss doors ~20,
+UI frames / ornaments / icons ~60, re-rolls ~10%.
+
+| Date | Batch | Used before | Used after | Spend | Goal spend |
+| --- | --- | --- | --- | --- | --- |
+| 2026-10-18 | (goal start) | 4221 | 4221 | 0 | 0 |
+| 2026-10-18 | #27 talent icons: 6 Pixen 128x128 sheets of 16 (83 new passive talents + 13 stat icons for #29), cut by `tools/cut_icon_sheet.py` | 4221 | 4227 | 6 | 6 |
+| 2026-10-18 | Icons for the 32 older passives that showed initials (2 Pixen sheets) | 4227 | 4229 | 2 | 8 |
+
 ## Done (MVP)
 
 - [x] Foundation: folders, pixel-perfect settings, y-sort, autoloads, asset registry, generated placeholders

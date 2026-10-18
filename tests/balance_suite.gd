@@ -193,7 +193,7 @@ func run_fresh(depths: Array = [1, 2]) -> void:
 ## Rare (tier 3) gear of the floor's item level, the hero at `level` with all points in the main stat.
 func _gear_up(level: int, at_depth: int) -> void:
 	p.level = level
-	p.allocated = {MAIN_STAT[p.class_id]: 5 * (level - 1)}
+	p.allocated = {MAIN_STAT[p.class_id]: int(GameData.bal("progression.stat_points_per_level")) * (level - 1)}
 	var eq := {}
 	var gear: Dictionary = GEAR[p.class_id].duplicate()
 	gear.merge(COMMON_GEAR)

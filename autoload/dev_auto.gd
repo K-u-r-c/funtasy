@@ -245,6 +245,8 @@ func _run() -> void:
 				await BiomeSuite.new(self).run(biome)
 			"economy":
 				await EconomySuite.new(self).run()
+			"talents":
+				await TalentSuite.new(self).run()
 			"economy_lan":
 				await EconomySuite.new(self).run_lan()
 			"skills_lan":

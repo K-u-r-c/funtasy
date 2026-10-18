@@ -36,7 +36,7 @@ var downed_left := 0.0
 var revive_progress := 0.0
 var xp := 0
 var talent_points := 0
-var stat_points := 0  ## unspent free stat points (5 per level, D5)
+var stat_points := 0  ## unspent free stat points (balance progression.stat_points_per_level, D5 / #27)
 var allocated: Dictionary = {}  ## stat -> points spent on it
 var run_mods: Array = []  ## run-permanent modifiers [{stat, value, source}] (D17)
 var gold := 0
@@ -1078,7 +1078,7 @@ func _level_up_fx(new_level: int) -> void:
 	AudioManager.play_sfx_at("level_up", global_position)
 	if is_local():
 		EventBus.local_level_up.emit(new_level)
-		EventBus.hud_message.emit("Level %d! +1 talent point, +%d stat points" % [new_level, int(GameData.bal("progression.stat_points_per_level", 5))], Color(1, 0.85, 0.3))
+		EventBus.hud_message.emit("Level %d! +%d talent points, +%d stat points" % [new_level, int(GameData.bal("progression.talent_points_per_level")), int(GameData.bal("progression.stat_points_per_level"))], Color(1, 0.85, 0.3))
 
 
 # --- Life state (downed / revive / ghost) ----------------------------------------------------

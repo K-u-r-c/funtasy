@@ -68,6 +68,9 @@ if [ "$WHAT" = all ] || [ "$WHAT" = quick ]; then
 		run "skills-$c" --auto=solo --class=$c --name=Skill$c --scenario=skills --quit=200
 	done
 	run economy --auto=solo --class=warrior --name=Eco --scenario=economy --quit=200
+	for c in warrior ranger mage priest; do
+		run "talents-$c" --auto=solo --class=$c --name=Tal$c --scenario=talents --quit=120
+	done
 	run lore --auto=solo --class=priest --name=Lore --scenario=lore --quit=120
 	run monsters --auto=solo --class=warrior --name=Mon --scenario=monsters --quit=300
 	run bosses --auto=solo --class=mage --name=Bos --scenario=bosses --quit=300

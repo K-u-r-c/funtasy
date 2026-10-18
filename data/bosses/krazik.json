@@ -7,7 +7,7 @@
 	"music": "boss_krazik",
 	"corpse": "flesh",
 	"base_stats": {
-		"hp": 950,
+		"hp": 1250,
 		"damage": 11,
 		"armor": 20,
 		"move_speed": 92,
