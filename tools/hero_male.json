@@ -333,6 +333,9 @@
 					"radial",
 					0
 				]
+			},
+			"hand_anim": {
+				"cleave": "high"
 			}
 		},
 		"weapon_axe": {
@@ -371,6 +374,9 @@
 					"radial",
 					0
 				]
+			},
+			"hand_anim": {
+				"cleave": "high"
 			}
 		},
 		"weapon_mace": {
@@ -409,6 +415,9 @@
 					"radial",
 					0
 				]
+			},
+			"hand_anim": {
+				"cleave": "high"
 			}
 		},
 		"weapon_bow": {
@@ -531,6 +540,9 @@
 					"radial",
 					0
 				]
+			},
+			"hand_anim": {
+				"cleave": "high"
 			}
 		},
 		"offhand_shield": {

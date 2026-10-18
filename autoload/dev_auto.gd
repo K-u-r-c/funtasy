@@ -72,7 +72,7 @@ func _ready() -> void:
 		char_name = "Test%s" % mode.capitalize()
 	if quit_after > 0.0:
 		get_tree().create_timer(quit_after).timeout.connect(_finish.bind("timeout"))
-	if not shot.is_empty() and not scenario in ["shots", "lobby_shot", "hero_shots", "monster_shots", "tour", "coop_look"] and not (mode == "join" and shot_at <= 0.0):
+	if not shot.is_empty() and not scenario in ["shots", "lobby_shot", "hero_shots", "family_shots", "monster_shots", "tour", "coop_look"] and not (mode == "join" and shot_at <= 0.0):
 		get_tree().create_timer(shot_at).timeout.connect(func():
 			get_viewport().get_texture().get_image().save_png(shot)
 			log_line("screenshot saved to %s" % shot))
@@ -149,6 +149,9 @@ func _run() -> void:
 			return
 		"hero_shots":
 			await _hero_shots_flow()
+			return
+		"family_shots":
+			await _family_shots_flow()
 			return
 		"preview_grid":
 			await _preview_grid_flow()
@@ -2404,6 +2407,101 @@ func _preview_grid_flow() -> void:
 	grid.save_png(out)
 	log_line("preview grid " + out)
 	_finish("preview grid")
+
+
+## Final review (#16 / #19): in the dungeon's light, the hero of --gender holding every weapon
+## family in 8 directions - idle and the impact frame of the family's attack - in the class
+## look that carries it, lit by the hero's carried torch. Zoomed sheets family_<gender>_<n><a|b>.png
+## (five rows, four directions each).
+##   godot --path . -- --scenario=family_shots --gender=female --shot=<dir>
+func _family_shots_flow() -> void:
+	var dir := shot if not shot.is_empty() else OS.get_user_data_dir().path_join("shots")
+	DirAccess.make_dir_recursive_absolute(dir)
+	NetworkManager.host_solo()
+	await _wait_until(func(): return get_tree().current_scene.name == "Lobby", 10.0)
+	await _wait(0.5)
+	GameState.select_character(char_name, class_id, gender)
+	await _wait(0.3)
+	NetworkManager.start_run()
+	await _wait_until(func(): return _game() != null and _local() != null, 15.0)
+	await _wait(1.5)
+	var g := _game()
+	var p := _local()
+	p.iframe_left = 9999.0
+	for e in g.enemies_root.get_children():
+		e.queue_free()
+	var plate := {"head": ["head_helm", "#ffffff"], "chest": ["chest_armor", "#ffffff"], "legs": ["legs_armor", "#ffffff"], "boots": ["boots_armor", "#ffffff"], "gloves": ["gloves_armor", "#ffffff"]}
+	var mail := {"head": ["head_mail", "#ffffff"], "chest": ["chest_mail", "#ffffff"], "legs": ["legs_mail", "#ffffff"], "boots": ["boots_mail", "#ffffff"], "gloves": ["gloves_mail", "#ffffff"]}
+	var leather := {"head": ["head_leather", "#ffffff"], "chest": ["chest_leather", "#ffffff"], "legs": ["legs_leather", "#ffffff"], "boots": ["boots_leather", "#ffffff"], "gloves": ["gloves_leather", "#ffffff"]}
+	var cloth := {"head": ["head_hood", "#ffffff"], "chest": ["chest_robe", "#ffffff"]}
+	var with := func(base: Dictionary, held: Dictionary) -> Dictionary:
+		var d := base.duplicate()
+		d.merge(held, true)
+		return d
+	var w := func(app: String) -> Array: return [app, "#ffffff"]
+	var rows := [
+		["sword + shield", "idle", 0, with.call(plate, {"weapon": w.call("weapon_sword"), "offhand": w.call("offhand_shield")})],
+		["sword slash", "slash", 2, with.call(plate, {"weapon": w.call("weapon_sword"), "offhand": w.call("offhand_shield")})],
+		["shield bash", "bash", 2, with.call(plate, {"weapon": w.call("weapon_sword"), "offhand": w.call("offhand_shield")})],
+		["axe slash", "slash", 2, with.call(mail, {"weapon": w.call("weapon_axe")})],
+		["mace slash", "slash", 2, with.call(mail, {"weapon": w.call("weapon_mace"), "offhand": w.call("offhand_shield")})],
+		["greatsword idle", "idle", 0, with.call(plate, {"weapon": w.call("weapon_greatsword")})],
+		["greatsword cleave", "cleave", 3, with.call(plate, {"weapon": w.call("weapon_greatsword")})],
+		["greataxe wind-up", "cleave", 1, with.call(plate, {"weapon": w.call("weapon_greataxe")})],
+		["warhammer cleave", "cleave", 3, with.call(mail, {"weapon": w.call("weapon_warhammer")})],
+		["bow + quiver idle", "idle", 0, with.call(leather, {"weapon": w.call("weapon_bow"), "offhand": w.call("offhand_quiver")})],
+		["bow shot", "shoot_bow", 4, with.call(leather, {"weapon": w.call("weapon_bow"), "offhand": w.call("offhand_quiver")})],
+		["crossbow shot", "shoot_crossbow", 1, with.call(leather, {"weapon": w.call("weapon_crossbow"), "offhand": w.call("offhand_quiver")})],
+		["sling", "sling", 4, with.call(leather, {"weapon": w.call("weapon_sling")})],
+		["wand + trinket idle", "idle", 0, with.call(cloth, {"weapon": w.call("weapon_wand"), "offhand": w.call("offhand_trinket")})],
+		["wand flick", "flick", 2, with.call(cloth, {"weapon": w.call("weapon_wand"), "offhand": w.call("offhand_trinket")})],
+		["staff idle", "idle", 0, with.call(cloth, {"weapon": w.call("weapon_staff")})],
+		["staff cleave", "cleave", 3, with.call(cloth, {"weapon": w.call("weapon_staff")})],
+		["staff cast", "cast", 3, with.call(cloth, {"weapon": w.call("weapon_staff")})],
+		["wand + shield walk", "walk", 3, with.call(mail, {"weapon": w.call("weapon_wand"), "offhand": w.call("offhand_shield")})],
+		["bare walk", "walk", 2, {}],
+	]
+	p.host_take_torch()
+	p.torch_left = 999.0
+	const PER := 5
+	# Four directions a sheet: the lit part of the start room right of the torch-bearing hero.
+	for part in rows.size() / PER:
+		for half in 2:
+			var lineup := Node2D.new()
+			g.add_child(lineup)
+			lineup.global_position = p.global_position + Vector2(40, -120)
+			lineup.y_sort_enabled = true
+			var sprites: Array = []
+			for r in PER:
+				var row: Array = rows[part * PER + r]
+				for k in 4:
+					var d := half * 4 + k
+					var cs := CharacterSprite.new()
+					lineup.add_child(cs)
+					cs.position = Vector2(k * 44, r * 56)
+					cs.set_layer("body", CharacterSprite.body_key(gender))
+					for layer in row[3]:
+						cs.set_look_layer(layer, row[3][layer], gender)
+					cs.play(str(row[1]), Vector2.RIGHT.rotated(d * PI / 4.0), true)
+					sprites.append([cs, int(row[2])])
+			await get_tree().process_frame
+			for sp in sprites:
+				HeroArtSuite._hold(sp[0], sp[1])
+			g.camera.global_position = lineup.global_position + Vector2(80, 120)
+			await _wait(0.8)
+			var img := get_viewport().get_texture().get_image()
+			var vp := get_viewport().get_visible_rect()
+			var xf := get_viewport().get_canvas_transform()
+			var tl: Vector2 = xf * (lineup.global_position + Vector2(-26, -56))
+			var br: Vector2 = xf * (lineup.global_position + Vector2(4 * 44, PER * 56))
+			var sc := Vector2(img.get_size()) / vp.size
+			var crop := img.get_region(Rect2i(Vector2i(tl * sc), Vector2i((br - tl) * sc)).intersection(Rect2i(Vector2i.ZERO, img.get_size())))
+			crop.resize(crop.get_width() * 2, crop.get_height() * 2, Image.INTERPOLATE_NEAREST)
+			crop.save_png(dir.path_join("family_%s_%d%s.png" % [gender, part + 1, "ab"[half]]))
+			lineup.queue_free()
+			await _wait(0.2)
+		log_line("family sheet %d (a: E SE S SW, b: W NW N NE): %s" % [part + 1, ", ".join(rows.slice(part * PER, part * PER + PER).map(func(rw): return str(rw[0])))])
+	_finish("family shots")
 
 
 func _hero_shots_flow() -> void:
