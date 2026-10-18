@@ -652,3 +652,12 @@ its animation's impact frame (data `impact`); channels and cast times hold the s
 | Buying | `balance.merchant.buy_mult` 1.0 -> 3.0: every item and consumable Archibald sells costs three times the old price (value x 3). |
 | Selling | `sell_mult` stays 0.3, so a hero gets the same gold as before; buying an item back costs 10x what it fetched. |
 | Malphas | Prices nothing in gold (tithe, contracts and pact potions cost stats), so he is unchanged. |
+
+### #26 Skills fire at once
+
+| Topic | Decision |
+| --- | --- |
+| Rule | A skill (any slot but the primary) pressed while the hero's primary swing waits for its impact frame (#19) cancels that blow and starts in the same frame; its animation replaces the swing at once. The skill keeps its own impact frame / cast time from data. |
+| Still waiting | The primary pressed during any pending swing (holding LMB would otherwise cut itself off), and a skill pressed while another skill's blow is pending (it would waste the first skill's cooldown and cost). Casts, channels and charges stay exclusive as before. |
+| No wasted swing | The swing is only cut when the new skill would start (cooldown, charges, cost, silence, target checks pass); otherwise the press is refused and the swing lands. |
+| Tests | `skills-<class>`: up to six skills per class pressed mid-swing start in the same frame and cut the swing; `skills-lan`: the client's Flash Heal tapped mid-swing starts on the host as soon as the press arrives (one round trip). |

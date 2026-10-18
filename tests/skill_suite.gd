@@ -97,6 +97,7 @@ func anim_rules(class_id: String) -> void:
 	da.check(err.is_empty() and delay > 0.05 and early and d0.health.hp < hp0,
 			"%s (%s) lands on its impact frame after %.2f s, not at the press" % [sid, anim, delay])
 	_reset()
+	await interrupt_rules(class_id, sid, d0)
 	# #22: the Amalgam's twins resist one school each but every class can hurt both.
 	for twin_id in ["bile_twin", "gristle_twin"]:
 		var tw: Enemy = g.spawn_monster(twin_id, g.nearest_floor(_start + Vector2(48, 0)), false)
@@ -110,6 +111,38 @@ func anim_rules(class_id: String) -> void:
 		tw.queue_free()
 		_reset()
 		await da._wait(0.2)
+
+
+## #26: a skill pressed mid-swing starts in the same frame and cuts the primary's pending blow
+## off; the primary pressed during any pending swing, or a skill during a skill's, still waits.
+func interrupt_rules(class_id: String, primary: String, target: Enemy) -> void:
+	var tested: Array = []
+	var bad: Array = []
+	for sid in GameData.skills:
+		var sk: Dictionary = GameData.skills[sid]
+		if not str(sid).begins_with(class_id + "_") or sid == primary or sk.get("passive", false) or sk.has("toggle") \
+				or sk.has("usable_if") or sk.get("requires_target", false) or int(sk.get("charges", 1)) > 1:
+			continue
+		_reset()
+		p.resource.value = p.resource.max_value
+		target.health.hp = target.health.max_hp
+		var err0 := Combat.instance.try_use_skill(p, primary, target.global_position, {"primary": true})
+		if not err0.is_empty() or not p.impact_pending.get("primary", false):
+			bad.append("%s: primary swing didn't start (%s)" % [sid, err0])
+			continue
+		var again := Combat.instance.try_use_skill(p, primary, target.global_position, {"primary": true})
+		var frame := Engine.get_process_frames()
+		var err := Combat.instance.try_use_skill(p, str(sid), target.global_position)
+		var cut := p.impact_pending.is_empty() or str(p.impact_pending.get("skill", "")) == str(sid)
+		var shown := p._action_anim == Combat.anim_for(p, sk)
+		if not err.is_empty() or Engine.get_process_frames() != frame or not cut or not shown or again != "Busy":
+			bad.append("%s: %s, cut %s, anim %s, primary again %s" % [sid, err, cut, p._action_anim, again])
+		tested.append(sid)
+		if tested.size() >= 6:
+			break
+	da.check(tested.size() >= 3 and bad.is_empty(), "%s skills pressed mid-swing start in the same frame and cut the swing (%s)%s" % [class_id, tested, "" if bad.is_empty() else ": %s" % [bad]])
+	_reset()
+	await da._wait(0.3)
 
 
 ## Every skill node learned (their procs compile), no passive talents or keystones.
@@ -679,13 +712,49 @@ func run_lan() -> void:
 	NetworkManager.to_clients("DevAuto", "client_cmd", ["sk_heal_host", p.global_position])
 	await da._wait(1.5)
 	da.check(p.health.hp > php + 1.0, "the client's Flash Heal aimed at the host heals the host (%d -> %d)" % [php, p.health.hp])
+	await lan_interrupt(c, d)
 	NetworkManager.to_clients("DevAuto", "client_cmd", ["done", null])
 	await da._wait(1.0)
+
+
+## #26 over LAN: the client holds its primary (a melee swing with a pending impact) and taps
+## Flash Heal mid-swing; the host starts the heal as soon as the press arrives, cutting the swing.
+func lan_interrupt(c: Player, d: Enemy) -> void:
+	await da._wait(1.0)
+	c.cooldowns.clear()
+	c.resource.value = c.resource.max_value
+	c.host_teleport(g.nearest_floor(d.global_position + Vector2(-30, 0)))
+	await da._wait(0.3)
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["sk_hold_attack", d.global_position])
+	var swinging: bool = await da._wait_until(func(): return c.impact_pending.get("primary", false), 3.0)
+	var key := "%s:%s" % [c.name, "priest_heal"]
+	var uses0 := int(Combat.instance.get_meta("uses", {}).get(key, 0))
+	var cut0 := int(Combat.instance.get_meta("swings_cut", 0))
+	var t0 := Time.get_ticks_msec()
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["sk_tap_2", p.global_position])
+	var started: bool = await da._wait_until(func(): return int(Combat.instance.get_meta("uses", {}).get(key, 0)) > uses0, 2.0)
+	var ms := Time.get_ticks_msec() - t0
+	var cut: bool = int(Combat.instance.get_meta("swings_cut", 0)) > cut0 and c.impact_pending.is_empty() and str(c.casting.get("skill", "")) == "priest_heal"
+	# Round trip on localhost is a few frames; the swing alone would hold it for its impact delay.
+	da.check(swinging and started and cut and ms < 250, "the client's heal pressed mid-swing starts at once on the host (%d ms, swing cut %s)" % [ms, cut])
+	await da._wait(1.2)
 
 
 func client_cmd(cmd: String, arg: Variant) -> void:
 	p = da._local()
 	match cmd:
+		"sk_hold_attack":
+			p.auto_aim = arg
+			Input.action_press("attack")
+			await da._wait(1.2)
+			Input.action_release("attack")
+		"sk_tap_2":
+			p.auto_aim = arg
+			var f0 := Engine.get_process_frames()
+			Input.action_press("skill_2")
+			await da._wait(0.12)
+			Input.action_release("skill_2")
+			da.log_line("skill_2 tapped at frame %d" % f0)
 		"sk_channel":
 			p.auto_aim = arg
 			Input.action_press("skill_1")

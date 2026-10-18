@@ -57,8 +57,17 @@ func try_use_skill(caster: Actor, skill_id: String, aim: Vector2, opts: Dictiona
 		return "Passive"
 	if not caster.can_act() and not (skill.get("usable_while_cc", false) and caster.is_alive()):
 		return "Can't act now"
-	if not caster.casting.is_empty() or not caster.channel.is_empty() or not caster.charging.is_empty() or not caster.impact_pending.is_empty():
+	if not caster.casting.is_empty() or not caster.channel.is_empty() or not caster.charging.is_empty():
 		return "Busy"
+	# #26: a skill pressed during a primary swing cuts the swing off and starts at once; the
+	# primary itself (held LMB) and a second skill wait for a pending impact.
+	if not caster.impact_pending.is_empty():
+		if opts.get("primary", false) or not caster.impact_pending.get("primary", false):
+			return "Busy"
+		if not _can_interrupt(caster, skill, aim):
+			return "Busy"
+		caster.impact_pending = {}
+		set_meta("swings_cut", int(get_meta("swings_cut", 0)) + 1)  # read by the test harness
 	var school := str(skill.get("school", "melee"))
 	if caster.status.has_flag("silenced") and (school == "spell" or not opts.get("primary", false)):
 		return "Silenced"
@@ -174,10 +183,26 @@ func try_use_skill(caster: Actor, skill_id: String, aim: Vector2, opts: Dictiona
 			_windup_marker(caster, skill, aim, cast_time)
 	elif impact > 0.0:
 		# #19: the hit / shot lands on the animation's impact frame (aim taken now).
-		caster.impact_pending = {"skill": skill_id, "aim": aim, "left": impact, "extra": extra}
+		caster.impact_pending = {"skill": skill_id, "aim": aim, "left": impact, "extra": extra, "primary": opts.get("primary", false)}
 	else:
 		finish_cast(caster, skill_id, aim, extra)
 	return ""
+
+
+## #26: would `skill` start now if the pending swing were out of the way? Cancelling the swing
+## for a skill that then fails (cooldown, cost, silence, range) would just lose the swing.
+func _can_interrupt(caster: Actor, skill: Dictionary, aim: Vector2) -> bool:
+	var sid := str(skill.get("id", ""))
+	var max_charges := int(skill.get("charges", 1)) + int(caster.stats.skill_mod(sid, "charges_add"))
+	if max_charges > 1 and int(caster.skill_charges.get(sid, max_charges)) <= 0:
+		return false
+	if max_charges <= 1 and caster.cooldown_left(sid) > 0.0:
+		return false
+	if caster.status.has_flag("silenced") or (caster.status.has("school_lockout") and str(skill.get("element", skill.get("school", "melee"))) == caster.lockout_element):
+		return false
+	if not skill.has("toggle") and not skill.has("channel") and caster.resource.kind != "none" and not caster.resource.can_pay(caster.stats.cost_for(skill)) and not caster.stats.has_flag("hp_for_mana"):
+		return false
+	return _usable(caster, skill, aim).is_empty()
 
 
 ## Seconds until a hero's instant skill lands: its animation's impact frame (#19). 0 for monsters,
