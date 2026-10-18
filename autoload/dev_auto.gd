@@ -2205,6 +2205,17 @@ func _held_check(g: String, br: RefCounted, body_entry: Dictionary) -> void:
 			for fx in body.get_width() / cell:
 				var reg: Dictionary = br.segment(body.get_region(Rect2i(fx * cell, fy * cell, cell, cell)))
 				var hands: Array = reg.keys().filter(func(q): return reg[q] == "hands")
+				# The female tank-top body's hanging fists read as arm or even leg (beside the
+				# shorts): bake_gear holds the items at the fists measured as "rest_hands" anchors
+				# (idle frame 0, moved with the body's bob), at a fist blob near one or at the arm.
+				if cfg.has("rest_hands") and anim in ["idle", "walk", "dash"]:
+					hands.append_array(reg.keys().filter(func(q): return reg[q] == "arms"))
+					var idle := _img(str(body_entry.path) + "idle.png")
+					var bob := body.get_region(Rect2i(fx * cell, fy * cell, cell, cell)).get_used_rect().position.y \
+							- idle.get_region(Rect2i(0, fy * cell, cell, cell)).get_used_rect().position.y
+					for hand in cfg.rest_hands:
+						var an: Array = cfg.rest_hands[hand][fy]
+						hands.append(Vector2i(roundi(float(an[0])), roundi(float(an[1])) + bob))
 				if hands.is_empty():
 					hands = reg.keys().filter(func(q): return reg[q] == "arms")
 				if hands.is_empty():

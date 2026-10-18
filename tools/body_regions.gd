@@ -35,7 +35,7 @@ func class_map(img: Image) -> Dictionary:
 			var c := img.get_pixel(x, y)
 			if c.a >= 0.5:
 				cls[Vector2i(x, y)] = _class_of(c)
-	_keep_main(cls, "hair", "outline", false)
+	_keep_main(cls, "hair", "outline", false, true)
 	_keep_main(cls, "shirt", "skin", true)
 	_keep_main(cls, "shorts", "outline", true)
 	return cls
@@ -57,14 +57,45 @@ static func is_hairish(cls: Dictionary, p: Vector2i) -> bool:
 
 
 ## Keeps the biggest blob of class `k`, blobs touching it and (with `keep_big`) any blob of at
-## least min_blob px; the rest becomes `other`.
-func _keep_main(cls: Dictionary, k: String, other: String, keep_big: bool) -> void:
+## least min_blob px; the rest becomes `other`. With `top` (the hair), when the biggest blob lies
+## below the top HEAD_ZONE of an upright figure, the blobs centred in that zone are kept instead:
+## dark hair falls apart into small blobs between outline pixels, while shading on a raised arm's
+## shirt can make one bigger brown blob - kept as the hair, it turned the real hair into outline
+## and cut the helmet onto the arms.
+const HEAD_ZONE := 0.28
+
+
+func _keep_main(cls: Dictionary, k: String, other: String, keep_big: bool, top := false) -> void:
 	var pix := {}
 	for p in cls:
 		if cls[p] == k:
 			pix[p] = true
 	var comps := _components(pix)
 	comps.sort_custom(func(x, y): return x.size() > y.size())
+	if top and not comps.is_empty():
+		var y0 := 999
+		var y1 := -999
+		var x0 := 999
+		var x1 := -999
+		for p in cls:
+			y0 = mini(y0, p.y)
+			y1 = maxi(y1, p.y)
+			x0 = mini(x0, p.x)
+			x1 = maxi(x1, p.x)
+		# Upright figures only: lying down (downed, death) the head isn't on top.
+		var line := y0 + (y1 - y0 + 1) * HEAD_ZONE if y1 - y0 > (x1 - x0) * 1.2 else -INF
+		var head: Array = []
+		var rest: Array = []
+		for c in comps:
+			var cy := 0.0
+			for q in c:
+				cy += q.y
+			(head if cy / c.size() < line else rest).append(c)
+		if not head.is_empty() and not rest.is_empty() and rest[0] == comps[0]:
+			var merged: Array = []
+			for c in head:
+				merged.append_array(c)
+			comps = [merged] + rest
 	var keep := {}
 	if not comps.is_empty():
 		for q in comps[0]:

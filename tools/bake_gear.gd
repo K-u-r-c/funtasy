@@ -121,8 +121,8 @@ var _idle_tops := {}
 ## Hands from the config's "rest_hands" (where the arms hang, for a body whose skin the regions
 ## misread - the female tank top): {hand: [anchor per direction]} measured on idle frame 0, each
 ## frame's anchor moved by the body's bob (its top against idle frame 0's). _hands then takes the
-## nearest fist blob within ANCHOR_REACH of it (an arm's swing) or the anchor itself, so a hand
-## never jumps to the face, the midriff or the other side.
+## nearest fist blob within ANCHOR_REACH of it (an arm's swing), else the nearest arm pixel, else
+## the anchor itself, so a hand never jumps to the face, the midriff or the other side.
 func _anchor_paths(per_frame: Array, d: int) -> Dictionary:
 	if not _idle_tops.has(d):
 		var idle := _load(str(cfg.body_dir).path_join("idle.png"))
@@ -318,7 +318,11 @@ func _hands(regions: Dictionary, used: Rect2i, d: int, track: Dictionary, low :=
 			var bd := INF
 			for i in blobs.size():
 				var dd: float = blobs[i][0].distance_to(track[hand].pos)
-				if not taken.has(i) and dd < bd and dd < (ANCHOR_REACH if anchored else 16.0):
+				if anchored:
+					# An arm swings sideways; a blob well above or below the fist is an elbow or skin.
+					var dv: Vector2 = blobs[i][0] - track[hand].pos
+					dd = Vector2(dv.x / ANCHOR_REACH.x, dv.y / ANCHOR_REACH.y).length()
+				if not taken.has(i) and dd < bd and dd < (1.0 if anchored else 16.0):
 					bd = dd
 					best = i
 		else:
@@ -331,8 +335,14 @@ func _hands(regions: Dictionary, used: Rect2i, d: int, track: Dictionary, low :=
 					bs = sc
 					best = i
 		if best < 0 and anchored:
-			# The fist read as arm or shirt (the female tank-top body): it hangs at its anchor.
+			# The fist read as arm (the female tank-top body): the arm pixel nearest the anchor
+			# (the swinging forearm's end), else the anchor itself.
 			var at: Vector2 = track[hand].pos
+			var near := 12.0
+			for q in arm_px:
+				if Vector2(q).distance_to(track[hand].pos) < near:
+					near = Vector2(q).distance_to(track[hand].pos)
+					at = Vector2(q)
 			out[hand] = {"pos": at, "grip": Vector2i(at.round()), "vec": Vector2.DOWN, "rad": Vector2.DOWN, "pix": {}, "hidden": false}
 			track[hand] = out[hand]
 			continue
@@ -398,7 +408,7 @@ func _hands(regions: Dictionary, used: Rect2i, d: int, track: Dictionary, low :=
 
 
 const REST_ANIMS := ["idle", "walk", "dash", "hit", "downed"]
-const ANCHOR_REACH := 8.0  ## how far a swinging fist may be from its "rest_hands" anchor
+const ANCHOR_REACH := Vector2(9, 5)  ## how far a swinging fist may be from its "rest_hands" anchor
 const LOW_HAND_ANIMS := ["idle", "walk", "dash"]  ## the arms hang: no hand above LOW_HAND_LINE
 const LOW_HAND_LINE := 0.32  ## of the figure's height from its top (head, neck and shoulders)
 
