@@ -105,6 +105,17 @@ screenshot review at 1920x1080 and 3440x1440.
 - [x] #32 Polish localization (2369 keys incl. 105 lore books) and a live language option (`i18n`, `i18n-lan`, `ui-layout-pl`)
 - [x] Bilingual screenshot review (English and Polish): shots flow, tours `menus`, `merchants`, `lore`, `skills`, `options`, `boss_doors` (every biome, near and far), `gait` (run, hasted, slowed) and `map_marks`; the Linux release build smoke-tested with `--lang=pl`
 
+## Third playtest issues (GitHub #33-#39)
+
+- [x] #38 Closing a book returns to the inventory / codex it was opened from (`lore`)
+- [x] #35 Several things at one spot: switch with G / left stick click, takeable items first, the door when the item can't be taken, no loot in doorways (`interact`, `interact-lan`)
+- [x] #37 Party frames show teammates' buffs and debuffs; every status has an icon (`party`, `party-lan`)
+- [x] #39 Friendly targeting: Tab / right stick click / a click on a teammate or party frame; ally spells land on the pick (`target-lan`)
+- [x] #33 Heal burst, heal-over-time glow, shield bubble and break, buff and cleanse flashes on allies (`fx-lan`)
+- [x] #34 Nine element looks for AoE impacts and lingering zones (`fx`, `fx-lan`)
+- [x] #36 Sewer drain pipes and Foundry furnace vents with a telegraph before each spray (`spouts-sewers`, `spouts-foundry`)
+- [x] Screenshot review (English and Polish where there is text): tours `interact`, `party` (16:9 and 32:9), `target`, `bookback`, `allyfx`, `elements`, `spouts` (Sewers, Foundry)
+
 ## PixelLab ledger
 
 Start of the GDD goal (2026-10-15): **used 1081 / 2000, remaining 919**, resets 2026-11-14.

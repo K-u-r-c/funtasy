@@ -295,6 +295,24 @@ func _spouts(_arg: String) -> void:
 	await snap("spout_%s_spray" % biome)
 
 
+## #38: a book read from the inventory, then Cancel: back on the inventory with the book selected.
+func _bookback(_arg: String) -> void:
+	var hud: Node = da.get_tree().get_first_node_in_group("hud")
+	p.host_give_item(LootTable.make_book("lore_001", RandomNumberGenerator.new()))
+	await da._wait(0.3)
+	var i := p.inv.backpack.size() - 1
+	hud.open_overlay(hud.menu_panel("inventory"))
+	await da._wait(0.5)
+	hud._overlay._slots["b:%d" % i].grab_focus()
+	await da._wait(0.2)
+	hud._overlay._accept_backpack(i)
+	await da._wait(0.8)
+	await snap("bookback_reader_%s" % Settings.language)
+	da._action("ui_cancel")
+	await da._wait(0.6)
+	await snap("bookback_inventory_%s" % Settings.language)
+
+
 ## The merchant room of each merchant (#6): its sealed door seen from across the corridor and up
 ## close (#23), the door paid for and open, Archibald's shop, the blood price dialog and
 ## Malphas's bargains.
