@@ -956,8 +956,8 @@ class StatusChip:
 	var _icon: Texture2D
 	var _icon_key := ""
 
-	func _init() -> void:
-		custom_minimum_size = Vector2(22, 22)
+	func _init(px: int = 22) -> void:
+		custom_minimum_size = Vector2(px, px)
 		mouse_filter = Control.MOUSE_FILTER_PASS
 
 	func set_effect(id: String, left: float, stacks: int) -> void:
@@ -967,7 +967,7 @@ class StatusChip:
 		_left = left
 		_stacks = stacks
 		var def: Dictionary = GameData.status_effects.get(id, {})
-		var time_txt := "active" if left < 0.0 else "%ds" % ceili(left)
+		var time_txt := Loc.t("Active") if left < 0.0 else "%ds" % ceili(left)
 		tooltip_text = "%s%s - %s" % [Loc.t(str(def.get("name", id))), " x%d" % stacks if stacks > 1 else "", time_txt]
 		queue_redraw()
 
@@ -979,8 +979,8 @@ class StatusChip:
 		draw_style_box(UITheme.cached_glass(Color("070a10f0"), UITheme.DANGER if debuff else col.darkened(0.2), 1, 0), r)
 		draw_rect(Rect2(2, 2, r.size.x - 4, r.size.y - 6), Color(col, 0.22))
 		var f := UITheme.font()
-		var icon_key := "status_icons." + _id
-		if GameData.asset_exists(icon_key):
+		var icon_key := StatusChip.icon_key(_id)
+		if not icon_key.is_empty():
 			# Held in a member: a texture freed right after _draw would render as a white quad.
 			if _icon_key != icon_key:
 				_icon_key = icon_key
@@ -998,6 +998,22 @@ class StatusChip:
 		var frac := 1.0 if _left < 0.0 else clampf(_left / maxf(_max, 0.01), 0.0, 1.0)
 		draw_rect(Rect2(2, r.size.y - 3, roundf((r.size.x - 4) * frac), 1), col)
 
+	## The asset key of a status's icon (#37): its own "icon" in data, else status_icons.<id>.
+	static func icon_key(id: String) -> String:
+		var key := str(GameData.status_effects.get(id, {}).get("icon", "status_icons." + id))
+		return key if GameData.asset_exists(key) else ""
+
+	## The effects to show, most important first: debuffs, then buffs; the soonest to end first,
+	## effects without an end last.
+	static func ordered(shown: Array) -> Array:
+		var out := shown.duplicate()
+		var rank := func(s: Array) -> float:
+			var debuff := bool(GameData.status_effects.get(str(s[0]), {}).get("debuff", false))
+			var left := float(s[1])
+			return (0.0 if debuff else 10000.0) + (5000.0 if left < 0.0 else left)
+		out.sort_custom(func(a, b): return rank.call(a) < rank.call(b))
+		return out
+
 
 ## Compact teammate frame: mini portrait, name/level/state, HP + resource bars.
 class PartyFrame:
@@ -1007,6 +1023,9 @@ class PartyFrame:
 	var _name: Label
 	var _hp: StatBar
 	var _res: StatBar
+	var _effects: HBoxContainer
+	var _more: Label
+	const MAX_EFFECTS := 7
 
 	func _init() -> void:
 		theme_type_variation = &"GlassHud"
@@ -1028,6 +1047,14 @@ class PartyFrame:
 		_res = StatBar.new(Color("3b6fe0"), Vector2(118, 4))
 		_res.show_text = false
 		v.add_child(_res)
+		# The teammate's buffs and debuffs (#37), replicated with Status:shown.
+		_effects = HBoxContainer.new()
+		_effects.add_theme_constant_override("separation", 2)
+		_effects.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		v.add_child(_effects)
+		_more = UITheme.label("", UITheme.TEXT_DIM, UITheme.FONT_SMALL)
+		_more.visible = false
+		_effects.add_child(_more)
 
 	func set_player(pl: Player) -> void:
 		p = pl
@@ -1047,3 +1074,23 @@ class PartyFrame:
 		_hp.set_values(pl.health.fraction(), pl.health.absorb / maxf(1.0, float(pl.health.max_hp)))
 		_res.fill_color = Color("e0701c") if pl.resource.kind == "fury" else Color("3b6fe0")
 		_res.set_values(pl.resource.fraction())
+		set_effects(pl.status.shown)
+
+	func set_effects(shown: Array) -> void:
+		var list := StatusChip.ordered(shown)
+		var n := mini(list.size(), MAX_EFFECTS)
+		while _effects.get_child_count() - 1 < n:
+			var c := StatusChip.new(16)
+			_effects.add_child(c)
+			_effects.move_child(_more, _effects.get_child_count() - 1)
+		var i := 0
+		for c in _effects.get_children():
+			if c == _more:
+				continue
+			c.visible = i < n
+			if c.visible:
+				c.set_effect(str(list[i][0]), float(list[i][1]), int(list[i][2]))
+			i += 1
+		_more.visible = list.size() > MAX_EFFECTS
+		_more.text = "+%d" % (list.size() - MAX_EFFECTS)
+		_effects.visible = n > 0

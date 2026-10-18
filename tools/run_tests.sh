@@ -98,6 +98,7 @@ if [ "$WHAT" = all ] || [ "$WHAT" = quick ]; then
 	done
 	run ui-layout --auto=solo --class=priest --name=Layout --scenario=ui_layout --quit=90
 	run ui-layout-pl --auto=solo --class=priest --name=Layout --scenario=ui_layout --lang=pl --quit=90
+	run party --auto=solo --class=priest --name=Pals --scenario=party --quit=60
 	run interact --auto=solo --class=warrior --name=Hands --scenario=interact --quit=90
 	run i18n --auto=solo --class=priest --name=Lang --scenario=i18n --quit=120
 	run art-check --scenario=art_check --quit=120
@@ -132,6 +133,7 @@ if [ "$WHAT" = all ] || [ "$WHAT" = lan ]; then
 	pair anim-lan "--class=warrior --name=HostN --scenario=anim_lan --quit=90" "--class=mage --name=ClientN --quit=90"
 	pair skills-lan "--class=warrior --name=HostK --scenario=skills_lan --quit=90" "--class=priest --name=ClientK --quit=90"
 	pair economy-lan "--class=warrior --name=HostE --scenario=economy_lan --quit=120" "--class=mage --name=ClientE --quit=120"
+	pair party-lan "--class=priest --name=HostP --scenario=party_lan --quit=60" "--class=warrior --name=ClientP --quit=60"
 	pair interact-lan "--class=warrior --name=HostH --scenario=interact_lan --quit=60" "--class=priest --name=ClientH --quit=60"
 	pair i18n-lan "--class=mage --name=HostI --scenario=i18n_lan --quit=60" "--class=warrior --name=ClientI --quit=60"
 	pair wipe "--class=ranger --name=HostWipe --scenario=wipe --quit=60" "--class=priest --name=ClientWipe --quit=60"

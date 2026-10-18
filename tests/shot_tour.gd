@@ -182,6 +182,23 @@ func _interact(_arg: String) -> void:
 	p.auto_aim = Vector2.INF
 
 
+## #37: the party frames (HUD preview: the local hero shown as three teammates) with a mix of
+## buffs and debuffs, at the current window size.
+func _party(_arg: String) -> void:
+	var hud: Node = da.get_tree().get_first_node_in_group("hud")
+	p.iframe_left = 9999.0
+	for e in g.enemies_root.get_children():
+		e.queue_free()
+	for s in [["poison", 8.0], ["poison", 8.0], ["burn", 4.0], ["slow", 6.0], ["renew", 9.0], ["pw_shield", 12.0], ["fortify", 10.0], ["blessing_of_might", 60.0], ["chill", 5.0], ["bleed", 7.0]]:
+		p.status.apply(s[0], s[1], 1.0, p)
+	await da._wait(0.3)
+	hud.preview_full = true
+	await da._wait(0.6)
+	var vp := da.get_viewport().get_visible_rect().size
+	await snap("party_%s" % Settings.language)
+	hud.preview_full = false
+
+
 ## The merchant room of each merchant (#6): its sealed door seen from across the corridor and up
 ## close (#23), the door paid for and open, Archibald's shop, the blood price dialog and
 ## Malphas's bargains.

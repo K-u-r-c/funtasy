@@ -755,3 +755,12 @@ its animation's impact frame (data `impact`); channels and cast times hold the s
 | Refusals | Checked on the hero's own copy of the inventory: a full backpack ("Backpack is full") or a backpack no bigger than the one carried ("You already have a backpack this big"). Such an item doesn't hide the door and its prompt says why; the host still decides on pickup. Gold and the Gold Key are always takeable. |
 | Doorways | `LootManager.drop_item` moves anything landing within `world.door_drop_margin` of a doorway to the nearest floor cell beside it (kills, chests, and items players drop). |
 | Tests | `interact`: item in a doorway first, `interact_next` to the door, the door opens / closes, the item is picked up; full backpack and a too-small backpack put the door first with the reason; loot dropped on a doorway lands beside it. `interact-lan`: the client sees the same order and opens the door through its switched choice. Review: `--tour=interact` in English and Polish. |
+
+### #37 Teammates' effects on the party frames
+
+| Topic | Decision |
+| --- | --- |
+| Icons | Every status effect has an `"icon"` asset key in `data/status_effects.json`: the icon of the skill, pact potion or legendary that applies it where one exists (113), else a new icon (`icons.st_<id>`, 76 from 5 Pixen sheets). The local buff bar and the party frames draw it; initials only as a last resort. |
+| Frame | Under the bars, up to 7 16-px chips, then "+N": debuffs first (red border), then buffs (their colour), the soonest to end first, effects without an end last; stack count on the chip, the remaining time as a thin bar, tooltip "name xN - 5s" (translated) on hover. The HUD isn't focusable in play, so the tooltip is mouse-only (assumption). |
+| Network | Uses the replicated `Status:shown` of each player, so every peer sees the same. |
+| Tests | `party`: every status has an icon, the ordering; `party-lan`: a buff and a stacked debuff on the client appear on the host's frame (debuff first, stacks, tooltip) and the host's effects on the client's frame, and both clear when they end. Review: `--tour=party` at 1920x1080 and 3840x1080 in English and Polish. |

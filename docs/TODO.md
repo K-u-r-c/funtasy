@@ -166,6 +166,14 @@ UI frames / ornaments / icons ~60, re-rolls ~10%.
 | 2026-10-18 | #23 / #31 doors: 7 map objects (Archibald's gilded vault, Malphas's blood seal, a boss gate per biome; 1 each) + 7 "open" object states (**10 each**, the cost was not known before the batch, so no estimate was written; states are not used again in this goal) | 4230 | 4307 | 77 | 86 |
 | 2026-10-18 | #29 UI art: 5 Pixen icon sheets (equipment slot silhouettes, menu / tab icons, class crests and HUD, talent branch emblems, extras) + 4 ornaments (title banner, item slot, gold divider, gauge frame) + 1 unused corner | 4307 | 4317 | 10 | 96 |
 
+Third playtest goal (#33-#39), start 2026-10-18: **used 4317, remaining 489**, resets 2026-11-14.
+Goal cap: 150 generations, 150 kept in reserve. Planned: status icons ~5 (Pixen sheets), spout pipes / vents per wall side ~8-12, effect sprites only where particles / shaders / the free workbenches fall short.
+
+| Date | Batch | Used before | Used after | Spend | Goal spend |
+| --- | --- | --- | --- | --- | --- |
+| 2026-10-18 | (goal start) | 4317 | 4317 | 0 | 0 |
+| 2026-10-18 | #37 status icons: 5 Pixen 128x128 sheets of 16 (76 statuses without a skill / potion / legendary icon to reuse; 113 others reuse those) | 4317 | 4322 | 5 | 5 |
+
 ## Done (MVP)
 
 - [x] Foundation: folders, pixel-perfect settings, y-sort, autoloads, asset registry, generated placeholders
