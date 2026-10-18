@@ -81,11 +81,11 @@ screenshot review at 1920x1080 and 3440x1440.
 ## Visual polish issues (GitHub #15-#21)
 
 - [x] #15 Hero pieces lose pixels / wrong colours: layers start on the body's frame, removed layers leave at once, mask refill, preview fit (`hero-art`, `art-check`, `anim-lan`)
-- [ ] #16 Weapon placement in every direction
+- [x] #16 Weapon placement in every direction: baked front / back sheets from the tracked hand, bow in the extended hand of the draw, reviewed per weapon in 8 directions (`art-check`, `hero-art`)
 - [x] #17 Co-op animation sync: reliable one-shots, replicated dash / held poses, downed fall (`anim-lan`)
-- [ ] #18 Hero animation audit and fixes
-- [ ] #19 Attack animations per weapon family and skill
-- [ ] #20 Item look variety: worn variants, icons, unique legendaries
+- [x] #18 Hero animation audit and fixes: `docs/ART_AUDIT.md`, v2 set of 75 frames for both genders, walk paced by stride (`hero-art`, `anim-lan`)
+- [x] #19 Attack animations per weapon family and skill: data-driven per weapon / skill, impact frames, reviewed skill table (`skills-*`, `anim-lan`)
+- [x] #20 Item look variety: four worn families for both genders, rarity colour variants, family icons, 108 legendary icons and colours, quiver (`hero-art`, `legendaries-*`)
 - [x] #22 No full damage-type immunity: monsters take 80% less of an immune type (`skills-*`, `primitives`)
 - [x] #21 Merchants 80 / 20, Gold Key on 80% of Archibald floors with a chest fallback (`economy`,
       `economy-lan`)
@@ -125,6 +125,7 @@ Estimate before the next batches (2026-10-17): female cloth 21 + leather 49 + ma
 | Date | Batch | Used before | Used after | Spend | Goal spend |
 | --- | --- | --- | --- | --- | --- |
 | 2026-10-17 | Female cloth outfit (21 transfers), male leather outfit (24), mail probe (male) and leather / mail probes (female), one transfer lost to a server error (cancelled at 95%), mail chest icon re-roll | 2639 | 3139 | 500 | 1401 |
+| 2026-10-18 | Male mail (24 transfers), female leather (24) and mail (24 + 1 re-run of a dropped job), 108 legendary icons (Pixen 32 px) with ~40 re-rolls / prompt tests (bows: Pixen and Pixflux img2img), one more transfer lost to a server error | 3139 | 4044 | 905 | 2306 |
 
 ## Done (MVP)
 
@@ -198,7 +199,7 @@ Estimate before the next batches (2026-10-17): female cloth 21 + leather 49 + ma
       checkpoint approval; sources in `tools/biome_art_sources.json`.
 - [ ] **Music and SFX** (user, Suno): 17 music and 93 SFX keys, file paths and prompts in
       `docs/SUNO_PROMPTS.md`; drop the files in and run `python3 tools/register_audio.py`.
-- [ ] Optional worn art: new armour sets beyond the plate / cloth layers (legendaries reuse them).
+- [x] Worn art beyond plate / cloth: leather and mail families for both genders (#20).
 - [x] Balance pass: measured by the `balance-<class>` suites against data pacing bands (see DECISIONS
       "Balance pass").
 - [x] Steam smoke test after the GDD work: Steam init, lobby creation, game tag listing and the Steam peer

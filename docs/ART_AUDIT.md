@@ -49,3 +49,16 @@ through a straight arc (`swing`), which together with the punch body reads as a 
 | all | No ghost sheet | Monsters never become ghosts (not drawn). |
 
 No empty frame, missing direction or broken frame besides the flesh stitcher was found.
+
+## Status after the fixes (2026-10-18)
+
+| Finding | Status |
+| --- | --- |
+| Too few frames (idle 2, walk 4, death 4, downed 2) | Replaced by the v2 set for both genders: idle 4, walk 8, dash 4, hit 3, death 5, downed = last death frame with a breath, revive = death backwards (DECISIONS "#16 / #18 / #19"). |
+| Walk feet sliding / hopping | Walk 8 frames, paced by the hero's real speed against the measured stride (male 28 px, female 24 px). |
+| Every attack a punch | Ten attack animations (slash, cleave, bash, shoot_bow, shoot_crossbow, sling, cast, flick, empower, throw) picked per weapon and skill; drawn weapon / glow frames skipped (`pick_dir`) or replaced by a neighbour (`dup`: female shoot_bow S / SE / E, female flick E). |
+| Cast flame remnants, body turning on frame 2 | Cast redrawn as a v3 animation, `strip_glow` with speck removal on every picked frame. |
+| Weapons behind the body facing away, floating in front, swapping hands | Baked per pixel into front / back sheets from the tracked hand of the whole clip; the bow in the draw uses the extended hand (#16). Reviewed per weapon in 8 directions, idle and impact frame, both genders. |
+| Worn layers | Four families (plate, cloth, leather, mail) for both genders on all 75 frames, no holes (`hero-art`). |
+| flesh_stitcher missing E / W | Walk east drawn and the monster rebuilt (commit f4a582e). |
+| Other monsters | Listed motion is intended (squash / stretch, lunges); cultist 3-frame attack accepted. |
