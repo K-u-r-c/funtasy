@@ -1361,8 +1361,16 @@ func _coop_look_scenario() -> void:
 		await _wait(0.3)
 		NetworkManager.to_clients("DevAuto", "client_cmd", ["equip_uid", it.uid])
 		await _wait(0.3)
+	if not is_instance_valid(client_p):
+		check(false, "the client stayed in the session for the look check")
+		_finish("coop look")
+		return
 	host_p.global_position = client_p.global_position + Vector2(36, 0)
 	await _wait(2.0)
+	if not is_instance_valid(client_p):
+		check(false, "the client stayed in the session for the look check")
+		_finish("coop look")
+		return
 	var layer: AnimatedSprite2D = client_p.sprite._layers.get("chest")
 	var mat: ShaderMaterial = layer.material if layer else null
 	var want := Color.from_string(str(chest.look.variant.ramp[0]), Color.BLACK)
