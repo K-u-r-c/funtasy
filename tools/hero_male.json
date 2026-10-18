@@ -454,6 +454,18 @@
 					"radial",
 					0
 				]
+			},
+			"hand_anim": {
+				"shoot_crossbow": [
+					"forward",
+					"forward",
+					"main",
+					"forward",
+					"forward",
+					"forward",
+					"main",
+					"forward"
+				]
 			}
 		},
 		"weapon_sling": {

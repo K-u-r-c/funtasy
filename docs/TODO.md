@@ -130,6 +130,10 @@ Estimate before the next batches (2026-10-17): female cloth 21 + leather 49 + ma
 | 2026-10-18 | Male mail (24 transfers), female leather (24) and mail (24 + 1 re-run of a dropped job), 108 legendary icons (Pixen 32 px) with ~40 re-rolls / prompt tests (bows: Pixen and Pixflux img2img), one more transfer lost to a server error (the re-run's charge posted late) | 3139 | 4054 | 915 | 2316 |
 | 2026-10-18 | Blacksong Greatbow icon redrawn (2 Pixflux img2img tries) | 4054 | 4056 | 2 | 2318 |
 | 2026-10-18 | Second art review: held-item anchors, body-region and dup fixes from existing frames (no generation) | 4056 | 4056 | 0 | 2318 |
+| 2026-10-18 | Female slash east re-drawn (v3 probes swing_e2, swing_e3: no drawn blade) and crossbow south (aim_s2), batch 1 east + batch 3 south re-transferred for the 4 outfits (8 x 10) | 4056 | 4139 | 83 | 2401 |
+
+Estimate before the next batch (female slash east kept the blade behind her and drew a blade into the body; female crossbow south is a T-pose): v3 re-rolls of slash east and shoot_crossbow south (1 each, up to 3 tries: <= 6) + transfer_outfit of batch 1 east and batch 3 south for the 4 outfits (8 x 10 = 80): <= 86, goal spend <= 2404 of 2800.
+
 
 ## Done (MVP)
 

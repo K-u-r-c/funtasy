@@ -314,6 +314,18 @@
 					"radial",
 					0
 				]
+			},
+			"hand_anim": {
+				"slash": [
+					"forward",
+					"main",
+					"main",
+					"main",
+					"forward",
+					"main",
+					"main",
+					"main"
+				]
 			}
 		},
 		"weapon_greatsword": {
@@ -352,6 +364,18 @@
 					"radial",
 					0
 				]
+			},
+			"hand_anim": {
+				"slash": [
+					"forward",
+					"main",
+					"main",
+					"main",
+					"forward",
+					"main",
+					"main",
+					"main"
+				]
 			}
 		},
 		"weapon_greataxe": {
@@ -389,6 +413,18 @@
 				"attack": [
 					"radial",
 					0
+				]
+			},
+			"hand_anim": {
+				"slash": [
+					"forward",
+					"main",
+					"main",
+					"main",
+					"forward",
+					"main",
+					"main",
+					"main"
 				]
 			}
 		},
@@ -454,6 +490,18 @@
 					"radial",
 					0
 				]
+			},
+			"hand_anim": {
+				"shoot_crossbow": [
+					"forward",
+					"forward",
+					"main",
+					"forward",
+					"forward",
+					"forward",
+					"main",
+					"forward"
+				]
 			}
 		},
 		"weapon_sling": {
@@ -502,6 +550,16 @@
 					"extended",
 					"extended",
 					"extended",
+					"main"
+				],
+				"slash": [
+					"forward",
+					"main",
+					"main",
+					"main",
+					"forward",
+					"main",
+					"main",
 					"main"
 				]
 			}

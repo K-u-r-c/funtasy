@@ -408,6 +408,7 @@ func _hands(regions: Dictionary, used: Rect2i, d: int, track: Dictionary, low :=
 
 
 const REST_ANIMS := ["idle", "walk", "dash", "hit", "downed"]
+const FACING := [Vector2(1, 0), Vector2(0.71, 0.71), Vector2(0, 1), Vector2(-0.71, 0.71), Vector2(-1, 0), Vector2(-0.71, -0.71), Vector2(0, -1), Vector2(0.71, -0.71)]
 const ANCHOR_REACH := Vector2(9, 5)  ## how far a swinging fist may be from its "rest_hands" anchor
 const LOW_HAND_ANIMS := ["idle", "walk", "dash"]  ## the arms hang: no hand above LOW_HAND_LINE
 const LOW_HAND_LINE := 0.32  ## of the figure's height from its top (head, neck and shoulders)
@@ -461,6 +462,26 @@ func _held(spec: Dictionary, regions: Dictionary, hands: Dictionary, body: Image
 		var rest_hand := str(spec.get("hand", "main"))
 		if (best.x < 0 or far < 11.0) and hands.has(rest_hand):
 			# No arm reaches out (rest frames): the item stays in its usual hand.
+			h = hands[rest_hand]
+			hand = rest_hand
+		elif best.x < 0 or centre.x < 0.0:
+			return []
+		else:
+			var v := (Vector2(best) - centre).normalized()
+			h = {"grip": best, "vec": v, "rad": v, "pix": {}, "hidden": false}
+	elif hand == "forward":
+		# The arm point reaching furthest the way the hero faces, above the hips: the aiming fists
+		# of a crossbow shot, while the tracked weapon hand can be the arm thrown back for balance.
+		var centre := _trunk_centre(regions)
+		var face: Vector2 = FACING[d]
+		var best := Vector2i(-1, -1)
+		var reach := -INF
+		for q in regions:
+			if regions[q] in ["arms", "hands"] and q.y <= centre.y + 2.0 and (Vector2(q) - centre).dot(face) > reach:
+				reach = (Vector2(q) - centre).dot(face)
+				best = q
+		var rest_hand := str(spec.get("hand", "main"))
+		if (best.x < 0 or centre.x < 0.0 or reach < 8.0) and hands.has(rest_hand):
 			h = hands[rest_hand]
 			hand = rest_hand
 		elif best.x < 0 or centre.x < 0.0:
