@@ -1265,10 +1265,11 @@ func _continue_lan_scenario() -> void:
 	var frame_ok := false
 	for f in hud._party_box.get_children():
 		if f.visible and f.p == client_p:
-			var layers: Array = f._portrait._layers
-			var tex: Variant = layers[0][0] if not layers.is_empty() else null
-			var atlas_path: String = tex.atlas.resource_path if tex is AtlasTexture else ""
-			frame_ok = atlas_path.begins_with(str(GameData.asset_entry(CharacterSprite.body_key("female")).path))
+			# Back layers (#16) come before the body, so look for the body among all layers.
+			for layer in f._portrait._layers:
+				var tex: Variant = layer[0]
+				var atlas_path: String = tex.atlas.resource_path if tex is AtlasTexture else ""
+				frame_ok = frame_ok or atlas_path.begins_with(str(GameData.asset_entry(CharacterSprite.body_key("female")).path))
 	check(frame_ok, "host party frame shows the client's hero with the female body")
 	client_p.add_xp(Player.xp_to_next(1) + Player.xp_to_next(2) + 5)
 	var client_level := client_p.level
