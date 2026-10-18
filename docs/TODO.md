@@ -92,6 +92,18 @@ screenshot review at 1920x1080 and 3440x1440.
 - [x] #21 Merchants 80 / 20, Gold Key on 80% of Archibald floors with a chest fallback (`economy`,
       `economy-lan`)
 
+## Second playtest issues (GitHub #23-#32)
+
+- [x] #24 Merchant buy prices x3, sell prices unchanged (`economy`)
+- [x] #26 Skills fire at once: a skill cuts the primary swing (`skills-*`, `skills-lan`)
+- [x] #30 Boss chamber is the graph-farthest dead end from the start (`biomes-*`)
+- [x] #25 Walk / run cadence matches the ground speed, planted feet (`hero-art`, tour `gait`)
+- [x] #28 Map and minimap mark discovered merchants by type and the boss chamber (`economy`, `economy-lan`)
+- [x] #27 83 new passive talents with icons, 3 talent and 10 stat points per level, old saves topped up (`talents-*`, `balance-*`)
+- [x] #23 / #31 One sealed entrance per merchant room and boss chamber, door art per merchant and per biome (`biomes-*`, `economy`, `economy-lan`)
+- [x] #29 UI overhaul: icons, ornaments, chips and gauges on every screen (`ui-layout`, tours)
+- [ ] #32 Polish localization (2369 keys incl. 105 lore books) and a live language option (`i18n`, `i18n-lan`, `ui-layout-pl`)
+
 ## PixelLab ledger
 
 Start of the GDD goal (2026-10-15): **used 1081 / 2000, remaining 919**, resets 2026-11-14.
