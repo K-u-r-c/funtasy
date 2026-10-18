@@ -69,6 +69,16 @@ func try_use_skill(caster: Actor, skill_id: String, aim: Vector2, opts: Dictiona
 		caster.impact_pending = {}
 		set_meta("swings_cut", int(get_meta("swings_cut", 0)) + 1)  # read by the test harness
 	var school := str(skill.get("school", "melee"))
+	# #39: a skill with an ally effect goes to the picked teammate, if they are in reach and sight.
+	var ally_eff := ally_effect(skill)
+	var fr: Actor = caster.friendly_target if is_instance_valid(caster.friendly_target) else null
+	if fr and not ally_eff.is_empty():
+		var reach := float(ally_eff.get("range", ally_eff.get("max_range", 300))) * float(Combat.skill_numbers(caster.stats, caster.level, skill).get("range_mult", 1.0))
+		if caster.global_position.distance_to(fr.global_position) > reach + float(fr.radius) + 16.0:
+			return "Target out of range"
+		if not has_los(caster.global_position, fr.global_position):
+			return "Target not in line of sight"
+		aim = fr.global_position
 	if caster.status.has_flag("silenced") and (school == "spell" or not opts.get("primary", false)):
 		return "Silenced"
 	if caster.status.has("school_lockout") and str(skill.get("element", school)) == caster.lockout_element:
@@ -292,6 +302,23 @@ func _usable(caster: Actor, skill: Dictionary, aim: Vector2) -> String:
 	if u.has("target_creature") and not Array(u.target_creature).has(t.creature_type()):
 		return "Invalid target"
 	return ""
+
+
+## The first effect of `skill` (nested ones too) that picks an ally at the aim point, or {}.
+static func ally_effect(skill: Variant) -> Dictionary:
+	if skill is Dictionary:
+		if str(skill.get("target", "")) == "aim_ally":
+			return skill
+		for v in skill.values():
+			var f := ally_effect(v)
+			if not f.is_empty():
+				return f
+	elif skill is Array:
+		for v in skill:
+			var f := ally_effect(v)
+			if not f.is_empty():
+				return f
+	return {}
 
 
 func finish_cast(caster: Actor, skill_id: String, aim: Vector2, extra: Dictionary = {}) -> void:

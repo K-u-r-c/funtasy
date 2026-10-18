@@ -24,6 +24,8 @@ Your torch burned out,Twoja pochodnia się wypaliła
 Unknown skill,Nieznana umiejętność
 Passive,Pasywna
 Can't act now,Nie możesz teraz działać
+Target out of range,Cel poza zasięgiem
+Target not in line of sight,Cel poza polem widzenia
 Silenced,Uciszony
 Locked out,Zablokowane
 Cost x%.2f,Koszt x%.2f
@@ -705,6 +707,7 @@ Skill 2,Umiejętność 2
 Skill 3,Umiejętność 3
 Skill 4,Umiejętność 4
 Skill 5,Umiejętność 5
+Target next ally,Zaznacz następnego sojusznika
 Quick item Q (hold: choose),Szybki przedmiot Q (przytrzymaj: wybór)
 Items,Przedmioty
 Quick item E (hold: choose),Szybki przedmiot E (przytrzymaj: wybór)

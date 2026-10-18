@@ -199,6 +199,19 @@ func _party(_arg: String) -> void:
 	hud.preview_full = false
 
 
+## #39: the hero picked as the friendly target (HUD preview shows the hero as three teammates, so
+## the party frames carry the mark too), with the options' Controls tab listing the new actions.
+func _target(_arg: String) -> void:
+	var hud: Node = da.get_tree().get_first_node_in_group("hud")
+	for e in g.enemies_root.get_children():
+		e.queue_free()
+	p.set_friendly_target(p.peer_id)
+	hud.preview_full = true
+	await da._wait(0.8)
+	await snap("target_%s" % Settings.language)
+	hud.preview_full = false
+
+
 ## The merchant room of each merchant (#6): its sealed door seen from across the corridor and up
 ## close (#23), the door paid for and open, Archibald's shop, the blood price dialog and
 ## Malphas's bargains.

@@ -133,6 +133,7 @@ if [ "$WHAT" = all ] || [ "$WHAT" = lan ]; then
 	pair anim-lan "--class=warrior --name=HostN --scenario=anim_lan --quit=90" "--class=mage --name=ClientN --quit=90"
 	pair skills-lan "--class=warrior --name=HostK --scenario=skills_lan --quit=90" "--class=priest --name=ClientK --quit=90"
 	pair economy-lan "--class=warrior --name=HostE --scenario=economy_lan --quit=120" "--class=mage --name=ClientE --quit=120"
+	pair target-lan "--class=priest --name=HostT --scenario=target_lan --quit=60" "--class=priest --name=ClientT --quit=60"
 	pair party-lan "--class=priest --name=HostP --scenario=party_lan --quit=60" "--class=warrior --name=ClientP --quit=60"
 	pair interact-lan "--class=warrior --name=HostH --scenario=interact_lan --quit=60" "--class=priest --name=ClientH --quit=60"
 	pair i18n-lan "--class=mage --name=HostI --scenario=i18n_lan --quit=60" "--class=warrior --name=ClientI --quit=60"

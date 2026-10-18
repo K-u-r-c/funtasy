@@ -87,6 +87,11 @@ func select_targets(eff: Dictionary, ctx: Dictionary, origin: Vector2, aim: Vect
 		"enemies_radius":
 			return enemies_of(ctx.team, origin, float(eff.get("radius", 100)) * float(ctx.radius_mult))
 		"aim_ally":
+			# A teammate picked as the friendly target (#39) takes the spell wherever the cursor is.
+			var fr: Variant = ctx.get("friendly")
+			if is_instance_valid(fr) and fr is Actor and fr.team == ctx.team and fr.is_targetable_by_allies() \
+					and origin.distance_to(fr.global_position) <= reach + float(fr.radius) + 16.0:
+				return [fr]
 			var a := nearest_to(allies_of(ctx.team, origin, reach), aim, float(eff.get("snap", 90)))
 			if a == null and caster and caster.is_alive():
 				a = caster
@@ -551,6 +556,8 @@ func make_ctx(caster: Actor, skill: Dictionary) -> Dictionary:
 		"peer": int(caster.get("peer_id")) if caster.get("peer_id") != null else 0,
 		"origin": caster.global_position,
 	})
+	if is_instance_valid(caster.friendly_target):
+		ctx.friendly = caster.friendly_target
 	return ctx
 
 

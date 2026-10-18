@@ -425,6 +425,7 @@
 		"ui_party": "res://assets/sprites/pixellab/icons/ui/ui_party.png",
 		"ui_potion": "res://assets/sprites/pixellab/icons/ui/ui_potion.png",
 		"ui_video": "res://assets/sprites/pixellab/icons/ui/ui_video.png",
+		"ui_target": "res://assets/sprites/pixellab/icons/status/st_focus.png",
 		"ui_language": "res://assets/sprites/pixellab/icons/ui/nav_codex.png",
 		"tlo_w_might": "res://assets/sprites/pixellab/icons/talents/tlo_w_might.png",
 		"tlo_w_bloodlust": "res://assets/sprites/pixellab/icons/talents/tlo_w_bloodlust.png",

@@ -1025,11 +1025,22 @@ class PartyFrame:
 	var _res: StatBar
 	var _effects: HBoxContainer
 	var _more: Label
+	var _picked := false
+	var _target_icon: TextureRect
 	const MAX_EFFECTS := 7
 
 	func _init() -> void:
 		theme_type_variation = &"GlassHud"
-		mouse_filter = Control.MOUSE_FILTER_IGNORE
+		# A click picks this teammate as the friendly target (#39).
+		mouse_filter = Control.MOUSE_FILTER_STOP
+		mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+		gui_input.connect(func(ev: InputEvent):
+			if ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT and is_instance_valid(p):
+				var me: Player = get_tree().get_first_node_in_group("hud").player
+				if me:
+					me.set_friendly_target(0 if me.friendly_peer == p.peer_id else p.peer_id)
+					me._click_select = true
+				accept_event())
 		var row := HBoxContainer.new()
 		row.add_theme_constant_override("separation", 5)
 		add_child(row)
@@ -1039,8 +1050,15 @@ class PartyFrame:
 		v.add_theme_constant_override("separation", 2)
 		v.alignment = BoxContainer.ALIGNMENT_CENTER
 		row.add_child(v)
+		var name_row := HBoxContainer.new()
+		name_row.add_theme_constant_override("separation", 3)
+		name_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		v.add_child(name_row)
+		_target_icon = UITheme.icon("ui_target", 12)
+		_target_icon.visible = false
+		name_row.add_child(_target_icon)
 		_name = UITheme.label("", UITheme.TEXT, UITheme.FONT_SMALL)
-		v.add_child(_name)
+		name_row.add_child(_name)
 		_hp = StatBar.new(Color("3fbf5a"), Vector2(118, 7))
 		_hp.show_text = false
 		v.add_child(_hp)
@@ -1068,6 +1086,16 @@ class PartyFrame:
 			Player.Life.GHOST:
 				state = Loc.t("  GHOST")
 		_name.text = Loc.f("%s  Lv%d%s", [pl.display_name, pl.level, state])
+		# The picked friendly target (#39): a gold frame and a chevron before the name.
+		var me: Player = get_tree().get_first_node_in_group("hud").player if is_inside_tree() else null
+		var picked := me != null and me.friendly_peer == pl.peer_id
+		if picked != _picked:
+			_picked = picked
+			if picked:
+				add_theme_stylebox_override("panel", UITheme.glass(Color("0d111af0"), UITheme.GOLD, 2, 4, Color(UITheme.GOLD, 0.35), true))
+			else:
+				remove_theme_stylebox_override("panel")
+		_target_icon.visible = picked
 		_name.add_theme_color_override("font_color", UITheme.DANGER if not state.is_empty() else UITheme.TEXT)
 		_portrait.tint = Color.WHITE if state.is_empty() else Color(0.45, 0.45, 0.55)
 		_portrait.frame_color = Color.from_string(str(pl.class_def.get("color", "#ffffff")), Color.WHITE).darkened(0.2)

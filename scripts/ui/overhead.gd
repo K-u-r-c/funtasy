@@ -82,6 +82,19 @@ func _text(center: Vector2, text: String, color: Color, size: int) -> void:
 func _ally_target_marker(game: Node, lp: Player) -> void:
 	if lp.life_state != Player.Life.ALIVE:
 		return
+	# A teammate picked with Tab / a click (#39) takes the ally spells: a gold ring under their feet
+	# and a bobbing gold chevron over their head, instead of the cursor's suggestion.
+	var picked := lp.friendly_target_node()
+	if picked:
+		var pc := picked.global_position
+		var gold := Color(1.0, 0.82, 0.3, 0.95)
+		var t := Time.get_ticks_msec() / 1000.0
+		draw_arc(pc + Vector2(0, 2), 14.0, 0.0, TAU, 28, Color(gold, 0.35), 4.0)
+		draw_arc(pc + Vector2(0, 2), 14.0, 0.0, TAU, 28, gold, 1.5)
+		var top := pc + Vector2(0, -picked.sprite.visual_height() - 26.0 + sin(t * 4.0) * 2.0)
+		draw_colored_polygon(PackedVector2Array([top + Vector2(-6, -5), top + Vector2(6, -5), top + Vector2(0, 3)]), gold)
+		draw_polyline(PackedVector2Array([top + Vector2(-6, -5), top + Vector2(6, -5), top + Vector2(0, 3), top + Vector2(-6, -5)]), Color(0.25, 0.15, 0.0), 1.0)
+		return
 	var reach := 0.0
 	for sid in lp.skills:
 		for eff in GameData.skills.get(str(sid), {}).get("effects", []):

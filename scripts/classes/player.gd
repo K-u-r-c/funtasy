@@ -87,6 +87,8 @@ var _knock := Vector2.ZERO
 var _pending: Dictionary = {}
 var _quick_hold: Dictionary = {}
 var _reviving_peer := 0
+var friendly_peer := 0  ## owner: the teammate ally spells go to (#39), 0 = none
+var _click_select := false  ## owner: this held click picked a teammate instead of attacking
 var _interact_pick := 0  ## which of the things at one spot "interact" uses (#35)
 var _interact_key := ""  ## the set of things that pick refers to
 var input_blocked := false
@@ -512,17 +514,82 @@ func _owner_tick(delta: float) -> void:
 		_dodge_left = float(GameData.bal("player.dodge_duration"))
 		_dodge_cd = float(GameData.bal("player.dodge_cooldown"))
 		request_dodge.rpc_id(1, _dodge_dir)
+	_handle_friendly_target()
 	# Attack + skills (holding repeats as soon as the cooldown allows). Channelled and
 	# charge-up skills also report the release.
 	for slot in SLOT_ACTIONS.size():
 		if Input.is_action_pressed(SLOT_ACTIONS[slot]) and not local_cd.has(slot) and not _pending.has(slot) \
 				and slot < skills.size() and not str(skills[slot]).is_empty():
 			_pending[slot] = 0.3
-			request_skill.rpc_id(1, slot, aim_pos)
+			if slot == 0 and _click_select:
+				continue
+			request_skill.rpc_id(1, slot, aim_pos, friendly_peer)
 		if Input.is_action_just_released(SLOT_ACTIONS[slot]) and slot < skills.size() and _is_hold_skill(str(skills[slot])):
 			request_skill_release.rpc_id(1, slot, aim_pos)
 	_handle_quick_slots(delta)
 	_handle_interact()
+
+
+# --- Friendly target (#39) ---------------------------------------------------------------------
+
+
+## Host: the living player with `pid` on this player's team, or null.
+func _teammate(pid: int) -> Actor:
+	if pid == 0:
+		return null
+	var game := get_tree().get_first_node_in_group("game")
+	for pl in game.players_root.get_children() if game else []:
+		if pl.peer_id == pid and pl.team == team and pl.life_state == Life.ALIVE:
+			return pl
+	return null
+
+
+## Owner: the picked teammate's node, or null.
+func friendly_target_node() -> Player:
+	if friendly_peer == 0:
+		return null
+	var game := get_tree().get_first_node_in_group("game")
+	for pl in game.players_root.get_children() if game else []:
+		if pl.peer_id == friendly_peer:
+			return pl
+	return null
+
+
+func set_friendly_target(pid: int) -> void:
+	if pid == friendly_peer:
+		return
+	friendly_peer = pid
+	EventBus.friendly_target_changed.emit(pid)
+
+
+## Owner: Tab / its pad button goes to the next living teammate (yourself included), then to none.
+func cycle_friendly_target() -> void:
+	var game := get_tree().get_first_node_in_group("game")
+	var ids: Array = []
+	for pl in game.players_root.get_children():
+		if pl.life_state == Life.ALIVE and pl.global_position.distance_to(global_position) <= float(GameData.bal("combat.friendly_target_range", 700)):
+			ids.append(int(pl.peer_id))
+	var i := ids.find(friendly_peer)
+	set_friendly_target(0 if ids.is_empty() or i == ids.size() - 1 else int(ids[i + 1]))
+
+
+## Owner, every frame: Tab cycles, a click on a teammate picks them (that click doesn't swing), the
+## pick clears itself when the teammate falls or wanders far away.
+func _handle_friendly_target() -> void:
+	if Input.is_action_just_pressed("target_ally"):
+		cycle_friendly_target()
+	if not InputSettings.using_gamepad and Input.is_action_just_pressed("attack"):
+		var game := get_tree().get_first_node_in_group("game")
+		for pl in game.players_root.get_children():
+			if pl.life_state == Life.ALIVE and (pl.global_position + Vector2(0, -14)).distance_to(aim_pos) <= float(GameData.bal("combat.friendly_click_radius", 16)):
+				set_friendly_target(pl.peer_id)
+				_click_select = true
+	if _click_select and not Input.is_action_pressed("attack"):
+		_click_select = false
+	var t := friendly_target_node()
+	if friendly_peer != 0 and (t == null or t.life_state != Life.ALIVE \
+			or t.global_position.distance_to(global_position) > float(GameData.bal("combat.friendly_target_range", 700))):
+		set_friendly_target(0)
 
 
 func _is_hold_skill(sid: String) -> bool:
@@ -645,10 +712,13 @@ func _from_owner() -> bool:
 	return multiplayer.is_server() and multiplayer.get_remote_sender_id() == peer_id
 
 
+## `ally_peer`: the teammate the owner picked as friendly target (#39, 0 = none); the host checks
+## it is a living teammate before ally spells go to them.
 @rpc("any_peer", "call_local", "reliable")
-func request_skill(slot: int, aim: Vector2) -> void:
+func request_skill(slot: int, aim: Vector2, ally_peer: int = 0) -> void:
 	if not _from_owner() or slot < 0 or slot >= skills.size() or str(skills[slot]).is_empty():
 		return
+	friendly_target = _teammate(ally_peer)
 	if life_state != Life.ALIVE:
 		_skill_result.rpc_id(peer_id, slot, 0.0, false, "")
 		return
