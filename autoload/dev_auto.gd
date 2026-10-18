@@ -261,6 +261,8 @@ func _run() -> void:
 				await FxSuite.new(self).run_lan()
 			"fx":
 				await FxSuite.new(self).run()
+			"spouts":
+				await FxSuite.new(self).run_spouts()
 			"interact_lan":
 				await InteractSuite.new(self).run_lan()
 			"i18n_lan":

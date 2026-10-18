@@ -268,6 +268,33 @@ func _elements(_arg: String) -> void:
 	da.log_line("elements order %s" % [els])
 
 
+## #36: a wall spout of the floor's biome (Sewers acid, Foundry flame), seen from across the room
+## and up close, idle, warning and spraying.
+func _spouts(_arg: String) -> void:
+	var sp: Array = g.dungeon.spouts
+	da.check(not sp.is_empty(), "the floor has wall spouts")
+	if sp.is_empty():
+		return
+	for e in g.enemies_root.get_children():
+		e.queue_free()
+	p.iframe_left = 9999.0
+	var s: Node2D = sp[0]
+	var biome := str(g.floor_def.get("id", ""))
+	var period := float(s.cfg.get("period", 5.0))
+	p.host_teleport(g.nearest_floor(s.global_position + Vector2(0, 150)))
+	await da._wait(1.0)
+	# Wait for a quiet moment, then show it idle, warning (just before) and spraying.
+	await da._wait_until(func(): return not s.is_on(g.floor_time) and fposmod(g.floor_time / period + s.phase, 1.0) > 0.5, period + 1.0)
+	await snap("spout_%s_far_idle" % biome)
+	p.host_teleport(g.nearest_floor(s.global_position + Vector2(36, 70)))
+	await da._wait_until(func(): return s.warning(g.floor_time), period + 1.0)
+	await da._wait(0.3)
+	await snap("spout_%s_warning" % biome)
+	await da._wait_until(func(): return s.is_on(g.floor_time), period + 1.0)
+	await da._wait(0.35)
+	await snap("spout_%s_spray" % biome)
+
+
 ## The merchant room of each merchant (#6): its sealed door seen from across the corridor and up
 ## close (#23), the door paid for and open, Archibald's shop, the blood price dialog and
 ## Malphas's bargains.

@@ -71,6 +71,38 @@ static func CombatEffects_fx_element(eff: Dictionary, ctx: Dictionary) -> String
 	return CombatEffects.fx_element(eff, ctx)
 
 
+## #36 (scenario "spouts", run with --biome=sewers / foundry): every wall spout shows its pipe or
+## vent art on the wall, its spray leaves the mouth, and a warning runs right before each spray.
+func run_spouts() -> void:
+	g = da._game()
+	p = da._local()
+	await da._wait(1.0)
+	var sp: Array = g.dungeon.spouts
+	da.check(not sp.is_empty(), "the floor has wall spouts (%d)" % sp.size())
+	for s in sp:
+		var key := str(s.cfg.get("sprite", ""))
+		var tex: Texture2D = s._pipe.texture
+		if key in ["props.acid_spout", "props.flame_jet"] or tex == null or tex.get_height() < 32 or s._spray.position.y < 12.0:
+			da.check(false, "spout at %s has a visible pipe / vent (%s)" % [s.cell, key])
+			return
+	da.check(true, "every spout has its pipe / vent art and sprays from its mouth")
+	var s0: Node = sp[0]
+	var period := float(s0.cfg.get("period", 5.0))
+	var warned := false
+	var t := 0.0
+	var ok := true
+	while t < period * 2.0:
+		var on: bool = s0.is_on(t)
+		var before: bool = s0.warning(t)
+		if before:
+			warned = true
+		if on and not s0.is_on(t - 0.05):
+			ok = ok and warned
+			warned = false
+		t += 0.05
+	da.check(ok, "a warning runs right before every spray")
+
+
 static func loops(a: Node) -> Array:
 	var f: Node = a.get_node_or_null("ActorFx")
 	return f._loops.keys() if f else []

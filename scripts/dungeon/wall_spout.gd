@@ -10,6 +10,8 @@ var length := 3
 var _tile := 32
 var _pipe: Sprite2D
 var _spray: CPUParticles2D
+var _warn: CPUParticles2D  ## drips / embers from the mouth just before a spray (#36)
+var _glow: PointLight2D
 var _on := false
 var _hit: Dictionary = {}
 var kind := "acid"
@@ -27,20 +29,57 @@ func setup(c: Vector2i, d: Vector2i, tile: int, p: float, spout_kind: String = "
 	_pipe = Sprite2D.new()
 	_pipe.texture = GameData.texture(str(cfg.get("sprite", "props.acid_spout")))
 	_pipe.light_mask = LightLayers.SELF_LIT
+	# On the wall's face, the mouth at the wall's foot where the spray leaves it (#36).
+	var sc := float(cfg.get("sprite_scale", 1.0))
+	_pipe.scale = Vector2(sc, sc)
+	_pipe.position = Vector2(0, float(cfg.get("sprite_y", 0)))
+	_pipe.z_index = 2
 	add_child(_pipe)
 	_spray = CPUParticles2D.new()
-	_spray.texture = GameData.texture("fx.pixel")
-	_spray.amount = 40
+	_spray.texture = GameData.texture(str(cfg.get("spray_texture", "fx.pixel")))
+	_spray.amount = int(cfg.get("spray_amount", 40))
 	_spray.lifetime = 0.5
 	_spray.emitting = false
 	_spray.direction = Vector2(dir)
-	_spray.spread = 12.0
+	_spray.spread = float(cfg.get("spray_spread", 12.0))
 	_spray.initial_velocity_min = float(length * tile) * 1.6
 	_spray.initial_velocity_max = float(length * tile) * 2.0
-	_spray.scale_amount_min = 1.0
-	_spray.scale_amount_max = 2.0
+	var ss: Array = cfg.get("spray_scale", [1.0, 2.0])
+	_spray.scale_amount_min = float(ss[0])
+	_spray.scale_amount_max = float(ss[1])
+	if str(cfg.get("spray_texture", "")) == "fx.spark":
+		var am := CanvasItemMaterial.new()
+		am.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+		_spray.material = am
 	_spray.color = Color.from_string(str(cfg.get("color", "#b3ff4d")), Color.GREEN) * 1.3
+	_spray.position = Vector2(dir) * float(cfg.get("mouth", 10))
 	add_child(_spray)
+	# The telegraph (#36): in the last `warn_time` seconds before a spray the mouth drips or sparks
+	# and its light swells, so players can read the timing.
+	var col := Color.from_string(str(cfg.get("color", "#b3ff4d")), Color.GREEN)
+	_warn = CPUParticles2D.new()
+	_warn.texture = GameData.texture("fx.pixel")
+	_warn.amount = 10
+	_warn.lifetime = 0.6
+	_warn.emitting = false
+	_warn.position = _spray.position
+	_warn.direction = Vector2(dir)
+	_warn.spread = 25.0
+	_warn.initial_velocity_min = 4.0
+	_warn.initial_velocity_max = 14.0
+	_warn.gravity = Vector2(0, float(cfg.get("warn_gravity", 120)))
+	_warn.scale_amount_min = 1.0
+	_warn.scale_amount_max = 2.0
+	_warn.color = col * 1.4
+	add_child(_warn)
+	_glow = PointLight2D.new()
+	LightLayers.setup_light(_glow)
+	_glow.texture = GameData.texture("fx.light")
+	_glow.color = col
+	_glow.energy = 0.0
+	LightLayers.register(_glow, float(cfg.get("glow_radius", 40)))
+	_glow.position = _spray.position
+	add_child(_glow)
 
 
 func is_on(floor_time: float) -> bool:
@@ -49,7 +88,21 @@ func is_on(floor_time: float) -> bool:
 	return t < float(cfg.get("on_fraction", 0.35))
 
 
+## In the last `warn_time` seconds before a spray (deterministic like the spray itself).
+func warning(floor_time: float) -> bool:
+	var period := float(cfg.get("period", 5.0))
+	var t := fposmod(floor_time / period + phase, 1.0)
+	return t > 1.0 - float(cfg.get("warn_time", 0.9)) / period
+
+
 func update_state(floor_time: float) -> void:
+	var warn := warning(floor_time)
+	_warn.emitting = warn
+	var period := float(cfg.get("period", 5.0))
+	var t := fposmod(floor_time / period + phase, 1.0)
+	var lead := clampf((t - (1.0 - float(cfg.get("warn_time", 0.9)) / period)) / (float(cfg.get("warn_time", 0.9)) / period), 0.0, 1.0) if warn else 0.0
+	_glow.energy = 1.6 if is_on(floor_time) else lead * 1.2
+	_pipe.modulate = Color(1, 1, 1).lerp(_warn.color, lead * 0.5) if warn else Color.WHITE
 	var on := is_on(floor_time)
 	if on != _on:
 		_on = on

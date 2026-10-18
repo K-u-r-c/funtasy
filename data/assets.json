@@ -196,6 +196,8 @@
 		"blast_furnace": "res://assets/sprites/pixellab/props/blast_furnace.png",
 		"anvil": "res://assets/sprites/pixellab/props/anvil.png",
 		"acid_spout": "res://assets/sprites/pixellab/props/acid_spout.png",
+		"sewer_drain_pipe": "res://assets/sprites/pixellab/props/sewer_drain_pipe.png",
+		"foundry_wall_vent": "res://assets/sprites/pixellab/props/foundry_wall_vent.png",
 		"floodgate": "res://assets/sprites/pixellab/props/floodgate.png",
 		"rusty_lever_on": "res://assets/sprites/pixellab/props/rusty_lever_on.png",
 		"rusty_lever": "res://assets/sprites/pixellab/props/rusty_lever.png",

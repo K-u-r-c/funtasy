@@ -173,6 +173,8 @@ Goal cap: 150 generations, 150 kept in reserve. Planned: status icons ~5 (Pixen 
 | --- | --- | --- | --- | --- | --- |
 | 2026-10-18 | (goal start) | 4317 | 4317 | 0 | 0 |
 | 2026-10-18 | #37 status icons: 5 Pixen 128x128 sheets of 16 (76 statuses without a skill / potion / legendary icon to reuse; 113 others reuse those) | 4317 | 4322 | 5 | 5 |
+| 2026-10-18 | #33 / #34 effects: 24 animations from the free vfx workbench (heal, heal over time, shield bubble and break, buff, cleanse; 9 element bursts and 9 zones) | 4322 | 4322 | 0 | 5 |
+| 2026-10-18 | #36 wall spouts: 2 map objects 48x48 (Sewers drain pipe, Foundry furnace vent) | 4322 | 4324 | 2 | 7 |
 
 ## Done (MVP)
 

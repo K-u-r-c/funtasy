@@ -98,6 +98,8 @@ if [ "$WHAT" = all ] || [ "$WHAT" = quick ]; then
 	done
 	run ui-layout --auto=solo --class=priest --name=Layout --scenario=ui_layout --quit=90
 	run ui-layout-pl --auto=solo --class=priest --name=Layout --scenario=ui_layout --lang=pl --quit=90
+	run spouts-sewers --auto=solo --class=ranger --name=Pipes --scenario=spouts --biome=sewers --quit=60
+	run spouts-foundry --auto=solo --class=ranger --name=Pipes --scenario=spouts --biome=foundry --quit=60
 	run fx --auto=solo --class=mage --name=Sparks --scenario=fx --quit=60
 	run party --auto=solo --class=priest --name=Pals --scenario=party --quit=60
 	run interact --auto=solo --class=warrior --name=Hands --scenario=interact --quit=90

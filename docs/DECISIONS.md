@@ -794,3 +794,13 @@ its animation's impact frame (data `impact`); channels and cast times hold the s
 | Art | 18 animated effects from PixelLab's free vfx workbench (no generations): bursts (dust shockwave, fire blast, ice spikes and shards, lightning strike, ground cracks and debris, golden sky beam, violet void poof, green gas, arcane rays) and lingering grounds (falling arrow streaks, ring of flames, frost mist and snow, crackling arcs, churning earth, golden seal, void pool, bubbling toxic pool, arcane seal). `data/fx.json` `burst` / `zone` map each element to its effect, its ground width (`span`, scaled to the area's diameter) and its blend: smoke, dust and dark pools and the blue frost / lightning are drawn as they are (unshaded), the light ones glow (additive). |
 | Edges | The old ring stays as the area's edge: faint under a burst, steady (no pulse) around a zone, so players see where the area ends. |
 | Tests | `fx`: the data scan (every area resolves, every look has its art) and a fire burst, a frost burst and a heal zone cast in game show their own looks; `fx-lan`: Holy Nova's burst and Consecration's ground on the host and the client. Review: `--tour=elements` (the nine bursts, then the nine zones, side by side). |
+
+### #36 Wall spouts come out of a pipe or vent
+
+| Topic | Decision |
+| --- | --- |
+| Sides | Spouts are placed only in the north wall of a room, spraying south (`DungeonGenerator._place_spouts`), so one art per kind covers every side a spout can face. No other effect comes out of a wall in the five biomes (magma geysers rise from lava channels, miasma from urns, thorns from the floor). |
+| Art | Two PixelLab map objects (48x48, drawn at 0.75 on the wall's face, mouth at the wall's foot): a corroded drain pipe dripping green slime (Sewers acid spouts, `props.sewer_drain_pipe`) and a black iron furnace vent with a glowing grille (Foundry flame jets, `props.foundry_wall_vent`). The 16 px nozzles they replace stay in the project unused. |
+| Spray | Leaves the mouth (`mouth` offset). The flame jet sprays additive sparks, thicker (`spray_texture`, `spray_amount`, `spray_scale`, `spray_spread` in `hazards.spouts`). |
+| Telegraph | The last `warn_time` (0.9 s) before each spray: the mouth drips acid / sheds embers, tints toward the spray colour and its light swells; computed from the shared floor clock like the spray, so every peer sees the same timing. |
+| Tests | `spouts-sewers` / `spouts-foundry`: every spout has its pipe / vent art and sprays from its mouth; a warning runs right before every spray. Review: `--tour=spouts --biome=<sewers|foundry>` (from across the room idle, warning, spraying). |
