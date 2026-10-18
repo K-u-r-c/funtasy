@@ -19,6 +19,7 @@ func run() -> void:
 	await switch_test()
 	await equip_midanim_test()
 	audit()
+	head_on_top()
 	legendary_looks()
 
 
@@ -285,6 +286,39 @@ func set_holes(g: String, apps: Array) -> Dictionary:
 					worst = bad
 					out.at = "%s dir %d frame %d (%d px)" % [anim, d, f, bad]
 	return out
+
+
+## The worn pieces are cut out of each frame along the body's regions (tools/gear_cut.gd), so a
+## frame whose head the regions miss puts the plate's pauldrons on the head and the hood on the
+## chest of anyone not wearing the full set (#18, female walk south frame 5). Where the arms hang
+## (idle / walk / dash) the top rows of every body frame must be the head.
+func head_on_top() -> void:
+	var chars: Dictionary = GameData.assets.characters
+	var bad: Array = []
+	var checked := 0
+	for g in CharacterSprite.genders():
+		var body_entry := GameData.asset_entry(CharacterSprite.body_key(g))
+		var cell := int(body_entry.get("frame_size", chars.frame_size))
+		var br: RefCounted = load("res://tools/body_regions.gd").new(JSON.parse_string(FileAccess.get_file_as_string("res://tools/hero_%s.json" % g)))
+		for anim in ["idle", "walk", "dash"]:
+			var body := _img(str(body_entry.path) + anim + ".png")
+			for d in body.get_height() / cell:
+				for f in body.get_width() / cell:
+					var fr := body.get_region(Rect2i(f * cell, d * cell, cell, cell))
+					var top := fr.get_used_rect().position.y
+					var reg: Dictionary = br.segment(fr)
+					var votes := {}
+					for q in reg:
+						if q.y <= top + 3:
+							votes[reg[q]] = int(votes.get(reg[q], 0)) + 1
+					var best := ""
+					for k in votes:
+						if best.is_empty() or votes[k] > votes[best]:
+							best = k
+					checked += 1
+					if best != "head":
+						bad.append("%s %s dir %d frame %d (%s)" % [g, anim, d, f, best])
+	da.check(checked > 0 and bad.is_empty(), "the head tops all %d idle / walk / dash body frames, so pieces are cut on the right body part (%s)" % [checked, bad])
 
 
 ## Every worn legendary gets its own colours from its icon (#20): the looks differ from each
