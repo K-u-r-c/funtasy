@@ -71,7 +71,7 @@ func _ready() -> void:
 		char_name = "Test%s" % mode.capitalize()
 	if quit_after > 0.0:
 		get_tree().create_timer(quit_after).timeout.connect(_finish.bind("timeout"))
-	if not shot.is_empty() and not scenario in ["shots", "lobby_shot", "hero_shots", "monster_shots", "tour"]:
+	if not shot.is_empty() and not scenario in ["shots", "lobby_shot", "hero_shots", "monster_shots", "tour", "coop_look"] and not (mode == "join" and shot_at <= 0.0):
 		get_tree().create_timer(shot_at).timeout.connect(func():
 			get_viewport().get_texture().get_image().save_png(shot)
 			log_line("screenshot saved to %s" % shot))
@@ -261,6 +261,8 @@ func _run() -> void:
 				await _continue_scenario()
 			"continue_lan":
 				await _continue_lan_scenario()
+			"coop_look":
+				await _coop_look_scenario()
 			"darkness":
 				await _darkness_scenario()
 			"ui_layout":
@@ -387,6 +389,9 @@ func client_cmd(cmd: String, arg: Variant) -> void:
 			check(target.get("kind", "") == "item", "client finds the dropped item as interact target")
 			if not target.is_empty():
 				p.request_interact.rpc_id(1, target.node.get_path())
+		"snap":
+			if not shot.is_empty():
+				await _snap(shot.get_base_dir(), shot.get_file().get_basename())
 		"equip_uid":
 			for i in p.inv.backpack.size():
 				if p.inv.backpack[i].get("uid") == arg:
@@ -1248,6 +1253,50 @@ func _continue_scenario() -> void:
 	GameState.game_info.party_size = 2
 	check(not GameState.start_problem().is_empty(), "a saved game requires its party size")
 	GameState.game_info.party_size = 1
+
+
+## LAN look review (#20): the host wears a gilded plate set and a legendary crown, the client a
+## ranger's legendaries (leather, quiver); both stand side by side for --shot, and the host checks
+## the client's legendary chest is drawn in its own colours on the host's screen.
+##   host: --auto=host --players=2 --scenario=coop_look --shot=<png>
+##   client: --auto=join --class=ranger --gender=female --shot=<png> (the host asks it to snap)
+func _coop_look_scenario() -> void:
+	await _wait_until(func(): return _other_player() != null, 10.0)
+	var host_p := _local()
+	var client_p := _other_player()
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 11
+	var host_items: Array = []
+	for b in ["plate_chest", "greaves", "boots", "gloves"]:
+		host_items.append(ItemGenerator.generate_equipment(b, 2, 5, rng))
+	host_items.append(ItemGenerator.make_legendary("crown_blood_chieftain", 2, rng))
+	for it in host_items:
+		it.req = 1
+		host_p.host_give_item(it)
+		host_p.request_equip.rpc_id(1, host_p.inv.backpack.size() - 1)
+		await _wait(0.1)
+	var chest: Dictionary = {}
+	for lid in ["cowl_silent_stalker", "wyvernscale_jerkin", "predators_breeches", "viperleap_boots", "stormstring_gloves", "brimstone_quiver"]:
+		var it := ItemGenerator.make_legendary(lid, 2, rng)
+		it.req = 1
+		if lid == "wyvernscale_jerkin":
+			chest = it
+		client_p.host_give_item(it)
+		await _wait(0.3)
+		NetworkManager.to_clients("DevAuto", "client_cmd", ["equip_uid", it.uid])
+		await _wait(0.3)
+	host_p.global_position = client_p.global_position + Vector2(36, 0)
+	await _wait(2.0)
+	var layer: AnimatedSprite2D = client_p.sprite._layers.get("chest")
+	var mat: ShaderMaterial = layer.material if layer else null
+	var want := Color.from_string(str(chest.look.variant.ramp[0]), Color.BLACK)
+	check(mat != null and mat.get_shader_parameter("ramp_dark") == want,
+			"host draws the client's legendary chest in its own colours")
+	if not shot.is_empty():
+		NetworkManager.to_clients("DevAuto", "client_cmd", ["snap", 0])
+		await _snap(shot.get_base_dir(), shot.get_file().get_basename())
+	await _wait(2.0)
+	_finish("coop look")
 
 
 ## LAN: two players save on floor 2, go back to the lobby, the host picks the saved game, the
