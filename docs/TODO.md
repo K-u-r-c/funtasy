@@ -103,6 +103,7 @@ screenshot review at 1920x1080 and 3440x1440.
 - [x] #23 / #31 One sealed entrance per merchant room and boss chamber, door art per merchant and per biome (`biomes-*`, `economy`, `economy-lan`)
 - [x] #29 UI overhaul: icons, ornaments, chips and gauges on every screen (`ui-layout`, tours)
 - [x] #32 Polish localization (2369 keys incl. 105 lore books) and a live language option (`i18n`, `i18n-lan`, `ui-layout-pl`)
+- [x] Bilingual screenshot review (English and Polish): shots flow, tours `menus`, `merchants`, `lore`, `skills`, `options`, `boss_doors` (every biome, near and far), `gait` (run, hasted, slowed) and `map_marks`; the Linux release build smoke-tested with `--lang=pl`
 
 ## PixelLab ledger
 
