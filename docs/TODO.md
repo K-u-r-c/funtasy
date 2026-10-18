@@ -85,6 +85,7 @@ screenshot review at 1920x1080 and 3440x1440.
 - [x] #17 Co-op animation sync: reliable one-shots, replicated dash / held poses, downed fall (`anim-lan`)
 - [x] #18 Hero animation audit and fixes: `docs/ART_AUDIT.md`, v2 set of 75 frames for both genders, walk paced by stride (`hero-art`, `anim-lan`)
 - [x] Second art review: female held items in the hand where the arms hang (`rest_hands`), walk S frame 5 and 21 attack frames cut on the right body part, new `hero-art` checks (head on top, held items keep their side)
+- [x] Kill XP: a killing first hit earns its dealer the kill's XP (contribution counted before the blow; `classes` checks it); load- and layout-proof LAN door, ghoul leap, lunge landing, darkness and void rift checks
 - [x] #19 Attack animations per weapon family and skill: data-driven per weapon / skill, impact frames, reviewed skill table (`skills-*`, `anim-lan`)
 - [x] #20 Item look variety: four worn families for both genders, rarity colour variants, family icons, 108 legendary icons and colours, quiver (`hero-art`, `legendaries-*`)
 - [x] #22 No full damage-type immunity: monsters take 80% less of an immune type (`skills-*`, `primitives`)
