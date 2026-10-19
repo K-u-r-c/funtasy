@@ -120,6 +120,7 @@ screenshot review at 1920x1080 and 3440x1440.
 
 - [x] #45 5 stat points and 1 talent point per level, tier gate 2, over-spent saves refunded with a message (`talents-*`, `balance-*`)
 - [x] #40 A click on empty space or on the picked teammate clears the friendly target; the empty-ground click still attacks (`target-lan`, tour `target_clear`)
+- [x] #41 Enemy lock: R / D-pad Left / a click on a visible enemy; aimed attacks go to it, host-validated; red reticle and boss bar frame (`hostile-lan`, `gamepad-menu`, tour `hostile`)
 
 ## PixelLab ledger
 

@@ -79,6 +79,19 @@ func try_use_skill(caster: Actor, skill_id: String, aim: Vector2, opts: Dictiona
 		if not has_los(caster.global_position, fr.global_position):
 			return "Target not in line of sight"
 		aim = fr.global_position
+	# #41: an aimed attack goes to the locked enemy while it is alive, in sight and in reach.
+	var foe: Actor = caster.hostile_target if is_instance_valid(caster.hostile_target) else null
+	if foe and (fr == null or ally_eff.is_empty()):
+		var shape := SkillShape.of(skill, skill_numbers(caster.stats, caster.level, skill))
+		if shape.hostile:
+			if not foe.is_targetable():
+				return "Invalid target"
+			var dist := caster.global_position.distance_to(foe.global_position)
+			if dist > float(GameData.bal("vision.max_sight", 600)) or not has_los(caster.global_position, foe.global_position):
+				return "Target not in line of sight"
+			if dist > SkillShape.reach(shape) + float(foe.radius) + 16.0:
+				return "Target out of range"
+			aim = foe.global_position
 	if caster.status.has_flag("silenced") and (school == "spell" or not opts.get("primary", false)):
 		return "Silenced"
 	if caster.status.has("school_lockout") and str(skill.get("element", school)) == caster.lockout_element:

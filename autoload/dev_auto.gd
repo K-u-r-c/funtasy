@@ -257,6 +257,8 @@ func _run() -> void:
 				await PartySuite.new(self).run_lan()
 			"target_lan":
 				await TargetSuite.new(self).run_lan()
+			"hostile_lan":
+				await HostileSuite.new(self).run_lan()
 			"fx_lan":
 				await FxSuite.new(self).run_lan()
 			"fx":
@@ -538,6 +540,8 @@ func client_cmd(cmd: String, arg: Variant) -> void:
 			await FxSuite.new(self).client_cmd(cmd, arg)
 		_ when cmd.begins_with("tg_"):
 			await TargetSuite.new(self).client_cmd(cmd, arg)
+		_ when cmd.begins_with("hs_"):
+			await HostileSuite.new(self).client_cmd(cmd, arg)
 		_ when cmd.begins_with("pt_"):
 			await PartySuite.new(self).client_cmd(cmd, arg)
 		_ when cmd.begins_with("ia_"):
@@ -3015,8 +3019,12 @@ func _gamepad_menu_flow() -> void:
 	if in_game:
 		await _wait(0.5)
 		var hud := get_tree().get_first_node_in_group("hud")
+		# #41: D-pad Left locks the next enemy now; the talents are a tab of the game menu (Back, RB).
 		await _press(JOY_BUTTON_DPAD_LEFT)
-		check(hud._overlay != null and hud._overlay.get_script() == hud.TalentPanel, "D-pad Left opens talents")
+		check(hud._overlay == null, "D-pad Left (Target next enemy) opens no menu")
+		await _press(JOY_BUTTON_BACK)
+		await _press(JOY_BUTTON_RIGHT_SHOULDER)
+		check(hud._overlay != null and hud._overlay.get_script() == hud.TalentPanel, "Back then RB opens talents")
 		for i in 3:
 			await _press(JOY_BUTTON_DPAD_LEFT)
 		check(hud._overlay != null, "D-pad navigation inside talents doesn't close the panel")

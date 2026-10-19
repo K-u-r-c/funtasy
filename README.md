@@ -68,7 +68,9 @@ ends the game for good (its save is deleted). Only the host can change the game 
 | Dodge (i-frames) | Space or Shift | LT |
 | Quick items Q / E (tap: use, hold: radial menu) | Q / E | LB / D-pad Right |
 | Interact / revive (hold): the target under the cursor, or the one you face on a pad | F | D-pad Down |
-| Character / Inventory / Talents / Map | C / I / T / M | R-Stick click / View / D-pad Left / D-pad Up |
+| Target next ally (ally spells go to the pick; a click on a teammate picks, on empty ground clears) | Tab | R-Stick click |
+| Target next enemy (aimed attacks go to the lock; a click on an enemy locks it) | R | D-pad Left |
+| Character / Inventory / Talents / Map | C / I / T / M | (menu tab) / View / (menu tab) / D-pad Up |
 | Skill Book / Codex | K / L | (menu tabs, LB / RB) |
 | Switch menu tab (while a menu is open) | Q / E | LB / RB |
 | Menu | Esc | Menu |

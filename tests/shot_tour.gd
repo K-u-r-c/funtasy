@@ -269,6 +269,51 @@ func _target_clear(_arg: String) -> void:
 	hud.preview_full = false
 
 
+## #41: a locked training dummy (red reticle, framed bar) beside the hero picked as the friendly
+## target (gold ring and chevron), then the floor boss locked (the reticle and red frame on its bar).
+func _hostile(_arg: String) -> void:
+	var dummies := await arena(3)
+	p.host_take_torch()
+	p.set_friendly_target(p.peer_id)
+	p.set_hostile_target(str(dummies[1].name))
+	dummies[1].health.hp = dummies[1].health.max_hp * 0.7
+	await da._wait(1.0)
+	await snap("hostile_lock_%s" % Settings.language)
+	p.set_friendly_target(0)
+	for e in g.enemies_root.get_children():
+		e.queue_free()
+	await da._wait(0.3)
+	var bid := str(g.boss_id)
+	var bpos: Vector2 = g.layout.boss_pos
+	p.host_teleport(g.nearest_floor(bpos + Vector2(0, 90)))
+	if bid.is_empty():
+		for k in GameData.bosses:
+			bid = str(k)
+			break
+	var boss: Enemy = g.spawn_monster(bid, bpos, true)
+	await da._wait(0.3)
+	boss.add_threat(p, 10.0)
+	await da._wait(1.5)
+	p.set_hostile_target(str(boss.name))
+	await da._wait(0.6)
+	await snap("hostile_boss_%s" % Settings.language)
+	boss.stop_mechanics()
+	boss.queue_free()
+	# The new action in the rebinding list.
+	var hud: Node = da.get_tree().get_first_node_in_group("hud")
+	hud.open_overlay(preload("res://scripts/ui/pause_menu.gd").new())
+	await da._wait(0.4)
+	hud._overlay._open_settings()
+	await da._wait(0.4)
+	var menu: Node = hud._overlay.get_child(hud._overlay.get_child_count() - 1)
+	menu._tabs.current_tab = 2
+	await da._wait(0.3)
+	menu._bind_buttons["target_enemy|kbm|0"].grab_focus()
+	await da._wait(0.5)
+	await snap("hostile_controls_%s" % Settings.language)
+	hud.close_overlay()
+
+
 ## #33: a heal burst, the heal-over-time glow, the shield bubble, its shatter, a buff flash and a
 ## cleanse flash on the hero next to training dummies (each shot near the effect's peak).
 func _allyfx(_arg: String) -> void:

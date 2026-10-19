@@ -9,6 +9,7 @@ extends Actor
 enum Life { ALIVE, DOWNED, GHOST }
 
 const SLOT_ACTIONS := ["attack", "skill_1", "skill_2", "skill_3", "skill_4", "skill_5"]
+const TARGET_ERRORS := ["Target out of range", "Target not in line of sight", "Invalid target"]
 
 var peer_id := 1
 var class_id := "warrior"
@@ -89,6 +90,8 @@ var _pending: Dictionary = {}
 var _quick_hold: Dictionary = {}
 var _reviving_peer := 0
 var friendly_peer := 0  ## owner: the teammate ally spells go to (#39), 0 = none
+var hostile_name := ""  ## owner: the enemy (node name, the same on every peer) aimed attacks go to (#41)
+var _target_msg_at := -99.0  ## owner: when the last "out of range" style message was shown
 var _click_select := false  ## owner: this held click picked a teammate instead of attacking
 var _interact_pick := 0  ## which of the things at one spot "interact" uses (#35)
 var _interact_key := ""  ## the set of things that pick refers to
@@ -535,6 +538,7 @@ func _owner_tick(delta: float) -> void:
 		_dodge_cd = float(GameData.bal("player.dodge_cooldown"))
 		request_dodge.rpc_id(1, _dodge_dir)
 	_handle_friendly_target()
+	_handle_hostile_target()
 	# Attack + skills (holding repeats as soon as the cooldown allows). Channelled and
 	# charge-up skills also report the release.
 	for slot in SLOT_ACTIONS.size():
@@ -543,7 +547,11 @@ func _owner_tick(delta: float) -> void:
 			_pending[slot] = 0.3
 			if slot == 0 and _click_select:
 				continue
-			request_skill.rpc_id(1, slot, aim_pos, friendly_peer)
+			var foe := hostile_node()
+			var aim := aim_pos
+			if foe and SkillShape.of(GameData.skill(str(skills[slot]))).hostile:
+				aim = foe.global_position
+			request_skill.rpc_id(1, slot, aim, friendly_peer, hostile_name if foe else "")
 		if Input.is_action_just_released(SLOT_ACTIONS[slot]) and slot < skills.size() and _is_hold_skill(str(skills[slot])):
 			request_skill_release.rpc_id(1, slot, aim_pos)
 	_handle_quick_slots(delta)
@@ -605,14 +613,73 @@ func _handle_friendly_target() -> void:
 		if picked:
 			set_friendly_target(0 if friendly_peer == picked.peer_id else picked.peer_id)
 			_click_select = true
-		elif friendly_peer != 0 and enemy_at(aim_pos) == null and not _pointer_on_ui():
+		elif enemy_at(aim_pos) == null and not _pointer_on_ui():
 			set_friendly_target(0)
+			set_hostile_target("")
 	if _click_select and not Input.is_action_pressed("attack"):
 		_click_select = false
 	var t := friendly_target_node()
 	if friendly_peer != 0 and (t == null or t.life_state != Life.ALIVE \
 			or t.global_position.distance_to(global_position) > float(GameData.bal("combat.friendly_target_range", 700))):
 		set_friendly_target(0)
+
+
+## Host: the enemy named `n` (enemy nodes share their names on every peer), or null.
+func _enemy_named(n: String) -> Actor:
+	if n.is_empty():
+		return null
+	var game := get_tree().get_first_node_in_group("game")
+	var e: Node = game.enemies_root.get_node_or_null(n) if game else null
+	return e if e is Actor and is_instance_valid(e) else null
+
+
+## Owner: the locked enemy's node, or null.
+func hostile_node() -> Actor:
+	if hostile_name.is_empty():
+		return null
+	var game := get_tree().get_first_node_in_group("game")
+	var e: Node = game.enemies_root.get_node_or_null(hostile_name) if game else null
+	return e if e is Actor else null
+
+
+func set_hostile_target(n: String) -> void:
+	if n == hostile_name:
+		return
+	hostile_name = n
+	EventBus.hostile_target_changed.emit(n)
+
+
+## Owner: the enemies this player can see now (fog of war, #41), nearest first.
+func visible_enemies() -> Array:
+	var game := get_tree().get_first_node_in_group("game")
+	var out: Array = []
+	for e in game.enemies_root.get_children() if game else []:
+		if e is Actor and e.visible and e.is_targetable() and e.global_position.distance_to(global_position) <= float(GameData.bal("vision.max_sight", 600)):
+			out.append(e)
+	out.sort_custom(func(a, b): return a.global_position.distance_squared_to(global_position) < b.global_position.distance_squared_to(global_position))
+	return out
+
+
+## Owner: R / its pad button locks the nearest visible enemy, then the next farther one, then none.
+func cycle_hostile_target() -> void:
+	var list := visible_enemies()
+	var i := list.find(hostile_node())
+	set_hostile_target("" if list.is_empty() or i == list.size() - 1 else str(list[i + 1].name))
+
+
+## Owner, every frame: the cycle action, a click on a visible enemy locks it (the click still
+## attacks it), and the lock drops when the enemy dies or leaves this player's sight (#41).
+func _handle_hostile_target() -> void:
+	if Input.is_action_just_pressed("target_enemy"):
+		cycle_hostile_target()
+	if not InputSettings.using_gamepad and Input.is_action_just_pressed("attack") and not _click_select:
+		var e := enemy_at(aim_pos)
+		if e:
+			set_hostile_target(str(e.name))
+	var t := hostile_node()
+	if not hostile_name.is_empty() and (t == null or not t.visible or not t.is_targetable() \
+			or t.global_position.distance_to(global_position) > float(GameData.bal("vision.max_sight", 600))):
+		set_hostile_target("")
 
 
 ## Owner: the living teammate (or yourself) under `pos`, or null.
@@ -767,8 +834,10 @@ func _from_owner() -> bool:
 
 ## `ally_peer`: the teammate the owner picked as friendly target (#39, 0 = none); the host checks
 ## it is a living teammate before ally spells go to them.
+## `enemy`: the enemy the owner locked (#41, "" = none); the host checks it exists, lives, is in
+## this hero's sight and in the skill's reach before an aimed attack goes to it.
 @rpc("any_peer", "call_local", "reliable")
-func request_skill(slot: int, aim: Vector2, ally_peer: int = 0) -> void:
+func request_skill(slot: int, aim: Vector2, ally_peer: int = 0, enemy: String = "") -> void:
 	if not _from_owner() or slot < 0 or slot >= skills.size() or str(skills[slot]).is_empty():
 		return
 	friendly_target = _teammate(ally_peer)
@@ -777,9 +846,15 @@ func request_skill(slot: int, aim: Vector2, ally_peer: int = 0) -> void:
 		return
 	aim_pos = aim
 	var sid: String = skills[slot]
-	var err := Combat.instance.try_use_skill(self, sid, aim, {"primary": slot == 0})
-	# Cooldown races and casting are normal while holding a key; don't nag about them.
-	var quiet := err in ["Not ready", "Busy"] or slot == 0
+	var err := ""
+	hostile_target = _enemy_named(enemy)
+	if not enemy.is_empty() and hostile_target == null:
+		err = "Invalid target"
+	else:
+		err = Combat.instance.try_use_skill(self, sid, aim, {"primary": slot == 0})
+	# Cooldown races and casting are normal while holding a key; don't nag about them. A refused
+	# lock always says why (the owner shows it at most once a second).
+	var quiet := err in ["Not ready", "Busy"] or (slot == 0 and not err in TARGET_ERRORS)
 	_skill_result.rpc_id(peer_id, slot, cooldown_left(sid), err.is_empty(), "" if quiet else err)
 
 
@@ -1052,6 +1127,11 @@ func _skill_result(slot: int, cd: float, ok: bool, msg: String) -> void:
 		if cd > 0.0:
 			var total := float(local_cd[slot][1]) if local_cd.has(slot) else cd
 			local_cd[slot] = [cd, maxf(total, cd)]
+	if msg in TARGET_ERRORS:
+		var now := Time.get_ticks_msec() / 1000.0
+		if now - _target_msg_at < 1.0:
+			return
+		_target_msg_at = now
 	if not msg.is_empty():
 		EventBus.hud_message.emit(Loc.t(msg), Color(1, 0.6, 0.5))
 

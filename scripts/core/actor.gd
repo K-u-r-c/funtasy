@@ -31,6 +31,7 @@ var impact_pending: Dictionary = {}  ## host: {skill, aim, left, extra} until th
 var skill_charges: Dictionary = {}  ## host: skill id -> stored charges (skills with "charges")
 var lockout_element := ""  ## host: school locked by Counterspell
 var friendly_target: Actor = null  ## host: the teammate a player picked for ally spells (#39)
+var hostile_target: Actor = null  ## host: the enemy a player locked for aimed attacks (#41)
 var last_attacker: Actor = null  ## host: who hit this actor last (kill credit for procs)
 var last_attack_ctx: Dictionary = {}
 var last_hit_area := false  ## host: the last hit came from an area attack (bone piles break)
