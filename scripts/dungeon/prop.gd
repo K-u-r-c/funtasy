@@ -10,6 +10,10 @@ var hp := 0.0
 var opened := false
 var _sprite: Sprite2D
 var _broken := false
+var lever_handle: Sprite2D  ## #51: the swinging arm of a lever (data "lever_art"), else null
+var _lever_lamp: Node2D
+var _lever_light: PointLight2D
+var _lamp_color := Color.RED
 
 
 func setup(new_type: String, pos: Vector2) -> void:
@@ -33,6 +37,8 @@ func setup(new_type: String, pos: Vector2) -> void:
 	if _sprite.texture:
 		_sprite.offset = Vector2(0, -_sprite.texture.get_height() / 2.0 + 2.0)
 	add_child(_sprite)
+	if def.has("lever_art"):
+		_build_lever(def.lever_art)
 	if def.get("flat", false):
 		# Floor-level pieces (raised platforms): no collision, drawn under everyone.
 		collision_layer = 0
@@ -145,6 +151,9 @@ func break_apart() -> void:
 
 func set_opened() -> void:
 	opened = true
+	if lever_handle:
+		_pull_lever()
+		return
 	if def.has("sprite_open"):
 		_sprite.texture = GameData.texture(str(def.sprite_open))
 	if def.has("light_open"):
@@ -158,3 +167,101 @@ func set_opened() -> void:
 		LightLayers.register(l, 72.0)
 		add_child(l)
 	AudioManager.play_sfx_at("pickup", global_position)
+
+
+# --- Levers (#51) ------------------------------------------------------------------------------
+
+
+## A lever from data "lever_art": the housing (the prop's sprite), an arm that swings about a
+## pivot on top and a signal lamp on the front, red while off and green once pulled. Pivot and
+## lamp are pixels of the housing's art; angles are degrees from upright.
+func _build_lever(art: Dictionary) -> void:
+	var sc := float(art.get("scale", 1.0))
+	_sprite.texture = GameData.texture(str(art.base))
+	_sprite.scale = Vector2(sc, sc)
+	var tex_size := _sprite.texture.get_size() if _sprite.texture else Vector2(48, 48)
+	_sprite.offset = Vector2(0, -tex_size.y / 2.0 + 2.0)
+	var to_node := func(px: Array) -> Vector2:
+		return (Vector2(float(px[0]), float(px[1])) - Vector2(tex_size.x / 2.0, tex_size.y - 2.0)) * sc
+	lever_handle = Sprite2D.new()
+	lever_handle.light_mask = LightLayers.LIT
+	lever_handle.texture = GameData.texture(str(art.handle))
+	lever_handle.centered = false
+	var hp: Array = art.get("handle_pivot", [16, 61])
+	lever_handle.offset = -Vector2(float(hp[0]), float(hp[1]))
+	var hs: Variant = art.get("handle_scale", 0.5)  # a number, or [x, y] to thicken a thin arm
+	lever_handle.scale = Vector2(float(hs[0]), float(hs[1])) if hs is Array else Vector2(float(hs), float(hs))
+	lever_handle.position = to_node.call(art.get("pivot", [24, 8]))
+	lever_handle.rotation_degrees = float(art.get("off", -30))
+	add_child(lever_handle)
+	_lamp_color = Color.from_string(str(art.get("off_color", "#ff3a2a")), Color.RED)
+	_lever_lamp = Node2D.new()
+	_lever_lamp.position = to_node.call(art.get("lamp", [16, 19]))
+	var unshaded := CanvasItemMaterial.new()
+	unshaded.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+	unshaded.light_mode = CanvasItemMaterial.LIGHT_MODE_UNSHADED
+	_lever_lamp.material = unshaded
+	_lever_lamp.draw.connect(_draw_lamp)
+	add_child(_lever_lamp)
+	# Readable from across the room, but not a gameplay light (it doesn't light up monsters).
+	_lever_light = PointLight2D.new()
+	LightLayers.setup_light(_lever_light)
+	_lever_light.texture = GameData.texture("fx.light")
+	_lever_light.color = _lamp_color
+	_lever_light.energy = 0.9
+	_lever_light.texture_scale = 48.0 / LightLayers.PX_PER_SCALE
+	_lever_light.position = _lever_lamp.position
+	add_child(_lever_light)
+
+
+func _ready() -> void:
+	set_process(lever_handle != null)  # only a lever's lamp pulses
+
+
+func _process(_delta: float) -> void:
+	_lever_lamp.queue_redraw()
+
+
+func _draw_lamp() -> void:
+	var t := Time.get_ticks_msec() / 1000.0
+	var p := 0.75 + 0.25 * sin(t * (2.0 if opened else 5.0))
+	_lever_lamp.draw_circle(Vector2.ZERO, 6.0, Color(_lamp_color, 0.25 * p))
+	_lever_lamp.draw_circle(Vector2.ZERO, 2.5, Color(_lamp_color * 1.8, p))
+
+
+## The pull, on every peer: the arm is hauled back a little, then thrown over to "on" with a clunk,
+## dust and sparks fly from the pivot and the lamp flashes from red to green.
+func _pull_lever() -> void:
+	var art: Dictionary = def.lever_art
+	set_meta("lever_pulls", int(get_meta("lever_pulls", 0)) + 1)  # read by the tests
+	var on := float(art.get("on", 60))
+	var tw := create_tween()
+	tw.tween_property(lever_handle, "rotation_degrees", float(art.get("off", -30)) - 12.0, 0.12)
+	tw.tween_property(lever_handle, "rotation_degrees", on, 0.32).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_callback(func():
+		_lamp_color = Color.from_string(str(art.get("on_color", "#4dff6a")), Color.GREEN)
+		_lever_light.color = _lamp_color
+		_lever_light.energy = 2.4
+		create_tween().tween_property(_lever_light, "energy", 1.1, 0.6)
+		_lever_puff(lever_handle.position, Color(0.5, 0.42, 0.32), 14, 30.0, 0.7)
+		_lever_puff(lever_handle.position, Color(2.0, 1.2, 0.4), 10, 80.0, 0.35)
+		AudioManager.play_sfx_at("lever", global_position))
+
+
+func _lever_puff(at: Vector2, color: Color, amount: int, speed: float, life: float) -> void:
+	var p := CPUParticles2D.new()
+	p.texture = GameData.texture("fx.pixel")
+	p.one_shot = true
+	p.explosiveness = 0.9
+	p.amount = amount
+	p.lifetime = life
+	p.spread = 180.0
+	p.initial_velocity_min = speed * 0.4
+	p.initial_velocity_max = speed
+	p.gravity = Vector2(0, 60)
+	p.color = color
+	p.position = at
+	p.z_index = 1
+	add_child(p)
+	p.emitting = true
+	p.finished.connect(p.queue_free)

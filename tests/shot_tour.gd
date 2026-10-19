@@ -402,6 +402,45 @@ func _rise(_arg: String) -> void:
 	await snap("rise_raise_%s" % Settings.language)
 
 
+## #51 (with --biome=sewers): a floodgate lever off, mid-pull and on, close up, then the pulled
+## lever and a second unpulled one seen from across the room.
+func _lever(_arg: String) -> void:
+	for e in g.enemies_root.get_children():
+		e.queue_free()
+	p.iframe_left = 9999.0
+	var find := func() -> Node:
+		for pr in g.dungeon.props.values():
+			if pr.def.get("lever", false) and int(pr.get_meta("gate", -1)) >= 0:
+				return pr
+		return null
+	var lever: Node = find.call()
+	for attempt in 12:
+		if lever:
+			break
+		g.run_seed += 1
+		g.start_floor(1)
+		await da._wait(2.0)
+		for e in g.enemies_root.get_children():
+			e.queue_free()
+		lever = find.call()
+	if lever == null:
+		da.check(false, "no floodgate lever found")
+		return
+	p.host_take_torch()
+	p.host_teleport(g.nearest_floor(lever.global_position + Vector2(-34, 18)))
+	await da._wait(1.0)
+	await snap("lever_off_%s" % Settings.language)
+	g.host_interact(p, lever)
+	await da._wait(0.2)
+	await snap("lever_mid_%s" % Settings.language)
+	await da._wait(1.0)
+	await snap("lever_on_%s" % Settings.language)
+	p.torch_left = 0.0
+	p.host_teleport(g.nearest_floor(lever.global_position + Vector2(-200, 60)))
+	await da._wait(1.2)
+	await snap("lever_far_%s" % Settings.language)
+
+
 ## #43: the talent card of a damage skill, a heal, an area skill, a ranked passive (at rank 1) and
 ## a keystone of the hero's class, then a skill's numeric card from the bar.
 func _talent_tips(_arg: String) -> void:

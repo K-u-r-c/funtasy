@@ -203,6 +203,8 @@
 		"floodgate": "res://assets/sprites/pixellab/props/floodgate.png",
 		"rusty_lever_on": "res://assets/sprites/pixellab/props/rusty_lever_on.png",
 		"rusty_lever": "res://assets/sprites/pixellab/props/rusty_lever.png",
+		"lever_base": "res://assets/sprites/pixellab/props/lever_base.png",
+		"lever_handle": "res://assets/sprites/pixellab/props/lever_handle.png",
 		"exhaust_valve": "res://assets/sprites/pixellab/props/exhaust_valve.png",
 		"sewer_platform": "res://assets/sprites/pixellab/props/sewer_platform.png",
 		"sewer_barrel": "res://assets/sprites/pixellab/props/sewer_barrel.png",
