@@ -364,14 +364,14 @@ seed because the generator no longer draws random numbers for pendulums.
 | Gold Key | The key carrier only exists on Archibald floors (80% of them since #21, see D11). |
 | Cave rooms | Building the extra room exposed a generator bug: Kurgan cave rooms could wall off a corridor that entered through a wide opening. The cells where a corridor enters a cave room now stay open. |
 
-### #7 Doors and props in the light
+### #7 Doors and props in the light (occluders reworked by #46)
 
 Door and prop sprites were drawn on the `SELF_LIT` layer (lit, never shadowed) so their own
 occluders would not black them out, which made them glow flat-bright wherever any light reached them,
 even through walls and inside shadows. They are now on `LIT`, like the walls and floor, and their
 occluders moved off the art: a 4 px band across the top of the drawn sprite (props: the width of the
 footprint; horizontal doors: the opening) or, for side doors drawn edge-on, a line down the middle of
-the opening. Light from the front reaches the whole door or prop, light from behind is blocked, and the
+the opening. (#46 replaced the bands with one-sided lines: see there.) Light from the front reaches the whole door or prop, light from behind is blocked, and the
 opening stays closed to light (a closed door may let a few pixels of light into the cell just behind
 it). The screenshot tour `--scenario=tour --tour=lighting --biome=<id>` shows a door beside a wall
 torch, a door beside the carried torch and a prop beside the carried torch; all five biomes were
@@ -867,4 +867,14 @@ its animation's impact frame (data `impact`); channels and cast times hold the s
 | Windows | Game menus, dialogs, the lore reader, shops and options were already capped (`ui.modal_max_width` / `height`) and scroll inside; the talent card now scrolls too (#43). Tooltips (skill cards) were already clamped to the screen. |
 | Check | `UiFitSuite.offenders`: every visible Control under the HUD (or the current scene), cut by the clipping scroll areas it sits in, must lie inside the visible screen. |
 | Tests | `ui-fit` / `ui-fit-pl` at 1920x1080, 3840x1080, 1280x960 and 720x720: the HUD with the longest translated line as a message, a full-backpack prompt for the item with the longest name, the boss with the longest name awake (bar and tracker) and 16-character party names; the bar's skill card; every game menu tab (the longest item's card in the inventory, the talent with the longest card); the lore book with the longest title; a dialog with a long title and body; the shop, the pact panel, the pause menu and every Options tab. `ui-fit-menus` / `ui-fit-menus-pl`: the main menu, its Options tabs and the lobby with a confirmed 16-character hero at the same sizes. Review: `--shot=<dir>` saves `fit_hud` and `fit_lobby` (before / after, English and Polish). |
+
+### #46 Doors lit from behind, prop shadows from the foot
+
+| Topic | Decision |
+| --- | --- |
+| Cause | A closed door's 4 px occluder band sat across the top of the drawn door (#7) and cast for lights on every side: a light behind the door (north of a horizontal door, "from above" on screen) threw that band's shadow over the whole door, so the door went black. Props had the same band across the top of their sprite: lit from behind it cast a hard wedge starting at the top of the prop; lit from the side it shadowed the prop itself. |
+| One-sided lines | `LightLayers.one_sided(points)`: an open occluder polyline with `CULL_CLOCKWISE`, which casts only for lights on the left of each segment (y down), so shadows fall to its right. Lights on its right shine through. |
+| Doors | A horizontal door has two lines across its opening: one at its foot that casts for lights behind it (the drawn door lies on that light's side) and one across the top of the drawn door that casts for lights in front of it. Each light finds one of them closing the opening, so light still doesn't pass a closed door, and neither line lets its shadow fall on the door art, so the door is visible lit from either side. A side door has one line down each face of its edge-on art (at the art's drawn width). Both are hidden while the door is open, as before. Typed doors (boss, merchants) keep their fixed-brightness art (#31). |
+| Props | A sight-blocking prop's lines follow its footprint (west, south and east sides, open to the north): the shadow starts on the floor at the prop's foot and falls away from the light, softened by the lights' PCF filter, and never on the prop's own art. A light behind the prop casts its shadow forward onto the floor in front of it; a light in front casts it behind, where the prop's art covers most of it. Line of sight for gameplay is unchanged (physics rays, not light occluders). |
+| Tests | `lighting-rules` (headless): for every door kind (plain, side, boss, Archibald's, Malphas's) the lines cover the whole opening, sit so no sample point of the door art is on the dark side of any of them, and disappear while open; the art receives light (or is drawn at a fixed brightness); for all 16 sight-blocking props the lines lie on the footprint and no point of the art is on their dark side. Turning the lines double-sided makes both checks fail. Review: `--tour=lighting_sides --biome=<id>` (a plain door lit from the south and from the north, a side door from the west and the east, a pillar or table lit from all four sides, with only a test lamp lighting it) in all five biomes. |
 

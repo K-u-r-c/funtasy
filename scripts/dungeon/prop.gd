@@ -27,8 +27,7 @@ func setup(new_type: String, pos: Vector2) -> void:
 	shape.position = Vector2(0, -float(sz[1]) / 2.0)
 	add_child(shape)
 	_sprite = Sprite2D.new()
-	# Lit and shadowed like the walls and floor (#7); its own occluder sits at the top of the
-	# sprite (below), so it never shadows the prop itself.
+	# Lit and shadowed like the walls and floor (#7); its own shadow line can't fall on it (#46).
 	_sprite.light_mask = LightLayers.LIT
 	_sprite.texture = GameData.texture(str(def.sprite))
 	if _sprite.texture:
@@ -51,15 +50,12 @@ func setup(new_type: String, pos: Vector2) -> void:
 		LightLayers.register(l, float(def.get("light_radius", 56.0)))
 		add_child(l)
 	if bool(def.get("blocks_sight", true)):
-		var occ := LightOccluder2D.new()
-		var poly := OccluderPolygon2D.new()
+		# #46: the shadow starts where the prop stands: a one-sided outline of its footprint (west,
+		# south and east sides, open to the north) casts for lights beside or behind it, so the
+		# shadow falls away on the floor from its foot and never darkens the prop's own art.
 		var hw := float(sz[0]) / 2.0
-		# A thin band across the top of the drawn sprite (the footprint when there is no art):
-		# light from the front reaches the whole prop, light from behind is blocked by it.
-		var top := -float(_sprite.texture.get_height()) + 2.0 if _sprite.texture else -float(sz[1])
-		poly.polygon = PackedVector2Array([Vector2(-hw, top), Vector2(hw, top), Vector2(hw, top + 4.0), Vector2(-hw, top + 4.0)])
-		occ.occluder = poly
-		add_child(occ)
+		var fh := float(sz[1])
+		add_child(LightLayers.one_sided(PackedVector2Array([Vector2(-hw, -fh), Vector2(-hw, 0), Vector2(hw, 0), Vector2(hw, -fh)])))
 
 
 func destructible() -> bool:

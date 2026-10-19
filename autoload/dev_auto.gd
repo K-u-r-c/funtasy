@@ -269,6 +269,8 @@ func _run() -> void:
 				await TooltipSuite.new(self).run()
 			"ui_fit":
 				await UiFitSuite.new(self).run()
+			"lighting_rules":
+				await LightingSuite.new(self).run()
 			"fx_lan":
 				await FxSuite.new(self).run_lan()
 			"fx":
@@ -1578,36 +1580,41 @@ func _darkness_scenario() -> void:
 ## Two floor points ~150 px apart with line of sight, neither lit by any light.
 func _dark_pair(g: Node) -> Array:
 	var d: Dungeon = g.dungeon
-	for y in range(2, d.size.y - 2):
-		for x in range(2, d.size.x - 7):
-			var a := d.cell_center(Vector2i(x, y))
-			var b := d.cell_center(Vector2i(x + 5, y))
-			# Floor above and below too: a hero next to a wall is pushed off the line.
-			var open := true
-			for c in [Vector2i(x, y), Vector2i(x + 5, y), Vector2i(x, y - 1), Vector2i(x, y + 1), Vector2i(x + 5, y - 1), Vector2i(x + 5, y + 1)]:
-				if d.cell_at(c) != DungeonGenerator.CELL_FLOOR:
-					open = false
-			if not open:
-				continue
-			if a.distance_to(g.layout.start) < 500.0:
-				continue
-			var dark := true
-			for l in get_tree().get_nodes_in_group(LightLayers.GROUP):
-				if l == g.visibility.vision_light:
+	# Five cells apart along a row, or (when no row has such a dark stretch) down a column.
+	for step: Vector2i in [Vector2i(5, 0), Vector2i(0, 5)]:
+		var side := Vector2i(step.y, step.x).sign()  # the neighbours across the line must be floor too
+		for y in range(2, d.size.y - 2 - step.y):
+			for x in range(2, d.size.x - 2 - step.x):
+				var ca := Vector2i(x, y)
+				var cb := ca + step
+				var a := d.cell_center(ca)
+				var b := d.cell_center(cb)
+				# Floor beside both ends too: a hero next to a wall is pushed off the line.
+				var open := true
+				for c in [ca, cb, ca - side, ca + side, cb - side, cb + side]:
+					if d.cell_at(c) != DungeonGenerator.CELL_FLOOR:
+						open = false
+				if not open:
 					continue
-				var rad := float(l.get_meta("radius", 0.0)) + 40.0
-				if l.global_position.distance_to(a) < rad or l.global_position.distance_to(b) < rad:
-					dark = false
-					break
-			# A door on the line can be closed later (by a monster) and block the reveal checks.
-			for door in d.doors:
-				if Geometry2D.get_closest_point_to_segment(door.global_position, a, b).distance_to(door.global_position) < 40.0:
-					dark = false
-					break
-			# The same physics ray Visibility uses (props block it, the grid check doesn't see them).
-			var q := PhysicsRayQueryParameters2D.create(a + Vector2(0, -6), b + Vector2(0, -6), Combat.LOS_MASK)
-			if dark and Combat.instance.has_los(a, b) and get_viewport().world_2d.direct_space_state.intersect_ray(q).is_empty():
-				return [a, b]
+				if a.distance_to(g.layout.start) < 500.0:
+					continue
+				var dark := true
+				for l in get_tree().get_nodes_in_group(LightLayers.GROUP):
+					if l == g.visibility.vision_light:
+						continue
+					var rad := float(l.get_meta("radius", 0.0)) + 40.0
+					if l.global_position.distance_to(a) < rad or l.global_position.distance_to(b) < rad:
+						dark = false
+						break
+				# A door on the line can be closed later (by a monster) and block the reveal checks.
+				for door in d.doors:
+					if Geometry2D.get_closest_point_to_segment(door.global_position, a, b).distance_to(door.global_position) < 40.0:
+						dark = false
+						break
+				# The same physics ray Visibility uses (props block it, the grid check doesn't see them).
+				var q := PhysicsRayQueryParameters2D.create(a + Vector2(0, -6), b + Vector2(0, -6), Combat.LOS_MASK)
+				if dark and Combat.instance.has_los(a, b) and get_viewport().world_2d.direct_space_state.intersect_ray(q).is_empty():
+					return [a, b]
 	return []
 
 

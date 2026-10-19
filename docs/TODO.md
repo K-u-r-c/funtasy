@@ -124,6 +124,7 @@ screenshot review at 1920x1080 and 3440x1440.
 - [x] #42 Skills 1-5: tap casts on release, hold shows the aim preview from the skill data, release casts; refused casts preview in red with the reason (`preview`, `skills-*`, tour `previews`)
 - [x] #43 Talent, Skill Book and bar tooltips with exact numbers from the data, per-rank / now / next for ranks, keystone triggers (`tooltips`, `tooltips-pl`, tour `talent_tips`)
 - [x] #44 Long text never leaves the screen: HUD messages and prompts wrap, lobby rows wrap / ellipsize; every screen checked at 16:9, 32:9, 4:3 and 1:1 in both languages (`ui-fit*`)
+- [x] #46 Doors stay visible lit from behind and still close their opening to light; prop shadows start at the foot (one-sided occluder lines; `lighting-rules`, tour `lighting_sides` in all biomes)
 
 ## PixelLab ledger
 

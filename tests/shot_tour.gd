@@ -829,6 +829,67 @@ func _lighting(_arg: String) -> void:
 		await snap("lighting_%s_prop" % fid)
 
 
+## #46: a closed door lit from each side by a lone test torch (a horizontal door from the south and
+## from the north, a side door from the west and the east) and a sight-blocking prop with the light
+## on each side, in this floor's biome. The hero stands aside with no torch.
+func _lighting_sides(_arg: String) -> void:
+	for e in g.enemies_root.get_children():
+		e.queue_free()
+	p.iframe_left = 9999.0
+	p.torch_left = 0.0
+	var fid: String = g.floor_type_for(g.depth)
+	var lamp := PointLight2D.new()
+	LightLayers.setup_light(lamp)
+	lamp.texture = GameData.texture("fx.light")
+	lamp.color = Color("ffb060")
+	lamp.energy = float(GameData.bal("lighting.wall_torch_energy"))
+	lamp.shadow_enabled = true
+	lamp.shadow_filter = Light2D.SHADOW_FILTER_PCF5
+	lamp.shadow_filter_smooth = 2.0
+	LightLayers.register(lamp, float(GameData.bal("lighting.wall_torch_radius")))
+	g.dungeon.add_child(lamp)
+	var hdoor: Node = null
+	var vdoor: Node = null
+	for d in g.dungeon.doors:
+		if d.is_open or d.floodgate or d.light != null:
+			continue
+		if d.vertical and vdoor == null:
+			vdoor = d
+		elif not d.vertical and hdoor == null:
+			hdoor = d
+	if hdoor:
+		da.log_line("door %s type '%s' kind '%s' open %s sealed %s" % [hdoor.name, hdoor.door_type, hdoor.kind, hdoor.is_open, hdoor.sealed])
+	var shots := []
+	if hdoor:
+		shots.append([hdoor, Vector2(0, 56), "door_lit_south", Vector2(80, 70)])
+		shots.append([hdoor, Vector2(0, -90), "door_lit_north", Vector2(80, 70)])
+	if vdoor:
+		shots.append([vdoor, Vector2(-56, -16), "side_door_lit_west", Vector2(0, 80)])
+		shots.append([vdoor, Vector2(56, -16), "side_door_lit_east", Vector2(0, 80)])
+	var prop: Node = null
+	for k in g.dungeon.props:
+		var pr: Node = g.dungeon.props[k]
+		if pr.def.get("blocks_sight", true) and pr.destructible() and (prop == null or str(pr.type) in ["table", "pillar", "chest"]):
+			prop = pr
+	if prop:
+		for side in [["south", Vector2(0, 60)], ["north", Vector2(0, -70)], ["west", Vector2(-60, -10)], ["east", Vector2(60, -10)]]:
+			shots.append([prop, side[1], "prop_lit_%s" % side[0], Vector2(70, 60)])
+	for sh in shots:
+		var at: Node2D = sh[0]
+		# Only the test lamp lights the subject.
+		for t in g.dungeon.torches.values():
+			t.visible = t.global_position.distance_to(at.global_position) > 300.0
+		lamp.global_position = g.nearest_floor(at.global_position + sh[1])
+		p.host_teleport(g.nearest_floor(at.global_position + sh[3]))
+		await da._wait(1.0)
+		if at.get("is_open") != null:
+			da.log_line("%s open %s" % [sh[2], at.is_open])
+		await snap("lighting_sides_%s_%s" % [fid, sh[2]])
+	lamp.queue_free()
+	for t in g.dungeon.torches.values():
+		t.visible = true
+
+
 ## The Murk Amalgam's grab (#12): the held hero, the Engulfed icon and the Burst it down bar.
 func _grab(_arg: String) -> void:
 	for e in g.enemies_root.get_children():

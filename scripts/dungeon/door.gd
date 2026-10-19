@@ -26,7 +26,7 @@ var _room := Rect2i()  ## cells of the chamber behind a typed door
 const ART_LOW := 34  ## px of a typed door's art drawn in the y-sorted world (wall row + sill)
 var world_rect := Rect2()
 var _shape: CollisionShape2D
-var _occluder: LightOccluder2D
+var _occluder: Node2D  ## the door's one-sided shadow lines (#46), hidden while open
 var _sprites: Node2D
 
 
@@ -53,19 +53,24 @@ func setup(d: Dictionary, tile: int) -> void:
 	_shape.shape = rect
 	_shape.position = Vector2(0, -world_rect.size.y / 2.0)
 	add_child(_shape)
-	_occluder = LightOccluder2D.new()
-	var occ := OccluderPolygon2D.new()
+	# #46: the opening is closed to light by two one-sided lines, neither of which shadows the
+	# door art: lights in front cast from a line across the top of the drawn door (the art lies
+	# in front of it), lights behind cast from a line at its foot (the art lies behind it). A
+	# side door, drawn edge-on, has one line down each face of the opening.
 	var hw := world_rect.size.x / 2.0
-	# The door art is lit and shadowed like the walls (#7), so its occluder must not cover it:
-	# a band across the top of the drawn door (horizontal doors) or a line down
-	# the middle of the opening (side doors, drawn edge-on). It still closes the opening to light.
 	var art := GameData.texture("props.door_closed")
 	var art_h := float(art.get_height()) if art else float(tile)
+	_occluder = Node2D.new()
 	if vertical:
-		occ.polygon = PackedVector2Array([Vector2(-2, -world_rect.size.y - art_h + float(tile)), Vector2(2, -world_rect.size.y - art_h + float(tile)), Vector2(2, 0), Vector2(-2, 0)])
+		var top := -world_rect.size.y - art_h + float(tile)
+		# On the faces of the edge-on art (drawn 1.6x wide in _refresh), so none of it is between them.
+		var edge_tex := GameData.texture("props.door_open")
+		var ex := maxf(2.0, float(edge_tex.get_width()) * 1.6 / 2.0) if edge_tex else 2.0
+		_occluder.add_child(LightLayers.one_sided(PackedVector2Array([Vector2(-ex, top), Vector2(-ex, 0)])))
+		_occluder.add_child(LightLayers.one_sided(PackedVector2Array([Vector2(ex, 0), Vector2(ex, top)])))
 	else:
-		occ.polygon = PackedVector2Array([Vector2(-hw, -art_h), Vector2(hw, -art_h), Vector2(hw, -art_h + 4.0), Vector2(-hw, -art_h + 4.0)])
-	_occluder.occluder = occ
+		_occluder.add_child(LightLayers.one_sided(PackedVector2Array([Vector2(-hw, 0), Vector2(hw, 0)])))
+		_occluder.add_child(LightLayers.one_sided(PackedVector2Array([Vector2(hw, -art_h + 2.0), Vector2(-hw, -art_h + 2.0)])))
 	add_child(_occluder)
 	_sprites = Node2D.new()
 	add_child(_sprites)

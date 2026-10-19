@@ -20,6 +20,19 @@ const GROUP := "light_sources"
 const PX_PER_SCALE := 77.0
 
 
+## A shadow line along `points` (an open polyline) that casts only for lights on its left side
+## (y down: walking from one point to the next, the left hand), so the art on its right is never
+## shadowed by it (#46).
+static func one_sided(points: PackedVector2Array) -> LightOccluder2D:
+	var occ := LightOccluder2D.new()
+	var poly := OccluderPolygon2D.new()
+	poly.closed = false
+	poly.cull_mode = OccluderPolygon2D.CULL_CLOCKWISE
+	poly.polygon = points
+	occ.occluder = poly
+	return occ
+
+
 static func setup_light(l: Light2D) -> void:
 	l.range_item_cull_mask = ALL
 	l.shadow_item_cull_mask = LIT

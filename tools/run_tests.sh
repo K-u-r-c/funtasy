@@ -110,6 +110,7 @@ if [ "$WHAT" = all ] || [ "$WHAT" = quick ]; then
 	run ui-fit-pl --auto=solo --class=priest --name=Fit --scenario=ui_fit --lang=pl --quit=200
 	run ui-fit-menus --scenario=ui_fit_menus --quit=120
 	run ui-fit-menus-pl --scenario=ui_fit_menus --lang=pl --quit=120
+	run lighting-rules --auto=solo --class=warrior --name=Lamp --scenario=lighting_rules --quit=60
 	run tooltips-pl --auto=solo --class=priest --name=Tips --scenario=tooltips --lang=pl --quit=60
 	run art-check --scenario=art_check --quit=120
 	run hero-art --scenario=hero_art --quit=300
