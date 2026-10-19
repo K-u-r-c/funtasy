@@ -1,6 +1,6 @@
 {
 	"version": 2,
-	"tier_points": 4,
+	"tier_points": 2,
 	"branches": [
 		{"id": "sniper", "name": "Sniper", "description": "Heavy hits, crits and range."},
 		{"id": "toxicologist", "name": "Toxicologist", "description": "Poisons, bleeds and traps."},

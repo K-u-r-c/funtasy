@@ -1,8 +1,8 @@
 class_name TalentSuite
 extends RefCounted
 ## #27 talent checks on a solo host (scenario "talents", one class per run):
-## - points per level (talents and free stat points) come from data, and a hero saved under the
-##   old rules gets the missing points when loaded;
+## - points per level (talents and free stat points) come from data (#45: 1 and 5), a save that
+##   spent more than the new totals is refunded, and every branch's top tier is reachable;
 ## - every passive node can be learned once its branch has the points its tier needs, and each of
 ##   its mods changes the stat (or skill modifier) it names, in the right direction;
 ## - the new passives (icon "tl_*") number at least 20, have icons and numbers in their text;
@@ -26,7 +26,7 @@ func run() -> void:
 	await da._wait(1.0)
 	p.iframe_left = 9999.0
 	await points_per_level()
-	old_save()
+	await old_save()
 	await every_node()
 	await panel()
 
@@ -38,34 +38,69 @@ func points_per_level() -> void:
 	await da._wait(0.3)
 	var want_t := int(GameData.bal("progression.talent_points_per_level"))
 	var want_s := int(GameData.bal("progression.stat_points_per_level"))
-	da.check(want_t == 3 and want_s == 10 and p.talent_points == tp + want_t and p.stat_points == sp + want_s,
+	da.check(want_t == 1 and want_s == 5 and p.talent_points == tp + want_t and p.stat_points == sp + want_s,
 			"a level gives %d talent points and %d stat points (+%d / +%d)" % [want_t, want_s, p.talent_points - tp, p.stat_points - sp])
 
 
-## A level 10 hero saved when a level gave 1 talent and 5 stat points, with 9 talents and 45 stat
-## points spent: loading it grants the difference (27 - 9 talent, 90 - 45 stat points) and keeps
-## everything it had spent.
+## #45: a level 10 hero has 9 talent and 45 stat points. A save from the #27 rules (3 / 10 per
+## level) that spent 27 talents and 90 stat points loads with both pools refunded whole and a
+## message; one that spent within the new totals keeps everything; loading twice changes nothing.
 func old_save() -> void:
 	var keep: Dictionary = GameState.characters.get(p.peer_id, {})
 	var tree := p.talent_tree()
 	var spent := {}
 	var n := 0
 	for nd in tree.nodes:
-		if nd.get("type", "") == "passive" and int(nd.get("tier", 0)) == 0 and n < 9:
-			var r := mini(int(nd.get("max_rank", 1)), 9 - n)
+		if nd.get("type", "") == "passive" and not p.is_free_node(nd) and n < 27:
+			var r := mini(int(nd.get("max_rank", 1)), 27 - n)
 			spent[nd.id] = r
 			n += r
 	var ch: Dictionary = p.to_character()
 	ch.level = 10
 	ch.xp = 0
 	ch.talents = spent
-	ch.allocated = {"strength": 20, "stamina": 25}
+	ch.allocated = {"strength": 40, "stamina": 50}
 	ch.erase("bonus_talent_points")
 	ch.erase("bonus_stat_points")
 	GameState.characters[p.peer_id] = ch
+	var got: Array = []
+	var cb := func(t: String, _col: Color): got.append(t)
+	EventBus.hud_message.connect(cb)
+	for i in 2:
+		p._host_init()
+		da.check(n == 27 and p.talent_points == 9 and p.stat_points == 45 and p.talents.is_empty() and p.allocated.is_empty() \
+				and p.points_refunded == ["stat", "talent"] and p.loadout_error(p.skills).is_empty(),
+				"an over-spent level 10 save (27 talents, 90 stat points) loads refunded: %d talent and %d stat points to spend, a valid loadout (load %d)" % [p.talent_points, p.stat_points, i + 1])
+	await da._wait(2.5)
+	EventBus.hud_message.disconnect(cb)
+	da.check(got.has(Loc.t("Talent and stat points refunded: spend them again.")), "the hero is told the points were refunded (%s)" % [got])
+	# Spent within the new totals: kept.
+	var small := {}
+	n = 0
+	for k in spent:
+		if n + int(spent[k]) <= 9:
+			small[k] = spent[k]
+			n += int(spent[k])
+	ch.talents = small
+	ch.allocated = {"strength": 20, "stamina": 25}
+	GameState.characters[p.peer_id] = ch
 	p._host_init()
-	var ok := p.talent_points == 27 - n and p.stat_points == 90 - 45 and p.talents == spent and int(p.allocated.get("stamina", 0)) == 25
-	da.check(n == 9 and ok, "an old level 10 save (9 talents, 45 stat points spent) loads with %d talent and %d stat points to spend and its spending kept" % [p.talent_points, p.stat_points])
+	da.check(p.talent_points == 9 - n and p.stat_points == 0 and p.talents == small and int(p.allocated.get("stamina", 0)) == 25 and p.points_refunded.is_empty(),
+			"a level 10 save within the new totals keeps its %d talents and 45 stat points" % n)
+	# Every point can be spent: with 1 point per level every branch's top tier opens by level 15.
+	var tp := int(tree.get("tier_points", 2))
+	var per := int(GameData.bal("progression.talent_points_per_level"))
+	var top_level := 1 + int(ceil(float(5 * tp + 1) / per))
+	var short: Array = []
+	for br in tree.get("branches", []):
+		for tier in range(1, 6):
+			var below := 0
+			for nd in tree.nodes:
+				if str(nd.get("branch", "")) == str(br.id) and int(nd.get("tier", 0)) < tier and not p.is_free_node(nd):
+					below += int(nd.get("max_rank", 1))
+			if below < tier * tp:
+				short.append("%s tier %d" % [br.id, tier])
+	da.check(top_level <= 15 and short.is_empty(), "every branch's top tier opens by level %d (gate %d points a tier)%s" % [top_level, tp, "" if short.is_empty() else ": short %s" % [short]])
 	GameState.characters[p.peer_id] = keep
 	p._host_init()
 

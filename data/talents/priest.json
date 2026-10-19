@@ -1,6 +1,6 @@
 {
 	"version": 2,
-	"tier_points": 4,
+	"tier_points": 2,
 	"branches": [
 		{"id": "divine_shepherd", "name": "Divine Shepherd", "description": "Healing, wards and renewal."},
 		{"id": "paladin_bastion", "name": "Paladin Bastion", "description": "Holy tank, shields and retribution."},

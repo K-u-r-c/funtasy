@@ -1,5 +1,8 @@
 keys,pl
 A loadout has %d slots,Zestaw umiejętności ma %d miejsc
+Talent and stat points refunded: spend them again.,Zwrócono punkty talentów i cech: rozdaj je ponownie.
+Talent points refunded: spend them again.,Zwrócono punkty talentów: rozdaj je ponownie.
+Stat points refunded: spend them again.,Zwrócono punkty cech: rozdaj je ponownie.
 Not ready,Jeszcze niegotowe
 Busy,Zajęty
 No item assigned to %s,Brak przedmiotu przypisanego do %s
@@ -16,6 +19,7 @@ Backpack upgraded to %d slots,Plecak powiększony: %d miejsc
 Backpack is full,Plecak jest pełny
 No %s left,Brak: %s
 Item not ready,Przedmiot jeszcze niegotowy
+"Level %d! +%d talent point, +%d stat points","Poziom %d! Punkt talentu +%d, punkty cech +%d"
 "Level %d! +%d talent points, +%d stat points","Poziom %d! Punkty talentów +%d, punkty cech +%d"
 Eternal Dawn,Wieczny Świt
 Revived!,Wskrzeszony!

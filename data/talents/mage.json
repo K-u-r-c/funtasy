@@ -1,6 +1,6 @@
 {
 	"version": 2,
-	"tier_points": 4,
+	"tier_points": 2,
 	"branches": [
 		{"id": "pyro_storm", "name": "Pyromancer & Stormcaller", "description": "Fire and lightning burst."},
 		{"id": "glacial_tectonic", "name": "Glacial & Tectonic Warden", "description": "Frost and earth control."},

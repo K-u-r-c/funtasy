@@ -1,6 +1,6 @@
 {
 	"version": 2,
-	"tier_points": 4,
+	"tier_points": 2,
 	"branches": [
 		{"id": "berserker", "name": "Berserker", "description": "DPS, bleeds and Fury."},
 		{"id": "juggernaut", "name": "Juggernaut", "description": "Tank: armor, shields and threat."},

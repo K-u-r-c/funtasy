@@ -99,8 +99,8 @@
 		"xp_base": 100,
 		"xp_exponent": 1.5,
 		"max_level": 30,
-		"talent_points_per_level": 3,
-		"stat_points_per_level": 10,
+		"talent_points_per_level": 1,
+		"stat_points_per_level": 5,
 		"contribution_window": 30.0,
 		"xp_mult": 0.55, "monster_xp_exponent": 1.25, "party_xp_share": 0.6
 	},

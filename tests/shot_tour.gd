@@ -140,6 +140,37 @@ func _menus(_arg: String) -> void:
 	hud.close_overlay()
 
 
+## #45: an over-spent save loads refunded (the message), a level-up (the message), then the
+## character and talent screens with the new points.
+func _points(_arg: String) -> void:
+	var keep: Dictionary = GameState.characters.get(p.peer_id, {})
+	var ch: Dictionary = p.to_character()
+	ch.level = 6
+	var spent := {}
+	var n := 0
+	for nd in p.talent_tree().nodes:
+		if nd.get("type", "") == "passive" and not p.is_free_node(nd) and n < 15:
+			spent[nd.id] = mini(int(nd.get("max_rank", 1)), 15 - n)
+			n += int(spent[nd.id])
+	ch.talents = spent
+	ch.allocated = {"strength": 30, "stamina": 20}
+	GameState.characters[p.peer_id] = ch
+	p._host_init()
+	await da._wait(2.4)
+	await snap("points_refunded")
+	await da._wait(3.0)
+	p.add_xp(Player.xp_to_next(p.level))
+	await da._wait(0.4)
+	await snap("points_level_up")
+	var hud: Node = da.get_tree().get_first_node_in_group("hud")
+	for t in ["character", "talents"]:
+		hud.open_overlay(hud.menu_panel(t))
+		await da._wait(0.6)
+		await snap("points_%s" % t)
+	hud.close_overlay()
+	GameState.characters[p.peer_id] = keep
+
+
 ## Options from the pause menu (#32): the Video tab with the language choice, then Polish
 ## picked there (the window and, after closing, the HUD in the new language).
 func _options(_arg: String) -> void:

@@ -42,6 +42,7 @@ var run_mods: Array = []  ## run-permanent modifiers [{stat, value, source}] (D1
 var gold := 0
 var bonus_stat_points := 0  ## from the legendary tome
 var bonus_talent_points := 0
+var points_refunded: Array = []  ## host: "stat" / "talent" pools refunded on load (#45)
 var legacy_kit := false  ## a hero saved before the simple start: the old tier-0 starter skills stay free
 var talents: Dictionary = {}:
 	set(v):
@@ -188,11 +189,21 @@ func _host_init() -> void:
 	gold = int(ch.get("gold", 0))
 	bonus_stat_points = int(ch.get("bonus_stat_points", 0))
 	bonus_talent_points = int(ch.get("bonus_talent_points", 0))
-	stat_points = maxi(_stat_points_total() - _stat_points_spent(), 0)
+	# A hero saved when a level gave more points (#27 -> #45) may have spent more than it now has:
+	# that pool is refunded whole, to be spent again.
+	points_refunded = []
+	stat_points = _stat_points_total() - _stat_points_spent()
+	if stat_points < 0:
+		allocated = {}
+		stat_points = _stat_points_total()
+		points_refunded.append("stat")
 	talent_points = _talent_points_total() - _talent_points_spent()
 	if talent_points < 0:
 		talents = {}
 		talent_points = _talent_points_total()
+		points_refunded.append("talent")
+	if not points_refunded.is_empty() and is_inside_tree():
+		get_tree().create_timer(2.0).timeout.connect(_notify_refund)
 	var lo: Array = ch.get("loadout", [])
 	skills = lo if loadout_error(lo).is_empty() else default_loadout()
 	resource.setup(class_def.resource, 0.0, true)
@@ -372,6 +383,15 @@ func persist() -> void:
 		return
 	GameState.characters[peer_id] = to_character()
 	GameState.save_game()
+
+
+func _notify_refund() -> void:
+	if not is_inside_tree() or points_refunded.is_empty():
+		return
+	var both := points_refunded.size() > 1
+	_notify.rpc_id(peer_id, "Talent and stat points refunded: spend them again." if both
+		else ("Talent points refunded: spend them again." if points_refunded[0] == "talent"
+		else "Stat points refunded: spend them again."))
 
 
 func _talent_points_total() -> int:
@@ -1168,7 +1188,9 @@ func _level_up_fx(new_level: int) -> void:
 	AudioManager.play_sfx_at("level_up", global_position)
 	if is_local():
 		EventBus.local_level_up.emit(new_level)
-		EventBus.hud_message.emit(Loc.f("Level %d! +%d talent points, +%d stat points", [new_level, int(GameData.bal("progression.talent_points_per_level")), int(GameData.bal("progression.stat_points_per_level"))]), Color(1, 0.85, 0.3))
+		var tp := int(GameData.bal("progression.talent_points_per_level"))
+		EventBus.hud_message.emit(Loc.f("Level %d! +%d talent point, +%d stat points" if tp == 1 else "Level %d! +%d talent points, +%d stat points",
+				[new_level, tp, int(GameData.bal("progression.stat_points_per_level"))]), Color(1, 0.85, 0.3))
 
 
 # --- Life state (downed / revive / ghost) ----------------------------------------------------

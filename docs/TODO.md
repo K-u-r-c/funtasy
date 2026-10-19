@@ -99,7 +99,7 @@ screenshot review at 1920x1080 and 3440x1440.
 - [x] #30 Boss chamber is the graph-farthest dead end from the start (`biomes-*`)
 - [x] #25 Walk / run cadence matches the ground speed, planted feet (`hero-art`, tour `gait`)
 - [x] #28 Map and minimap mark discovered merchants by type and the boss chamber (`economy`, `economy-lan`)
-- [x] #27 83 new passive talents with icons, 3 talent and 10 stat points per level, old saves topped up (`talents-*`, `balance-*`)
+- [x] #27 83 new passive talents with icons, 3 talent and 10 stat points per level (back to 1 and 5 in #45), old saves topped up (`talents-*`, `balance-*`)
 - [x] #23 / #31 One sealed entrance per merchant room and boss chamber, door art per merchant and per biome (`biomes-*`, `economy`, `economy-lan`)
 - [x] #29 UI overhaul: icons, ornaments, chips and gauges on every screen (`ui-layout`, tours)
 - [x] #32 Polish localization (2369 keys incl. 105 lore books) and a live language option (`i18n`, `i18n-lan`, `ui-layout-pl`)
@@ -115,6 +115,10 @@ screenshot review at 1920x1080 and 3440x1440.
 - [x] #34 Nine element looks for AoE impacts and lingering zones (`fx`, `fx-lan`)
 - [x] #36 Sewer drain pipes and Foundry furnace vents on every wall side, with a telegraph before each spray (`spouts-sewers`, `spouts-foundry`)
 - [x] Screenshot review in English and Polish: tours `interact`, `party` (16:9 and 32:9), `target`, `bookback`, `allyfx`, `elements`, `spouts` and `spout_sides` (Sewers, Foundry, every wall side); the Linux release build checked with `--lang=pl`
+
+## Fourth playtest issues (GitHub #40-#46)
+
+- [x] #45 5 stat points and 1 talent point per level, tier gate 2, over-spent saves refunded with a message (`talents-*`, `balance-*`)
 
 ## PixelLab ledger
 
@@ -188,6 +192,13 @@ Goal cap: 150 generations, 150 kept in reserve. Planned: status icons ~5 (Pixen 
 | 2026-10-18 | #36 wall spouts: 2 map objects 48x48 (Sewers drain pipe, Foundry furnace vent) | 4322 | 4324 | 2 | 7 |
 | 2026-10-19 | #36 spouts on every wall side: 2 top-down map objects 48x48 (drain pipe, furnace nozzle); came out diagonal, unused | 4324 | 4326 | 2 | 9 |
 | 2026-10-19 | #36 spouts on every wall side: 2 top-down map objects 64x32, straight, mouth right (drain pipe, furnace nozzle, the nozzle recoloured) | 4326 | 4328 | 2 | 11 |
+
+Fourth playtest goal (#40-#46), start 2026-10-19: **used 4328, remaining 478**, resets 2026-11-14.
+Goal cap: 60 generations, 150 kept in reserve. Planned: none needed so far (markers and aim previews drawn in code / free workbenches); door art only if lighting needs it.
+
+| Date | Batch | Used before | Used after | Spend | Goal spend |
+| --- | --- | --- | --- | --- | --- |
+| 2026-10-19 | (goal start) | 4328 | 4328 | 0 | 0 |
 
 ## Done (MVP)
 
