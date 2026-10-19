@@ -125,6 +125,7 @@ screenshot review at 1920x1080 and 3440x1440.
 - [x] #43 Talent, Skill Book and bar tooltips with exact numbers from the data, per-rank / now / next for ranks, keystone triggers (`tooltips`, `tooltips-pl`, tour `talent_tips`)
 - [x] #44 Long text never leaves the screen: HUD messages and prompts wrap, lobby rows wrap / ellipsize; every screen checked at 16:9, 32:9, 4:3 and 1:1 in both languages (`ui-fit*`)
 - [x] #46 Doors stay visible lit from behind and still close their opening to light; prop shadows start at the foot (one-sided occluder lines; `lighting-rules`, tour `lighting_sides` in all biomes)
+- [x] Screenshot review in English and Polish: tours `points`, `target_clear`, `hostile`, `previews`, `talent_tips` (all four classes), `lighting_sides` (all five biomes), the `ui-fit` shots (HUD and lobby, before / after)
 
 ## PixelLab ledger
 
@@ -200,11 +201,12 @@ Goal cap: 150 generations, 150 kept in reserve. Planned: status icons ~5 (Pixen 
 | 2026-10-19 | #36 spouts on every wall side: 2 top-down map objects 64x32, straight, mouth right (drain pipe, furnace nozzle, the nozzle recoloured) | 4326 | 4328 | 2 | 11 |
 
 Fourth playtest goal (#40-#46), start 2026-10-19: **used 4328, remaining 478**, resets 2026-11-14.
-Goal cap: 60 generations, 150 kept in reserve. Planned: none needed so far (markers and aim previews drawn in code / free workbenches); door art only if lighting needs it.
+Goal cap: 60 generations, 150 kept in reserve. Spent none: target markers, aim previews and the lighting fix are drawn in code.
 
 | Date | Batch | Used before | Used after | Spend | Goal spend |
 | --- | --- | --- | --- | --- | --- |
 | 2026-10-19 | (goal start) | 4328 | 4328 | 0 | 0 |
+| 2026-10-19 | (goal end: markers, aim previews and lighting drawn in code; no generations needed) | 4328 | 4328 | 0 | 0 |
 
 ## Done (MVP)
 
