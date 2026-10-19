@@ -713,6 +713,7 @@ func run_lan() -> void:
 	await da._wait(1.5)
 	da.check(p.health.hp > php + 1.0, "the client's Flash Heal aimed at the host heals the host (%d -> %d)" % [php, p.health.hp])
 	await lan_interrupt(c, d)
+	await lan_charge(c, d)
 	NetworkManager.to_clients("DevAuto", "client_cmd", ["done", null])
 	await da._wait(1.0)
 
@@ -740,9 +741,85 @@ func lan_interrupt(c: Player, d: Enemy) -> void:
 	await da._wait(1.2)
 
 
+## #54 over LAN: the client holds Power Shot (slot 3). While it charges on the host no mana is spent
+## and no cooldown runs; the release fires it and only then pays and starts the cooldown. A
+## release the client can no longer pay for and a charge broken by a stun spend nothing, and the
+## client is told why.
+func lan_charge(c: Player, d: Enemy) -> void:
+	var sid := "ranger_power_shot"
+	var lo: Array = c.skills.duplicate()
+	lo[3] = sid
+	c.skills = lo
+	c.cooldowns.clear()
+	c.resource.value = c.resource.max_value
+	c.host_teleport(g.nearest_floor(d.global_position + Vector2(-90, 0)))
+	await da._wait(1.0)
+	var cost := c.stats.cost_for(GameData.skill(sid))
+	var key := "%s:%s" % [c.name, sid]
+	# Paid on release.
+	var m0 := c.resource.value
+	var hp0 := d.health.hp
+	var uses0 := int(Combat.instance.get_meta("uses", {}).get(key, 0))
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["sk_charge", [d.global_position, 1.2, ""]])
+	var held: bool = await da._wait_until(func(): return not c.charging.is_empty(), 3.0)
+	await da._wait(0.5)
+	da.check(held and c.resource.value >= m0 - 0.01 and c.cooldown_left(sid) <= 0.0,
+			"LAN: while the client holds Power Shot no mana is spent and no cooldown runs (%.1f / %.1f)" % [c.resource.value, m0])
+	await da._wait_until(func(): return c.charging.is_empty(), 3.0)
+	await da._wait(0.4)
+	da.check(c.cooldown_left(sid) > 0.0 and c.resource.value <= m0 - cost + 0.5 and d.health.hp < hp0
+			and int(Combat.instance.get_meta("uses", {}).get(key, 0)) == uses0 + 1,
+			"LAN: the release fires Power Shot, then spends %d mana and starts the cooldown (%.1f -> %.1f)" % [cost, m0, c.resource.value])
+	await da._wait(0.8)
+	# Too little mana on release.
+	c.cooldowns.clear()
+	c.resource.value = c.resource.max_value
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["sk_charge", [d.global_position, 1.2, "Charge cancelled: not enough Mana"]])
+	var held2: bool = await da._wait_until(func(): return not c.charging.is_empty(), 3.0)
+	da.check(held2, "LAN: the client charges Power Shot again")
+	c.resource.value = cost * 0.5
+	var m1 := c.resource.value
+	await da._wait_until(func(): return c.charging.is_empty(), 3.0)
+	await da._wait(0.3)
+	da.check(c.cooldown_left(sid) <= 0.0 and c.resource.value >= m1 - 0.01, "LAN: a release without enough mana spends nothing (%.1f -> %.1f)" % [m1, c.resource.value])
+	await da._wait(1.0)
+	# Interrupted by a stun.
+	c.resource.value = c.resource.max_value
+	var m2 := c.resource.value
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["sk_charge", [d.global_position, 1.4, "Charge interrupted"]])
+	var held3: bool = await da._wait_until(func(): return not c.charging.is_empty(), 3.0)
+	da.check(held3, "LAN: the client charges Power Shot a third time")
+	await da._wait(0.3)
+	c.status.apply("stun", 0.5, 0.0, null)
+	await da._wait(0.3)
+	da.check(c.charging.is_empty() and c.cooldown_left(sid) <= 0.0 and c.resource.value >= m2 - 0.01, "LAN: a stunned charge spends nothing")
+	await da._wait(1.5)
+
+
 func client_cmd(cmd: String, arg: Variant) -> void:
 	p = da._local()
 	match cmd:
+		"sk_charge":
+			# Hold skill 3 for arg[1] s at arg[0]; arg[2]: the message expected when it is cancelled.
+			p.auto_aim = arg[0]
+			p.local_cd.clear()  # the host cleared the cooldown for the test
+			var got: Array = []
+			var cb := func(t: String, _col: Color): got.append(t)
+			EventBus.hud_message.connect(cb)
+			Input.action_press("skill_3")
+			await da._wait(0.5)
+			var charging := p.charge_slot == 3 and p.charge_frac(3) > 0.0 and not p.local_cd.has(3)
+			await da._wait(float(arg[1]) - 0.5)
+			Input.action_release("skill_3")
+			await da._wait(0.6)
+			EventBus.hud_message.disconnect(cb)
+			p.auto_aim = Vector2.INF
+			if str(arg[2]).is_empty():
+				da.check(charging, "client: holding Power Shot shows the charge with no cooldown sweep")
+				da.check(p.local_cd.has(3) and p.charge_slot == -1, "client: the cooldown sweep starts when Power Shot fires")
+			else:
+				da.check(got.has(Loc.t(str(arg[2]))) and not p.local_cd.has(3) and p.charge_slot == -1,
+						"client: the cancelled charge says '%s' and starts no cooldown (%s)" % [arg[2], got])
 		"sk_hold_attack":
 			p.auto_aim = arg
 			Input.action_press("attack")

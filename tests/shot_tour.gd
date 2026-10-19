@@ -313,6 +313,31 @@ func _previews(_arg: String) -> void:
 	p.auto_aim = Vector2.INF
 
 
+## #54: Power Shot held on slot 2 at about 60 %: the gold fill along its line, the ring around the
+## hero and the HUD slot filling, with no cooldown sweep; then full (pulsing) and after the release
+## (the sweep starts only now).
+func _charge(_arg: String) -> void:
+	var dummies := await arena(3)
+	p.host_take_torch()
+	var lo: Array = p.skills.map(func(x): return "" if str(x) == "ranger_power_shot" else x)
+	lo[2] = "ranger_power_shot"
+	p.skills = lo
+	p.resource.value = p.resource.max_value
+	p.local_cd.clear()
+	p.cooldowns.clear()
+	p.auto_aim = dummies[1].global_position + Vector2(0, -12)
+	await da._wait(0.4)
+	Input.action_press("skill_2")
+	await da._wait(0.62)
+	await snap("charge_mid_%s" % Settings.language)
+	await da._wait(0.6)
+	await snap("charge_full_%s" % Settings.language)
+	Input.action_release("skill_2")
+	await da._wait(0.5)
+	await snap("charge_fired_%s" % Settings.language)
+	p.auto_aim = Vector2.INF
+
+
 ## #43: the talent card of a damage skill, a heal, an area skill, a ranked passive (at rank 1) and
 ## a keystone of the hero's class, then a skill's numeric card from the bar.
 func _talent_tips(_arg: String) -> void:

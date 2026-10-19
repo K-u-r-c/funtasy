@@ -500,6 +500,7 @@ func _process(_delta: float) -> void:
 			var cd: Array = player.local_cd.get(i, [0.0, 1.0])
 			s.set_cooldown(clampf(float(cd[0]) / maxf(float(cd[1]), 0.01), 0.0, 1.0) if player.local_cd.has(i) else 0.0,
 					float(cd[0]) if player.local_cd.has(i) else 0.0)
+			s.set_charge(player.charge_frac(i))
 			var slot_sk: Dictionary = GameData.skills.get(str(player.skills[i]), {})
 			var cost := player.stats.cost_for(slot_sk) if not slot_sk.is_empty() else 0.0
 			s.unaffordable = cost > 0.0 and player.resource.value + 0.01 < cost
@@ -887,6 +888,7 @@ class SkillSlot:
 				unaffordable = v
 				queue_redraw()
 	var count := -1
+	var charge := -1.0  ## #54: how full the charge-up skill in this slot is while held, -1 = not charging
 	var _glyph: InputGlyph
 	var _sweep: ColorRect
 	var _text: Control
@@ -954,9 +956,23 @@ class SkillSlot:
 			var g := roundf((1.0 - _ready_flash) * 4.0)
 			draw_rect(r.grow(g), Color(UITheme.GOLD, _ready_flash), false, 1.0)
 
+	func set_charge(v: float) -> void:
+		if absf(v - charge) > 0.005:
+			charge = v
+			_text.queue_redraw()
+
 	func _draw_text() -> void:
 		var f := UITheme.font()
 		var fs := UITheme.FONT_SMALL
+		if charge >= 0.0:
+			# The charge rises through the icon in gold; a full charge pulses its frame.
+			var h := roundf(32.0 * charge)
+			var pulse := 0.7 + 0.3 * sin(Time.get_ticks_msec() / 100.0) if charge >= 1.0 else 1.0
+			_text.draw_rect(Rect2(4, 36 - h, 32, h), Color(1.0, 0.8, 0.34, 0.32 * pulse))
+			_text.draw_line(Vector2(4, 36 - h), Vector2(36, 36 - h), Color(1.0, 0.86, 0.45, pulse), 1.0)
+			_text.draw_rect(Rect2(Vector2.ZERO, size).grow(-0.5), Color(UITheme.GOLD, pulse), false, 1.0)
+			if charge >= 1.0:
+				_text.queue_redraw()
 		if cd_frac > 0.0 and cd_left > 0.05:
 			var txt := "%.1f" % cd_left if cd_left < 10.0 else "%d" % int(cd_left)
 			var tw := f.get_string_size(txt, HORIZONTAL_ALIGNMENT_LEFT, -1, UITheme.FONT_BODY).x

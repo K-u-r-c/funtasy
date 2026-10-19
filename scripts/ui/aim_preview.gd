@@ -5,11 +5,14 @@ extends Node2D
 ## where it stops, the area at the aim point inside a range ring, a cone / swing as a sector, a
 ## line or dash as a band, a ground zone or aura around the hero. The shape comes from the skill's
 ## data (SkillShape) and follows the same aim the cast would use: the friendly pick for ally
-## spells, the enemy lock for aimed attacks, else the cursor / right stick. When the cast can't
-## happen (cooldown, cost, target out of reach) the preview turns red and says why. Local only.
+## spells, else the cursor / right stick. When the cast can't happen (cooldown, cost, target out
+## of reach) the preview turns red and says why. A charge-up skill (#54) fills its shape with gold
+## as it charges, with a ring around the hero and the percentage; it is paid for only when it
+## fires on the release. Local only.
 
 const OK := Color(0.62, 0.88, 1.0)
 const BAD := Color(1.0, 0.32, 0.26)
+const CHARGE := Color(1.0, 0.8, 0.34)
 
 var _font: Font
 
@@ -33,10 +36,32 @@ func _draw() -> void:
 	var info := lp.preview_info(slot)
 	var col: Color = BAD if not str(info.why).is_empty() else OK
 	var t := Time.get_ticks_msec() / 1000.0
-	for pr in primitives(info.shape, info.origin, info.aim):
+	var prims := primitives(info.shape, info.origin, info.aim)
+	for pr in prims:
 		_render(pr, col, t)
 	if not str(info.why).is_empty():
 		_label(Vector2(info.aim) + Vector2(0, -16), Loc.t(str(info.why)), col)
+	var frac := lp.charge_frac(slot)
+	if frac >= 0.0:
+		_charge(prims, Vector2(info.origin), frac, t)
+
+
+## #54: the charge so far: the first band of the shape fills with gold from the hero outwards, a
+## gold ring closes around the hero and "Charging 60%" shows under it (pulsing when full).
+func _charge(prims: Array, origin: Vector2, frac: float, t: float) -> void:
+	var full := frac >= 1.0
+	var glow := 0.75 + 0.25 * sin(t * 10.0) if full else 0.9
+	for pr in prims:
+		if str(pr.t) == "band":
+			var a: Vector2 = pr.a
+			var b: Vector2 = a.lerp(pr.b, frac)
+			var n := (Vector2(pr.b) - a).normalized().orthogonal() * float(pr.w) * 0.5
+			draw_colored_polygon(PackedVector2Array([a + n, b + n, b - n, a - n]), Color(CHARGE, 0.35 * glow))
+			draw_line(a, b, Color(CHARGE, glow), 2.0)
+			break
+	draw_arc(origin, 22.0, -PI / 2.0, -PI / 2.0 + TAU * frac, 32, Color(0, 0, 0, 0.6), 4.0)
+	draw_arc(origin, 22.0, -PI / 2.0, -PI / 2.0 + TAU * frac, 32, Color(CHARGE, glow), 2.0)
+	_label(origin + Vector2(0, 38), Loc.f("Charging %d%%", [roundi(frac * 100.0)]), Color(CHARGE, glow))
 
 
 ## The drawing of a skill shape aimed from `origin` at `aim`: an array of

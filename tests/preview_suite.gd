@@ -4,7 +4,8 @@ extends RefCounted
 ## preview shape that draws something; a tap casts on release; a held skill shows its preview and
 ## casts on release, not before; the preview says why when the cast can't happen (cooldown, cost);
 ## the preview follows the aim (cursor / stick); a charge-up skill (Power Shot) still starts on the
-## press and fires on the release, with its preview showing while held.
+## press and fires on the release, with its preview showing while held, and pays its cost and
+## cooldown only when it fires (#54).
 
 var da: Node
 var g: Node
@@ -99,4 +100,60 @@ func run() -> void:
 	await _release("skill_2")
 	await da._wait(0.4)
 	da.check(p.charging.is_empty() and p.cooldown_left("ranger_power_shot") > 0.0, "releasing fires the charged shot")
+	await _charge_costs()
 	p.auto_aim = Vector2.INF
+
+
+## #54 (solo, Power Shot on slot 2): holding spends nothing and runs no cooldown, the HUD slot and
+## the preview show the charge; the release pays and starts the cooldown; a release the hero can
+## no longer pay for, and a charge interrupted by a stun, spend nothing and say why.
+func _charge_costs() -> void:
+	var sid := "ranger_power_shot"
+	var cost := p.stats.cost_for(GameData.skill(sid))
+	var hud: Node = da.get_tree().get_first_node_in_group("hud")
+	var got: Array = []
+	var cb := func(t: String, _col: Color): got.append(t)
+	EventBus.hud_message.connect(cb)
+	# Paid on release.
+	await da._wait(0.3)
+	p.cooldowns.clear()
+	p.local_cd.clear()
+	p.resource.value = p.resource.max_value
+	var m0 := p.resource.value
+	await _press("skill_2")
+	await da._wait(0.6)
+	da.check(not p.charging.is_empty() and p.resource.value >= m0 - 0.01 and p.cooldown_left(sid) <= 0.0 and not p.local_cd.has(2),
+			"while Power Shot is held no mana is spent and no cooldown runs (%.1f / %.1f)" % [p.resource.value, m0])
+	da.check(p.charge_slot == 2 and p.charge_frac(2) > 0.2 and hud._slots[2].charge > 0.2, "the HUD slot shows the charge filling (%.2f)" % p.charge_frac(2))
+	await _release("skill_2")
+	await da._wait(0.3)
+	da.check(p.charging.is_empty() and p.cooldown_left(sid) > 0.0 and p.resource.value <= m0 - cost + 0.5 and p.local_cd.has(2) and p.charge_slot == -1,
+			"releasing fires Power Shot and only then spends %d mana and starts the cooldown (%.1f -> %.1f)" % [cost, m0, p.resource.value])
+	# Can't pay any more on release: nothing spent.
+	p.cooldowns.clear()
+	p.local_cd.clear()
+	p.resource.value = p.resource.max_value
+	await _press("skill_2")
+	await da._wait(0.4)
+	p.resource.value = cost * 0.5
+	var m1 := p.resource.value
+	got.clear()
+	await _release("skill_2")
+	await da._wait(0.3)
+	da.check(p.charging.is_empty() and p.cooldown_left(sid) <= 0.0 and p.resource.value >= m1 - 0.01 and not p.local_cd.has(2),
+			"a release without enough mana spends nothing and starts no cooldown (%.1f -> %.1f)" % [m1, p.resource.value])
+	da.check(got.has(Loc.t("Charge cancelled: not enough Mana")), "the cancelled charge says why (%s)" % [got])
+	# Interrupted by a stun while held: nothing spent.
+	p.resource.value = p.resource.max_value
+	var m2 := p.resource.value
+	await _press("skill_2")
+	await da._wait(0.4)
+	got.clear()
+	p.status.apply("stun", 0.6, 0.0, null)
+	await da._wait(0.3)
+	da.check(p.charging.is_empty() and p.cooldown_left(sid) <= 0.0 and p.resource.value >= m2 - 0.01 and p.charge_slot == -1,
+			"a charge interrupted by a stun spends nothing and starts no cooldown")
+	da.check(got.has(Loc.t("Charge interrupted")), "the interrupted charge says why (%s)" % [got])
+	await _release("skill_2")
+	await da._wait(0.8)
+	EventBus.hud_message.disconnect(cb)

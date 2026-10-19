@@ -60,6 +60,10 @@ var aim_pos := Vector2.ZERO
 
 var inv := Inventory.new()  ## host: authoritative; owner: last snapshot from the host
 var local_cd: Dictionary = {}  ## owner: slot -> [left, total]
+var charge_slot := -1  ## owner: the slot of the charge-up skill being held (#54), -1 = none
+var charge_t := 0.0  ## owner: seconds charged so far
+var charge_max := 1.0  ## owner: seconds to a full charge
+var _charge_held: Dictionary = {}  ## owner: slots whose key started a charge and is still down
 var item_cd_left := 0.0
 var item_cd_total := 1.0
 var torch_left := 0.0  ## host: exact seconds left on the carried torch
@@ -457,6 +461,8 @@ func _process(delta: float) -> void:
 		local_cd[k][0] -= delta
 		if local_cd[k][0] <= 0.0:
 			local_cd.erase(k)
+	if charge_slot >= 0:
+		charge_t += delta
 	for k in _pending.keys():
 		_pending[k] -= delta
 		if _pending[k] <= 0.0:
@@ -529,6 +535,7 @@ func _owner_tick(delta: float) -> void:
 	if blocked:
 		_release_quick_holds()
 		_skill_hold.clear()
+		_charge_held.clear()
 		return
 	# Dodge
 	if Input.is_action_just_pressed("dodge") and _dodge_cd <= 0.0 and speed > 0.0 and not status.has_flag("no_dash"):
@@ -554,12 +561,14 @@ func _owner_tick(delta: float) -> void:
 				if not local_cd.has(slot) and not _pending.has(slot):
 					_send_skill(slot)
 			continue
-		if Input.is_action_pressed(action) and not local_cd.has(slot) and not _pending.has(slot):
+		# A charge that fired or was cancelled needs a fresh press to start again (#54).
+		if Input.is_action_pressed(action) and not local_cd.has(slot) and not _pending.has(slot) and not _charge_held.has(slot):
 			if slot == 0 and _click_select:
 				_pending[slot] = 0.3
 				continue
 			_send_skill(slot)
 		if Input.is_action_just_released(action) and _is_hold_skill(str(skills[slot])):
+			_charge_held.erase(slot)
 			request_skill_release.rpc_id(1, slot, _cast_aim(slot))
 	_handle_quick_slots(delta)
 	_handle_interact()
@@ -849,6 +858,8 @@ func request_skill(slot: int, aim: Vector2, ally_peer: int = 0) -> void:
 	# Cooldown races and casting are normal while holding a key; don't nag about them.
 	var quiet := err in ["Not ready", "Busy"] or slot == 0
 	_skill_result.rpc_id(peer_id, slot, cooldown_left(sid), err.is_empty(), "" if quiet else err)
+	if err.is_empty() and str(charging.get("skill", "")) == sid:
+		_charge_begin.rpc_id(peer_id, slot, float(charging.max))
 
 
 ## Owner -> host (reliable): the button of a channelled / charge-up skill was released.
@@ -859,9 +870,38 @@ func request_skill_release(slot: int, aim: Vector2) -> void:
 	aim_pos = aim
 	var sid := str(skills[slot])
 	if str(charging.get("skill", "")) == sid:
-		Combat.instance.release_charge(self, aim)
+		Combat.instance.release_charge(self, aim)  # pays, fires and tells the owner (#54)
 	elif str(channel.get("skill", "")) == sid:
 		Combat.instance.stop_channel(self)
+
+
+## Host (#54): a charge-up skill fired on its release (`msg` "") or was cancelled with nothing
+## spent (`msg` says why); the owner's charge display ends and the cooldown, if any, starts.
+func host_charge_done(sid: String, msg: String) -> void:
+	var slot := skills.find(sid)
+	if slot >= 0:
+		_skill_result.rpc_id(peer_id, slot, cooldown_left(sid), msg.is_empty(), msg)
+	_charge_end.rpc_id(peer_id)
+
+
+## Host -> owner (reliable): the charge-up skill in `slot` started charging; full after `full` s.
+@rpc("authority", "call_local", "reliable")
+func _charge_begin(slot: int, full: float) -> void:
+	charge_slot = slot
+	_charge_held[slot] = true
+	charge_t = 0.0
+	charge_max = maxf(full, 0.05)
+
+
+## Host -> owner (reliable): the charge fired or was cancelled.
+@rpc("authority", "call_local", "reliable")
+func _charge_end() -> void:
+	charge_slot = -1
+
+
+## Owner (#54): how full the charge held in `slot` is (0..1), or -1 when it isn't charging.
+func charge_frac(slot: int) -> float:
+	return clampf(charge_t / charge_max, 0.0, 1.0) if charge_slot == slot else -1.0
 
 
 ## Host: a cooldown changed outside a cast (resets, procs); tell the owner's HUD.
@@ -1113,8 +1153,10 @@ func request_spend_stat(stat: String, count: int) -> void:
 func _skill_result(slot: int, cd: float, ok: bool, msg: String) -> void:
 	if ok:
 		_pending.erase(slot)
-		local_cd[slot] = [cd, cd]
-		EventBus.local_cooldown_started.emit(slot, cd)
+		# A charge-up skill accepted on the press has no cooldown yet (#54): no sweep until it fires.
+		if cd > 0.0:
+			local_cd[slot] = [cd, cd]
+			EventBus.local_cooldown_started.emit(slot, cd)
 	else:
 		_pending[slot] = 0.25  # don't spam requests while a held key keeps failing
 		if cd > 0.0:

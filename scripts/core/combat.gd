@@ -105,60 +105,18 @@ func try_use_skill(caster: Actor, skill_id: String, aim: Vector2, opts: Dictiona
 		caster.cooldowns[skill_id] = float(skill.get("cooldown", 1.0))
 		fx.sound.rpc(str(skill.get("sfx", "cast")), caster.global_position)
 		return ""
-	var cost := caster.stats.cost_for(skill)
-	if JSON.stringify(skill.get("effects", [])).contains("\"heal\""):
-		cost *= caster.stats.mult("heal_cost")  # Black Iron Penitent Cross
-	if caster.stats.has_flag("free_shot_chance") and str(skill.get("school", "")) == "ranged" and rng.randf() < 0.25:
-		cost = 0.0  # Quiver of the Endless Abyss
-	# Stormweaver Grips: the stacks cheapen this cast, then they are spent.
-	for cst in caster.status.effects.duplicate():
-		if cst.def.get("consume_on_cast", false) and not skill.get("passive", false):
-			caster.status.remove(cst.id)
-	# Spatial anomaly (Archives): the cost of every cast rolls +-30%, shown above the caster.
-	if cost > 0.0 and caster is Player and game and game.dungeon.in_anomaly(caster.global_position):
-		var roll := rng.randf_range(1.0 - float(GameData.bal("anomaly.cost_swing", 0.3)), 1.0 + float(GameData.bal("anomaly.cost_swing", 0.3)))
-		cost *= roll
-		fx.number.rpc(caster.global_position + Vector2(0, -24), "Cost x%.2f", "info", [roll])
-	if skill.has("channel"):
-		cost = 0.0  # channels pay per second
-	if caster.resource.kind != "none" and cost > 0.0:
-		if not caster.resource.can_pay(cost):
-			# Bloodmage's Choker: pay the missing mana with HP.
-			if caster.stats.has_flag("hp_for_mana") and caster.resource.kind == "mana":
-				var missing := cost - caster.resource.value
-				var hp_cost := missing * float(GameData.bal("combat.hp_per_mana", 2.0))
-				if caster.health.hp <= hp_cost + 1.0:
-					return "Not enough Mana"
-				caster.health.hp -= hp_cost
-				caster.resource.value = 0.0
-			else:
-				return "Not enough Fury" if caster.resource.kind == "fury" else "Not enough Mana"
-		else:
-			caster.resource.pay(cost)
+	# #54: a charge-up skill pays its cost and starts its cooldown when it is released and fires
+	# (release_charge); the press only checks it could pay now and starts the charge.
+	var charge := skill.has("charge_time")
 	var extra := {}
-	if skill.get("consumes_all_resource", false):
-		extra.extra_resource = caster.resource.value
-		caster.resource.value = 0.0
-	if skill.has("cost_hp_pct"):
-		var hc := caster.health.hp * float(skill.cost_hp_pct)
-		caster.health.hp = maxf(1.0, caster.health.hp - hc)
-		fx.number.rpc(caster.global_position, str(int(hc)), "hurt")
-	if skill.has("generates"):
-		caster.resource.gain(float(skill.generates) * (caster.stats.mult("resource_gen") if caster.resource.kind == "fury" else 1.0))
-	if max_charges > 1:
-		caster.skill_charges[skill_id] = int(caster.skill_charges.get(skill_id, max_charges)) - 1
-		if caster.cooldown_left(skill_id) <= 0.0:
-			caster.cooldowns[skill_id] = caster.stats.cooldown_for(skill) * maxf(0.1, 1.0 + caster.stats.skill_mod(skill_id, "recharge_mult"))
+	if charge:
+		if not _can_afford(caster, skill):
+			return "Not enough Fury" if caster.resource.kind == "fury" else "Not enough Mana"
 	else:
-		caster.cooldowns[skill_id] = caster.stats.cooldown_for(skill)
-	var proc_need := str(skill.get("usable_if", {}).get("proc", ""))
-	if not proc_need.is_empty() and skill.get("usable_if", {}).get("consume", true):
-		caster.status.remove(proc_need)
-	# Usage counter (read by the test harness and handy when balancing).
-	var uses: Dictionary = get_meta("uses", {})
-	var key := "%s:%s" % [caster.name, skill_id]
-	uses[key] = int(uses.get(key, 0)) + 1
-	set_meta("uses", uses)
+		var paid := _pay(caster, skill, skill_id)
+		if paid.has("err"):
+			return str(paid.err)
+		extra = paid.extra
 	var dir := (aim - caster.global_position).normalized()
 	if dir == Vector2.ZERO:
 		dir = caster.facing
@@ -166,9 +124,10 @@ func try_use_skill(caster: Actor, skill_id: String, aim: Vector2, opts: Dictiona
 	var anim := anim_for(caster, skill)
 	caster.play_action.rpc(anim, dir)
 	var impact := impact_delay(caster, skill, anim)
-	if skill.has("sfx") and impact <= 0.0:
+	if skill.has("sfx") and impact <= 0.0 and not charge:
 		fx.sound.rpc(skill.sfx, caster.global_position)  # delayed swings play it on impact
-	fire(caster, "on_skill_cast", {"skill": skill_id, "school": school, "target": null, "ctx": {}})
+	if not charge:
+		fire(caster, "on_skill_cast", {"skill": skill_id, "school": school, "target": null, "ctx": {}})
 	if skill.has("channel"):
 		var ch: Dictionary = skill.channel
 		caster.channel = {"skill": skill_id, "left": float(ch.get("duration", 2.0)) * (1.0 + caster.stats.skill_mod(skill_id, "duration_mult")),
@@ -197,6 +156,84 @@ func try_use_skill(caster: Actor, skill_id: String, aim: Vector2, opts: Dictiona
 	else:
 		finish_cast(caster, skill_id, aim, extra)
 	return ""
+
+
+## Host: what `skill` costs `caster` right now (before the per-cast rolls of _pay).
+func _cost_of(caster: Actor, skill: Dictionary) -> float:
+	var cost := caster.stats.cost_for(skill)
+	if JSON.stringify(skill.get("effects", [])).contains("\"heal\""):
+		cost *= caster.stats.mult("heal_cost")  # Black Iron Penitent Cross
+	return cost
+
+
+## Host: could `caster` pay for `skill` now (with mana or, wearing the Bloodmage's Choker, HP)?
+func _can_afford(caster: Actor, skill: Dictionary) -> bool:
+	var cost := _cost_of(caster, skill)
+	if caster.resource.kind == "none" or cost <= 0.0 or skill.has("channel") or caster.resource.can_pay(cost):
+		return true
+	if caster.stats.has_flag("hp_for_mana") and caster.resource.kind == "mana":
+		return caster.health.hp > (cost - caster.resource.value) * float(GameData.bal("combat.hp_per_mana", 2.0)) + 1.0
+	return false
+
+
+## Host: pays for a cast of `skill` (resource, HP costs, generated resource) and starts its
+## cooldown or spends a charge. Returns {"extra": {...}} for finish_cast, or {"err": reason}
+## with nothing spent.
+func _pay(caster: Actor, skill: Dictionary, skill_id: String) -> Dictionary:
+	var max_charges := int(skill.get("charges", 1)) + int(caster.stats.skill_mod(skill_id, "charges_add"))
+	var cost := _cost_of(caster, skill)
+	if caster.stats.has_flag("free_shot_chance") and str(skill.get("school", "")) == "ranged" and rng.randf() < 0.25:
+		cost = 0.0  # Quiver of the Endless Abyss
+	# Spatial anomaly (Archives): the cost of every cast rolls +-30%, shown above the caster.
+	if cost > 0.0 and caster is Player and game and game.dungeon.in_anomaly(caster.global_position):
+		var roll := rng.randf_range(1.0 - float(GameData.bal("anomaly.cost_swing", 0.3)), 1.0 + float(GameData.bal("anomaly.cost_swing", 0.3)))
+		cost *= roll
+		fx.number.rpc(caster.global_position + Vector2(0, -24), "Cost x%.2f", "info", [roll])
+	if skill.has("channel"):
+		cost = 0.0  # channels pay per second
+	if caster.resource.kind != "none" and cost > 0.0:
+		if not caster.resource.can_pay(cost):
+			# Bloodmage's Choker: pay the missing mana with HP.
+			if caster.stats.has_flag("hp_for_mana") and caster.resource.kind == "mana":
+				var missing := cost - caster.resource.value
+				var hp_cost := missing * float(GameData.bal("combat.hp_per_mana", 2.0))
+				if caster.health.hp <= hp_cost + 1.0:
+					return {"err": "Not enough Mana"}
+				caster.health.hp -= hp_cost
+				caster.resource.value = 0.0
+			else:
+				return {"err": "Not enough Fury" if caster.resource.kind == "fury" else "Not enough Mana"}
+		else:
+			caster.resource.pay(cost)
+	# Stormweaver Grips: the stacks cheapened this cast (cost_for), now they are spent.
+	for cst in caster.status.effects.duplicate():
+		if cst.def.get("consume_on_cast", false) and not skill.get("passive", false):
+			caster.status.remove(cst.id)
+	var extra := {}
+	if skill.get("consumes_all_resource", false):
+		extra.extra_resource = caster.resource.value
+		caster.resource.value = 0.0
+	if skill.has("cost_hp_pct"):
+		var hc := caster.health.hp * float(skill.cost_hp_pct)
+		caster.health.hp = maxf(1.0, caster.health.hp - hc)
+		fx.number.rpc(caster.global_position, str(int(hc)), "hurt")
+	if skill.has("generates"):
+		caster.resource.gain(float(skill.generates) * (caster.stats.mult("resource_gen") if caster.resource.kind == "fury" else 1.0))
+	if max_charges > 1:
+		caster.skill_charges[skill_id] = int(caster.skill_charges.get(skill_id, max_charges)) - 1
+		if caster.cooldown_left(skill_id) <= 0.0:
+			caster.cooldowns[skill_id] = caster.stats.cooldown_for(skill) * maxf(0.1, 1.0 + caster.stats.skill_mod(skill_id, "recharge_mult"))
+	else:
+		caster.cooldowns[skill_id] = caster.stats.cooldown_for(skill)
+	var proc_need := str(skill.get("usable_if", {}).get("proc", ""))
+	if not proc_need.is_empty() and skill.get("usable_if", {}).get("consume", true):
+		caster.status.remove(proc_need)
+	# Usage counter (read by the test harness and handy when balancing).
+	var uses: Dictionary = get_meta("uses", {})
+	var key := "%s:%s" % [caster.name, skill_id]
+	uses[key] = int(uses.get(key, 0)) + 1
+	set_meta("uses", uses)
+	return {"extra": extra}
 
 
 ## #26: would `skill` start now if the pending swing were out of the way? Cancelling the swing
@@ -394,15 +431,44 @@ static func cast_time_for(st: Stats, skill: Dictionary) -> float:
 	return float(skill.get("cast_time", 0.0)) / (1.0 + st.get_stat("haste"))
 
 
-## Host: the owner released a charge-up skill (or the harness / AI fires it).
-func release_charge(caster: Actor, aim: Vector2) -> void:
+## Host: the owner released a charge-up skill (or the harness / AI fires it, or it was held to
+## its limit). #54: only now does it pay its cost and start its cooldown; a hero who can't act
+## (stunned, downed, dead), is silenced for a spell or can no longer pay loses the charge and
+## spends nothing. Returns "" when it fired, else the reason (also sent to the owner).
+func release_charge(caster: Actor, aim: Vector2) -> String:
 	if caster.charging.is_empty():
-		return
+		return ""
 	var c: Dictionary = caster.charging
 	caster.charging = {}
+	var sid := str(c.skill)
+	var skill := GameData.skill(sid)
+	var err := ""
+	var extra := {}
+	if not caster.can_act():
+		err = "Charge interrupted"
+	elif caster.status.has_flag("silenced") and str(skill.get("school", "melee")) == "spell":
+		err = "Charge interrupted"
+	else:
+		var paid := _pay(caster, skill, sid)
+		if paid.has("err"):
+			err = "Charge cancelled: not enough Fury" if caster.resource.kind == "fury" else "Charge cancelled: not enough Mana"
+		else:
+			extra = paid.extra
+	if not err.is_empty():
+		fx.cast_bar.rpc(caster.get_path(), 0.0)
+		if caster is Player:
+			caster.host_charge_done(sid, err)
+		return err
+	if skill.has("sfx"):
+		fx.sound.rpc(skill.sfx, caster.global_position)
+	fire(caster, "on_skill_cast", {"skill": sid, "school": str(skill.get("school", "melee")), "target": null, "ctx": {}})
 	var frac := clampf(float(c.t) / float(c.max), 0.0, 1.0)
 	var lo := float(GameData.bal("combat.charge_min_mult", 0.4))
-	finish_cast(caster, str(c.skill), aim, {"charge": lerpf(lo, 1.0, frac)})
+	extra.charge = lerpf(lo, 1.0, frac)
+	finish_cast(caster, sid, aim, extra)
+	if caster is Player:
+		caster.host_charge_done(sid, "")
+	return ""
 
 
 ## Host: the owner released a channelled skill.

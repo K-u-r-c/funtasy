@@ -39,6 +39,9 @@ No target,Brak celu
 Target health too high,Cel ma za dużo zdrowia
 Target not affected,Cel jest odporny na to
 Invalid target,Nieprawidłowy cel
+Charge interrupted,Ładowanie przerwane
+Charge cancelled: not enough Fury,Ładowanie anulowane: za mało furii
+Charge cancelled: not enough Mana,Ładowanie anulowane: za mało many
 Immune,Odporny
 Miss,Pudło
 Dodge,Unik
@@ -157,6 +160,7 @@ Rewind,Cofnięcie
 Dodge ready,Unik gotowy
 Echo,Echo
 %d Gold,%d szt. złota
+Charging %d%%,Ładowanie %d%%
 Health,Zdrowie
 Maximum health. Raised by Stamina.,Maksymalne zdrowie. Zwiększa je Wytrzymałość.
 Strength,Siła

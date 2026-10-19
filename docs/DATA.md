@@ -29,7 +29,7 @@ threat_mult, resource_on_hit, effects`. New keys:
 | `primary_ok` | may be slotted on the primary attack (D2) |
 | `passive` / `toggle` | passive: never slotted, its `mods` / `procs` apply once unlocked; toggle: slotted, switches a status on and off |
 | `charges` | number of stored uses (Blink with Warpstrider) |
-| `charge_time` | hold to charge, release to fire (Power Shot); numbers scale with charge |
+| `charge_time` | hold to charge, release to fire (Power Shot); numbers scale with charge; cost and cooldown are paid on the release (#54) |
 | `channel` | `{duration, tick, cost_per_second, move_cancels}`: hold to channel, effects run per tick |
 | `usable_if` | `{target_hp_below, status, proc}`: conditions checked at cast |
 | `cost_hp_pct`, `consumes_all_resource`, `generates` | Dark Bargain, Execute, Fury on use |
