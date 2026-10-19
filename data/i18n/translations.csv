@@ -53,6 +53,7 @@ Saved!,Ocalony!
 Ward shattered,Osłona pękła
 Interrupted,Przerwano
 Reflect,Odbicie
+Level %d,Poziom %d
 Unlock the vault (Gold Key),Otwórz skarbiec (Złoty Klucz)
 Break the blood seal (%s),Złam krwawą pieczęć (%s)
 Floodgate - rusted shut,Wrota śluzy - zardzewiałe
@@ -90,6 +91,7 @@ Descend to the next floor,Zejdź na następne piętro
 Open,Otwórz
 Take the torch,Weź pochodnię
 A cloud of grave miasma bursts from the urn!,Z urny wybucha chmura grobowego miazmatu!
+Rises again,Powstanie znowu
 Knocked off,Strącony
 Reassembles,Składa się na nowo
 Shell shattered!,Pancerz pękł!
@@ -288,6 +290,9 @@ DPS,DPS
 Crit,Kryt.
 Crit dmg,Obr. kryt.
 Lv%d,Poz.%d
+Level up!,Nowy poziom!
+Talent points +%d,Punkty talentów +%d
+Stat points +%d,Punkty cech +%d
 Lobby,Lobby
 Start run,Rozpocznij wyprawę
 Leave,Wyjdź

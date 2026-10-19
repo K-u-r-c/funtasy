@@ -4,6 +4,7 @@ extends Node2D
 ## and detects party wipes. Every peer builds the floor layout locally from the host's seed.
 
 const PORTAL_SCRIPT := preload("res://scripts/dungeon/portal.gd")
+const RISE_MARK := preload("res://scripts/enemies/rise_mark.gd")
 const START_OFFSETS := [Vector2(-18, -10), Vector2(18, -10), Vector2(-18, 14), Vector2(18, 14)]
 
 var depth := 0
@@ -26,6 +27,7 @@ var _wiped := false
 var _clock_sync_left := 0.0
 var corpses: Dictionary = {}  ## host: corpse id -> {id, def_id, pos, t, creature} (D29)
 var _corpse_counter := 0
+var _rise_marks: Dictionary = {}  ## host (#49): remains that will rise: node name -> {kind, seconds, at}
 var _aura_left := 0.0
 var party_keys := 0  ## Gold Keys the party carries (D11), replicated by _sync_keys
 var key_chest := ""  ## host: the chest prop holding the floor's Gold Key when no elite carries it (#21)
@@ -125,6 +127,7 @@ func start_floor(new_depth: int) -> void:
 	combat.clear_floor()
 	loot.clear_floor()
 	corpses.clear()
+	_rise_marks.clear()
 	for e in enemies_root.get_children():
 		e.queue_free()
 	if portal:
@@ -749,9 +752,60 @@ func _enemy_death_fx(sprite_key: String, pos: Vector2, dir: Vector2, corpse_id: 
 ## Host -> all (reliable): a corpse was consumed (devoured, raised, absorbed).
 @rpc("authority", "call_local", "reliable")
 func _corpse_gone(corpse_id: int) -> void:
+	_rise_marks.erase("Corpse_%d" % corpse_id)
 	var c := corpses_root.get_node_or_null("Corpse_%d" % corpse_id)
 	if c:
 		c.queue_free()
+
+
+## Host: `remains` (a bone-pile enemy, or a corpse node "Corpse_<id>") will rise in `seconds`; every
+## peer shows the mark with its own countdown. Called by the rise-again behaviour modules.
+func host_rise_mark(remains: Node, seconds: float, kind: String) -> void:
+	if remains == null or not is_instance_valid(remains):
+		return
+	_rise_marks[str(remains.name)] = {"kind": kind, "seconds": seconds, "at": floor_time}
+	_rise_mark.rpc(remains.get_path(), seconds, kind)
+
+
+## Host: `remains` won't rise (any more): it rose, was crushed, or its raiser stopped.
+func host_rise_clear(remains: Node) -> void:
+	if remains == null or not is_instance_valid(remains):
+		return
+	if _rise_marks.erase(str(remains.name)):
+		_rise_clear.rpc(remains.get_path())
+
+
+## The corpse node of corpse `cid` on this peer, or null.
+func corpse_node(cid: int) -> Node:
+	return corpses_root.get_node_or_null("Corpse_%d" % cid)
+
+
+## Host -> all (reliable): show the rise mark on `path` for `seconds` (each peer counts down).
+@rpc("authority", "call_local", "reliable")
+func _rise_mark(path: NodePath, seconds: float, kind: String) -> void:
+	var n := get_node_or_null(path)
+	if n == null:
+		return
+	var old := rise_mark_of(n)
+	if old:
+		old.free()
+	entities.add_child(RISE_MARK.new(n, kind, seconds))
+
+
+## Host -> all (reliable): remove the rise mark of `path`.
+@rpc("authority", "call_local", "reliable")
+func _rise_clear(path: NodePath) -> void:
+	var m := rise_mark_of(get_node_or_null(path))
+	if m:
+		m.queue_free()
+
+
+## The rise mark of `remains` on this peer (#49), or null.
+func rise_mark_of(remains: Node) -> Node:
+	if remains == null:
+		return null
+	var m := entities.get_node_or_null("RiseMark_" + str(remains.name))
+	return m if m and not m.is_queued_for_deletion() and m.remains == remains else null
 
 
 ## Host: corpses within r of pos (optionally only bone piles / one creature type).

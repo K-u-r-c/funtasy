@@ -1,7 +1,7 @@
 extends MonsterBehavior
 ## Skeletal Footman: when it would die it collapses into a pile of bones and stands up again
 ## after `delay` s with `hp` of its health - unless an area attack crushes the pile (or killed it).
-## params: delay (4), hp (0.3)
+## params: delay (4), hp (0.3). While it lies in pieces every peer sees the rise mark (#49).
 
 var _left := -1.0
 
@@ -12,6 +12,8 @@ func is_pile() -> bool:
 
 func on_death() -> bool:
 	if is_pile() or enemy.last_hit_area:
+		if is_pile():
+			game().host_rise_clear(enemy)  # the pile was crushed
 		return false  # crushed by an AoE: it stays dead
 	_left = float(p("delay", 4.0))
 	enemy.health.hp = 1.0
@@ -19,6 +21,7 @@ func on_death() -> bool:
 	enemy.channel = {}
 	set_state("pile")
 	Combat.instance.fx.sound.rpc("bone_collapse", enemy.global_position)
+	game().host_rise_mark(enemy, _left, "reassemble")
 	return true
 
 
@@ -45,6 +48,7 @@ func on_physics(delta: float) -> void:
 		_left = -1.0
 		enemy.health.hp = enemy.health.max_hp * float(p("hp", 0.3))
 		set_state("")
+		game().host_rise_clear(enemy)
 		Combat.instance.fx.sound.rpc("bone_reassemble", enemy.global_position)
 		Combat.instance.fx.number.rpc(enemy.global_position, "Reassembles", "info")
 

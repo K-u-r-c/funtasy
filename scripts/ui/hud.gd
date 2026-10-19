@@ -71,6 +71,7 @@ var _torch_icon: TextureRect
 var _res_icon: TextureRect
 var _goal_icon: TextureRect
 var _last_message := ""
+var level_banner: LevelBanner  ## #48
 var _last_message_at := 0
 ## Layout test hook: fills every HUD block with worst-case content (boss bar, banner, three
 ## teammates, many status effects) so tests can check nothing overlaps on any screen shape.
@@ -89,6 +90,9 @@ func _ready() -> void:
 	EventBus.local_loadout_changed.connect(_rebuild_skill_icons)
 	EventBus.local_inventory_changed.connect(_refresh_quick)
 	EventBus.locale_changed.connect(_relocalize)
+	level_banner = LevelBanner.new()
+	add_child(level_banner)
+	EventBus.local_level_up.connect(level_banner.show_level)
 
 
 ## A new language (#32): the HUD is built again so every label picks up the new texts. The

@@ -133,8 +133,8 @@ screenshot review at 1920x1080 and 3440x1440.
 - [x] #54 Charge-up skills pay their cost and cooldown on release; nothing spent when cancelled, interrupted or unaffordable; the HUD slot and aim preview show the charge (`preview`, `skills-lan`, tour `charge`)
 - [x] #52 A quiver goes with every bow and crossbow, new and saved (`continue`, tour `quiver`)
 - [x] #50 A closed door never shadows a torch-bearer next to it and lets no light past its sides (`lighting-rules`, tour `door_torch` in all five biomes)
-- [ ] #48 Level-up effect on the hero (replicated) and an on-screen banner
-- [ ] #49 Enemies that can still rise show a mark with a countdown
+- [x] #48 Level-up effect on the hero for every peer and an animated banner for its player, once per XP gain with the final level and all points (`levelup-lan`, tour `level_up`)
+- [x] #49 Bone piles and corpses being raised show a mark with a countdown on every peer (`rise-lan`, tour `rise`)
 - [ ] #51 Sewers lever art with off / on states and a pull animation
 - [ ] #47 Talent trees as real trees with prerequisites, a new panel and learn animations
 
@@ -227,6 +227,7 @@ the free workbenches.
 | Date | Batch | Used before | Used after | Spend | Goal spend |
 | --- | --- | --- | --- | --- | --- |
 | 2026-10-19 | (goal start) | 4328 | 4328 | 0 | 0 |
+| 2026-10-20 | #51 Sewers lever: 2 map objects (iron gearbox housing on a stone plinth 48x48, lever arm 32x64; the arm swings in code) | 4328 | 4330 | 2 | 2 |
 
 ## Done (MVP)
 

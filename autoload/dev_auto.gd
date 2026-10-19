@@ -261,6 +261,10 @@ func _run() -> void:
 				await PartySuite.new(self).run_lan()
 			"target_lan":
 				await TargetSuite.new(self).run_lan()
+			"levelup_lan":
+				await LevelUpSuite.new(self).run_lan()
+			"rise_lan":
+				await RiseSuite.new(self).run_lan()
 			"preview":
 				await PreviewSuite.new(self).run()
 			"tooltips":
@@ -550,6 +554,10 @@ func client_cmd(cmd: String, arg: Variant) -> void:
 			await FxSuite.new(self).client_cmd(cmd, arg)
 		_ when cmd.begins_with("tg_"):
 			await TargetSuite.new(self).client_cmd(cmd, arg)
+		_ when cmd.begins_with("lv_"):
+			await LevelUpSuite.new(self).client_cmd(cmd, arg)
+		_ when cmd.begins_with("rs_"):
+			await RiseSuite.new(self).client_cmd(cmd, arg)
 		_ when cmd.begins_with("pt_"):
 			await PartySuite.new(self).client_cmd(cmd, arg)
 		_ when cmd.begins_with("ia_"):

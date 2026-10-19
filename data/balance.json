@@ -38,6 +38,7 @@
 		"carried_torch_duration": 120,
 		"carried_torch_warning": 15,
 		"wall_torch_radius": 270,
+		"level_up_light_radius": 150,
 		"wall_torch_energy": 1.15,
 		"wall_torch_hp": 1,
 		"lava_light_per_cell": 40,

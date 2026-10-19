@@ -1308,6 +1308,7 @@ func add_xp(amount: int) -> void:
 	if level >= max_level:
 		return
 	xp += amount
+	var from := level
 	var leveled := false
 	while level < max_level and xp >= xp_to_next(level):
 		xp -= xp_to_next(level)
@@ -1318,7 +1319,7 @@ func add_xp(amount: int) -> void:
 	if leveled:
 		recompute_stats()
 		health.hp = health.max_hp
-		_level_up_fx.rpc(level)
+		_level_up_fx.rpc(level, level - from)
 		persist()
 
 
@@ -1326,14 +1327,23 @@ static func xp_to_next(lvl: int) -> int:
 	return int(float(GameData.bal("progression.xp_base")) * pow(lvl, float(GameData.bal("progression.xp_exponent"))))
 
 
+## Host -> all (reliable), once per XP gain however many levels it brings (#48): the level-up
+## effect on this hero for everyone, the banner and message for its owner, with the final level
+## and every point gained.
 @rpc("authority", "call_local", "reliable")
-func _level_up_fx(new_level: int) -> void:
+func _level_up_fx(new_level: int, gained: int = 1) -> void:
 	AudioManager.play_sfx_at("level_up", global_position)
+	var old := get_node_or_null("LevelUpFx")
+	if old:
+		old.free()
+	add_child(LevelUpFx.new(new_level))
+	set_meta("level_up_fx_count", int(get_meta("level_up_fx_count", 0)) + 1)  # read by the tests
 	if is_local():
-		EventBus.local_level_up.emit(new_level)
-		var tp := int(GameData.bal("progression.talent_points_per_level"))
+		var tp := int(GameData.bal("progression.talent_points_per_level")) * gained
+		var sp := int(GameData.bal("progression.stat_points_per_level", 5)) * gained
+		EventBus.local_level_up.emit(new_level, tp, sp)
 		EventBus.hud_message.emit(Loc.f("Level %d! +%d talent point, +%d stat points" if tp == 1 else "Level %d! +%d talent points, +%d stat points",
-				[new_level, tp, int(GameData.bal("progression.stat_points_per_level"))]), Color(1, 0.85, 0.3))
+				[new_level, tp, sp]), Color(1, 0.85, 0.3))
 
 
 # --- Life state (downed / revive / ghost) ----------------------------------------------------

@@ -15,7 +15,7 @@ signal local_player_spawned(player: Node)
 signal local_inventory_changed
 signal local_stats_changed
 signal local_cooldown_started(slot: int, duration: float)
-signal local_level_up(level: int)
+signal local_level_up(level: int, talent_points: int, stat_points: int)  ## #48: the banner
 signal local_loadout_changed
 signal interact_prompt(text: String, index: int, count: int)
 signal friendly_target_changed(peer_id: int)  ## local player picked / cleared a teammate (#39)

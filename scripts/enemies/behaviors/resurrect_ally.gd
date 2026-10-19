@@ -1,6 +1,8 @@
 extends MonsterBehavior
 ## Tomb Cultist: every `every` s it channels a dark chant over a fallen skeleton within `radius`
-## and raises it again. params: every (8), radius (150), channel (2), hp (0.5), kinds ([...])
+## and raises it again. params: every (8), radius (150), channel (2), hp (0.5), kinds ([...]).
+## While the chant runs every peer sees the rise mark on that corpse (#49); it goes when the corpse
+## rises, the chant is broken or the cultist dies.
 
 var _left := 4.0
 var _corpse := {}
@@ -23,6 +25,7 @@ func on_think(game: Node) -> bool:
 			enemy.play_action.rpc("cast", (c.pos - enemy.global_position).normalized())
 			Combat.instance.fx.sound.rpc("chant", enemy.global_position)
 			set_state("chanting")
+			game.host_rise_mark(game.corpse_node(int(c.id)), _chant, "raise")
 			return true
 	return false
 
@@ -35,17 +38,29 @@ func on_damaged(_attacker: Actor, _amount: float) -> void:
 	pass
 
 
+func on_death() -> bool:
+	_stop_chant()
+	return false
+
+
+func _stop_chant() -> void:
+	if _chant >= 0.0 and not _corpse.is_empty():
+		var game := enemy.get_tree().get_first_node_in_group("game")
+		if game:
+			game.host_rise_clear(game.corpse_node(int(_corpse.id)))
+	_chant = -1.0
+	set_state("")
+
+
 func on_physics(delta: float) -> void:
 	if _chant < 0.0:
 		return
 	if not enemy.can_act():
-		_chant = -1.0
-		set_state("")
+		_stop_chant()
 		return
 	_chant -= delta
 	if _chant <= 0.0:
-		_chant = -1.0
-		set_state("")
+		_stop_chant()
 		var game := enemy.get_tree().get_first_node_in_group("game")
 		if game and not game.consume_corpse(int(_corpse.id)).is_empty():
 			var e: Enemy = game.spawn_monster(str(_corpse.def_id), _corpse.pos, false)

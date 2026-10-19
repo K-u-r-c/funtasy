@@ -356,6 +356,52 @@ func _quiver(_arg: String) -> void:
 	hud.close_overlay()
 
 
+## #48: two levels at once: the column, rings and sparks on the hero and the banner, early, mid
+## and late in the animation.
+func _level_up(_arg: String) -> void:
+	for e in g.enemies_root.get_children():
+		e.queue_free()
+	p.host_take_torch()
+	await da._wait(0.6)
+	p.add_xp(Player.xp_to_next(p.level) + Player.xp_to_next(p.level + 1) + 1)
+	await da._wait(0.18)
+	await snap("level_up_burst_%s" % Settings.language)
+	await da._wait(0.45)
+	await snap("level_up_mid_%s" % Settings.language)
+	await da._wait(1.0)
+	await snap("level_up_late_%s" % Settings.language)
+
+
+## #49: a Skeletal Footman knocked into its bone pile (the mark counting down), and a cultist
+## raising a fallen skeleton (the corpse's mark while the chant runs).
+func _rise(_arg: String) -> void:
+	for e in g.enemies_root.get_children():
+		e.queue_free()
+	p.iframe_left = 9999.0
+	p.host_take_torch()
+	var start: Vector2 = g.layout.start
+	p.host_teleport(start)
+	var f: Enemy = g.spawn_monster("skeletal_footman", g.nearest_floor(start + Vector2(70, 0)), false)
+	await da._wait(0.5)
+	var ctx := Combat.instance.test_ctx(p, GameData.skill(str(p.skills[0])))
+	Combat.instance.deal_damage(ctx, f, f.health.hp + 50.0, {"damage_type": "true"})
+	await da._wait(1.2)
+	await snap("rise_pile_%s" % Settings.language)
+	f.queue_free()
+	var cu: Enemy = g.spawn_monster("cultist", g.nearest_floor(start + Vector2(110, -30)), false)
+	var arch: Enemy = g.spawn_monster("skeleton_archer", g.nearest_floor(start + Vector2(70, 20)), false)
+	cu.status.apply("stun", 0.5, 0.0, null)
+	await da._wait(0.5)
+	Combat.instance.deal_damage(ctx, arch, arch.health.hp + 50.0, {"damage_type": "true"})
+	await da._wait(0.6)
+	for b in cu.behaviors:
+		if b.has_method("_stop_chant"):
+			b._left = 0.0
+	await da._wait_until(func(): return cu.behavior_state == "chanting", 3.0)
+	await da._wait(0.6)
+	await snap("rise_raise_%s" % Settings.language)
+
+
 ## #43: the talent card of a damage skill, a heal, an area skill, a ranked passive (at rank 1) and
 ## a keystone of the hero's class, then a skill's numeric card from the bar.
 func _talent_tips(_arg: String) -> void:
