@@ -430,6 +430,7 @@ func _set_prompt(t: String, index: int = 0, count: int = 0) -> void:
 	var show := not t.is_empty()
 	if show:
 		_prompt.text = t
+		fit_label(_prompt)
 	var tw := _prompt_row.create_tween()
 	tw.tween_property(_prompt_row, "modulate:a", 1.0 if show else 0.0, 0.12)
 	if not show:
@@ -642,6 +643,21 @@ func set_portal_status(inside: int, alive: int) -> void:
 	_portal_label.visible = true
 
 
+## #44: a one-line HUD text wider than `ui.message_max_width` (and the screen) wraps instead of
+## pushing its column off the screen.
+func fit_label(l: Label) -> void:
+	var vp := get_viewport().get_visible_rect().size
+	var cap := minf(float(GameData.bal("ui.message_max_width", 380)), vp.x - 2.0 * float(GameData.bal("ui.safe_margin")) - 40.0)
+	var font: Font = l.get_theme_font("font")
+	var w := font.get_string_size(l.text, HORIZONTAL_ALIGNMENT_LEFT, -1, l.get_theme_font_size("font_size")).x if font else 0.0
+	if w > cap:
+		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		l.custom_minimum_size.x = cap
+	else:
+		l.autowrap_mode = TextServer.AUTOWRAP_OFF
+		l.custom_minimum_size.x = 0.0
+
+
 func show_message(text: String, color: Color = Color.WHITE) -> void:
 	if _overlay and is_instance_valid(_overlay) and _overlay.has_method("notice"):
 		_overlay.notice(text, color)
@@ -657,6 +673,7 @@ func show_message(text: String, color: Color = Color.WHITE) -> void:
 	chip.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var l := UITheme.label(text, color, UITheme.FONT_BODY)
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	fit_label(l)
 	chip.add_child(l)
 	_messages.add_child(chip)
 	if _messages.get_child_count() > 4:

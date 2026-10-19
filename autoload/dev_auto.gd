@@ -144,6 +144,10 @@ func _run() -> void:
 		"gamepad_menu":
 			await _gamepad_menu_flow()
 			return
+		"ui_fit_menus":
+			await UiFitSuite.new(self).run_menus()
+			_finish("menus fit")
+			return
 		"shots":
 			await _shots_flow()
 			return
@@ -263,6 +267,8 @@ func _run() -> void:
 				await PreviewSuite.new(self).run()
 			"tooltips":
 				await TooltipSuite.new(self).run()
+			"ui_fit":
+				await UiFitSuite.new(self).run()
 			"fx_lan":
 				await FxSuite.new(self).run_lan()
 			"fx":

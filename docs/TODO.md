@@ -123,6 +123,7 @@ screenshot review at 1920x1080 and 3440x1440.
 - [x] #41 Enemy lock: R / D-pad Left / a click on a visible enemy; aimed attacks go to it, host-validated; red reticle and boss bar frame (`hostile-lan`, `gamepad-menu`, tour `hostile`)
 - [x] #42 Skills 1-5: tap casts on release, hold shows the aim preview from the skill data, release casts; refused casts preview in red with the reason (`preview`, `skills-*`, tour `previews`)
 - [x] #43 Talent, Skill Book and bar tooltips with exact numbers from the data, per-rank / now / next for ranks, keystone triggers (`tooltips`, `tooltips-pl`, tour `talent_tips`)
+- [x] #44 Long text never leaves the screen: HUD messages and prompts wrap, lobby rows wrap / ellipsize; every screen checked at 16:9, 32:9, 4:3 and 1:1 in both languages (`ui-fit*`)
 
 ## PixelLab ledger
 

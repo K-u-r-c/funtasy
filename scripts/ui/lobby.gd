@@ -212,6 +212,9 @@ func _build_preview_panel() -> Control:
 	v.add_child(_preview)
 	_hero_summary = UITheme.label("", UITheme.TEXT, 14)
 	_hero_summary.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	# A long name in a long language wraps inside the preview column (#44).
+	_hero_summary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_hero_summary.custom_minimum_size = Vector2(230, 0)
 	v.add_child(_hero_summary)
 	var turn := HBoxContainer.new()
 	turn.add_theme_constant_override("separation", 6)
@@ -539,9 +542,22 @@ func _refresh_roster() -> void:
 				crown.tooltip_text = Loc.t("Host")
 				row.add_child(crown)
 			row.add_child(UITheme.icon("class_" + str(r.class_id), 16))
-			row.add_child(UITheme.label("%s%s" % [r.name, Loc.t("  (host)") if id == 1 else ""]))
+			# Name above class and level, so a 16-character name fits the column (#44).
+			var who := VBoxContainer.new()
+			who.add_theme_constant_override("separation", 0)
+			who.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			row.add_child(who)
+			var nm := UITheme.label("%s%s" % [r.name, Loc.t("  (host)") if id == 1 else ""])
+			nm.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+			nm.custom_minimum_size = Vector2(180, 0)
+			nm.tooltip_text = nm.text
+			nm.mouse_filter = Control.MOUSE_FILTER_PASS
+			who.add_child(nm)
 			var gname := str(GameData.assets.characters.get("genders", {}).get(str(r.get("gender", "")), {}).get("name", ""))
-			row.add_child(UITheme.label(Loc.f("%s%s, level %d", [Loc.t(gname) + " " if not gname.is_empty() else "", cdef.get("name", r.class_id), int(r.level)]), UITheme.hex(cdef.get("color", "#ffffff"))))
+			var cls := UITheme.label(Loc.f("%s%s, level %d", [Loc.t(gname) + " " if not gname.is_empty() else "", cdef.get("name", r.class_id), int(r.level)]), UITheme.hex(cdef.get("color", "#ffffff")), UITheme.FONT_SMALL)
+			cls.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			cls.custom_minimum_size = Vector2(180, 0)
+			who.add_child(cls)
 		else:
 			row.add_child(UITheme.icon("menu_resume", 16, Color(1, 1, 1, 0.6)))
 			row.add_child(UITheme.label(Loc.f("Player %d", [id]), UITheme.TEXT_DIM))

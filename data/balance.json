@@ -324,6 +324,7 @@
 	"ui": {
 		"_comment": "HUD/menu layout and feel. Sizes are in base-viewport px (960x540 minimum).",
 		"safe_margin": 10,
+		"message_max_width": 380,
 		"modal_max_width": 920,
 		"modal_max_height": 520,
 		"bar_trail_delay": 0.3,
