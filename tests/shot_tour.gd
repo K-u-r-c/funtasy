@@ -344,6 +344,49 @@ func _previews(_arg: String) -> void:
 	p.auto_aim = Vector2.INF
 
 
+## #43: the talent card of a damage skill, a heal, an area skill, a ranked passive (at rank 1) and
+## a keystone of the hero's class, then a skill's numeric card from the bar.
+func _talent_tips(_arg: String) -> void:
+	var hud: Node = da.get_tree().get_first_node_in_group("hud")
+	var tree := p.talent_tree()
+	var picks := {}
+	for node in tree.nodes:
+		var kind := str(node.get("type", ""))
+		if kind == "skill":
+			var sk: Dictionary = GameData.skills.get(str(node.skill), {})
+			var js := JSON.stringify(sk.get("effects", []))
+			var shape := SkillShape.of(sk)
+			if not picks.has("damage") and js.contains("\"damage\"") and shape.kind in ["projectile", "melee", "target"]:
+				picks["damage"] = node
+			elif not picks.has("heal") and (js.contains("\"heal\"") or js.contains("\"absorb\"")):
+				picks["heal"] = node
+			elif not picks.has("area") and shape.kind in ["area", "self_area"] and js.contains("\"damage\""):
+				picks["area"] = node
+		elif kind == "passive" and not picks.has("passive") and int(node.get("max_rank", 1)) >= 2:
+			picks["passive"] = node
+		elif kind == "keystone" and not picks.has("keystone") and not node.get("procs", []).is_empty():
+			picks["keystone"] = node
+	var keep := p.talents.duplicate()
+	if picks.has("passive"):
+		var t2 := keep.duplicate()
+		t2[picks.passive.id] = 1
+		p.talents = t2
+	hud.open_overlay(hud.menu_panel("talents"))
+	await da._wait(0.6)
+	for k in ["damage", "heal", "area", "passive", "keystone"]:
+		if picks.has(k):
+			hud._overlay._show(picks[k])
+			await da._wait(0.3)
+			await snap("tips_%s_%s_%s" % [p.class_id, k, Settings.language])
+	hud.close_overlay()
+	p.talents = keep
+	await da._wait(0.3)
+	hud._slots[1].mouse_entered.emit()
+	await da._wait(0.4)
+	await snap("tips_%s_slot_%s" % [p.class_id, Settings.language])
+	hud._slots[1].mouse_exited.emit()
+
+
 ## #33: a heal burst, the heal-over-time glow, the shield bubble, its shatter, a buff flash and a
 ## cleanse flash on the hero next to training dummies (each shot near the effect's peak).
 func _allyfx(_arg: String) -> void:

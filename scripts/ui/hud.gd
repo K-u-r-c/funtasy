@@ -40,6 +40,7 @@ var _stat_hint: HBoxContainer
 var _gold_label: Label
 var _key_icon: TextureRect
 var _slots: Array = []
+var _slot_tip: SkillTooltip
 var _quick: Dictionary = {}
 var _status_box: HBoxContainer
 var _party_box: VBoxContainer
@@ -323,11 +324,18 @@ func _build_bottom() -> void:
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	row.add_theme_constant_override("separation", 4)
 	bv.add_child(row)
+	# #43: hovering a skill on the bar opens the same card as the Skill Book, with the numbers.
+	_slot_tip = SkillTooltip.new()
+	_root.add_child(_slot_tip)
 	for i in 6:
 		var s := SkillSlot.new()
 		s.slot = i
 		row.add_child(s)
 		_slots.append(s)
+		s.mouse_entered.connect(func():
+			if player and is_instance_valid(player) and i < player.skills.size() and GameData.skills.has(str(player.skills[i])):
+				_slot_tip.show_for(player, i, s))
+		s.mouse_exited.connect(func(): _slot_tip.hide_for(s))
 		if i == 0:
 			row.add_child(_divider())
 	row.add_child(_divider())
@@ -444,7 +452,7 @@ func _rebuild_skill_icons() -> void:
 		var sk: Dictionary = GameData.skills.get(str(player.skills[i]), {})  # {} = empty slot
 		s.icon = GameData.texture("icons." + str(sk.icon)) if sk.has("icon") else null
 		s.action = Player.SLOT_ACTIONS[i]
-		s.tooltip = "%s\n%s" % [Loc.t(str(sk.name)), Loc.t(str(sk.get("description", "")))] if not sk.is_empty() else Loc.t("Empty slot - learn skills in the Talents tab")
+		s.tooltip = "" if not sk.is_empty() else Loc.t("Empty slot - learn skills in the Talents tab")
 		s.cost = float(sk.get("cost", 0))
 		s.queue_redraw()
 	for k in _quick:

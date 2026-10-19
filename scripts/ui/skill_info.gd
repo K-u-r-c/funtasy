@@ -8,6 +8,9 @@ enum Kind { INFO, DAMAGE, HEAL, STATUS, TALENT }
 
 const TILE := 32.0
 const POWER_NAMES := {"melee": "Melee power", "ranged": "Ranged power", "spell": "Spell power"}
+## Debuff categories cleansed or dispelled, by name.
+const CATEGORY_TEXT := {"movement": "slows and roots", "poison": "poisons", "enrage": "enrage", "curse": "curses",
+	"disease": "diseases", "control": "stuns and control", "bleed": "bleeds", "any": "every harmful effect", "magic": "magic"}
 const MOD_TEXT := {
 	"damage_mult": "%+d%% effect", "heal_mult": "%+d%% healing", "cooldown_mult": "%+d%% cooldown",
 	"cost_mult": "%+d%% cost", "radius_mult": "%+d%% radius", "duration_mult": "%+d%% duration",
@@ -155,9 +158,9 @@ static func _effect(out: Array, eff: Dictionary, nums: Dictionary, p: Player, pr
 		"status":
 			_status(out, prefix, eff, nums, _target_text(eff))
 		"heal":
-			out.append(_row(prefix + Loc.t("Heal"), "%d%s" % [_amount(eff.amount, nums, true), _target_text(eff)], Kind.HEAL))
+			out.append(_row(prefix + Loc.t("Heal"), "%s%s" % [_amount_text(eff.amount, nums, p, true), _target_text(eff)], Kind.HEAL))
 		"absorb":
-			out.append(_row(prefix + Loc.t("Shield"), Loc.f("absorbs %d for %.0fs%s", [_amount(eff.amount, nums, true), float(eff.duration), _target_text(eff)]), Kind.HEAL))
+			out.append(_row(prefix + Loc.t("Shield"), Loc.f("absorbs %s for %.0fs%s", [_amount_text(eff.amount, nums, p, true), float(eff.duration), _target_text(eff)]), Kind.HEAL))
 		"taunt":
 			out.append(_row(prefix + Loc.t("Taunt"), Loc.f("%.1fs, enemies within %s", [float(eff.duration), _m(float(eff.radius) * rmul)]), Kind.STATUS))
 		"resource":
@@ -190,7 +193,8 @@ static func _effect(out: Array, eff: Dictionary, nums: Dictionary, p: Player, pr
 			out.append(_row(prefix + Loc.t("Line"), line))
 		"chain":
 			deals = _damage(out, prefix + Loc.t("Damage"), eff, nums, "")
-			out.append(_row(prefix + Loc.t("Chain"), Loc.f("%d jumps, +%d%% per jump", [int(eff.get("jumps", 3)) + int(nums.count_add), roundi(float(eff.get("per_jump", 0.0)) * 100.0)])))
+			out.append(_row(prefix + Loc.t("Chain"), Loc.f("%s range, %d jumps of up to %s, +%d%% per jump", [_m(float(eff.get("range", 250)) * float(nums.range_mult)),
+				int(eff.get("jumps", 3)) + int(nums.count_add), _m(float(eff.get("jump_range", 130))), roundi(float(eff.get("per_jump", 0.0)) * 100.0)])))
 		"beam":
 			deals = _damage(out, prefix + Loc.t("Beam damage"), eff, nums, "")
 			if eff.has("heal"):
@@ -215,19 +219,23 @@ static func _effect(out: Array, eff: Dictionary, nums: Dictionary, p: Player, pr
 			for sub4 in eff.get("effects", []):
 				deals = _effect(out, sub4, nums, p, Loc.f("After %.1fs: ", [float(eff.delay)])) or deals
 		"deploy":
-			out.append(_row(prefix + Loc.t("Deploys"), Loc.f("for %.0fs, acts every %.1fs", [float(eff.get("duration", 10)), float(eff.get("tick", 1.0))])))
+			out.append(_row(prefix + Loc.t("Deploys"), Loc.f("for %.0fs, acts every %.1fs", [float(eff.get("duration", 10)), float(eff.get("tick", 1.0))])
+				+ (Loc.f(", %s radius", [_m(float(eff.radius) * rmul)]) if eff.has("radius") else "")))
 			if eff.has("heal"):
 				out.append(_row(prefix + Loc.t("Healing"), Loc.f("%d every %.1fs%s", [_amount(eff.heal, nums, true), float(eff.get("tick", 1.0)),
 					" (below %d%% health)" % roundi(float(eff.heal_below) * 100.0) if eff.has("heal_below") else ""]), Kind.HEAL))
 			for sub5 in eff.get("tick_effects", []):
 				deals = _effect(out, sub5, nums, p, Loc.t("Each shot: ")) or deals
 		"consume_dots":
-			out.append(_row(prefix + Loc.t("Detonates"), Loc.f("every %s on the target at once", [_status_names(eff.get("statuses", ["burn"]))]), Kind.DAMAGE))
+			out.append(_row(prefix + Loc.t("Detonates"), Loc.f("every %s on the target at once (x%.1f), %s", [_status_names(eff.get("statuses", ["burn"])),
+				float(eff.get("mult", 1.0)), _m(float(eff.get("range", 220)))]), Kind.DAMAGE))
 			deals = true
 		"cleanse":
-			out.append(_row(prefix + Loc.t("Cleanses"), "%s%s" % [", ".join(Array(eff.get("categories", []))), Loc.f(", refunds %d", [int(eff.refund)]) if eff.has("refund") else ""], Kind.HEAL))
+			out.append(_row(prefix + Loc.t("Cleanses"), "%s%s%s" % [_categories(eff),
+				Loc.f(", refunds %d", [int(eff.refund)]) if eff.has("refund") else "", _target_text(eff)], Kind.HEAL))
 		"dispel":
-			out.append(_row(prefix + Loc.t("Dispels"), ", ".join(Array(eff.get("categories", []))), Kind.STATUS))
+			out.append(_row(prefix + Loc.t("Dispels"), _categories(eff)
+				+ (", %s" % _m(float(eff.range)) if eff.has("range") else ""), Kind.STATUS))
 		"destroy_projectiles":
 			out.append(_row(prefix + Loc.t("Destroys"), Loc.f("hostile projectiles within %s", [_m(float(eff.get("range", 120)))])))
 		"terrain":
@@ -237,7 +245,8 @@ static func _effect(out: Array, eff: Dictionary, nums: Dictionary, p: Player, pr
 		"reveal":
 			out.append(_row(prefix + Loc.t("Reveals"), Loc.f("stealth and darkness within %s for %.0fs", [_m(float(eff.get("radius", 250))), float(eff.get("duration", 6))])))
 		"interrupt":
-			out.append(_row(prefix + Loc.t("Interrupts"), Loc.f("spellcasting%s", [(Loc.f(", locks the school for %.0fs", [float(eff.lockout)]) if eff.has("lockout") else "")]), Kind.STATUS))
+			out.append(_row(prefix + Loc.t("Interrupts"), Loc.f("spellcasting%s", [(Loc.f(", locks the school for %.0fs", [float(eff.lockout)]) if eff.has("lockout") else "")])
+				+ (", %s" % _m(float(eff.range)) if eff.has("range") else ""), Kind.STATUS))
 		"cooldown":
 			out.append(_row(prefix + Loc.t("Cooldowns"), "%s %s" % [Loc.t("reduces") if eff.has("reduce") else Loc.t("resets"), ", ".join(Array(eff.get("skills", [])).map(func(x): return Loc.t(str(GameData.skills.get(x, {}).get("name", x)))))]))
 		"self_damage":
@@ -247,7 +256,7 @@ static func _effect(out: Array, eff: Dictionary, nums: Dictionary, p: Player, pr
 			for sub6 in eff.get("tick_effects", []):
 				deals = _effect(out, sub6, nums, p, Loc.f("Every %.1fs: ", [float(eff.get("tick", 1.0))])) or deals
 		"fetch":
-			out.append(_row(prefix + Loc.t("Pulls"), Loc.t("the ally to your feet")))
+			out.append(_row(prefix + Loc.t("Pulls"), Loc.t("the ally to your feet") + (", %s" % _m(float(eff.range)) if eff.has("range") else "")))
 		"teleport":
 			out.append(_row(prefix + Loc.t("Teleport"), str(eff.get("to", "aim")).replace("_", " ")))
 	if str(eff.type) in ["melee", "projectile", "aoe", "zone", "cone", "hit", "line", "chain", "beam"]:
@@ -257,10 +266,16 @@ static func _effect(out: Array, eff: Dictionary, nums: Dictionary, p: Player, pr
 			_status(out, prefix + Loc.t("Inside: "), {"status": eff.status_inside, "duration": float(eff.get("tick", 1.0)) + 0.3}, nums, "")
 		for sub7 in eff.get("tick_effects", []):
 			deals = _effect(out, sub7, nums, p, Loc.f("Every %.1fs: ", [float(eff.get("tick", 1.0))])) or deals
+		for sub9 in eff.get("on_end", []):
+			deals = _effect(out, sub9, nums, p, Loc.t("When it ends: ")) or deals
 	if str(eff.type) == "aoe" and eff.has("ally_effects"):
 		for sub8 in eff.ally_effects:
 			deals = _effect(out, sub8, nums, p, prefix + Loc.t("Allies: ")) or deals
 	return deals
+
+
+static func _categories(eff: Dictionary) -> String:
+	return ", ".join(Array(eff.get("categories", [])).map(func(c): return Loc.t(str(CATEGORY_TEXT.get(str(c), c)))))
 
 
 static func _status_names(ids: Variant) -> String:
@@ -304,9 +319,51 @@ static func _damage(out: Array, label: String, eff: Dictionary, nums: Dictionary
 	if not eff.has("damage"):
 		return false
 	var v := Combat.value_of(eff.damage, nums)
+	var extra := _extras(eff.damage)
+	if not extra.is_empty():
+		var lead := "%d + " % roundi(v) if roundi(v) > 0 else ""
+		out.append(_row(label, lead + ", ".join(extra) + suffix, Kind.DAMAGE))
+		return true
 	var crit := v * (1.0 + float(nums.crit_damage))
 	out.append(_row(label, Loc.f("%d (crit %d)%s", [maxi(1, roundi(v)), maxi(1, roundi(crit)), suffix]), Kind.DAMAGE))
 	return true
+
+
+## Healing and shields with the parts that don't come from power: "%d (40% of your max health)",
+## "+17% of the target's max health", "100% of the overhealing, up to ..." (as CombatEffects adds them).
+static func _amount_text(spec: Variant, nums: Dictionary, p: Player, heal: bool) -> String:
+	var v := float(_amount(spec, nums, heal))
+	if spec is Dictionary and spec.has("pct_caster_max_hp"):
+		v += (float(p.health.max_hp) if p else 0.0) * float(spec.pct_caster_max_hp)
+	if spec is Dictionary and spec.has("armor_coef") and p:
+		v += p.stats.get_stat("armor") * float(spec.armor_coef)
+	var extra := _extras(spec)
+	if extra.is_empty():
+		return "%d" % roundi(v)
+	if roundi(v) <= 0:
+		return ", ".join(extra)
+	return "%d (%s)" % [roundi(v), ", ".join(extra)]
+
+
+## What an amount adds besides base + power: health shares, armor, a share of the event.
+static func _extras(spec: Variant) -> Array:
+	var out: Array = []
+	if not spec is Dictionary:
+		return out
+	if spec.has("pct_caster_max_hp"):
+		out.append(Loc.f("%d%% of your max health", [roundi(float(spec.pct_caster_max_hp) * 100.0)]))
+	if spec.has("armor_coef"):
+		out.append(Loc.f("%d%% of your armor", [roundi(float(spec.armor_coef) * 100.0)]))
+	if spec.has("pct_target_max_hp"):
+		out.append(Loc.f("%d%% of the target's max health", [roundi(float(spec.pct_target_max_hp) * 100.0)]))
+	if spec.has("event_pct"):
+		var field := str(spec.get("event_field", "amount"))
+		var what: String = {"amount": "%d%% of the hit or heal that triggered it", "overheal": "%d%% of the overhealing",
+			"blocked_amount": "%d%% of the blocked damage"}.get(field, "%d%% of the triggering amount")
+		out.append(Loc.f(what, [roundi(float(spec.event_pct) * 100.0)]))
+	if spec.has("max_pct_target_max_hp"):
+		out.append(Loc.f("up to %d%% of the target's max health", [roundi(float(spec.max_pct_target_max_hp) * 100.0)]))
+	return out
 
 
 ## Healing and shields: same base + power x coef, times the heal multiplier (as Combat does).
@@ -341,7 +398,7 @@ static func _target_text(eff: Dictionary) -> String:
 		"self":
 			return Loc.t(", self")
 		"aim_ally":
-			return Loc.t(", ally at the cursor")
+			return Loc.t(", ally at the cursor") + (", %s" % _m(float(eff.range)) if eff.has("range") else "")
 	return ""
 
 

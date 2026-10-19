@@ -261,6 +261,8 @@ func _run() -> void:
 				await HostileSuite.new(self).run_lan()
 			"preview":
 				await PreviewSuite.new(self).run()
+			"tooltips":
+				await TooltipSuite.new(self).run()
 			"fx_lan":
 				await FxSuite.new(self).run_lan()
 			"fx":

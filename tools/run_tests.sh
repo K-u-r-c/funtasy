@@ -105,6 +105,8 @@ if [ "$WHAT" = all ] || [ "$WHAT" = quick ]; then
 	run interact --auto=solo --class=warrior --name=Hands --scenario=interact --quit=90
 	run i18n --auto=solo --class=priest --name=Lang --scenario=i18n --quit=120
 	run preview --auto=solo --class=mage --name=Aim --scenario=preview --quit=60
+	run tooltips --auto=solo --class=warrior --name=Tips --scenario=tooltips --quit=60
+	run tooltips-pl --auto=solo --class=priest --name=Tips --scenario=tooltips --lang=pl --quit=60
 	run art-check --scenario=art_check --quit=120
 	run hero-art --scenario=hero_art --quit=300
 	run gamepad-menu --scenario=gamepad_menu --quit=60

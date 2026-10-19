@@ -432,6 +432,9 @@ Now choose a slot for %s.,Teraz wybierz miejsce dla: %s.
 Passive skills work as soon as they are learned.,Umiejętności pasywne działają od razu po poznaniu.
 Pick a skill below first.,Najpierw wybierz umiejętność poniżej.
 Primary attack,Atak główny
+slows and roots,spowolnienia i unieruchomienia
+stuns and control,ogłuszenia i kontrolę
+every harmful effect,każdy szkodliwy efekt
 %+d%% effect,%+d%% efektu
 %+d%% healing,%+d%% leczenia
 %+d%% cooldown,%+d%% odnowienia
@@ -502,7 +505,7 @@ Decoy,Wabik
 a mirror image draws aggro for %.1fs,lustrzane odbicie ściąga agresję przez %.1fs
 Heal,Leczenie
 Shield,Tarcza
-absorbs %d for %.0fs%s,pochłania %d przez %.0fs%s
+absorbs %s for %.0fs%s,pochłania %s przez %.0fs%s
 Taunt,Prowokacja
 "%.1fs, enemies within %s","%.1fs, wrogowie w promieniu %s"
 Cone,Stożek
@@ -520,7 +523,7 @@ heals you for %d%% of the damage,leczy cię o %d%% obrażeń
 ", through walls (x%.0f damage)",", przez ściany (x%.0f obrażeń)"
 Line,Linia
 Chain,Łańcuch
-"%d jumps, +%d%% per jump","skoków: %d, +%d%% na skok"
+"%s range, %d jumps of up to %s, +%d%% per jump","zasięg %s, %d przeskoków do %s, +%d%% na przeskok"
 Beam damage,Obrażenia promienia
 Beam heal,Leczenie promienia
 %d to allies in the beam,%d dla sojuszników w promieniu
@@ -535,11 +538,12 @@ On impact: ,Przy uderzeniu:
 After %.1fs: ,Po %.1fs: 
 Deploys,Rozstawia
 "for %.0fs, acts every %.1fs","na %.0fs, działa co %.1fs"
+", %s radius",", promień %s"
 %d every %.1fs%s,%d co %.1fs%s
  (below %d%% health), (poniżej %d%% zdrowia)
 Each shot: ,Każdy strzał: 
 Detonates,Detonuje
-every %s on the target at once,każdy efekt %s na celu naraz
+"every %s on the target at once (x%.1f), %s","wszystkie efekty %s na celu naraz (x%.1f), %s"
 Cleanses,Oczyszcza
 ", refunds %d",", zwraca %d"
 Dispels,Rozprasza
@@ -563,6 +567,7 @@ Every %.1fs: ,Co %.1fs:
 Pulls,Przyciąga
 the ally to your feet,sojusznika do twoich stóp
 Inside: ,Wewnątrz: 
+When it ends: ,Na koniec: 
 Allies: ,Sojusznicy: 
 Knockback,Odrzut
 %d force,siła %d
@@ -571,6 +576,14 @@ On hit: ,Przy trafieniu:
 %d every %.1fs for %.1fs%s,%d co %.1fs przez %.1fs%s
 while active,gdy aktywne
 %d (crit %d)%s,%d (kryt. %d)%s
+%d%% of your max health,%d%% twojego maks. zdrowia
+%d%% of your armor,%d%% twojego pancerza
+%d%% of the target's max health,%d%% maks. zdrowia celu
+%d%% of the hit or heal that triggered it,"%d%% trafienia lub leczenia, które to wywołało"
+%d%% of the overhealing,%d%% nadmiarowego leczenia
+%d%% of the blocked damage,%d%% zablokowanych obrażeń
+%d%% of the triggering amount,%d%% wartości wyzwalającej
+up to %d%% of the target's max health,do %d%% maks. zdrowia celu
 %+d%% speed,%+d%% szybkości
 %+d%% damage,%+d%% obrażeń
 %+d%% damage taken,%+d%% otrzymywanych obrażeń
@@ -582,6 +595,78 @@ while active,gdy aktywne
 Damage before the target's armor.,Obrażenia przed uwzględnieniem pancerza celu.
 Not on the bar,Nie na pasku
 Skill %d,Umiejętność %d
+Armor penetration,Przebicie pancerza
+Armor against magic and elements,Pancerz przeciw magii i żywiołom
+Block chance,Szansa na blok
+Block value,Wartość bloku
+Damage to bosses,Obrażenia zadawane bossom
+Stuns and knockdowns you cause,Twoje ogłuszenia i powalenia
+Control effects on you,Efekty kontroli na tobie
+All cooldowns,Wszystkie czasy odnowienia
+Critical chance,Szansa na trafienie krytyczne
+Critical damage,Obrażenia krytyczne
+Damage taken,Otrzymywane obrażenia
+Dodge chance,Szansa na unik
+Projectile damage per 50 px to the target,Obrażenia pocisków na każde 50 px do celu
+Distance bonus up to,Premia za odległość do
+Fire damage,Obrażenia od ognia
+Frost damage,Obrażenia od mrozu
+Lightning damage,Obrażenia od błyskawic
+Earth damage,Obrażenia od ziemi
+Holy damage,Obrażenia od świętości
+Shadow damage,Obrażenia od cienia
+Nature damage,Obrażenia od natury
+Physical damage,Obrażenia fizyczne
+Spell damage,Obrażenia od czarów
+Melee damage,Obrażenia w zwarciu
+Ranged damage,Obrażenia dystansowe
+Healing done,Zadawane leczenie
+Healing received,Otrzymywane leczenie
+Leech healing,Leczenie z wysysania
+Magic penetration,Przebicie magii
+Magic resistance,Odporność na magię
+Max %s,Maks. %s
+Traps armed at once,Pułapki uzbrojone naraz
+Movement speed,Szybkość ruchu
+Range,Zasięg
+Ranged damage taken,Otrzymywane obrażenia dystansowe
+Spell damage taken,Otrzymywane obrażenia od czarów
+%s generation,Generowanie: %s
+%s regeneration,Regeneracja: %s
+Threat generated,Generowane zagrożenie
+Trap radius,Promień pułapek
+When you hit,Gdy trafiasz
+When you land a critical hit,Gdy zadajesz trafienie krytyczne
+When you kill,Gdy zabijasz
+When you cast a skill,Gdy używasz umiejętności
+When you heal,Gdy leczysz
+When you block,Gdy blokujesz
+When you dodge,Gdy unikasz
+When a blow would kill you,Gdy cios miałby cię zabić
+When your health runs low,Gdy kończy ci się zdrowie
+When you apply an effect,Gdy nakładasz efekt
+Every second,Co sekundę
+At the start of a floor,Na początku piętra
+Trigger,Wyzwalacz
+Effect,Efekt
+%s per rank (%d ranks),%s na rangę (%d rang)
+%s per rank - now %s (max),%s na rangę - teraz %s (maks.)
+"%s per rank - now %s, next %s","%s na rangę - teraz %s, następna %s"
+All skills,Wszystkie umiejętności
+with %s damage,obrażeniami: %s
+with a %s spell,czarem: %s
+with a %s attack,atakiem: %s
+a target with %s,cel z efektem: %s
+applying %s,nakładając: %s
+while you have %s,gdy masz: %s
+at %d+ stacks of %s,przy %d+ ładunkach: %s
+with %s,umiejętnością: %s
+damage over time only,tylko obrażenia w czasie
+direct hits only,tylko bezpośrednie trafienia
+direct heals only,tylko bezpośrednie leczenie
+in combat,w walce
+ (at most every %.1f s), (najwyżej co %.1f s)
+ (%d%% chance), (szansa %d%%)
 Talents,Talenty
 Learn rank,Poznaj rangę
 Key,Klucz
@@ -1273,7 +1358,6 @@ of Ruin,Zagłady
 of Swiftness,Chyżości
 of Evasion,Uników
 of the Leech,Pijawki
-Dodge chance,Szansa na unik
 Critical Chance,Szansa na kryt.
 Move Speed,Szybkość ruchu
 Block Chance,Szansa na blok

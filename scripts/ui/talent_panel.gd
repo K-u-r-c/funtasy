@@ -119,9 +119,15 @@ func _build() -> void:
 	card_panel.custom_minimum_size = Vector2(230, 0)
 	card_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	right.add_child(card_panel)
+	# The card scrolls when a skill's numbers run longer than the panel (#43 / #44).
+	var card_scroll := ScrollContainer.new()
+	card_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	card_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	card_panel.add_child(card_scroll)
 	_card = VBoxContainer.new()
 	_card.add_theme_constant_override("separation", 4)
-	card_panel.add_child(_card)
+	_card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	card_scroll.add_child(_card)
 	_reset = AnimButton.new()
 	_reset.text = Loc.t("Reset talents (free)")
 	_reset.icon = UITheme.icon_tex("act_reset")
@@ -259,13 +265,25 @@ func _show(node: Dictionary) -> void:
 			nums.add_child(c)
 		if nums.get_child_count() > 0:
 			_card.add_child(nums)
+	# #43: exactly what it does, with this hero's numbers, generated from the data.
+	for r in TalentInfo.rows(player, node):
+		var row := VBoxContainer.new()
+		row.add_theme_constant_override("separation", 0)
+		row.add_child(UITheme.label(r.k, UITheme.TEXT_DIM, UITheme.FONT_SMALL))
+		var v := UITheme.label(r.v, SkillTooltip.color_for(int(r.kind)), UITheme.FONT_SMALL)
+		v.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		v.custom_minimum_size = Vector2(200, 0)
+		row.add_child(v)
+		_card.add_child(row)
+	# The flavour text stays, second and dimmer.
 	var desc := Loc.t(str(node.get("description", "")))
 	if kind == "skill":
 		var sk: Dictionary = GameData.skills.get(str(node.skill), {})
 		desc = Loc.t(str(sk.get("description", ""))) + (Loc.t("\nPassive: always active once learned.") if sk.get("passive", false) else Loc.t("\nLearn it, then slot it in the Skill Book."))
-	var d := UITheme.label(desc, UITheme.TEXT, UITheme.FONT_SMALL)
+	_card.add_child(HSeparator.new())
+	var d := UITheme.label(desc, UITheme.TEXT_DIM, UITheme.FONT_SMALL)
 	d.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	d.custom_minimum_size = Vector2(210, 0)
+	d.custom_minimum_size = Vector2(200, 0)
 	_card.add_child(d)
 	var need := int(node.get("tier", 0)) * int(_tree.get("tier_points", 2))
 	if need > 0 and not player.is_free_node(node):

@@ -138,6 +138,10 @@ func refresh() -> void:
 
 
 func _color(kind: int) -> Color:
+	return color_for(kind)
+
+
+static func color_for(kind: int) -> Color:
 	match kind:
 		SkillInfo.Kind.DAMAGE:
 			return Color("ff9a6a")
