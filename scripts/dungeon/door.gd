@@ -53,10 +53,13 @@ func setup(d: Dictionary, tile: int) -> void:
 	_shape.shape = rect
 	_shape.position = Vector2(0, -world_rect.size.y / 2.0)
 	add_child(_shape)
-	# #46: the opening is closed to light by two one-sided lines, neither of which shadows the
-	# door art: lights in front cast from a line across the top of the drawn door (the art lies
-	# in front of it), lights behind cast from a line at its foot (the art lies behind it). A
-	# side door, drawn edge-on, has one line down each face of the opening.
+	# #46 / #50: the opening is closed to light by two one-sided lines across the top of the wall
+	# row, where the wall tiles' occluders begin, so no light slips past the door's sides: one casts
+	# for lights north of it (the shadow falls south, away from them), the other for lights south
+	# of it (the shadow falls north). A torch-bearer pressed against the door from the north, in
+	# the strip its art overlaps, is north of both, so its shadow never comes back over them. The
+	# closed door's art is drawn SELF_LIT, so neither line darkens it and it stays visible from
+	# both sides. A side door, drawn edge-on, has one line down each face of the opening.
 	var hw := world_rect.size.x / 2.0
 	var art := GameData.texture("props.door_closed")
 	var art_h := float(art.get_height()) if art else float(tile)
@@ -69,8 +72,9 @@ func setup(d: Dictionary, tile: int) -> void:
 		_occluder.add_child(LightLayers.one_sided(PackedVector2Array([Vector2(-ex, top), Vector2(-ex, 0)])))
 		_occluder.add_child(LightLayers.one_sided(PackedVector2Array([Vector2(ex, 0), Vector2(ex, top)])))
 	else:
-		_occluder.add_child(LightLayers.one_sided(PackedVector2Array([Vector2(-hw, 0), Vector2(hw, 0)])))
-		_occluder.add_child(LightLayers.one_sided(PackedVector2Array([Vector2(hw, -art_h + 2.0), Vector2(-hw, -art_h + 2.0)])))
+		var wall_top := -world_rect.size.y
+		_occluder.add_child(LightLayers.one_sided(PackedVector2Array([Vector2(-hw, wall_top), Vector2(hw, wall_top)])))
+		_occluder.add_child(LightLayers.one_sided(PackedVector2Array([Vector2(hw, wall_top), Vector2(-hw, wall_top)])))
 	add_child(_occluder)
 	_sprites = Node2D.new()
 	add_child(_sprites)
@@ -244,7 +248,7 @@ func _refresh() -> void:
 		if style == "bookshelf":
 			dt = GameData.texture("props.bookshelf")
 		var s3 := Sprite2D.new()
-		s3.light_mask = LightLayers.LIT
+		s3.light_mask = LightLayers.SELF_LIT
 		s3.texture = dt
 		s3.offset = Vector2(0, -dt.get_height() / 2.0)
 		s3.scale.x = world_rect.size.x / float(dt.get_width())
@@ -309,6 +313,7 @@ func _refresh_typed(fallback: Texture2D) -> void:
 		_sprites.add_child(s2)
 	else:
 		var wide: Texture2D = GameData.texture("props.door_closed_wide")
+		s.light_mask = LightLayers.SELF_LIT
 		s.texture = wide
 		s.offset = Vector2(0, -wide.get_height() / 2.0)
 		s.scale = Vector2(world_rect.size.x * 1.5 / float(wide.get_width()), 1.25)

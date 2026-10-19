@@ -902,6 +902,45 @@ func _lighting_sides(_arg: String) -> void:
 		t.visible = true
 
 
+## #50: the hero with a carried torch pressed against a closed door from the north and the south,
+## and against a side door from the west and the east; only the hero's own lights light it.
+func _door_torch(_arg: String) -> void:
+	for e in g.enemies_root.get_children():
+		e.queue_free()
+	p.iframe_left = 9999.0
+	p.host_take_torch()
+	var fid: String = g.floor_type_for(g.depth)
+	var hdoor: Node = null
+	var vdoor: Node = null
+	for d in g.dungeon.doors:
+		if d.is_open or d.floodgate or d.light != null:
+			continue
+		if d.vertical and vdoor == null:
+			vdoor = d
+		elif not d.vertical and hdoor == null:
+			hdoor = d
+	var shots := []
+	if hdoor:
+		var h: float = hdoor.world_rect.size.y
+		shots.append([hdoor, Vector2(0, -h - 13.0), "north"])
+		shots.append([hdoor, Vector2(0, 13.0), "south"])
+	if vdoor:
+		var w: float = vdoor.world_rect.size.x
+		var mid: float = -vdoor.world_rect.size.y / 2.0
+		shots.append([vdoor, Vector2(-w / 2.0 - 13.0, mid), "west"])
+		shots.append([vdoor, Vector2(w / 2.0 + 13.0, mid), "east"])
+	for sh in shots:
+		var at: Node2D = sh[0]
+		for t in g.dungeon.torches.values():
+			t.visible = t.global_position.distance_to(at.global_position) > 360.0
+		p.host_teleport(at.global_position + sh[1])
+		p.torch_left = 99.0
+		await da._wait(1.0)
+		await snap("door_torch_%s_%s_%s" % [fid, sh[2], Settings.language])
+	for t in g.dungeon.torches.values():
+		t.visible = true
+
+
 ## The Murk Amalgam's grab (#12): the held hero, the Engulfed icon and the Burst it down bar.
 func _grab(_arg: String) -> void:
 	for e in g.enemies_root.get_children():
