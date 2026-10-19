@@ -137,6 +137,7 @@ screenshot review at 1920x1080 and 3440x1440.
 - [x] #49 Bone piles and corpses being raised show a mark with a countdown on every peer (`rise-lan`, tour `rise`)
 - [x] #51 Sewers lever: PixelLab housing and arm, the arm swings from off to on with dust, sparks and a clunk, a red / green lamp readable from afar (`lever-lan`, tour `lever`)
 - [x] #47 Talent trees as real trees: prerequisites, forks, keystones at path ends, a T5 keystone needs 16 points; a drawn tree panel with lines, node states and a learn animation; old saves refunded (`talents-*`, `talents-lan`, tour `talent_tree`)
+- [x] Screenshot review in English and Polish: tours `controls`, `charge`, `quiver`, `door_torch` (all five biomes), `level_up`, `rise`, `lever` (Sewers) and `talent_tree` (all four classes: locked, partly learned, a branch to its end, learn animation frames); the Linux release build smoke-tested with `--lang=pl`
 
 ## PixelLab ledger
 
@@ -228,6 +229,7 @@ the free workbenches.
 | --- | --- | --- | --- | --- | --- |
 | 2026-10-19 | (goal start) | 4328 | 4328 | 0 | 0 |
 | 2026-10-20 | #51 Sewers lever: 2 map objects (iron gearbox housing on a stone plinth 48x48, lever arm 32x64; the arm swings in code) | 4328 | 4330 | 2 | 2 |
+| 2026-10-20 | (goal end: level-up, rise marks, charge display and the talent trees drawn in code; no more generations) | 4330 | 4330 | 0 | 2 |
 
 ## Done (MVP)
 
