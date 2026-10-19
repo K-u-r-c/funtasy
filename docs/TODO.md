@@ -120,12 +120,23 @@ screenshot review at 1920x1080 and 3440x1440.
 
 - [x] #45 5 stat points and 1 talent point per level, tier gate 2, over-spent saves refunded with a message (`talents-*`, `balance-*`)
 - [x] #40 A click on empty space or on the picked teammate clears the friendly target; the empty-ground click still attacks (`target-lan`, tour `target_clear`)
-- [x] #41 Enemy lock: R / D-pad Left / a click on a visible enemy; aimed attacks go to it, host-validated; red reticle and boss bar frame (`hostile-lan`, `gamepad-menu`, tour `hostile`)
+- [x] #41 Enemy lock: R / D-pad Left / a click on a visible enemy; aimed attacks go to it, host-validated; red reticle and boss bar frame (removed in #53, with its `hostile-lan` suite and `hostile` tour)
 - [x] #42 Skills 1-5: tap casts on release, hold shows the aim preview from the skill data, release casts; refused casts preview in red with the reason (`preview`, `skills-*`, tour `previews`)
 - [x] #43 Talent, Skill Book and bar tooltips with exact numbers from the data, per-rank / now / next for ranks, keystone triggers (`tooltips`, `tooltips-pl`, tour `talent_tips`)
 - [x] #44 Long text never leaves the screen: HUD messages and prompts wrap, lobby rows wrap / ellipsize; every screen checked at 16:9, 32:9, 4:3 and 1:1 in both languages (`ui-fit*`)
 - [x] #46 Doors stay visible lit from behind and still close their opening to light; prop shadows start at the foot (one-sided occluder lines; `lighting-rules`, tour `lighting_sides` in all biomes)
-- [x] Screenshot review in English and Polish: tours `points`, `target_clear`, `hostile`, `previews`, `talent_tips` (all four classes), `lighting_sides` (all five biomes), the `ui-fit` shots (HUD and lobby, before / after)
+- [x] Screenshot review in English and Polish: tours `points`, `target_clear`, `hostile` (removed in #53), `previews`, `talent_tips` (all four classes), `lighting_sides` (all five biomes), the `ui-fit` shots (HUD and lobby, before / after)
+
+## Fifth playtest issues (GitHub #47-#54)
+
+- [x] #53 Enemy targeting removed; a click on an enemy is an attack, skills aim at the cursor, D-pad Left opens Talents again, old settings migrated (`target-lan`, `rebind`, `rebind-check`, `gamepad-menu`, tour `controls`)
+- [x] #54 Charge-up skills pay their cost and cooldown on release; nothing spent when cancelled, interrupted or unaffordable; the HUD slot and aim preview show the charge (`preview`, `skills-lan`, tour `charge`)
+- [x] #52 A quiver goes with every bow and crossbow, new and saved (`continue`, tour `quiver`)
+- [x] #50 A closed door never shadows a torch-bearer next to it and lets no light past its sides (`lighting-rules`, tour `door_torch` in all five biomes)
+- [ ] #48 Level-up effect on the hero (replicated) and an on-screen banner
+- [ ] #49 Enemies that can still rise show a mark with a countdown
+- [ ] #51 Sewers lever art with off / on states and a pull animation
+- [ ] #47 Talent trees as real trees with prerequisites, a new panel and learn animations
 
 ## PixelLab ledger
 
