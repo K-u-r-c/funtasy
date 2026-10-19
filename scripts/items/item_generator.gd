@@ -94,8 +94,6 @@ static func make_legendary(id: String, item_level: int, rng: RandomNumberGenerat
 		"stats": {}, "mods": lg.get("mods", []).duplicate(true), "flags": lg.get("flags", []).duplicate(), "procs": lg.get("procs", []).duplicate(true),
 		"affix": lg.affix,
 	}
-	if base.get("with_two_hand", false):
-		item.with_two_hand = true
 	ItemLooks.apply_legendary(item, lg)  # its own worn look and colours (#20)
 	var pct: Array = GameData.affixes.percent_stats
 	for k in lg.get("stats", {}):

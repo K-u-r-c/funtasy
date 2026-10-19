@@ -69,7 +69,7 @@ func _wear(item: Dictionary) -> void:
 	var slot: String = SLOT_OF.get(str(GameData.legendaries[item.legendary].slot), "head")
 	if slot == "main_hand" and int(item.get("hands", 1)) == 2:
 		p.inv.equipment.erase("off_hand")
-	if slot == "off_hand" and int(p.inv.equipment.get("main_hand", {}).get("hands", 1)) == 2 and not item.get("with_two_hand", false):
+	if slot == "off_hand" and int(p.inv.equipment.get("main_hand", {}).get("hands", 1)) == 2 and not Inventory.stays_with_two_hand(item):
 		p.inv.equipment.erase("main_hand")
 	p.inv.equipment[slot] = item
 	p.recompute_stats()

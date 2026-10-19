@@ -338,6 +338,24 @@ func _charge(_arg: String) -> void:
 	p.auto_aim = Vector2.INF
 
 
+## #52: the inventory of a ranger wearing the Short Bow and a quiver, the quiver's card open.
+func _quiver(_arg: String) -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 52
+	var q := ItemGenerator.generate_equipment("quiver", 1, 3, rng)
+	p.host_give_item(q)
+	p.request_equip.rpc_id(1, p.inv.backpack.size() - 1)
+	await da._wait(0.4)
+	var hud: Node = da.get_tree().get_first_node_in_group("hud")
+	var panel: Control = hud.menu_panel("inventory")
+	hud.open_overlay(panel)
+	await da._wait(0.6)
+	panel._slots["e:off_hand"].grab_focus()
+	await da._wait(0.5)
+	await snap("quiver_inventory_%s" % Settings.language)
+	hud.close_overlay()
+
+
 ## #43: the talent card of a damage skill, a heal, an area skill, a ranked passive (at rank 1) and
 ## a keystone of the hero's class, then a skill's numeric card from the bar.
 func _talent_tips(_arg: String) -> void:

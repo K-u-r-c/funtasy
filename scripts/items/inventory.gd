@@ -191,9 +191,8 @@ func _target_slots(item: Dictionary) -> Dictionary:
 			return {"slot": "ring_1", "clear": ["ring_1"]}
 		"weapon":
 			if int(item.get("hands", 1)) == 2:
-				# Quivers (Ranger) stay with a bow; Grip of the Titan keeps a shield with a 2H weapon.
 				var off: Dictionary = equipment.get("off_hand", {})
-				if off.get("with_two_hand", false) or (_wears_flag("titan_grip") and off.get("base", "") == "shield"):
+				if _keeps_with_two_hand(off):
 					return {"slot": "main_hand", "clear": ["main_hand"]}
 				return {"slot": "main_hand", "clear": ["main_hand", "off_hand"]}
 			var main: Dictionary = equipment.get("main_hand", {})
@@ -207,8 +206,7 @@ func _target_slots(item: Dictionary) -> Dictionary:
 		"offhand":
 			var main2: Dictionary = equipment.get("main_hand", {})
 			var clear: Array = ["off_hand"]
-			var keeps: bool = item.get("with_two_hand", false) or (_wears_flag("titan_grip") and item.get("base", "") == "shield")
-			if int(main2.get("hands", 1)) == 2 and not keeps:
+			if int(main2.get("hands", 1)) == 2 and not _keeps_with_two_hand(item):
 				clear.append("main_hand")
 			return {"slot": "off_hand", "clear": clear}
 	return {"slot": slot, "clear": [slot]}
@@ -222,6 +220,19 @@ func replaced_by(item: Dictionary) -> Array:
 		if equipment.has(s):
 			out.append(equipment[s])
 	return out
+
+
+## An off-hand item worn together with a two-handed weapon: a quiver stays with a bow or crossbow,
+## Grip of the Titan keeps a shield with a 2H weapon.
+func _keeps_with_two_hand(off: Dictionary) -> bool:
+	return stays_with_two_hand(off) or (_wears_flag("titan_grip") and off.get("base", "") == "shield")
+
+
+## #52: whether `item`'s base stays with a two-handed weapon ("with_two_hand" in the base data, the
+## quiver). Read from the base, not the item, so every quiver follows it: generated ones (which never
+## carried the flag), legendaries and the ones already in saves.
+static func stays_with_two_hand(item: Dictionary) -> bool:
+	return bool(GameData.item_bases.get(str(item.get("base", "")), {}).get("with_two_hand", false))
 
 
 ## A legendary flag on a worn item (Grip of the Titan).

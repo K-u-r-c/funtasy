@@ -1336,6 +1336,8 @@ func _continue_scenario() -> void:
 	var g := _game()
 	var p := _local()
 	await _wait(1.0)
+	if p.class_id == "ranger":
+		await _quiver_with_bow(p)
 	p.add_xp(Player.xp_to_next(1) + 5)
 	g.start_floor(2)
 	await _wait(1.0)
@@ -1376,10 +1378,64 @@ func _continue_scenario() -> void:
 	check(ok and _game().depth == 2 and _local().level == lvl, "continued on floor 2 with the same hero (floor %s, level %s)" % [_game().depth if _game() else -1, _local().level if _local() else -1])
 	check(ok and _local().gender == want_gender and _local().sprite._layer_keys.get("body", "") == CharacterSprite.body_key(want_gender),
 			"continued hero keeps gender %s and its body art" % want_gender)
+	if ok and _local().class_id == "ranger":
+		var eq: Dictionary = _local().inv.equipment
+		check(str(eq.get("main_hand", {}).get("base", "")) == "bow" and str(eq.get("off_hand", {}).get("base", "")) == "quiver",
+				"the saved ranger loads with both the Short Bow and the quiver (#52)")
+		var hud: Node = get_tree().get_first_node_in_group("hud")
+		var panel: Control = hud.menu_panel("inventory")
+		hud.open_overlay(panel)
+		await _wait(0.5)
+		check(str(panel._slots["e:main_hand"].item.get("base", "")) == "bow" and str(panel._slots["e:off_hand"].item.get("base", "")) == "quiver",
+				"the inventory screen shows the bow and the quiver")
+		hud.close_overlay()
 	# A 1-player save can't be continued by 2 players (checked through the start rule).
 	GameState.game_info.party_size = 2
 	check(not GameState.start_problem().is_empty(), "a saved game requires its party size")
 	GameState.game_info.party_size = 1
+
+
+## #52: a generated quiver (no "with_two_hand" on the item, like every quiver in old saves) goes on
+## next to the Short Bow, and the Short Bow goes back on next to the quiver, through the equip RPC.
+func _quiver_with_bow(p: Player) -> void:
+	var bow: Dictionary = p.inv.equipment.get("main_hand", {})
+	check(str(bow.get("base", "")) == "bow" and str(bow.get("name", "")) == "Short Bow" and int(bow.get("hands", 1)) == 2,
+			"the ranger starts with the two-handed Short Bow")
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 52
+	var q := ItemGenerator.generate_equipment("quiver", 1, 2, rng)
+	q.erase("with_two_hand")
+	p.host_give_item(q)
+	p.request_equip.rpc_id(1, p.inv.backpack.size() - 1)
+	await _wait(0.3)
+	var eq: Dictionary = p.inv.equipment
+	check(str(eq.get("main_hand", {}).get("uid", "")) == str(bow.get("uid", "")) and str(eq.get("off_hand", {}).get("uid", "")) == str(q.uid),
+			"equipping a quiver keeps the Short Bow (both worn)")
+	p.request_unequip.rpc_id(1, "main_hand")
+	await _wait(0.3)
+	var idx := -1
+	for i in p.inv.backpack.size():
+		if str(p.inv.backpack[i].get("uid", "")) == str(bow.uid):
+			idx = i
+	p.request_equip.rpc_id(1, idx)
+	await _wait(0.3)
+	eq = p.inv.equipment
+	check(str(eq.get("main_hand", {}).get("uid", "")) == str(bow.uid) and str(eq.get("off_hand", {}).get("uid", "")) == str(q.uid),
+			"equipping the Short Bow while wearing a quiver keeps both")
+	# Every other bow too: a generated Rare bow and a legendary one.
+	for b in [ItemGenerator.generate_equipment("bow", 1, 3, rng), ItemGenerator.make_legendary("blacksong_greatbow", 1, rng), ItemGenerator.generate_equipment("crossbow", 1, 2, rng)]:
+		b.req = 1
+		p.host_give_item(b)
+		p.request_equip.rpc_id(1, p.inv.backpack.size() - 1)
+		await _wait(0.3)
+		eq = p.inv.equipment
+		check(str(eq.get("main_hand", {}).get("uid", "")) == str(b.uid) and str(eq.get("off_hand", {}).get("uid", "")) == str(q.uid),
+				"the quiver stays with %s" % str(b.name))
+	for i in p.inv.backpack.size():
+		if str(p.inv.backpack[i].get("uid", "")) == str(bow.uid):
+			p.request_equip.rpc_id(1, i)
+			break
+	await _wait(0.3)
 
 
 ## LAN look review (#20): the host wears a gilded plate set and a legendary crown, the client a
