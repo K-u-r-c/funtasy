@@ -92,6 +92,7 @@ var _reviving_peer := 0
 var friendly_peer := 0  ## owner: the teammate ally spells go to (#39), 0 = none
 var hostile_name := ""  ## owner: the enemy (node name, the same on every peer) aimed attacks go to (#41)
 var _target_msg_at := -99.0  ## owner: when the last "out of range" style message was shown
+var _skill_hold: Dictionary = {}  ## owner: skill slot -> seconds its key has been held (#42)
 var _click_select := false  ## owner: this held click picked a teammate instead of attacking
 var _interact_pick := 0  ## which of the things at one spot "interact" uses (#35)
 var _interact_key := ""  ## the set of things that pick refers to
@@ -530,6 +531,7 @@ func _owner_tick(delta: float) -> void:
 	dash_sync = _dodge_left > 0.0 or _forced_left > 0.0
 	if blocked:
 		_release_quick_holds()
+		_skill_hold.clear()
 		return
 	# Dodge
 	if Input.is_action_just_pressed("dodge") and _dodge_cd <= 0.0 and speed > 0.0 and not status.has_flag("no_dash"):
@@ -539,21 +541,30 @@ func _owner_tick(delta: float) -> void:
 		request_dodge.rpc_id(1, _dodge_dir)
 	_handle_friendly_target()
 	_handle_hostile_target()
-	# Attack + skills (holding repeats as soon as the cooldown allows). Channelled and
-	# charge-up skills also report the release.
+	# The primary attack repeats while held. Skills 1-5 (#42): a tap casts on release, a hold
+	# shows the aim preview and casts on release. Channelled and charge-up skills start on the
+	# press as before (the preview shows while they are held) and report the release.
 	for slot in SLOT_ACTIONS.size():
-		if Input.is_action_pressed(SLOT_ACTIONS[slot]) and not local_cd.has(slot) and not _pending.has(slot) \
-				and slot < skills.size() and not str(skills[slot]).is_empty():
-			_pending[slot] = 0.3
+		if slot >= skills.size() or str(skills[slot]).is_empty():
+			continue
+		var action: String = SLOT_ACTIONS[slot]
+		if slot > 0 and not _is_hold_skill(str(skills[slot])):
+			if Input.is_action_just_pressed(action):
+				_skill_hold[slot] = 0.0
+			elif Input.is_action_pressed(action) and _skill_hold.has(slot):
+				_skill_hold[slot] = float(_skill_hold[slot]) + delta
+			if Input.is_action_just_released(action) and _skill_hold.has(slot):
+				_skill_hold.erase(slot)
+				if not local_cd.has(slot) and not _pending.has(slot):
+					_send_skill(slot)
+			continue
+		if Input.is_action_pressed(action) and not local_cd.has(slot) and not _pending.has(slot):
 			if slot == 0 and _click_select:
+				_pending[slot] = 0.3
 				continue
-			var foe := hostile_node()
-			var aim := aim_pos
-			if foe and SkillShape.of(GameData.skill(str(skills[slot]))).hostile:
-				aim = foe.global_position
-			request_skill.rpc_id(1, slot, aim, friendly_peer, hostile_name if foe else "")
-		if Input.is_action_just_released(SLOT_ACTIONS[slot]) and slot < skills.size() and _is_hold_skill(str(skills[slot])):
-			request_skill_release.rpc_id(1, slot, aim_pos)
+			_send_skill(slot)
+		if Input.is_action_just_released(action) and _is_hold_skill(str(skills[slot])):
+			request_skill_release.rpc_id(1, slot, _cast_aim(slot))
 	_handle_quick_slots(delta)
 	_handle_interact()
 
@@ -710,6 +721,70 @@ func enemy_at(pos: Vector2) -> Actor:
 func _pointer_on_ui() -> bool:
 	var c := get_viewport().gui_get_hovered_control()
 	return c != null and c.mouse_filter == Control.MOUSE_FILTER_STOP
+
+
+## Owner: the aim a cast of `slot` uses now: the enemy lock for aimed attacks (#41), the friendly
+## pick for ally spells (#39), else the cursor / right stick.
+func _cast_aim(slot: int) -> Vector2:
+	var shape := SkillShape.of(GameData.skill(str(skills[slot])))
+	var foe := hostile_node()
+	if foe and shape.hostile:
+		return foe.global_position
+	var fr := friendly_target_node()
+	if fr and shape.kind == "ally":
+		return fr.global_position
+	return aim_pos
+
+
+func _send_skill(slot: int) -> void:
+	_pending[slot] = 0.3
+	var hostile: bool = hostile_node() != null and SkillShape.of(GameData.skill(str(skills[slot]))).hostile
+	request_skill.rpc_id(1, slot, _cast_aim(slot), friendly_peer, hostile_name if hostile else "")
+
+
+## Owner (#42): the skill slot whose aim preview shows now (held past the tap threshold, or a
+## channelled / charged skill held), or -1.
+func preview_slot() -> int:
+	if life_state != Life.ALIVE:
+		return -1
+	var best := -1
+	var best_t := InputSettings.hold_threshold
+	for slot in _skill_hold:
+		if float(_skill_hold[slot]) >= best_t and slot < skills.size():
+			best = slot
+			best_t = float(_skill_hold[slot])
+	if best >= 0:
+		return best
+	for slot in range(1, mini(SLOT_ACTIONS.size(), skills.size())):
+		if _is_hold_skill(str(skills[slot])) and Input.is_action_pressed(SLOT_ACTIONS[slot]):
+			return slot
+	return -1
+
+
+## Owner (#42): what the preview of `slot` shows: {shape, origin, aim, why}; `why` is the reason
+## the cast would be refused right now ("" when it would go).
+func preview_info(slot: int) -> Dictionary:
+	var sk := GameData.skill(str(skills[slot]))
+	var shape := SkillShape.of(sk, Combat.skill_numbers(stats, level, sk))
+	var aim := _cast_aim(slot)
+	var why := ""
+	var cost := stats.cost_for(sk) if not sk.has("channel") and not sk.has("toggle") else 0.0
+	if local_cd.has(slot):
+		why = "Not ready"
+	elif resource.kind != "none" and cost > 0.0 and resource.value + 0.01 < cost:
+		why = "Not enough Fury" if resource.kind == "fury" else "Not enough Mana"
+	else:
+		var tgt: Node2D = null
+		var reach := 0.0
+		if shape.kind == "ally" and friendly_target_node():
+			tgt = friendly_target_node()
+			reach = float(shape.range)
+		elif shape.hostile and hostile_node():
+			tgt = hostile_node()
+			reach = SkillShape.reach(shape)
+		if tgt and global_position.distance_to(tgt.global_position) > reach + float(tgt.radius) + 16.0:
+			why = "Target out of range"
+	return {"shape": shape, "origin": global_position, "aim": aim, "why": why}
 
 
 func _is_hold_skill(sid: String) -> bool:

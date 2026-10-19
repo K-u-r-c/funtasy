@@ -259,6 +259,8 @@ func _run() -> void:
 				await TargetSuite.new(self).run_lan()
 			"hostile_lan":
 				await HostileSuite.new(self).run_lan()
+			"preview":
+				await PreviewSuite.new(self).run()
 			"fx_lan":
 				await FxSuite.new(self).run_lan()
 			"fx":
@@ -1795,6 +1797,7 @@ func _gamepad_scenario() -> void:
 	_joy_button(JOY_BUTTON_A, true)
 	await _wait(0.3)
 	_joy_button(JOY_BUTTON_A, false)
+	await _wait(0.3)  # #42: a skill casts on the button's release
 	check(p.cooldowns.has(p.skills[1]) or Combat.instance.get_meta("uses", {}).has("%s:%s" % [p.name, p.skills[1]]), "A triggers skill 1")
 	var before_cd := p._dodge_cd
 	_joy_axis(JOY_AXIS_TRIGGER_LEFT, 1.0)

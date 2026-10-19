@@ -64,7 +64,7 @@ ends the game for good (its save is deleted). Only the host can change the game 
 | Move | W A S D | Left stick |
 | Aim | Mouse cursor | Right stick |
 | Primary attack | Left mouse | RT |
-| Skills 1-5 | 1 2 3 4 5 | A B X Y RB |
+| Skills 1-5 (tap: cast; hold: aim preview, release to cast) | 1 2 3 4 5 | A B X Y RB |
 | Dodge (i-frames) | Space or Shift | LT |
 | Quick items Q / E (tap: use, hold: radial menu) | Q / E | LB / D-pad Right |
 | Interact / revive (hold): the target under the cursor, or the one you face on a pad | F | D-pad Down |

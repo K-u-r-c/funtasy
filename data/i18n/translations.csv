@@ -7,6 +7,8 @@ Talent and stat points refunded: spend them again.,Zwrócono punkty talentów i 
 Talent points refunded: spend them again.,Zwrócono punkty talentów: rozdaj je ponownie.
 Stat points refunded: spend them again.,Zwrócono punkty cech: rozdaj je ponownie.
 Not ready,Jeszcze niegotowe
+Not enough Fury,Za mało furii
+Not enough Mana,Za mało many
 Busy,Zajęty
 No item assigned to %s,Brak przedmiotu przypisanego do %s
 No talent points left,Brak punktów talentów
@@ -34,8 +36,6 @@ Can't act now,Nie możesz teraz działać
 Silenced,Uciszony
 Locked out,Zablokowane
 Cost x%.2f,Koszt x%.2f
-Not enough Mana,Za mało many
-Not enough Fury,Za mało furii
 No target,Brak celu
 Target health too high,Cel ma za dużo zdrowia
 Target not affected,Cel jest odporny na to

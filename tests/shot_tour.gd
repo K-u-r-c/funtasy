@@ -314,6 +314,36 @@ func _hostile(_arg: String) -> void:
 	hud.close_overlay()
 
 
+## #42: the aim preview of a held skill for each shape (a mage hero): projectile with its blast,
+## an area at the aim point, a cone, a beam, a dash, a ground zone, an aura around the hero, a
+## chain; then two refused ones (no mana; Cleave at a locked enemy out of reach).
+func _previews(_arg: String) -> void:
+	var dummies := await arena(3)
+	p.host_take_torch()
+	var aim: Vector2 = dummies[1].global_position + Vector2(10, -10)
+	p.auto_aim = aim
+	for sid in ["mage_fireball", "mage_meteor", "mage_flame_wave", "mage_luminance", "mage_blink", "mage_blizzard", "mage_frost_nova", "mage_lightning"]:
+		p.skills[1] = sid
+		p.resource.value = p.resource.max_value
+		p.local_cd.clear()
+		p._skill_hold = {1: 1.0}
+		await da._wait(0.35)
+		await snap("preview_%s_%s" % [sid.trim_prefix("mage_"), Settings.language])
+	p.skills[1] = "mage_fireball"
+	p.resource.value = 0.0
+	await da._wait(0.3)
+	await snap("preview_no_mana_%s" % Settings.language)
+	p.resource.value = p.resource.max_value
+	# Cleave (a 65 px swing) at a locked dummy beyond its reach.
+	p.skills[1] = "warrior_cleave"
+	p.set_hostile_target(str(dummies[2].name))
+	await da._wait(0.4)
+	await snap("preview_out_of_range_%s" % Settings.language)
+	p._skill_hold.clear()
+	p.set_hostile_target("")
+	p.auto_aim = Vector2.INF
+
+
 ## #33: a heal burst, the heal-over-time glow, the shield bubble, its shatter, a buff flash and a
 ## cleanse flash on the hero next to training dummies (each shot near the effect's peak).
 func _allyfx(_arg: String) -> void:
