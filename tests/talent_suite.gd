@@ -6,7 +6,10 @@ extends RefCounted
 ## - every passive node can be learned once its branch has the points its tier needs, and each of
 ##   its mods changes the stat (or skill modifier) it names, in the right direction;
 ## - the new passives (icon "tl_*") number at least 20, have icons and numbers in their text;
-## - the tree panel shows every node and the gamepad / keyboard focus reaches all of them.
+## - the tree panel shows every node and the gamepad / keyboard focus reaches all of them;
+## - #47: the tree is a valid graph (GameData.tree_problems), a rank without its prerequisite or
+##   on the closed side of a fork is refused by the host, a save that no longer fits is refunded,
+##   and over LAN (scenario "talents_lan") the host refuses the client the same way.
 
 var da: Node
 var g: Node
@@ -27,8 +30,78 @@ func run() -> void:
 	p.iframe_left = 9999.0
 	await points_per_level()
 	await old_save()
+	await tree_rules()
 	await every_node()
 	await panel()
+
+
+## #47 over LAN: the client asks for ranks through the real RPC; the host refuses a node without
+## its prerequisite and the closed side of a fork (the client reads why), and learns them once
+## the path is taken.
+func run_lan() -> void:
+	g = da._game()
+	p = da._local()
+	await da._wait_until(func(): return g.players_root.get_child_count() >= 2, 10.0)
+	await da._wait(1.0)
+	var c: Player = da._other_player()
+	c.level = 20
+	c.talents = {}
+	c.talent_points = 19
+	await da._wait(0.5)
+	var tree := c.talent_tree()
+	var child: Dictionary = {}
+	for nd in tree.nodes:
+		if int(nd.get("tier", 0)) == 1 and not nd.has("exclusive") and not c.is_free_node(c.talent_node(str(nd.requires[0]))):
+			child = nd
+			break
+	var side: Dictionary = {}
+	for nd in tree.nodes:
+		if nd.has("exclusive") and nd.branch == child.branch and int(nd.get("tier", 0)) == 1:
+			side = nd
+			break
+	var gate_fill: Array = []
+	for nd in tree.nodes:
+		if nd.branch == child.branch and int(nd.get("tier", 0)) == 0 and not c.is_free_node(nd) and nd.get("type", "") == "passive" and nd.id != child.requires[0]:
+			gate_fill.append(nd.id)
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["tl_learn", [child.id, child.requires[0], side.id, c.fork_sibling(side).id, side.requires[0], gate_fill,
+			int(child.get("requires_rank", 1)), int(side.get("requires_rank", 1))]])
+	await da._wait(6.0)
+	da.check(int(c.talents.get(child.id, 0)) == 1 and int(c.talents.get(side.id, 0)) == 1 and int(c.talents.get(c.fork_sibling(side).id, 0)) == 0,
+			"host: the client's %s and %s were learned in order, the other side of the fork %s never" % [child.id, side.id, c.fork_sibling(side).id])
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["done", null])
+	await da._wait(1.0)
+
+
+func client_cmd(cmd: String, arg: Variant) -> void:
+	g = da._game()
+	p = da._local()
+	match cmd:
+		"tl_learn":
+			var got: Array = []
+			var cb := func(t: String, _col: Color): got.append(t)
+			EventBus.hud_message.connect(cb)
+			var learn := func(id: String) -> void:
+				p.request_learn_talent.rpc_id(1, id)
+				await da._wait(0.4)
+			# Enough points in the branch for tier 1, then the child without its prerequisite.
+			for fid in arg[5]:
+				await learn.call(str(fid))
+				await learn.call(str(fid))
+			await learn.call(str(arg[0]))
+			da.check(int(p.talents.get(str(arg[0]), 0)) == 0 and got.has(Loc.t("Requires another talent first")),
+					"client: the host refuses %s without %s and says why (%s)" % [arg[0], arg[1], got])
+			for i in int(arg[6]):
+				await learn.call(str(arg[1]))
+			await learn.call(str(arg[0]))
+			da.check(int(p.talents.get(str(arg[0]), 0)) == 1, "client: with %s learned, %s is learned" % [arg[1], arg[0]])
+			got.clear()
+			for i in int(arg[7]):
+				await learn.call(str(arg[4]))
+			await learn.call(str(arg[2]))
+			await learn.call(str(arg[3]))
+			da.check(int(p.talents.get(str(arg[2]), 0)) == 1 and int(p.talents.get(str(arg[3]), 0)) == 0 and got.has(Loc.t("You took the other path of this fork")),
+					"client: after %s the host refuses the other side %s (%s)" % [arg[2], arg[3], got])
+			EventBus.hud_message.disconnect(cb)
 
 
 func points_per_level() -> void:
@@ -74,40 +147,147 @@ func old_save() -> void:
 	await da._wait(2.5)
 	EventBus.hud_message.disconnect(cb)
 	da.check(got.has(Loc.t("Talent and stat points refunded: spend them again.")), "the hero is told the points were refunded (%s)" % [got])
-	# Spent within the new totals: kept.
+	# Spent within the new totals on a valid tree (tier-0 passives): kept.
 	var small := {}
 	n = 0
-	for k in spent:
-		if n + int(spent[k]) <= 9:
-			small[k] = spent[k]
-			n += int(spent[k])
+	for nd0 in tree.nodes:
+		if nd0.get("type", "") == "passive" and int(nd0.get("tier", 0)) == 0 and not p.is_free_node(nd0) and n < 9:
+			var r0 := mini(int(nd0.get("max_rank", 1)), 9 - n)
+			small[nd0.id] = r0
+			n += r0
 	ch.talents = small
 	ch.allocated = {"strength": 20, "stamina": 25}
 	GameState.characters[p.peer_id] = ch
 	p._host_init()
 	da.check(p.talent_points == 9 - n and p.stat_points == 0 and p.talents == small and int(p.allocated.get("stamina", 0)) == 25 and p.points_refunded.is_empty(),
 			"a level 10 save within the new totals keeps its %d talents and 45 stat points" % n)
-	# Every point can be spent: with 1 point per level every branch's top tier opens by level 15.
+	# Every point can be spent: with 1 point per level every branch's top tier opens by level 15,
+	# whichever side of its forks is taken (GameData.tree_problems checks the gates per fork).
 	var tp := int(tree.get("tier_points", 2))
 	var per := int(GameData.bal("progression.talent_points_per_level"))
 	var top_level := 1 + int(ceil(float(5 * tp + 1) / per))
-	var short: Array = []
-	for br in tree.get("branches", []):
-		for tier in range(1, 6):
-			var below := 0
-			for nd in tree.nodes:
-				if str(nd.get("branch", "")) == str(br.id) and int(nd.get("tier", 0)) < tier and not p.is_free_node(nd):
-					below += int(nd.get("max_rank", 1))
-			if below < tier * tp:
-				short.append("%s tier %d" % [br.id, tier])
+	var short := GameData.tree_problems(tree).filter(func(s): return str(s).contains("needs"))
 	da.check(top_level <= 15 and short.is_empty(), "every branch's top tier opens by level %d (gate %d points a tier)%s" % [top_level, tp, "" if short.is_empty() else ": short %s" % [short]])
 	GameState.characters[p.peer_id] = keep
 	p._host_init()
 
 
+## The talents (id -> rank) a hero needs to take `nd`: its prerequisite chain at the ranks each
+## step asks for, then whole ranks of other open nodes lower in the branch (never the closed side
+## of a fork) until the branch has the points `nd` needs.
+func plan_for(nd: Dictionary) -> Dictionary:
+	var t := {}
+	var groups := {}
+	if nd.has("exclusive"):
+		groups[str(nd.exclusive)] = str(nd.id)
+	var c := nd
+	while not c.get("requires", []).is_empty():
+		var par := p.talent_node(str(c.requires[0]))
+		if not p.is_free_node(par):
+			t[par.id] = maxi(int(t.get(par.id, 0)), int(c.get("requires_rank", 1)))
+		if par.has("exclusive"):
+			groups[str(par.exclusive)] = str(par.id)
+		c = par
+	var have := 0
+	for k in t:
+		have += int(t[k])
+	var need := p.branch_gate(nd)
+	for tier in int(nd.get("tier", 0)):
+		for f in p.talent_tree().nodes:
+			if have >= need:
+				return t
+			if f.branch != nd.branch or int(f.get("tier", 0)) != tier or p.is_free_node(f) or t.has(f.id) or f.id == nd.id:
+				continue
+			if f.has("exclusive") and groups.get(str(f.exclusive), str(f.id)) != str(f.id):
+				continue
+			var ok := true
+			for r in f.get("requires", []):
+				var rn := p.talent_node(str(r))
+				ok = ok and (p.is_free_node(rn) or int(t.get(rn.id, 0)) >= int(f.get("requires_rank", 1)))
+			if not ok:
+				continue
+			t[f.id] = int(f.get("max_rank", 1))
+			have += int(f.max_rank) if f.has("max_rank") else 1
+			if f.has("exclusive"):
+				groups[str(f.exclusive)] = str(f.id)
+	return t
+
+
+## #47: the tree is a valid graph; the host refuses a rank without its prerequisite (or below the
+## rank it asks for) and the closed side of a fork, with a message; an old save that doesn't fit
+## the tree is refunded whole.
+func tree_rules() -> void:
+	var tree := p.talent_tree()
+	var problems := GameData.tree_problems(tree)
+	var roots := 0
+	var keystones_leaf := true
+	for nd in tree.nodes:
+		roots += 1 if nd.get("requires", []).is_empty() else 0
+		for other in tree.nodes:
+			if str(nd.get("type", "")) == "keystone" and Array(other.get("requires", [])).has(nd.id):
+				keystones_leaf = false
+	da.check(problems.is_empty() and keystones_leaf and roots > 0 and roots < tree.nodes.size() / 2,
+			"%s: the talent tree is a valid graph: %d roots, every other node has a prerequisite, keystones at path ends%s" % [p.class_id, roots, "" if problems.is_empty() else ": %s" % [problems]])
+	var keep_level := p.level
+	p.level = 30
+	var got: Array = []
+	var cb := func(txt: String, _col: Color): got.append(txt)
+	EventBus.hud_message.connect(cb)
+	# Without the prerequisite: refused.
+	var child: Dictionary = {}
+	for nd in tree.nodes:
+		if int(nd.get("tier", 0)) == 2 and nd.get("type", "") != "keystone" and not nd.get("requires", []).is_empty():
+			child = nd
+			break
+	var plan := plan_for(child)
+	var t2 := plan.duplicate()
+	t2.erase(str(child.requires[0]))
+	p.talents = t2
+	p.talent_points = 99
+	p.request_learn_talent.rpc_id(1, str(child.id))
+	await da._wait(0.3)
+	da.check(int(p.talents.get(child.id, 0)) == 0 and got.has(Loc.t("Requires another talent first")),
+			"the host refuses %s without its prerequisite %s (%s)" % [child.id, child.requires[0], got])
+	p.talents = plan
+	p.request_learn_talent.rpc_id(1, str(child.id))
+	await da._wait(0.3)
+	da.check(int(p.talents.get(child.id, 0)) == 1, "with the prerequisite %s, %s is learned" % [child.requires[0], child.id])
+	# The closed side of a fork: refused.
+	var side: Dictionary = {}
+	for nd in tree.nodes:
+		if nd.has("exclusive"):
+			side = nd
+			break
+	var other := p.fork_sibling(side)
+	var plan2 := plan_for(side)
+	plan2[side.id] = 1
+	p.talents = plan2
+	got.clear()
+	p.request_learn_talent.rpc_id(1, str(other.id))
+	await da._wait(0.3)
+	da.check(int(p.talents.get(other.id, 0)) == 0 and got.has(Loc.t("You took the other path of this fork")),
+			"with %s learned, the other side of its fork %s is refused (%s)" % [side.id, other.id, got])
+	EventBus.hud_message.disconnect(cb)
+	# A save from the old trees (a node without its prerequisite, both sides of a fork): refunded.
+	var keep: Dictionary = GameState.characters.get(p.peer_id, {})
+	var ch: Dictionary = p.to_character()
+	ch.level = 20
+	ch.talents = {str(child.id): 1, str(side.id): 1, str(other.id): 1}
+	ch.loadout = p.default_loadout()
+	GameState.characters[p.peer_id] = ch
+	p._host_init()
+	da.check(p.talents.is_empty() and p.talent_points == 19 and p.points_refunded == ["talent"] and p.loadout_error(p.skills).is_empty(),
+			"a save whose talents no longer fit the tree is refunded: %d points to spend, a valid loadout" % p.talent_points)
+	GameState.characters[p.peer_id] = keep
+	p._host_init()
+	p.level = keep_level
+	p.talents = {}
+	p.talent_points = p._talent_points_total()
+	p.recompute_stats()
+
+
 func every_node() -> void:
 	var tree := p.talent_tree()
-	var tier_points := int(tree.get("tier_points", 2))
 	var keep_level := p.level
 	p.level = 30
 	# A flat armor and mana base so that "+x% armor / mana" has something to scale.
@@ -125,20 +305,12 @@ func every_node() -> void:
 				bare.append("%s: no icon" % nd.id)
 			if not str(nd.get("description", "")).contains("%") and not str(nd.get("description", "")).to_lower().contains("one more"):
 				bare.append("%s: no number" % nd.id)
-		# Prerequisites: lower tiers of the branch up to the points the node's tier needs.
-		var need := int(nd.get("tier", 0)) * tier_points
-		var t := {}
+		# #47: its prerequisite chain and enough of the open branch below it for the gate.
+		var t := plan_for(nd)
 		var have := 0
-		for f in tree.nodes:
-			if have >= need:
-				break
-			if f.branch != nd.branch or int(f.get("tier", 0)) >= int(nd.tier) or p.is_free_node(f) or f.id == nd.id:
-				continue
-			var r := mini(int(f.get("max_rank", 1)), need - have)
-			t[f.id] = r
-			have += r
-		for req in nd.get("requires", []):
-			t[req] = 1
+		for k in t:
+			have += int(t[k])
+		var need := p.branch_gate(nd)
 		p.talents = t
 		p.recompute_stats()
 		var before: Dictionary = p.stats.final.duplicate()

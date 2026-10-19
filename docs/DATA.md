@@ -68,19 +68,29 @@ New keys: `architecture` (generator profile), `order` (depth cycle position), `b
 scripts/dungeon/mechanics/>, ...}]`, `hazards {id: {per_room: [a, b]}}`, `vision_mult`,
 `torch_radius_mult`, `light_color`, `secret_container`, `bookshelves_per_room`, `lore_origin`.
 
-## Talent trees v2 (`data/talents/<class>.json`)
+## Talent trees v3 (`data/talents/<class>.json`, #47)
 
 ```json
-{"tier_points": 2,
+{"version": 3, "tier_points": 2,
  "branches": [{"id": "berserker", "name": "Berserker", "description": "..."}],
- "nodes": [{"id": "w_cleave", "branch": "berserker", "tier": 0, "type": "skill", "skill": "warrior_cleave", "starter": true},
-           {"id": "w_might", "branch": "berserker", "tier": 1, "type": "passive", "max_rank": 3, "mods": [...]},
-           {"id": "w_ravenous_hunger", "branch": "berserker", "tier": 2, "type": "keystone", "mods": [...], "procs": [...]}]}
+ "nodes": [{"id": "w_s_cleave", "branch": "berserker", "tier": 0, "col": 0, "type": "skill", "skill": "warrior_cleave", "starter": true},
+           {"id": "w_brutal_cleave", "branch": "berserker", "tier": 1, "col": 0, "type": "passive", "max_rank": 3, "requires": ["w_s_cleave"], "mods": [...]},
+           {"id": "w_s_whirlwind", "branch": "berserker", "tier": 2, "col": 0, "type": "skill", "requires": ["w_brutal_cleave"], "requires_rank": 3},
+           {"id": "w_s_feral_ferocity", "branch": "berserker", "tier": 1, "col": 1, "type": "skill", "requires": ["w_s_bloodthirst"], "exclusive": "berserker_f1"},
+           {"id": "w_k_butcher", "branch": "berserker", "tier": 5, "col": 1, "type": "keystone", "requires": ["w_bloodbath"], "requires_rank": 2, "branch_points": 16, "mods": [...], "procs": [...]}]}
 ```
 
-A node on tier N needs `N x tier_points` points spent in its branch. `type: skill` unlocks the skill
-(starter nodes are free and pre-learned, D1); `passive` has ranks; `keystone` has one rank and at
-most one per branch tier (T2 and T5).
+- `tier` (0-5) and `col` (lane 0-3) place the node; no two nodes of a branch share a cell.
+- `requires`: the node's prerequisite, one lower-tier node of the same branch (tier-0 nodes have
+  none, they are the roots). `requires_rank` (default 1): the ranks the prerequisite needs.
+- `exclusive`: a fork. The two nodes sharing the group are siblings of one prerequisite; learning
+  one closes the other (and what grows under it) until a reset.
+- A node also needs `N x tier_points` points in its branch for tier N, or its own `branch_points`
+  when that is higher (the tier-5 keystones need 16).
+- `type: skill` unlocks the skill (starter nodes are free and pre-learned, D1); `passive` has
+  ranks; `keystone` has one rank and ends its path (nothing may require it).
+- `GameData.tree_problems` checks all of this at load, including that every gate can be paid
+  whichever side of each fork is taken.
 
 ## Procs (talents, keystones, passives, legendaries, statuses)
 

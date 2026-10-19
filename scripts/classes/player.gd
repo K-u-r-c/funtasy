@@ -203,7 +203,9 @@ func _host_init() -> void:
 		stat_points = _stat_points_total()
 		points_refunded.append("stat")
 	talent_points = _talent_points_total() - _talent_points_spent()
-	if talent_points < 0:
+	# #47: talents learned before the trees had prerequisites and forks, that no longer form a
+	# valid tree, are refunded whole in the same way.
+	if talent_points < 0 or not talents_fit():
 		talents = {}
 		talent_points = _talent_points_total()
 		points_refunded.append("talent")
@@ -252,6 +254,61 @@ func talent_node(id: String) -> Dictionary:
 		if n.id == id:
 			return n
 	return {}
+
+
+## #47: why `nd` can't take a rank now ("" = it can): "free" (known from the start), "maxed",
+## "closed" (the other side of its fork is learned), "requires" (its prerequisite lacks ranks),
+## "branch" (not enough points in the branch), "points" (no talent point left; skipped with
+## `any_points`). The host checks it before every rank; the panel draws from it.
+func talent_block_reason(nd: Dictionary, any_points := false) -> String:
+	if is_free_node(nd):
+		return "free"
+	if int(talents.get(str(nd.id), 0)) >= int(nd.get("max_rank", 1)):
+		return "maxed"
+	var other := fork_sibling(nd)
+	if not other.is_empty() and node_rank(other) > 0:
+		return "closed"
+	for req in nd.get("requires", []):
+		if node_rank(talent_node(str(req))) < int(nd.get("requires_rank", 1)):
+			return "requires"
+	if branch_points(str(nd.get("branch", ""))) - int(talents.get(str(nd.id), 0)) < branch_gate(nd):
+		return "branch"
+	if not any_points and talent_points <= 0:
+		return "points"
+	return ""
+
+
+## Points the branch needs before `nd`: its tier's gate, or its own `branch_points` (T5 keystones).
+func branch_gate(nd: Dictionary) -> int:
+	return maxi(int(nd.get("tier", 0)) * int(talent_tree().get("tier_points", 2)), int(nd.get("branch_points", 0)))
+
+
+## The other side of `nd`'s fork (same `exclusive` group), or {}.
+func fork_sibling(nd: Dictionary) -> Dictionary:
+	if not nd.has("exclusive"):
+		return {}
+	for n in talent_tree().get("nodes", []):
+		if n.get("exclusive", "") == nd.exclusive and n.id != nd.id:
+			return n
+	return {}
+
+
+## #47: the learned ranks still form a valid tree: every learned node has its prerequisite at the
+## needed rank, no fork has both sides, and every gate is paid by the other learned ranks.
+func talents_fit() -> bool:
+	for k in talents:
+		var nd := talent_node(str(k))
+		if nd.is_empty() or int(talents[k]) <= 0:
+			continue
+		var other := fork_sibling(nd)
+		if not other.is_empty() and node_rank(other) > 0:
+			return false
+		for req in nd.get("requires", []):
+			if node_rank(talent_node(str(req))) < int(nd.get("requires_rank", 1)):
+				return false
+		if branch_points(str(nd.get("branch", ""))) - int(talents[k]) < branch_gate(nd):
+			return false
+	return true
 
 
 ## Points spent in a branch (free nodes don't count).
@@ -1020,18 +1077,20 @@ func request_learn_talent(node_id: String) -> void:
 	if nd.is_empty() or is_free_node(nd):
 		return
 	var rank := int(talents.get(node_id, 0))
-	if rank >= int(nd.get("max_rank", 1)):
-		return
-	if talent_points <= 0:
-		_notify.rpc_id(peer_id, "No talent points left")
-		return
-	var need := int(nd.get("tier", 0)) * int(talent_tree().get("tier_points", 2))
-	if branch_points(str(nd.branch)) < need:
-		_notify.rpc_id(peer_id, "Spend %d points in this branch first", [need])
-		return
-	for req in nd.get("requires", []):
-		if node_rank(talent_node(str(req))) <= 0:
+	match talent_block_reason(nd):
+		"maxed":
+			return
+		"points":
+			_notify.rpc_id(peer_id, "No talent points left")
+			return
+		"closed":
+			_notify.rpc_id(peer_id, "You took the other path of this fork")
+			return
+		"requires":
 			_notify.rpc_id(peer_id, "Requires another talent first")
+			return
+		"branch":
+			_notify.rpc_id(peer_id, "Spend %d points in this branch first", [branch_gate(nd)])
 			return
 	var t := talents.duplicate()
 	t[node_id] = rank + 1

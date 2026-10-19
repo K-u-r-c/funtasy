@@ -10,8 +10,9 @@ Target out of range,Cel poza zasięgiem
 Busy,Zajęty
 No item assigned to %s,Brak przedmiotu przypisanego do %s
 No talent points left,Brak punktów talentów
-Spend %d points in this branch first,Najpierw wydaj %d pkt. w tej gałęzi
+You took the other path of this fork,Ta ścieżka jest zamknięta: wybrano drugą
 Requires another talent first,Najpierw wymagany jest inny talent
+Spend %d points in this branch first,Najpierw wydaj %d pkt. w tej gałęzi
 Learned %s - slot it in the Skill Book,Poznano: %s - umieść to w Księdze umiejętności
 You learned: %s,Poznano: %s
  (Permanent), (na stałe)
@@ -678,7 +679,6 @@ in combat,w walce
  (%d%% chance), (szansa %d%%)
 Talents,Talenty
 Learn rank,Poznaj rangę
-Key,Klucz
 Reset talents (free),Zresetuj talenty (za darmo)
 %d point to spend,%d punkt do wydania
 %d points to spend,%d punkty do wydania|%d punktów do wydania
@@ -687,13 +687,18 @@ Passive talent,Talent pasywny
 Keystone,Talent kluczowy
  - known from the start, - znana od początku
  - rank %d / %d, - ranga %d / %d
+Requires %s,Wymaga: %s
+Requires %s at rank %d,Wymaga: %s na randze %d
+Requires %d points in this branch,Wymaga %d pkt. w tej gałęzi
+Path closed: you chose %s,Ścieżka zamknięta: wybrano %s
+Fork: this or %s,Rozwidlenie: to albo %s
 "
 Passive: always active once learned.","
 Pasywna: zawsze aktywna po poznaniu."
 "
 Learn it, then slot it in the Skill Book.","
 Poznaj ją, a potem umieść w Księdze umiejętności."
-Requires %d points in this branch,Wymaga %d pkt. w tej gałęzi
+Or,Lub
 SFX,Efekty
 Music,Muzyka
 Waiting for every player to pick a hero.,"Czekanie, aż każdy gracz wybierze bohatera."

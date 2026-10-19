@@ -136,7 +136,7 @@ screenshot review at 1920x1080 and 3440x1440.
 - [x] #48 Level-up effect on the hero for every peer and an animated banner for its player, once per XP gain with the final level and all points (`levelup-lan`, tour `level_up`)
 - [x] #49 Bone piles and corpses being raised show a mark with a countdown on every peer (`rise-lan`, tour `rise`)
 - [x] #51 Sewers lever: PixelLab housing and arm, the arm swings from off to on with dust, sparks and a clunk, a red / green lamp readable from afar (`lever-lan`, tour `lever`)
-- [ ] #47 Talent trees as real trees with prerequisites, a new panel and learn animations
+- [x] #47 Talent trees as real trees: prerequisites, forks, keystones at path ends, a T5 keystone needs 16 points; a drawn tree panel with lines, node states and a learn animation; old saves refunded (`talents-*`, `talents-lan`, tour `talent_tree`)
 
 ## PixelLab ledger
 

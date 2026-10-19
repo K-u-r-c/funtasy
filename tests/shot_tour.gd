@@ -441,6 +441,90 @@ func _lever(_arg: String) -> void:
 	await snap("lever_far_%s" % Settings.language)
 
 
+## #47: the class's talent trees: untouched (level 30, nothing learned), partly learned (a path to
+## tier 3 in the first branch, a little of the second), the first branch learned to its end, and
+## three frames of the learn animation (a rank bought through the host).
+func _talent_tree(_arg: String) -> void:
+	var hud: Node = da.get_tree().get_first_node_in_group("hud")
+	var tree := p.talent_tree()
+	var suite := TalentSuite.new(da)
+	suite.p = p
+	p.level = 30
+	p.talents = {}
+	p.talent_points = 29
+	hud.open_overlay(hud.menu_panel("talents"))
+	await da._wait(0.8)
+	await snap("tree_locked_%s_%s" % [p.class_id, Settings.language])
+	var b0: String = tree.branches[0].id
+	var b1: String = tree.branches[1].id
+	var target: Dictionary = {}
+	var side: Dictionary = {}
+	for nd in tree.nodes:
+		if nd.branch == b0 and int(nd.tier) == 3 and target.is_empty() and str(nd.get("type", "")) != "keystone":
+			target = nd
+		if nd.branch == b1 and int(nd.tier) == 1 and side.is_empty() and nd.has("exclusive"):
+			side = nd
+	var part := suite.plan_for(target)
+	part[target.id] = 1
+	part.merge(suite.plan_for(side))
+	part[side.id] = 1
+	p.talents = part
+	p.talent_points = 6
+	await da._wait(1.4)
+	hud._overlay._buttons[str(target.id)][0].grab_focus()
+	await da._wait(0.4)
+	await snap("tree_partial_%s_%s" % [p.class_id, Settings.language])
+	# The first branch to its end: every T5 node on the first side of each fork.
+	var full := {}
+	for nd in tree.nodes:
+		if nd.branch == b0 and int(nd.tier) == 5:
+			var pl := suite.plan_for(nd)
+			var clash := false
+			for k in pl:
+				var other := p.fork_sibling(p.talent_node(str(k)))
+				clash = clash or full.has(other.get("id", ""))
+			if clash:
+				continue
+			for k in pl:
+				full[k] = int(p.talent_node(str(k)).get("max_rank", 1))
+			full[nd.id] = 1
+	p.talents = full
+	p.talent_points = 0
+	await da._wait(1.4)
+	await snap("tree_full_%s_%s" % [p.class_id, Settings.language])
+	# The learn animation: a node in the second branch that can be learned now.
+	p.talents = {}
+	p.talent_points = 29
+	await da._wait(1.0)
+	var pick := ""
+	for nd in tree.nodes:
+		if nd.branch == b1 and int(nd.tier) == 0 and not p.is_free_node(nd) and pick == "":
+			pick = nd.id
+	var pre := {pick: int(p.talent_node(pick).get("max_rank", 1))}
+	p.talents = pre
+	await da._wait(1.2)
+	var kid := ""
+	for nd in tree.nodes:
+		if Array(nd.get("requires", [])).has(pick) and kid == "" and not nd.has("exclusive"):
+			kid = nd.id
+	if kid == "":
+		for nd in tree.nodes:
+			if Array(nd.get("requires", [])).has(pick) and kid == "":
+				kid = nd.id
+	p.talents = {}
+	await da._wait(0.2)
+	var chain := suite.plan_for(p.talent_node(kid))
+	p.talents = chain
+	await da._wait(1.2)
+	hud._overlay._buttons[kid][0].grab_focus()
+	await da._wait(0.3)
+	p.request_learn_talent.rpc_id(1, kid)
+	for f in [["a", 0.06], ["b", 0.18], ["c", 0.3]]:
+		await da._wait(float(f[1]))
+		await snap("tree_learn_%s_%s_%s" % [f[0], p.class_id, Settings.language])
+	hud.close_overlay()
+
+
 ## #43: the talent card of a damage skill, a heal, an area skill, a ranked passive (at rank 1) and
 ## a keystone of the hero's class, then a skill's numeric card from the bar.
 func _talent_tips(_arg: String) -> void:

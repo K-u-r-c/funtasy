@@ -353,6 +353,8 @@ func _validate_refs() -> void:
 						if msk != "*" and msk != "*traps" and not skills.has(msk):
 							errors.append("talent '%s' modifies unknown skill '%s'" % [node.id, msk])
 			_validate_procs("talent '%s'" % node.id, node.get("procs", []), types)
+		for p in tree_problems(tree):
+			errors.append("talent tree '%s': %s" % [cid, p])
 	for eid in elite_modifiers:
 		_validate_procs("elite modifier '%s'" % eid, elite_modifiers[eid].get("procs", []), types)
 	for pid in pact_consumables:
@@ -366,6 +368,86 @@ func _validate_refs() -> void:
 		if l.has("icon") and not asset_exists(str(l.icon)):
 			errors.append("legendary '%s' has unknown icon '%s'" % [lid, l.icon])
 		_validate_procs("legendary '%s'" % lid, l.get("procs", []), types)
+
+
+## #47: what is wrong with a talent tree as a graph ([] = nothing): every tier-0 node is a root
+## and every other node has one prerequisite in its branch on a lower tier (`requires`), so the
+## tree has no cycles and every node is reachable from a root; keystones are leaves (nothing
+## requires them); a fork (`exclusive`) is two siblings of one prerequisite; no two nodes share a
+## (branch, tier, col) cell; each branch has a fork in tiers 1-2; and whichever side of each fork
+## is taken, every tier's gate (`tier` x `tier_points`, or a node's own `branch_points`) can be
+## paid from the nodes that stay open below it.
+static func tree_problems(tree: Dictionary) -> Array:
+	var out: Array = []
+	var nodes := {}
+	for n in tree.get("nodes", []):
+		nodes[str(n.id)] = n
+	var tp := int(tree.get("tier_points", 2))
+	var cells := {}
+	var required := {}
+	for id in nodes:
+		var n: Dictionary = nodes[id]
+		var reqs: Array = n.get("requires", [])
+		var cell := "%s:%d:%d" % [n.get("branch", ""), int(n.get("tier", 0)), int(n.get("col", -1))]
+		if cells.has(cell):
+			out.append("%s and %s share a cell" % [id, cells[cell]])
+		cells[cell] = id
+		if int(n.get("tier", 0)) == 0:
+			if not reqs.is_empty():
+				out.append("%s is on tier 0 but has a prerequisite" % id)
+			continue
+		if reqs.is_empty():
+			out.append("%s has no prerequisite" % id)
+		for r in reqs:
+			var p: Dictionary = nodes.get(str(r), {})
+			if p.is_empty() or p.get("branch", "") != n.get("branch", "") or int(p.get("tier", 0)) >= int(n.get("tier", 0)):
+				out.append("%s requires %s, not a lower node of its branch" % [id, r])
+			required[str(r)] = true
+	for id in nodes:
+		if str(nodes[id].get("type", "")) == "keystone" and required.has(id):
+			out.append("keystone %s is required by another node" % id)
+	for br in tree.get("branches", []):
+		var bn: Array = nodes.values().filter(func(x): return x.get("branch", "") == br.id)
+		var groups := {}
+		for n in bn:
+			if n.has("exclusive"):
+				groups[str(n.exclusive)] = groups.get(str(n.exclusive), []) + [n]
+		var early := false
+		for g in groups:
+			var sides: Array = groups[g]
+			if sides.size() != 2 or sides[0].get("requires", []) != sides[1].get("requires", []):
+				out.append("fork %s is not two siblings" % g)
+			early = early or sides.any(func(x): return int(x.get("tier", 0)) <= 2)
+		if not early:
+			out.append("branch %s has no fork in tiers 1-2" % br.id)
+		# Every combination of fork sides: the nodes left open must pay every gate.
+		var keys: Array = groups.keys()
+		for combo in range(1 << keys.size()):
+			var shut := {}
+			for gi in keys.size():
+				shut[str(groups[keys[gi]][(combo >> gi) & 1].id)] = true
+			var open := {}
+			for t in 6:
+				for n in bn:
+					if int(n.get("tier", 0)) == t and not shut.has(str(n.id)):
+						var ok := true
+						for r in n.get("requires", []):
+							ok = ok and open.has(str(r))
+						if ok:
+							open[str(n.id)] = n
+			for t in range(1, 6):
+				var below := 0
+				var need := t * tp
+				var any := false
+				for n in open.values():
+					if int(n.get("tier", 0)) < t and not n.get("starter", false):
+						below += int(n.get("max_rank", 1))
+					if int(n.get("tier", 0)) == t:
+						any = true
+						need = maxi(need, int(n.get("branch_points", 0)))
+				if any and below < need:
+					out.append("branch %s: tier %d needs %d points but only %d are open below" % [br.id, t, need, below])
+	return out
 
 
 func _need_script(what: String, dir: String, id: String) -> void:

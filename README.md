@@ -83,7 +83,9 @@ on the ground (that's how you give items to teammates), R / Y = put a potion on 
 - **Classes**: Warrior (Fury, melee tank/DPS), Ranger (Mana, ranged, traps, poison),
   Mage (Mana, elemental spells), Priest (Mana, holy tank/healer). 30 skills per class: talent
   nodes unlock them, the Skill Book picks which 5 sit on keys 1-5. Three talent branches of 6 tiers
-  each, with keystones at tiers 2 and 5. Every level also gives 5 stat points.
+  each, grown as real trees: most nodes open after a specific earlier one, some paths fork (take
+  one side or the other), and keystones end their paths at tiers 2 and 5. Every level gives 1
+  talent point and 5 stat points.
 - **Biomes** (one per floor type, picked by depth): the Forgotten Crypt, the Sewers, the Infernal
   Foundry, the Shrouded Archives and the Blighted Kurgan, each with its own architecture, hazards,
   environment mechanics, 7 monsters and 2 bosses (one is picked per floor from the seed).

@@ -263,6 +263,8 @@ func _run() -> void:
 				await TargetSuite.new(self).run_lan()
 			"levelup_lan":
 				await LevelUpSuite.new(self).run_lan()
+			"talents_lan":
+				await TalentSuite.new(self).run_lan()
 			"rise_lan":
 				await RiseSuite.new(self).run_lan()
 			"lever_lan":
@@ -558,6 +560,8 @@ func client_cmd(cmd: String, arg: Variant) -> void:
 			await TargetSuite.new(self).client_cmd(cmd, arg)
 		_ when cmd.begins_with("lv_"):
 			await LevelUpSuite.new(self).client_cmd(cmd, arg)
+		_ when cmd.begins_with("tl_"):
+			await TalentSuite.new(self).client_cmd(cmd, arg)
 		_ when cmd.begins_with("rs_"):
 			await RiseSuite.new(self).client_cmd(cmd, arg)
 		_ when cmd.begins_with("lr_"):

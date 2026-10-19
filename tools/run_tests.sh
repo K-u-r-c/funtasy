@@ -148,6 +148,7 @@ if [ "$WHAT" = all ] || [ "$WHAT" = lan ]; then
 	pair target-lan "--class=priest --name=HostT --scenario=target_lan --quit=60" "--class=priest --name=ClientT --quit=60"
 	pair lever-lan "--class=ranger --name=HostG --scenario=lever_lan --biome=sewers --quit=60" "--class=priest --name=ClientG --quit=60"
 	pair rise-lan "--class=warrior --name=HostR --scenario=rise_lan --quit=90" "--class=mage --name=ClientR --quit=90"
+	pair talents-lan "--class=warrior --name=HostT --scenario=talents_lan --quit=60" "--class=ranger --name=ClientT --quit=60"
 	pair levelup-lan "--class=priest --name=HostU --scenario=levelup_lan --quit=60" "--class=warrior --name=ClientU --quit=60"
 	pair party-lan "--class=priest --name=HostP --scenario=party_lan --quit=60" "--class=warrior --name=ClientP --quit=60"
 	pair interact-lan "--class=warrior --name=HostH --scenario=interact_lan --quit=60" "--class=priest --name=ClientH --quit=60"
