@@ -19,7 +19,6 @@ signal local_level_up(level: int)
 signal local_loadout_changed
 signal interact_prompt(text: String, index: int, count: int)
 signal friendly_target_changed(peer_id: int)  ## local player picked / cleared a teammate (#39)
-signal hostile_target_changed(enemy_name: String)  ## local player locked / cleared an enemy (#41)
 
 # Feedback
 signal damage_number(pos: Vector2, amount: int, kind: String)

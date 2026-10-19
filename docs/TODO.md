@@ -208,6 +208,15 @@ Goal cap: 60 generations, 150 kept in reserve. Spent none: target markers, aim p
 | 2026-10-19 | (goal start) | 4328 | 4328 | 0 | 0 |
 | 2026-10-19 | (goal end: markers, aim previews and lighting drawn in code; no generations needed) | 4328 | 4328 | 0 | 0 |
 
+Fifth playtest goal (#47-#54), start 2026-10-19: **used 4328, remaining 478**, resets 2026-11-14.
+Goal cap: 80 generations, 150 kept in reserve. Planned: the Sewers lever off / on states, talent tree
+ornaments / node frames / branch art only where drawn UI falls short; effects from particles, shaders and
+the free workbenches.
+
+| Date | Batch | Used before | Used after | Spend | Goal spend |
+| --- | --- | --- | --- | --- | --- |
+| 2026-10-19 | (goal start) | 4328 | 4328 | 0 | 0 |
+
 ## Done (MVP)
 
 - [x] Foundation: folders, pixel-perfect settings, y-sort, autoloads, asset registry, generated placeholders

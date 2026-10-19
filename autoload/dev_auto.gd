@@ -261,8 +261,6 @@ func _run() -> void:
 				await PartySuite.new(self).run_lan()
 			"target_lan":
 				await TargetSuite.new(self).run_lan()
-			"hostile_lan":
-				await HostileSuite.new(self).run_lan()
 			"preview":
 				await PreviewSuite.new(self).run()
 			"tooltips":
@@ -552,8 +550,6 @@ func client_cmd(cmd: String, arg: Variant) -> void:
 			await FxSuite.new(self).client_cmd(cmd, arg)
 		_ when cmd.begins_with("tg_"):
 			await TargetSuite.new(self).client_cmd(cmd, arg)
-		_ when cmd.begins_with("hs_"):
-			await HostileSuite.new(self).client_cmd(cmd, arg)
 		_ when cmd.begins_with("pt_"):
 			await PartySuite.new(self).client_cmd(cmd, arg)
 		_ when cmd.begins_with("ia_"):
@@ -2955,6 +2951,9 @@ func _gamepad_menu_flow() -> void:
 	await _press(JOY_BUTTON_RIGHT_SHOULDER)
 	await _press(JOY_BUTTON_RIGHT_SHOULDER)
 	check(menu._tabs.current_tab == 2, "RB switches to the Controls tab")
+	check(not menu._bind_buttons.has("target_enemy|kbm|0") and menu._bind_buttons.has("target_ally|kbm|0")
+			and str(menu._bind_buttons["talents|pad|0"].text) == InputSettings.code_display("button:dpad_left"),
+			"the rebinding list has no Target next enemy; Talents shows D-Pad Left (#53)")
 	var slot_btn: Button = menu._bind_buttons["skill_1|pad|1"]
 	slot_btn.grab_focus()
 	await _press(JOY_BUTTON_A)
@@ -3037,12 +3036,9 @@ func _gamepad_menu_flow() -> void:
 	if in_game:
 		await _wait(0.5)
 		var hud := get_tree().get_first_node_in_group("hud")
-		# #41: D-pad Left locks the next enemy now; the talents are a tab of the game menu (Back, RB).
+		# #53: D-pad Left opens the talents again (it locked an enemy in #41).
 		await _press(JOY_BUTTON_DPAD_LEFT)
-		check(hud._overlay == null, "D-pad Left (Target next enemy) opens no menu")
-		await _press(JOY_BUTTON_BACK)
-		await _press(JOY_BUTTON_RIGHT_SHOULDER)
-		check(hud._overlay != null and hud._overlay.get_script() == hud.TalentPanel, "Back then RB opens talents")
+		check(hud._overlay != null and hud._overlay.get_script() == hud.TalentPanel, "D-pad Left opens talents")
 		for i in 3:
 			await _press(JOY_BUTTON_DPAD_LEFT)
 		check(hud._overlay != null, "D-pad navigation inside talents doesn't close the panel")
@@ -3087,6 +3083,11 @@ func _rebind_test() -> void:
 	check(conflict.size() == 1, "binding J again resolves the conflict (%s)" % ", ".join(conflict))
 	InputSettings.bind("skill_1", "kbm", 0, "key:J")
 	check(_has_key("skill_1", KEY_J), "InputMap updated for skill 1")
+	# #53: settings saved with the removed enemy lock (#41): its action holds D-Pad Left, Talents none.
+	var cfg := SaveSystem.read_section(InputSettings.SECTION)
+	cfg["target_enemy"] = {"kbm": ["key:R"], "pad": ["button:dpad_left"]}
+	cfg["talents"] = {"kbm": ["key:T"], "pad": []}
+	SaveSystem.write_section(InputSettings.SECTION, cfg)
 	_finish("rebind saved")
 
 
@@ -3097,6 +3098,18 @@ func _rebind_check() -> void:
 		if ev is InputEventJoypadButton and ev.button_index == JOY_BUTTON_Y:
 			pad_ok = true
 	check(pad_ok, "gamepad rebinding of interact survived a restart")
+	# #53: no enemy lock action in the InputMap, the rebinding list or the saved settings; Talents
+	# got D-Pad Left back from the old save.
+	var listed := false
+	for a in InputSettings.action_defs():
+		listed = listed or str(a.id) == "target_enemy"
+	check(not InputMap.has_action("target_enemy") and not listed and not InputSettings.bindings.has("target_enemy"),
+			"no target_enemy action in the InputMap or the rebinding list")
+	check(not SaveSystem.read_section(InputSettings.SECTION).has("target_enemy"), "the old target_enemy binding is dropped from the saved settings")
+	var dpad := false
+	for ev in InputMap.action_get_events("talents"):
+		dpad = dpad or (ev is InputEventJoypadButton and ev.button_index == JOY_BUTTON_DPAD_LEFT)
+	check(dpad, "Talents is back on D-Pad Left after loading settings saved with the enemy lock")
 	InputSettings.reset_to_defaults()
 	check(_has_key("skill_1", KEY_1) and not _has_key("skill_1", KEY_J), "reset to defaults restores skill 1 = 1")
 	_finish("rebind checked")

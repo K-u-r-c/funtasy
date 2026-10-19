@@ -1,14 +1,14 @@
 class_name SkillShape
 extends RefCounted
 ## The footprint of a skill, read from its effects: how far it reaches and what it covers. The
-## enemy lock (#41) uses the reach, the aim preview (#42) draws the shape. Defaults match the ones
+## aim preview (#42) draws the shape. Defaults match the ones
 ## CombatEffects uses when a field is missing.
 ##
 ## Keys: kind ("projectile", "melee", "cone", "target", "chain", "line", "area", "self_area",
 ## "dash", "ally", "self"), range (px from the caster to the farthest aim point), radius (the area
 ## at the end of the reach, or around the caster), width, arc (degrees), count / spread
-## (projectiles), lob (a mortar that flies over walls), back (a leap away from the aim), aims (the
-## aim point matters) and hostile (an aimed attack the enemy lock steers).
+## (projectiles), lob (a mortar that flies over walls), back (a leap away from the aim) and aims
+## (the aim point matters).
 
 const AIMED := ["projectile", "melee", "cone", "target", "chain", "line", "area", "dash", "ally"]
 
@@ -25,13 +25,7 @@ static func of(skill: Dictionary, nums: Dictionary = {}) -> Dictionary:
 			out.merge(s, true)
 			break
 	out.aims = out.kind in AIMED
-	out.hostile = out.aims and out.kind != "ally"
 	return out
-
-
-## How far an aimed attack reaches a target's centre: the range plus the area at its end.
-static func reach(shape: Dictionary) -> float:
-	return float(shape.range) + float(shape.radius)
 
 
 static func _shape_of(eff: Dictionary, rm: float, radm: float) -> Dictionary:

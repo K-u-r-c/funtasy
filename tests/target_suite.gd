@@ -5,7 +5,8 @@ extends RefCounted
 ## elsewhere, on the host and from the client; without a pick the cursor rule holds; out of reach
 ## the cast is refused with a message and costs nothing; Tab cycles through the living party and
 ## back to none; a click on a teammate or on their party frame picks them; a click on empty ground
-## (on host and client) clears the pick and still attacks, a second click on the pick clears it (#40).
+## (on host and client) clears the pick and still attacks, a second click on the pick clears it (#40);
+## with no enemy lock (#53), a click on an enemy is an attack and skills aim at the cursor.
 
 var da: Node
 var g: Node
@@ -83,6 +84,21 @@ func run_lan() -> void:
 	# #40 on the host: the pick clears with a click on empty ground, which still swings.
 	p.set_friendly_target(c.peer_id)
 	await click_empty(c.peer_id)
+	# #53: no enemy lock (removed #41) on the host, then on the client.
+	await da._wait(0.5)
+	var names := await _enemy_pair(p)
+	await enemy_clicks(names)
+	for e in g.enemies_root.get_children():
+		e.queue_free()
+	await da._wait(0.4)
+	names = await _enemy_pair(c)
+	# The host runs the client's casts from its own copy of the loadout.
+	var cprim: Variant = c.skills[0]
+	c.skills[0] = "priest_smite"
+	c.skills[3] = "priest_smite"
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["tg_enemies", names])
+	await da._wait(6.0)
+	c.skills[0] = cprim
 
 
 ## #40: with `pid` picked, a click on empty ground clears the pick and is a normal attack; a click
@@ -113,6 +129,62 @@ func click_empty(pid: int) -> void:
 	da.check(p.friendly_peer == pid, "%s: a click on the teammate picks them" % ["host" if p.peer_id == 1 else "client"])
 	await click(mate.global_position + Vector2(0, -14))
 	da.check(p.friendly_peer == 0, "%s: a second click on the picked teammate clears the pick" % ["host" if p.peer_id == 1 else "client"])
+
+
+## Host: two training dummies 110 px east and west of `pl`; returns their node names.
+func _enemy_pair(pl: Player) -> Array:
+	var out: Array = []
+	for dx in [110.0, -110.0]:
+		var e: Node = g.spawn_monster("training_dummy", g.nearest_floor(pl.global_position + Vector2(dx, 0)), false)
+		out.append(str(e.name))
+	await da._wait(0.8)
+	return out
+
+
+## #53 (on the peer running it): the enemy lock is gone. No "Target next enemy" action exists; a
+## click on enemy A is just an attack; the held primary then follows the cursor to B and leaves A
+## alone; a damage skill tapped at A lands on A, not on B.
+func enemy_clicks(names: Array) -> void:
+	var who := "host" if p.peer_id == 1 else "client"
+	var a: Actor = g.enemies_root.get_node_or_null(str(names[0]))
+	var b: Actor = g.enemies_root.get_node_or_null(str(names[1]))
+	da.check(not InputMap.has_action("target_enemy") and not InputSettings.bindings.has("target_enemy")
+			and not p.has_method("set_hostile_target"), "%s: no enemy lock action or state (#53)" % who)
+	if a == null or b == null:
+		da.check(false, "%s: the two dummies exist" % who)
+		return
+	var prim: Variant = p.skills[0]
+	p.skills[0] = "priest_smite"
+	p.skills[3] = "priest_smite"
+	p.local_cd.clear()
+	p._pending.clear()
+	p.set_friendly_target(0)
+	await da._wait(0.3)
+	var a0: float = a.health.hp
+	await click(a.global_position + Vector2(0, -a.radius))
+	await da._wait(0.9)
+	da.check(a.health.hp < a0, "%s: a click on an enemy is an attack on it (%.0f -> %.0f)" % [who, a0, a.health.hp])
+	var a1: float = a.health.hp
+	var b1: float = b.health.hp
+	p.auto_aim = b.global_position + Vector2(0, -b.radius)
+	await da._wait(0.2)
+	Input.action_press("attack")
+	await da._wait(1.6)
+	Input.action_release("attack")
+	await da._wait(0.6)
+	da.check(b.health.hp < b1 and a.health.hp >= a1, "%s: after clicking A the held primary hits B at the cursor, not A (A %.0f -> %.0f, B %.0f -> %.0f)" % [who, a1, a.health.hp, b1, b.health.hp])
+	p.auto_aim = a.global_position + Vector2(0, -a.radius)
+	await da._wait(0.6)
+	var a2: float = a.health.hp
+	var b2: float = b.health.hp
+	Input.action_press(Player.SLOT_ACTIONS[3])
+	await da.get_tree().physics_frame
+	await da.get_tree().physics_frame
+	Input.action_release(Player.SLOT_ACTIONS[3])
+	await da._wait(0.9)
+	da.check(a.health.hp < a2 and b.health.hp >= b2, "%s: a skill tapped at the cursor lands there (A %.0f -> %.0f, B %.0f -> %.0f)" % [who, a2, a.health.hp, b2, b.health.hp])
+	p.auto_aim = Vector2.INF
+	p.skills[0] = prim
 
 
 func click(at: Vector2) -> void:
@@ -185,3 +257,6 @@ func client_cmd(cmd: String, arg: Variant) -> void:
 			# #40 on the client.
 			p.set_friendly_target(int(arg))
 			await click_empty(int(arg))
+		"tg_enemies":
+			await da._wait(0.3)
+			await enemy_clicks(arg)

@@ -323,6 +323,23 @@ func _load_overrides() -> void:
 					if event_from_code(str(code)) != null:
 						list.append(str(code))
 				bindings[action][kind] = list
+	_migrate_enemy_lock(saved)
+
+
+## #53: settings saved while the enemy lock (#41) existed carry its "target_enemy" action, and
+## Talents had lost D-Pad Left to it. The action is gone; Talents gets its pad button back unless
+## the player rebound Talents or gave D-Pad Left to something else. Saving drops the stale key.
+func _migrate_enemy_lock(saved: Dictionary) -> void:
+	if not saved.has("target_enemy"):
+		return
+	var dpad := "button:dpad_left"
+	var lock: Dictionary = saved.target_enemy if saved.target_enemy is Dictionary else {}
+	var taken := false
+	for action in bindings:
+		taken = taken or Array(bindings[action].pad).has(dpad)
+	if bindings.has("talents") and Array(bindings.talents.pad).is_empty() and Array(lock.get("pad", [])).has(dpad) and not taken:
+		bindings.talents.pad = [dpad]
+	save()
 
 
 func _apply_all() -> void:

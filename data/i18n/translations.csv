@@ -1,7 +1,4 @@
 keys,pl
-Target out of range,Cel poza zasięgiem
-Target not in line of sight,Cel poza polem widzenia
-Invalid target,Nieprawidłowy cel
 A loadout has %d slots,Zestaw umiejętności ma %d miejsc
 Talent and stat points refunded: spend them again.,Zwrócono punkty talentów i cech: rozdaj je ponownie.
 Talent points refunded: spend them again.,Zwrócono punkty talentów: rozdaj je ponownie.
@@ -9,6 +6,7 @@ Stat points refunded: spend them again.,Zwrócono punkty cech: rozdaj je ponowni
 Not ready,Jeszcze niegotowe
 Not enough Fury,Za mało furii
 Not enough Mana,Za mało many
+Target out of range,Cel poza zasięgiem
 Busy,Zajęty
 No item assigned to %s,Brak przedmiotu przypisanego do %s
 No talent points left,Brak punktów talentów
@@ -33,12 +31,14 @@ Your torch burned out,Twoja pochodnia się wypaliła
 Unknown skill,Nieznana umiejętność
 Passive,Pasywna
 Can't act now,Nie możesz teraz działać
+Target not in line of sight,Cel poza polem widzenia
 Silenced,Uciszony
 Locked out,Zablokowane
 Cost x%.2f,Koszt x%.2f
 No target,Brak celu
 Target health too high,Cel ma za dużo zdrowia
 Target not affected,Cel jest odporny na to
+Invalid target,Nieprawidłowy cel
 Immune,Odporny
 Miss,Pudło
 Dodge,Unik
@@ -798,7 +798,6 @@ Skill 3,Umiejętność 3
 Skill 4,Umiejętność 4
 Skill 5,Umiejętność 5
 Target next ally,Zaznacz następnego sojusznika
-Target next enemy,Zaznacz następnego wroga
 Quick item Q (hold: choose),Szybki przedmiot Q (przytrzymaj: wybór)
 Items,Przedmioty
 Quick item E (hold: choose),Szybki przedmiot E (przytrzymaj: wybór)

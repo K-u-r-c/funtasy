@@ -47,8 +47,6 @@ var _party_box: VBoxContainer
 var _boss_panel: GlassWindow
 var _boss_bar: StatBar
 var _boss_name: Label
-var _boss_lock: TextureRect
-var _boss_locked := false
 var _burst_label: Label  ## "Burst it down" bar of a boss grab (#12)
 var _burst_bar: StatBar
 var _messages: VBoxContainer
@@ -236,18 +234,9 @@ func _build_center() -> void:
 	var bv := VBoxContainer.new()
 	bv.add_theme_constant_override("separation", 2)
 	_boss_panel.add_child(bv)
-	var name_row := HBoxContainer.new()
-	name_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	name_row.add_theme_constant_override("separation", 4)
-	bv.add_child(name_row)
-	# The boss locked as the enemy target (#41): a red reticle before its name, a red frame.
-	_boss_lock = UITheme.icon("ui_target", 14)
-	_boss_lock.modulate = Color(1.0, 0.35, 0.3)
-	_boss_lock.visible = false
-	name_row.add_child(_boss_lock)
 	_boss_name = UITheme.label("", Color("ff7a5c"), UITheme.FONT_BODY)
 	_boss_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	name_row.add_child(_boss_name)
+	bv.add_child(_boss_name)
 	_boss_bar = StatBar.new(Color("a3202a"), Vector2(360, 12))
 	_boss_bar.ticks = 10
 	_boss_bar.flash_on_damage = true
@@ -613,7 +602,6 @@ func _update_boss() -> void:
 			title = "  - " + Loc.t(str(phases[b.phase].get("title", Loc.f("Phase %d", [(b.phase + 1)]))))
 		_boss_name.text = Loc.name(b.display_name) + title
 		_boss_bar.set_values(b.health.fraction(), 0.0, "%d%%" % ceili(b.health.fraction() * 100.0))
-		_set_boss_locked(player != null and player.hostile_name == str(b.name))
 		var bb: Vector2 = b.get("burst_bar") if b.get("burst_bar") != null else Vector2.ZERO
 		_burst_label.visible = bb.y > 0.0
 		_burst_bar.visible = bb.y > 0.0
@@ -626,16 +614,6 @@ func _update_boss() -> void:
 			_burst_bar.set_values(bb.x, 0.0, "%d%%" % roundi(bb.x * 100.0))
 	else:
 		_boss_panel.visible = false
-		_set_boss_locked(false)
-
-
-func _set_boss_locked(on: bool) -> void:
-	_boss_lock.visible = on
-	if on == _boss_locked:
-		return
-	_boss_locked = on
-	# The gilded frame (drawn by the window itself) turns blood red; the bar and name keep theirs.
-	_boss_panel.self_modulate = Color(1.0, 0.45, 0.4) if on else Color.WHITE
 
 
 func set_portal_status(inside: int, alive: int) -> void:
