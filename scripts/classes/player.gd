@@ -593,23 +593,56 @@ func cycle_friendly_target() -> void:
 	set_friendly_target(0 if ids.is_empty() or i == ids.size() - 1 else int(ids[i + 1]))
 
 
-## Owner, every frame: Tab cycles, a click on a teammate picks them (that click doesn't swing), the
-## pick clears itself when the teammate falls or wanders far away.
+## Owner, every frame: Tab cycles, a click on a teammate picks them (a second click on the picked
+## one clears it; neither click swings), a click on empty space clears the pick and still attacks
+## (#40), and the pick clears itself when the teammate falls or wanders far away.
 func _handle_friendly_target() -> void:
 	if Input.is_action_just_pressed("target_ally"):
 		cycle_friendly_target()
-	if not InputSettings.using_gamepad and Input.is_action_just_pressed("attack"):
-		var game := get_tree().get_first_node_in_group("game")
-		for pl in game.players_root.get_children():
-			if pl.life_state == Life.ALIVE and (pl.global_position + Vector2(0, -14)).distance_to(aim_pos) <= float(GameData.bal("combat.friendly_click_radius", 16)):
-				set_friendly_target(pl.peer_id)
-				_click_select = true
+	# A click already taken by the HUD (a party frame) sets _click_select before this runs.
+	if not InputSettings.using_gamepad and Input.is_action_just_pressed("attack") and not _click_select:
+		var picked := ally_at(aim_pos)
+		if picked:
+			set_friendly_target(0 if friendly_peer == picked.peer_id else picked.peer_id)
+			_click_select = true
+		elif friendly_peer != 0 and enemy_at(aim_pos) == null and not _pointer_on_ui():
+			set_friendly_target(0)
 	if _click_select and not Input.is_action_pressed("attack"):
 		_click_select = false
 	var t := friendly_target_node()
 	if friendly_peer != 0 and (t == null or t.life_state != Life.ALIVE \
 			or t.global_position.distance_to(global_position) > float(GameData.bal("combat.friendly_target_range", 700))):
 		set_friendly_target(0)
+
+
+## Owner: the living teammate (or yourself) under `pos`, or null.
+func ally_at(pos: Vector2) -> Player:
+	var game := get_tree().get_first_node_in_group("game")
+	for pl in game.players_root.get_children() if game else []:
+		if pl.life_state == Life.ALIVE and (pl.global_position + Vector2(0, -14)).distance_to(pos) <= float(GameData.bal("combat.friendly_click_radius", 16)):
+			return pl
+	return null
+
+
+## Owner: the enemy this player can see under `pos` (its body, above the feet), or null.
+func enemy_at(pos: Vector2) -> Actor:
+	var game := get_tree().get_first_node_in_group("game")
+	var best: Actor = null
+	var best_d := INF
+	for e in game.enemies_root.get_children() if game else []:
+		if not (e is Actor) or not e.visible or not e.is_targetable():
+			continue
+		var d: float = (e.global_position + Vector2(0, -e.radius)).distance_to(pos)
+		if d <= maxf(e.radius * 1.5, float(GameData.bal("combat.enemy_click_radius", 14))) and d < best_d:
+			best = e
+			best_d = d
+	return best
+
+
+## Owner: the mouse is over a HUD control that takes clicks (a button, a frame, a panel).
+func _pointer_on_ui() -> bool:
+	var c := get_viewport().gui_get_hovered_control()
+	return c != null and c.mouse_filter == Control.MOUSE_FILTER_STOP
 
 
 func _is_hold_skill(sid: String) -> bool:

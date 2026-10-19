@@ -349,6 +349,7 @@
 		"_friendly_target": "#39: a picked teammate stays picked within this distance; a click this close to a teammate's body picks them",
 		"friendly_target_range": 700,
 		"friendly_click_radius": 16,
+		"enemy_click_radius": 14,
 		"max_traps": 3,
 		"_immunity": "A monster 'immune' to a damage type (data immune, statuses immune_<type>) takes this much less of it instead of none (#22).",
 		"immunity_reduction": 0.8

@@ -252,6 +252,7 @@ Active,Aktywny
   DOWN %d,  POWALONY %d
   GHOST,  DUCH
 %s  Lv%d%s,%s  Poz.%d%s
+"Click: pick for ally spells. Click again or on empty ground: clear. %s: next ally, then none.","Klik: wybierz dla czarów na sojuszników. Kliknij ponownie lub w puste miejsce: wyczyść. %s: następny sojusznik, potem nikt."
 Inventory,Ekwipunek
 Equipment,Wyposażenie
 Backpack,Plecak

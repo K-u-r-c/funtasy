@@ -814,3 +814,13 @@ its animation's impact frame (data `impact`); channels and cast times hold the s
 | Old saves | Points are still derived on load (`level x per-level + bonus - spent`). A pool spent beyond its new total (a hero saved under the #27 rules) is refunded whole: the stat allocation or the talents are cleared, the points come back to spend again, the loadout falls back to the default kit when a slotted skill is no longer learned, and two seconds after spawning the owner reads a short message naming what was refunded ("Talent and stat points refunded: spend them again."). A pool spent within the total is kept. Nothing is written until the next save, and loading again gives the same result. |
 | Balance | All four `balance-*` probes stay inside their pacing bands with 5 points a level (they put every free point in the main stat and model no talents). |
 | Tests | `talents-<class>`: 1 / 5 points a level; a level 10 save with 27 talents and 90 stat points spent loads refunded (9 / 45 to spend, a valid loadout, the message), twice; a level 10 save within the totals keeps its spending; every branch's tiers can be paid and the top tier opens by level 12. `balance-*`, `economy`, `continue` green. |
+
+### #40 Clearing the friendly target with a click
+
+| Topic | Decision |
+| --- | --- |
+| Clicks | A left click on a teammate (or yourself) picks them; a click on the picked one clears the pick (toggle); neither swings. A click on empty space clears the pick and attacks as usual. "Empty" means no living teammate under the cursor (`friendly_click_radius` 16 px around the body), no enemy the player can see (`Player.enemy_at`: within `max(1.5 x radius, combat.enemy_click_radius 14)` of the body) and no HUD control that takes clicks (`gui_get_hovered_control` with `MOUSE_FILTER_STOP`). A click taken by a party frame sets `_click_select` first, so it never counts as empty ground. |
+| Gamepad | Unchanged from #39: the target action (right stick click) cycles through the party and then to no pick, so the pick can always be cleared. The party frame's tooltip says how to pick and clear, naming the current device's binding. |
+| Marks | The pick is local (only the picker sees its markers), so clearing removes the world ring / chevron and the frame's gold border at once on that peer. |
+| Tests | `target-lan`: on the host and on the client, a picked teammate is marked and the frame's tooltip names the binding; a click on empty ground clears the pick and the marker and still attacks; a click on the teammate picks them, a second click clears it. Review: `--tour=target_clear` (before / after, English and Polish). |
+

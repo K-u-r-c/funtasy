@@ -119,6 +119,7 @@ screenshot review at 1920x1080 and 3440x1440.
 ## Fourth playtest issues (GitHub #40-#46)
 
 - [x] #45 5 stat points and 1 talent point per level, tier gate 2, over-spent saves refunded with a message (`talents-*`, `balance-*`)
+- [x] #40 A click on empty space or on the picked teammate clears the friendly target; the empty-ground click still attacks (`target-lan`, tour `target_clear`)
 
 ## PixelLab ledger
 

@@ -1096,6 +1096,10 @@ class PartyFrame:
 			else:
 				remove_theme_stylebox_override("panel")
 		_target_icon.visible = picked
+		# How to pick and clear (#40), with the current device's binding for Tab.
+		var tip := Loc.f("Click: pick for ally spells. Click again or on empty ground: clear. %s: next ally, then none.", [InputSettings.prompt_for("target_ally")])
+		if tooltip_text != tip:
+			tooltip_text = tip
 		_name.add_theme_color_override("font_color", UITheme.DANGER if not state.is_empty() else UITheme.TEXT)
 		_portrait.tint = Color.WHITE if state.is_empty() else Color(0.45, 0.45, 0.55)
 		_portrait.frame_color = Color.from_string(str(pl.class_def.get("color", "#ffffff")), Color.WHITE).darkened(0.2)

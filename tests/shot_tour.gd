@@ -246,6 +246,29 @@ func _target(_arg: String) -> void:
 	hud.preview_full = false
 
 
+## #40: the hero picked as the friendly target (marker on the hero and the frame), then a click on
+## empty ground: the pick and both markers are gone and the click swings.
+func _target_clear(_arg: String) -> void:
+	var hud: Node = da.get_tree().get_first_node_in_group("hud")
+	for e in g.enemies_root.get_children():
+		e.queue_free()
+	p.set_friendly_target(p.peer_id)
+	hud.preview_full = true
+	await da._wait(0.8)
+	await snap("target_clear_before_%s" % Settings.language)
+	p.auto_aim = p.global_position + Vector2(90, 30)
+	await da._wait(0.2)
+	Input.action_press("attack")
+	await da.get_tree().physics_frame
+	await da.get_tree().physics_frame
+	Input.action_release("attack")
+	await da._wait(0.12)
+	await snap("target_clear_after_%s" % Settings.language)
+	da.check(p.friendly_peer == 0, "the click on empty ground cleared the pick")
+	p.auto_aim = Vector2.INF
+	hud.preview_full = false
+
+
 ## #33: a heal burst, the heal-over-time glow, the shield bubble, its shatter, a buff flash and a
 ## cleanse flash on the hero next to training dummies (each shot near the effect's peak).
 func _allyfx(_arg: String) -> void:

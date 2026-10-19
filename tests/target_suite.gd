@@ -4,7 +4,8 @@ extends RefCounted
 ## as the friendly target, Flash Heal and Power Word: Shield land on them while the cursor points
 ## elsewhere, on the host and from the client; without a pick the cursor rule holds; out of reach
 ## the cast is refused with a message and costs nothing; Tab cycles through the living party and
-## back to none; a click on a teammate or on their party frame picks them.
+## back to none; a click on a teammate or on their party frame picks them; a click on empty ground
+## (on host and client) clears the pick and still attacks, a second click on the pick clears it (#40).
 
 var da: Node
 var g: Node
@@ -78,7 +79,51 @@ func run_lan() -> void:
 	await da._wait(3.0)
 	da.check(p.health.hp > p.health.max_hp * 0.45, "the client's Tab pick and Flash Heal heal the host while its cursor points away")
 	NetworkManager.to_clients("DevAuto", "client_cmd", ["tg_click", 1])
-	await da._wait(2.0)
+	await da._wait(4.5)
+	# #40 on the host: the pick clears with a click on empty ground, which still swings.
+	p.set_friendly_target(c.peer_id)
+	await click_empty(c.peer_id)
+
+
+## #40: with `pid` picked, a click on empty ground clears the pick and is a normal attack; a click
+## on the teammate picks them, a second click on them clears it again.
+func click_empty(pid: int) -> void:
+	await da._wait(0.3)
+	var mate: Player = null
+	for pl in g.players_root.get_children():
+		if pl.peer_id == pid:
+			mate = pl
+	var hud: Node = da.get_tree().get_first_node_in_group("hud")
+	var f: Node = null
+	for fr in hud._party_box.get_children():
+		if fr.visible and fr.p == mate:
+			f = fr
+	da.check(p.friendly_peer == pid and (f == null or f._target_icon.visible), "%s: the teammate is picked and marked" % ["host" if p.peer_id == 1 else "client"])
+	da.check(f != null and f.tooltip_text.contains(InputSettings.prompt_for("target_ally")) and f.tooltip_text.length() > 40,
+			"%s: the party frame's tooltip says how to pick and clear (%s)" % ["host" if p.peer_id == 1 else "client", f.tooltip_text if f else ""])
+	p.local_cd.clear()
+	p._pending.clear()
+	var empty := p.global_position + (p.global_position - mate.global_position).normalized() * 90.0
+	await click(empty)
+	await da._wait(0.2)
+	da.check(p.friendly_peer == 0 and (f == null or not f._target_icon.visible), "%s: a click on empty ground clears the pick and its marker" % ["host" if p.peer_id == 1 else "client"])
+	da.check(p._pending.has(0) or p.local_cd.has(0), "%s: that click still attacks" % ["host" if p.peer_id == 1 else "client"])
+	await da._wait(0.5)
+	await click(mate.global_position + Vector2(0, -14))
+	da.check(p.friendly_peer == pid, "%s: a click on the teammate picks them" % ["host" if p.peer_id == 1 else "client"])
+	await click(mate.global_position + Vector2(0, -14))
+	da.check(p.friendly_peer == 0, "%s: a second click on the picked teammate clears the pick" % ["host" if p.peer_id == 1 else "client"])
+
+
+func click(at: Vector2) -> void:
+	p.auto_aim = at
+	await da._wait(0.15)
+	Input.action_press("attack")
+	await da.get_tree().physics_frame
+	await da.get_tree().physics_frame
+	Input.action_release("attack")
+	await da._wait(0.15)
+	p.auto_aim = Vector2.INF
 
 
 func client_cmd(cmd: String, arg: Variant) -> void:
@@ -137,3 +182,6 @@ func client_cmd(cmd: String, arg: Variant) -> void:
 					fr.gui_input.emit(ev)
 			await da._wait(0.2)
 			da.check(p.friendly_peer == 0, "a click on the picked teammate's party frame clears the pick")
+			# #40 on the client.
+			p.set_friendly_target(int(arg))
+			await click_empty(int(arg))
