@@ -493,7 +493,7 @@ func host_interact(p: Player, node: Node) -> void:
 	elif node.get("def") is Dictionary and (node.def.has("npc") or node.def.has("gate")):
 		merchants.host_interact(p, node)
 	elif node.has_method("is_lit") and node.has_method("set_state"):
-		if node.is_lit():
+		if node.interactable():
 			p.host_take_torch()
 			dungeon.set_torch_state.rpc(node.torch_id, node.State.TAKEN)
 	elif node.get("def") is Dictionary and node.def.get("lever", false):
@@ -1063,7 +1063,7 @@ func find_interactable(p: Player, pick: int = 0) -> Dictionary:
 		if is_instance_valid(prop) and prop.interactable() and pos.distance_to(prop.global_position) < reach:
 			candidates.append([prop.global_position, prop, "chest", prop.interact_text()])
 	for t in dungeon.torches.values():
-		if is_instance_valid(t) and t.is_lit() and pos.distance_to(t.interact_pos()) < reach:
+		if is_instance_valid(t) and t.interactable() and pos.distance_to(t.interact_pos()) < reach:
 			candidates.append([t.global_position, t, "torch", t.interact_text()])
 	if portal and pos.distance_to(portal.global_position) < portal.radius:
 		var ready := portal_ready.has(p.peer_id)

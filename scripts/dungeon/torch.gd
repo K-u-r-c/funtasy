@@ -61,8 +61,9 @@ func is_lit() -> bool:
 	return state == State.LIT
 
 
+## #80: with the lobby setting Torches off, wall torches are decoration: never taken or put out.
 func interactable() -> bool:
-	return is_lit()
+	return is_lit() and GameState.torches_on()
 
 
 func interact_text() -> String:
@@ -85,12 +86,12 @@ func seen_shown() -> bool:
 
 
 func destructible() -> bool:
-	return is_lit()
+	return is_lit() and GameState.torches_on()
 
 
 ## Host only: any hit puts the torch out for good.
 func take_damage(amount: float, _ctx: Dictionary) -> void:
-	if not multiplayer.is_server() or not is_lit() or amount <= 0.0:
+	if not multiplayer.is_server() or not destructible() or amount <= 0.0:
 		return
 	var game := get_tree().get_first_node_in_group("game")
 	if game:

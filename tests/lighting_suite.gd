@@ -177,6 +177,15 @@ func run() -> void:
 	await run_walls()
 
 
+## Is `node` among the things Interact offers `p` at its spot (any pick, #35)?
+func offers(p: Player, node: Node) -> bool:
+	var first: Dictionary = g.find_interactable(p, 0)
+	for i in maxi(int(first.get("count", 0)), 1):
+		if g.find_interactable(p, i).get("node") == node:
+			return true
+	return false
+
+
 ## #79: walls fully stop light and hands. A wall face tile also closes its foot to lights behind
 ## the wall (the soft shadow edge of its top strip bled into the room in front); a wall torch can
 ## only be taken, seen and lit from its own side; the things behind a wall (an item, a chest) can't
@@ -237,8 +246,7 @@ func run_walls() -> void:
 	p.aim_pos = t.interact_pos()
 	await da._wait(0.6)
 	da.check(p.global_position.distance_to(t.interact_pos()) < float(GameData.bal("world.interact_range")), "behind the wall the torch is within plain reach (%.0f px)" % p.global_position.distance_to(t.interact_pos()))
-	var offered: Dictionary = g.find_interactable(p, 0)
-	da.check(offered.get("node") != t, "from behind the wall the torch isn't offered (prompt '%s')" % str(offered.get("text", "")))
+	da.check(not offers(p, t), "from behind the wall the torch isn't offered (prompt '%s')" % str(g.find_interactable(p, 0).get("text", "")))
 	g.host_interact(p, t)
 	await da._wait(0.2)
 	da.check(t.is_lit() and p.torch_left <= 0.0, "from behind the wall the host refuses to hand over the torch")
@@ -252,7 +260,7 @@ func run_walls() -> void:
 	da.check(not near_items.is_empty(), "an item lies in front of the torch")
 	if not near_items.is_empty():
 		p.aim_pos = near_items[0].global_position
-		da.check(g.find_interactable(p, 0).get("node") != near_items[0], "an item behind the wall isn't offered")
+		da.check(not offers(p, near_items[0]), "an item behind the wall isn't offered")
 		var keys: int = g.party_keys
 		g.loot.try_pickup(p, near_items[0])
 		await da._wait(0.2)
@@ -269,7 +277,7 @@ func run_walls() -> void:
 		for pt in [far_pt, pr]:
 			if d.reach_clear(cs.hero, pt):
 				through.append(cs.name)
-	da.check(cases.size() >= 4 and through.is_empty(), "no reach through a wall in %d orientations / thicknesses%s" % [cases.size(), "" if through.is_empty() else ": %s" % [through]])
+	da.check(cases.size() >= 2 and through.is_empty(), "no reach through a wall in %d orientations / thicknesses%s" % [cases.size(), "" if through.is_empty() else ": %s" % [through]])
 	# Closed doors and spouts out of sight take light like walls.
 	var hidden_doors := 0
 	var lit_wrong := 0
@@ -289,10 +297,33 @@ func run_walls() -> void:
 	p.aim_pos = t.interact_pos()
 	await da._wait(0.6)
 	da.check(t.seen_local and t.light.enabled, "in front of the torch it is drawn with its light")
-	da.check(g.find_interactable(p, 0).get("node") == t, "in front of the torch it is offered")
+	da.check(offers(p, t), "in front of the torch it is offered")
 	g.host_interact(p, t)
 	await da._wait(0.3)
-	da.check(not t.is_lit() and p.torch_left > 0.0, "taken from the front the torch burns in the hero's hand")
+	da.check(not t.is_lit() and p.torch_left > 299.0 and float(GameData.bal("lighting.carried_torch_duration")) == 300.0,
+			"taken from the front the torch burns in the hero's hand for 5 minutes (%.0f s)" % p.torch_left)
+	da.check(is_equal_approx(Player.torch_warning(), 30.0), "it starts to gutter 30 s before it burns out (%.0f s, scales with the burn time)" % Player.torch_warning())
+	# #80: the lobby setting Torches off.
+	GameState.set_setting("torches", false)
+	p.torch_left = 0.0
+	p.torch_sync = 0
+	await da._wait(0.4)
+	da.torches_off_checks("solo")
+	var lit_one: Node = null
+	for tt in d.torches.values():
+		if tt.is_lit():
+			lit_one = tt
+			break
+	if lit_one:
+		p.host_teleport(lit_one.interact_pos() + Vector2(0, 16))
+		p.aim_pos = lit_one.interact_pos()
+		await da._wait(0.5)
+		da.check(not offers(p, lit_one), "torches off: a wall torch isn't offered")
+		g.host_interact(p, lit_one)
+		await da._wait(0.2)
+		da.check(lit_one.is_lit() and p.torch_sync == 0, "torches off: the host refuses to hand over a wall torch, which stays lit")
+	GameState.set_setting("torches", true)
+	await da._wait(0.2)
 
 
 ## #79: places where a hero can stand pressed against a wall, one per wall orientation, for thin

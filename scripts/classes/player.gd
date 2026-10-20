@@ -1534,6 +1534,12 @@ func revive(hp_fraction: float) -> void:
 # --- Carried torch ---------------------------------------------------------------------------
 
 
+## Seconds left on a carried torch at which it starts to gutter (and the HUD warns): a share of
+## its whole burn time (#80).
+static func torch_warning() -> float:
+	return float(GameData.bal("lighting.carried_torch_duration")) * float(GameData.bal("lighting.carried_torch_warning_share"))
+
+
 ## Host: the player took a wall torch; it burns for balance.lighting.carried_torch_duration.
 func host_take_torch() -> void:
 	torch_left = float(GameData.bal("lighting.carried_torch_duration"))
@@ -1557,6 +1563,7 @@ func _build_carried_torch() -> void:
 	_torch_node.name = "CarriedTorch"
 	add_child(_torch_node)
 	var s := Sprite2D.new()
+	s.name = "Flame"
 	s.texture = GameData.texture("props.torch")
 	s.position = Vector2(10, -24)
 	s.scale = Vector2(0.75, 0.75)
@@ -1573,6 +1580,7 @@ func _build_carried_torch() -> void:
 	LightLayers.register(_torch_light, float(GameData.bal("lighting.carried_torch_radius")))
 	_torch_node.add_child(_torch_light)
 	var p := CPUParticles2D.new()
+	p.name = "Embers"
 	p.texture = GameData.texture("fx.pixel")
 	p.amount = 5
 	p.lifetime = 0.7
@@ -1588,17 +1596,26 @@ func _build_carried_torch() -> void:
 	_torch_node.visible = false
 
 
-## Every peer: show the torch and its light while it burns; it gutters in its last seconds.
+## Every peer: show the torch and its light while it burns; it gutters in its last seconds. With
+## the lobby setting Torches off (#80) the same light shines steady, without the torch in hand.
 func _update_carried_torch(delta: float) -> void:
 	if _torch_node == null:
 		return
-	var burning := torch_sync > 0 and life_state != Life.GHOST
+	var own_light := not GameState.torches_on()
+	var burning := (torch_sync > 0 or own_light) and life_state != Life.GHOST
 	_torch_node.visible = burning
 	if not burning:
 		return
+	_torch_node.get_node("Flame").visible = not own_light
+	_torch_node.get_node("Embers").visible = not own_light
+	if own_light:
+		_torch_light.color = Color.from_string(str(GameData.bal("lighting.hero_light_color")), Color(1.0, 0.84, 0.63))
+		_torch_light.energy = float(GameData.bal("lighting.hero_light_energy"))
+		return
+	_torch_light.color = Color(1.0, 0.62, 0.3)
 	_torch_t += delta
 	var energy := float(GameData.bal("lighting.carried_torch_energy"))
-	var warn := float(GameData.bal("lighting.carried_torch_warning"))
+	var warn := torch_warning()
 	var flicker := sin(_torch_t * 9.0) * 0.06 + sin(_torch_t * 23.0) * 0.04
 	if torch_sync <= warn:
 		var k := float(torch_sync) / warn

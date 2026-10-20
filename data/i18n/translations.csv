@@ -836,6 +836,8 @@ Easy,Łatwy
 Normal,Normalny
 Hard,Trudny
 Multiplies monster health and damage.,Mnoży zdrowie i obrażenia potworów.
+Torches,Pochodnie
+On: take torches from the walls to light the dark. Off: every hero carries a steady light of their own.,"Włączone: zdejmujesz pochodnie ze ścian, by rozświetlić mrok. Wyłączone: każdy bohater niesie własne, stałe światło."
 Shared vision,Wspólne widzenie
 Enemies seen by any teammate are visible to everyone.,Wrogowie widziani przez dowolnego towarzysza są widoczni dla wszystkich.
 Move up,Ruch w górę

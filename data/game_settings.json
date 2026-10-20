@@ -4,6 +4,8 @@
 	{"id": "difficulty", "label": "Difficulty", "type": "enum", "default": 1, "icon": "hud_boss",
 		"options": ["Easy", "Normal", "Hard"], "values": [0.75, 1.0, 1.4],
 		"description": "Multiplies monster health and damage."},
+	{"id": "torches", "label": "Torches", "type": "bool", "default": true, "icon": "hud_torch",
+		"description": "On: take torches from the walls to light the dark. Off: every hero carries a steady light of their own."},
 	{"id": "shared_vision", "label": "Shared vision", "type": "bool", "default": false, "icon": "ui_eye",
 		"description": "Enemies seen by any teammate are visible to everyone."}
 ]

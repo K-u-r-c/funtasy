@@ -18,6 +18,7 @@ var shot := ""
 var shot_at := 0.0
 var biome := ""  ## --biome=<floor type id> (monster suite, tours)
 var tour := ""  ## --tour=<name>[:arg] (screenshot tours)
+var set_args: Dictionary = {}  ## --set=<id>:<value>: game settings the host applies before the run
 var only: Array = []  ## --only=a,b: limit a suite to these ids (debugging one legendary)
 var window_size := Vector2i.ZERO  ## --window=WxH: resize the window (layout checks per aspect)
 var fails := 0
@@ -57,6 +58,9 @@ func _ready() -> void:
 			GameState.set_meta("force_biome", v)
 		elif a.begins_with("--only="):
 			only = Array(v.split(","))
+		elif a.begins_with("--set="):
+			# --set=<game setting id>:<value> (host): e.g. --set=torches:false
+			set_args[v.get_slice(":", 0)] = str_to_var(v.get_slice(":", 1))
 		elif a.begins_with("--tour="):
 			tour = v
 		elif a.begins_with("--boss="):
@@ -220,6 +224,8 @@ func _run() -> void:
 		if mode != "solo" and scenario == "full":
 			GameState.set_setting("friendly_fire", true)
 			GameState.set_setting("friendly_fire", false)
+		for k in set_args:
+			GameState.set_setting(k, set_args[k])
 		NetworkManager.start_run()
 	if not multiplayer.is_server():
 		NetworkManager.session_closed.connect(_on_client_session_closed, CONNECT_ONE_SHOT)
@@ -585,6 +591,12 @@ func client_cmd(cmd: String, arg: Variant) -> void:
 			var wt: Node = _game().dungeon.torches.get(str(arg[0]))
 			check(wt != null and wt.state == int(arg[1]) and (p.torch_sync > 0) == bool(arg[2]),
 				"client sees torch %s state %d, carrying=%s" % [arg[0], wt.state if wt else -1, p.torch_sync > 0])
+		"torches_off":
+			torches_off_checks("client")
+			var deco: Node = _game().dungeon.torches.get(str(arg))
+			p.aim_pos = deco.interact_pos()
+			await _wait(0.2)
+			check(_game().find_interactable(p, 0).get("node") != deco and deco.is_lit(), "client: torches off, the lit wall torch isn't offered")
 		"pick_again":
 			GameState.choose_new_character(char_name, class_id, gender)
 		"check_life":
@@ -1709,8 +1721,45 @@ func _darkness_scenario() -> void:
 		var lay := DungeonGenerator.new().generate(12345, g.floor_def, 1.0, d)
 		lit[d] = lay.torches.size()
 	check(lit[8] < lit[1], "deeper floors have fewer torches (floor 1: %d, floor 8: %d)" % [lit[1], lit[8]])
+	# 7. #80: the lobby setting Torches off.
+	GameState.set_setting("torches", false)
+	await _wait(0.5)
+	torches_off_checks("host")
+	var deco: Node = null
+	for t in g.dungeon.torches.values():
+		if t.is_lit() and (deco == null or t.global_position.distance_to(host_p.global_position) < deco.global_position.distance_to(host_p.global_position)):
+			deco = t
+	check(deco != null, "a lit wall torch is left")
+	if deco:
+		host_p.host_teleport(deco.interact_pos() + Vector2(0, 18))
+		host_p.aim_pos = deco.interact_pos()
+		await _wait(0.5)
+		check(g.find_interactable(host_p, 0).get("node") != deco, "torches off: a wall torch isn't offered")
+		g.host_interact(host_p, deco)
+		deco.take_damage(5.0, {})
+		await _wait(0.3)
+		check(deco.is_lit() and host_p.torch_sync == 0, "torches off: a wall torch can't be taken or broken; it stays lit")
+		client_p.host_teleport(deco.interact_pos() + Vector2(0, 18))
+		await _wait(0.6)
+		NetworkManager.to_clients("DevAuto", "client_cmd", ["torches_off", deco.torch_id])
+		await _wait(1.0)
+	GameState.set_setting("torches", true)
+	await _wait(0.3)
 	NetworkManager.to_clients("DevAuto", "client_cmd", ["done", null])
 	await _wait(1.0)
+
+
+## #80, on this peer with the setting Torches off: every hero gives a steady light the size of a
+## carried torch, lit for the rules, without the torch in hand; the HUD has no torch line.
+func torches_off_checks(who: String) -> void:
+	var g := _game()
+	var want := float(GameData.bal("lighting.carried_torch_radius")) * float(g.floor_def.get("torch_radius_mult", 1.0)) * float(GameData.bal("lighting.hero_light_radius_mult"))
+	for pl in g.players_root.get_children():
+		var l: PointLight2D = pl._torch_light
+		check(l.is_visible_in_tree() and absf(float(l.get_meta("radius", 0.0)) - want) < 0.5 and not pl._torch_node.get_node("Flame").visible and LightLayers.is_lit(get_tree(), pl.global_position + Vector2(want * 0.8, 0), true),
+			"%s: torches off, %s gives its own light (%.0f px, a torch's %.0f) with no torch in hand" % [who, pl.display_name, float(l.get_meta("radius", 0.0)), want])
+	var hud: Node = get_tree().get_first_node_in_group("hud")
+	check(hud != null and not hud._torch_icon.get_parent().visible, "%s: torches off, the HUD shows no torch line" % who)
 
 
 ## Two floor points ~150 px apart with line of sight, neither lit by any light.

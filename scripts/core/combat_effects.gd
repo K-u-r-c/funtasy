@@ -225,7 +225,7 @@ func run_effect(eff: Dictionary, ctx: Dictionary, origin: Vector2, aim: Vector2)
 			var er := float(eff.get("radius", 200))
 			if game:
 				for t in game.dungeon.torches.values():
-					if is_instance_valid(t) and t.is_lit() and t.global_position.distance_to(origin) <= er:
+					if is_instance_valid(t) and t.destructible() and t.global_position.distance_to(origin) <= er:
 						game.dungeon.set_torch_state.rpc(t.torch_id, t.State.BROKEN)
 		"destroy_projectiles":
 			destroy_projectiles_in(ctx, origin, dir, float(eff.get("range", 120)), float(eff.get("arc", 360)))

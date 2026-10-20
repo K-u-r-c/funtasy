@@ -547,6 +547,8 @@ func _update_tracker() -> void:
 		else:
 			goal = Loc.t("Find and defeat the floor boss")
 	_goal_label.text = goal
+	# #80: no torch line when the party plays without torches.
+	_torch_icon.get_parent().visible = GameState.torches_on()
 	var t: int = player.torch_sync
 	_torch_icon.modulate = Color(1, 1, 1, 1.0 if t > 0 else 0.35)
 	if t <= 0:
@@ -554,7 +556,7 @@ func _update_tracker() -> void:
 		_torch_label.add_theme_color_override("font_color", UITheme.TEXT_DIM)
 		return
 	_torch_label.text = Loc.f("Torch %d:%02d", [t / 60, t % 60])
-	var warn := int(GameData.bal("lighting.carried_torch_warning"))
+	var warn := int(Player.torch_warning())
 	_torch_label.add_theme_color_override("font_color", Color(1.0, 0.35, 0.25) if t <= warn else Color(1.0, 0.7, 0.35))
 
 

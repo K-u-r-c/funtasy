@@ -285,6 +285,11 @@ func setting(id: String) -> Variant:
 	return settings.get(id, GameData.game_setting_def(id).get("default"))
 
 
+## #80: the lobby setting Torches (off: heroes carry their own light, wall torches are decoration).
+func torches_on() -> bool:
+	return bool(setting("torches"))
+
+
 func set_setting(id: String, value: Variant) -> void:
 	if not multiplayer.is_server():
 		return
