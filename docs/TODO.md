@@ -141,6 +141,10 @@ screenshot review at 1920x1080 and 3440x1440.
 - [x] LAN `tank` test steadied: the test tank fights with its tank kit (Taunting Shout, Shield Slam) and taunts when it peels a monster off the mage; the share had swung between 57% and 100% against the 70% bar (75-100% before this round too), now 77-100% over 8 runs
 - [x] Screenshot review in English and Polish: tours `controls`, `charge`, `quiver`, `door_torch` (all five biomes), `level_up`, `rise`, `lever` (Sewers) and `talent_tree` (all four classes: locked, partly learned, a branch to its end, learn animation frames); the Linux release build smoke-tested with `--lang=pl`
 
+## Sixth playtest issues (GitHub #55-#59)
+
+- [x] #57 Next floor: every copy of a hero (host, owner, other clients) snaps to the start, stale position packets are held off by a teleport counter, the camera cuts instead of panning (`teleport-lan`, 3 instances, with a simulated slow link)
+
 ## PixelLab ledger
 
 Start of the GDD goal (2026-10-15): **used 1081 / 2000, remaining 919**, resets 2026-11-14.

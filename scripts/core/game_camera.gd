@@ -11,6 +11,8 @@ var _shake := 0.0
 var _shake_time := 0.0
 var _bounds := Rect2()
 var _look := Vector2.ZERO  ## current lean toward the aim (world px)
+var _last_target: Node2D
+var _last_pos := Vector2.ZERO
 
 
 var _base_zoom := 1.0
@@ -39,6 +41,11 @@ func _process(delta: float) -> void:
 		# mouse never jerks the view.
 		_look = _look.lerp(want, 1.0 - exp(-float(GameData.bal("camera.look_smoothing")) * delta))
 		global_position = target.global_position + Vector2(0, -16) + _look
+		# A teleport (next floor, continued game) snaps the view instead of panning across the map.
+		if target == _last_target and target.global_position.distance_to(_last_pos) > float(GameData.bal("camera.snap_distance", 160.0)):
+			reset_smoothing()
+		_last_target = target
+		_last_pos = target.global_position
 		# Eagle Eye: the hero's own view widens by 30%.
 		var eagle: bool = target is Player and target.is_local() and target.status.has_flag("eagle_eye")
 		var want_z := _base_zoom / (float(GameData.bal("camera.eagle_eye_view", 1.3)) if eagle else 1.0)

@@ -970,3 +970,14 @@ Tree shapes ("A > B": B grows from A; {x / y}: branches; (x): a fork side; [n]: 
 | Priest: Divine Shepherd | Flash Heal > {Swift Mend > Serenity [3] > Quick Prayers [3] > Wisdom [2] > Grace [2] / Renew > Holy Nova > {Lightwell > {(Guardian Spirit) > Apotheosis / (Sanctuary) > **Primordial Radiance** [2]} / Wellspring}}; Power Word: Shield; Prayer of Healing > {(Purify) > Leap of Faith > Deep Faith > Benediction [2] / (Mercy) > **Overflowing Grace** [3]}; Devotion |
 | Priest: Paladin Bastion | Consecration > Judgement > Hammer of the Righteous > Zealous Ground > Crusader [2] > Martyrdom [2]; Rebuke > {(Divine Aegis) > Blessing of Might > {Crusader's Zeal > {(Bastion Sigil) > **Unwavering Citadel** / (Sacred Ground)} / Righteous Fury} / (Aegis) > Vigil [3] > Crown of Thorns [2] > Bastion > Unyielding}; Faith; Holy Armor > Steadfast [3] > **Righteous Retribution** [3] |
 | Priest: Dark Inquisitor | Smite > {Holy Fire > Penance > Exorcism > {Judge of the Damned > Shadow Word: Death [2] / Penitence} / Searing Light > Chastise [3] > Shackle Undead}; Shadow Word: Pain > {(Mind Blast) > Mind Spike > {Lingering Pain [2] > {(Vampiric Embrace) [2] > Shadowform / (Soul Leech) [2] > **Twilight Conjunction** [2]} / Torment [2]} / (Zealotry) > **Ecstasy in Torment** [3]}; Shadow Weaving; Dark Thoughts |
+
+## Sixth playtest round (#55-#59)
+
+### #57 Teleports snap every copy of a hero
+
+| Topic | Decision |
+| --- | --- |
+| Cause | A host teleport (next floor, continued game) moved the host's copy and told the owner, but until the owner got it the owner kept streaming its old position; the host followed that stream (with a wide speed allowance after a teleport), so over a real link the host saw the hero fly back to the old spot and then across the map to the start. |
+| Sequence | `Player.host_teleport` sends `_teleport(pos, seq)` to every peer (reliable). Every copy jumps to `pos` and remembers `seq` as the teleport it waits for; the owner applies it and streams `tp_seq` with its position (OwnerSync). While a copy's streamed `tp_seq` is behind the awaited one, the stream is stale and the copy holds the teleported spot (host and other clients alike); then it follows the stream as before. |
+| Camera | When the followed hero jumps farther than `camera.snap_distance` (160 px) in one frame, the camera resets its smoothing: the view cuts to the new spot instead of panning across the map. |
+| Tests | `teleport-lan` (host + 2 clients, `trio` in `tools/run_tests.sh`): the heroes stand in the rooms farthest from the start, the clients get their teleport 0.3 s late (`test_teleport_lag`, as over Wi-Fi or a Steam relay), the party descends, and every peer samples every hero and its camera each frame for 1.5 s: no sample between the old and the new spot, every hero ends in the start room. It failed on the old code (the host saw two heroes fly). `TEST_ONLY=<regex>` runs only the matching tests. |

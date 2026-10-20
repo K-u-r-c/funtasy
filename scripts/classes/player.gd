@@ -57,6 +57,10 @@ var appearance: Dictionary = {}:
 		_apply_appearance()
 # Replicated by the owner (OwnerSync).
 var aim_pos := Vector2.ZERO
+## #57: the last host teleport the owner has applied (OwnerSync). Position packets the owner sent
+## before it are stale: every peer holds the teleported spot until the stream catches up.
+var tp_seq := 0
+var _tp_want := 0  ## every peer: the last teleport the host announced for this hero
 
 var inv := Inventory.new()  ## host: authoritative; owner: last snapshot from the host
 var local_cd: Dictionary = {}  ## owner: slot -> [left, total]
@@ -131,7 +135,7 @@ func setup(data: Dictionary) -> void:
 	], [], 0.1)
 	# The owner streams its dash state with its position (#17): the host and other clients don't
 	# simulate the owner's dodge / forced dash, so they draw "dash" from this.
-	var owner_sync := NetSync.make(self, "OwnerSync", [], [".:net_pos", ".:facing", ".:aim_pos", ".:dash_sync"], 0.05)
+	var owner_sync := NetSync.make(self, "OwnerSync", [], [".:net_pos", ".:facing", ".:aim_pos", ".:dash_sync", ".:tp_seq"], 0.05)
 	owner_sync.set_multiplayer_authority(peer_id)
 
 
@@ -477,7 +481,7 @@ func _physics_process(delta: float) -> void:
 		_owner_tick(delta)
 	elif multiplayer.is_server():
 		_host_follow(delta)
-	else:
+	elif tp_seq >= _tp_want:
 		follow_net_pos(delta)
 	if multiplayer.is_server():
 		_host_life_tick(delta)
@@ -538,6 +542,8 @@ func _host_follow(delta: float) -> void:
 	var h := holder()
 	if h:
 		position = h.global_position
+		return
+	if tp_seq < _tp_want:
 		return
 	var limit := move_speed() * float(GameData.bal("player.movement_tolerance")) * delta + 2.0
 	if _move_allowance > 0.0 or life_state == Life.GHOST:
@@ -1239,10 +1245,18 @@ func _receive_inventory(data: Dictionary) -> void:
 	EventBus.local_inventory_changed.emit()
 
 
+## Host -> all (reliable): every copy jumps to `pos`; the owner applies it and streams `seq`.
 @rpc("authority", "call_local", "reliable")
-func _owner_teleport(pos: Vector2) -> void:
+func _teleport(pos: Vector2, seq: int) -> void:
+	if is_local() and GameState.has_meta("test_teleport_lag") and not multiplayer.is_server():
+		# Test harness: the owner gets the teleport late, as over a slow link.
+		await get_tree().create_timer(float(GameState.get_meta("test_teleport_lag"))).timeout
+	_tp_want = seq
 	position = pos
 	net_pos = pos
+	if not is_local():
+		return
+	tp_seq = seq
 	velocity = Vector2.ZERO
 	_dodge_left = 0.0
 	_forced_left = 0.0
@@ -1275,7 +1289,7 @@ func host_teleport(pos: Vector2) -> void:
 	position = pos
 	net_pos = pos
 	_move_allowance = 0.6
-	_owner_teleport.rpc_id(peer_id, pos)
+	_teleport.rpc(pos, _tp_want + 1)
 
 
 func host_dash(dest: Vector2, duration: float) -> void:

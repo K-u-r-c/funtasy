@@ -29,8 +29,12 @@ else
 fi
 "$GODOT" --headless --path . --import > "$OUT/import.log" 2>&1
 
+# TEST_ONLY=<regex>: run only the tests whose name matches (e.g. TEST_ONLY='^teleport').
+skip() { [ -n "${TEST_ONLY:-}" ] && ! [[ $1 =~ $TEST_ONLY ]]; }
+
 run() { # name, args...
 	local name=$1; shift
+	skip "$name" && return
 	timeout 400 $LB "$GODOT" --headless --path . -- --nosteam --profile=test_$name "$@" > "$OUT/$name.log" 2>&1
 	report "$name"
 }
@@ -52,6 +56,7 @@ report() {
 
 pair() { # name, host-args, client-args
 	local name=$1 hargs=$2 cargs=$3
+	skip "$name" && return
 	timeout 320 $LB "$GODOT" --headless --path . -- --nosteam --profile=test_$name-host --auto=host --players=2 $hargs > "$OUT/$name-host.log" 2>&1 &
 	local hp=$!
 	sleep 2
@@ -60,6 +65,23 @@ pair() { # name, host-args, client-args
 	wait $hp; wait $cp
 	report "$name-host"
 	report "$name-client"
+}
+
+trio() { # name, host-args, client-args (two clients)
+	local name=$1 hargs=$2 cargs=$3
+	skip "$name" && return
+	timeout 320 $LB "$GODOT" --headless --path . -- --nosteam --profile=test_$name-host --auto=host --players=3 $hargs > "$OUT/$name-host.log" 2>&1 &
+	local hp=$!
+	sleep 2
+	timeout 320 $LB "$GODOT" --headless --path . -- --nosteam --profile=test_$name-client1 --auto=join --name=${name}C1 $cargs > "$OUT/$name-client1.log" 2>&1 &
+	local c1=$!
+	sleep 1
+	timeout 320 $LB "$GODOT" --headless --path . -- --nosteam --profile=test_$name-client2 --auto=join --name=${name}C2 $cargs > "$OUT/$name-client2.log" 2>&1 &
+	local c2=$!
+	wait $hp; wait $c1; wait $c2
+	report "$name-host"
+	report "$name-client1"
+	report "$name-client2"
 }
 
 echo "== script check"
@@ -153,6 +175,7 @@ if [ "$WHAT" = all ] || [ "$WHAT" = lan ]; then
 	pair party-lan "--class=priest --name=HostP --scenario=party_lan --quit=60" "--class=warrior --name=ClientP --quit=60"
 	pair interact-lan "--class=warrior --name=HostH --scenario=interact_lan --quit=60" "--class=priest --name=ClientH --quit=60"
 	pair i18n-lan "--class=mage --name=HostI --scenario=i18n_lan --quit=60" "--class=warrior --name=ClientI --quit=60"
+	trio teleport-lan "--class=warrior --name=HostTp --scenario=teleport_lan --quit=60" "--class=ranger --quit=60"
 	pair wipe "--class=ranger --name=HostWipe --scenario=wipe --quit=60" "--class=priest --name=ClientWipe --quit=60"
 fi
 if [ "$WHAT" = steam ]; then
