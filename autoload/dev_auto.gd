@@ -398,15 +398,21 @@ func _other_player() -> Player:
 
 ## What the boss fight hits: the boss, or while it can't be hit (the Amalgam split into its
 ## twins) the nearest enemy that can.
-func _boss_target(pos: Vector2) -> Enemy:
+func _boss_target(pos: Vector2, hero: Player = null) -> Enemy:
 	var boss := _nearest_enemy(pos, true)
 	if boss and boss.is_targetable() and not boss.is_invulnerable():
 		return boss
+	var dtype := ""
+	if hero and not hero.skills.is_empty():
+		dtype = str(GameData.skill(str(hero.skills[0])).get("damage_type", "physical"))
 	var best: Enemy = null
+	var best_ok := false
 	for e in _game().enemies_root.get_children():
 		if e is Enemy and e.is_alive() and e.is_targetable() and not e.is_invulnerable():
-			if best == null or e.global_position.distance_to(pos) < best.global_position.distance_to(pos):
+			var ok: bool = dtype.is_empty() or not e.immune_to(dtype)
+			if best == null or (ok and not best_ok) or (ok == best_ok and e.global_position.distance_to(pos) < best.global_position.distance_to(pos)):
 				best = e
+				best_ok = ok
 	return best if best else boss
 
 
@@ -1164,7 +1170,9 @@ func _boss_scenario() -> void:
 				p.revive(1.0)
 			# Melee range: the auto-fight doesn't walk, and a boss blocked by an arena prop would
 			# never close the gap (both heroes swung at air for 240 s on some layouts).
-			var foe := _boss_target(p.global_position)
+			# The Amalgam's twins each shrug off one damage family: each hero goes for the one its
+			# primary attack can hurt (two heroes stuck at the wrong twins stalled for 240 s).
+			var foe := _boss_target(p.global_position, p)
 			if foe and p.global_position.distance_to(foe.global_position) > 90.0 and not p.status.has("tome_prison"):
 				p.host_teleport(g.nearest_floor(foe.global_position + Vector2(0, 50)))
 		await _wait(1.0)
