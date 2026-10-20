@@ -309,6 +309,11 @@
 	"audio": {
 		"music_crossfade": 1.5
 	},
+	"dungeon": {
+		"_comment": "#58: deeper floors are a little bigger: room count (and grid area, to keep the density) +2.5% per floor below the first, at most 1.5x (depth 21 on).",
+		"size_growth_per_floor": 0.025,
+		"size_max_mult": 1.5
+	},
 	"performance": {
 		"_comment": "#56: frame cap while the window is out of focus (V-Sync off then, so the host keeps simulating at full rate).",
 		"background_fps": 60

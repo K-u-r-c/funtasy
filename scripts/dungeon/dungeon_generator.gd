@@ -37,6 +37,7 @@ var tile := 32
 var cells := PackedByteArray()
 var gen: Dictionary = {}  ## the floor type's architecture profile
 var _depth := 1
+var _size_mult := 1.0
 
 
 ## `depth` makes deeper floors darker (fewer lit rooms), so every peer must pass the same value.
@@ -46,8 +47,10 @@ func generate(seed_value: int, floor_def: Dictionary, count_mult: float = 1.0, d
 	_depth = depth
 	tile = int(GameData.bal("world.tile_size"))
 	var grid: Array = floor_def.grid
-	w = int(grid[0])
-	h = int(grid[1])
+	# #58: deeper floors are a little bigger - more rooms on a grid grown to keep their density.
+	_size_mult = size_mult(depth)
+	w = roundi(int(grid[0]) * sqrt(_size_mult))
+	h = roundi(int(grid[1]) * sqrt(_size_mult))
 	cells = PackedByteArray()
 	cells.resize(w * h)
 	cells.fill(CELL_WALL)
@@ -141,7 +144,7 @@ func _cell_center(c: Vector2i) -> Vector2:
 func _place_rooms(fd: Dictionary) -> Array:
 	var spec: Dictionary = fd.rooms
 	# One extra room for the merchant (#6), so the fighting rooms keep their count.
-	var target := rng.randi_range(int(spec.count[0]), int(spec.count[1])) + 1
+	var target := roundi(rng.randi_range(int(spec.count[0]), int(spec.count[1])) * _size_mult) + 1
 	var rooms: Array = []
 	var rects: Array = []
 	# Boss room first (largest), then the rest; the start room is the one farthest from it.
@@ -524,6 +527,13 @@ static func room_openings(grid: PackedByteArray, size: Vector2i, rect: Rect2i) -
 
 ## The floor's one merchant (#6): a seeded pick weighted by merchants.json "floor_pick", from its
 ## own random stream so the layout itself doesn't depend on it.
+## #58: how much bigger a floor on `at_depth` is than floor 1 (room count and grid area),
+## balance.json dungeon.size_growth_per_floor up to dungeon.size_max_mult.
+static func size_mult(at_depth: int) -> float:
+	var grow := float(GameData.bal("dungeon.size_growth_per_floor", 0.025))
+	return minf(1.0 + grow * maxi(at_depth - 1, 0), float(GameData.bal("dungeon.size_max_mult", 1.5)))
+
+
 ## Monster tiers (#8): the strongest tier that may spawn on `at_depth` (balance.json
 ## scaling.tier_depths lists the first depth of tiers 1, 2, 3...).
 static func tier_allowed(at_depth: int) -> int:

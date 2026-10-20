@@ -82,6 +82,10 @@ func run_lan() -> void:
 	g.start_floor(2)
 	await da._wait_until(func(): return out.has("done"), 5.0)
 	judge("host", out)
+	# #58: floor 2 is already a little bigger, and every peer builds the same layout.
+	da.check(g.layout.size != Vector2i(g.floor_def.grid[0], g.floor_def.grid[1]),
+			"host: floor 2 is a little bigger than floor 1's grid (%s)" % g.layout.size)
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["tp_layout", [g.layout.size, g.layout.rooms.size(), g.layout.start]])
 	# The clients judge on their own and finish when the host closes the session.
 	await da._wait(2.0)
 
@@ -90,7 +94,7 @@ func _room_center(room: Dictionary) -> Vector2:
 	return g.dungeon.cell_center(Rect2i(room.rect).get_center())
 
 
-func client_cmd(cmd: String, _arg: Variant) -> void:
+func client_cmd(cmd: String, arg: Variant) -> void:
 	g = da._game()
 	match cmd:
 		"tp_watch":
@@ -103,3 +107,7 @@ func client_cmd(cmd: String, _arg: Variant) -> void:
 			da.check(out.has("done"), "client: floor 2 started")
 			if out.has("done"):
 				judge("client %d" % da.multiplayer.get_unique_id(), out)
+		"tp_layout":
+			var lay: Array = arg
+			da.check(g.layout.size == lay[0] and g.layout.rooms.size() == lay[1] and g.layout.start == lay[2],
+					"client: the same floor 2 layout as the host (%s, %d rooms)" % [g.layout.size, g.layout.rooms.size()])

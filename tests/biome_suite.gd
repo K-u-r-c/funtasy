@@ -25,7 +25,36 @@ func run(biome: String = "") -> void:
 		if biome.is_empty() or id == biome:
 			check_layouts(str(id))
 			leaf_rules(str(id), 150 if not biome.is_empty() else 100)
+			depth_growth(str(id))
 	await check_live_floor()
+
+
+## #58: deeper floors are a little bigger. Over several seeds per depth: the room count and the
+## grid grow with depth, never past dungeon.size_max_mult, and every layout keeps the #23 / #30
+## leaf rules (connected, sealed boss and merchant rooms).
+func depth_growth(fid: String) -> void:
+	var fd: Dictionary = GameData.floor_types[fid]
+	var cap := float(GameData.bal("dungeon.size_max_mult"))
+	var base_rooms := (int(fd.rooms.count[0]) + int(fd.rooms.count[1])) / 2.0 + 3.0  # + start, boss, merchant
+	var bad := ""
+	var avg := {}
+	for d in [1, 5, 10, 20, 40]:
+		var total := 0
+		for i in 6:
+			var seed_value: int = 4242 + i * 7919 + int(d) * 31
+			var lay: Dictionary = DungeonGenerator.new().generate(seed_value, fd, 1.0, d)
+			var why := _leaf_problem(lay)
+			if not why.is_empty() and bad.is_empty():
+				bad = "depth %d seed %d: %s" % [d, seed_value, why]
+			var area_mult := float(lay.size.x * lay.size.y) / float(int(fd.grid[0]) * int(fd.grid[1]))
+			if area_mult > cap * 1.05 and bad.is_empty():
+				bad = "depth %d grid %s is %.2fx floor 1" % [d, lay.size, area_mult]
+			total += lay.rooms.filter(func(r): return r.role != "prison").size()
+		avg[d] = total / 6.0
+	var grows: bool = avg[5] >= avg[1] and avg[10] > avg[1] and avg[20] > avg[10] and avg[40] >= avg[20]
+	var capped: bool = avg[40] <= base_rooms * cap + 1.0 and is_equal_approx(DungeonGenerator.size_mult(40), cap)
+	da.check(grows and capped and bad.is_empty(), "%s: floors grow a little with depth, up to %.1fx (average rooms at depth 1/5/10/20/40: %s)%s"
+			% [fid, cap, ", ".join([avg[1], avg[5], avg[10], avg[20], avg[40]].map(func(v): return "%.1f" % v)), "" if bad.is_empty() else ": " + bad])
 
 
 ## #23 / #30 / #31 over many seeds, read from the carved grid (not the generator's intentions):
@@ -140,6 +169,12 @@ func check_layouts(fid: String) -> void:
 				if levers.size() != 2:
 					gate_bad = "floodgate %d has %d levers" % [di, levers.size()]
 	da.check(bad.is_empty(), "%s layouts are connected and use the biome's monsters and props of the depth's tiers%s" % [fid, "" if bad.is_empty() else ": " + bad])
+	# A single depth-6 floor can miss a rare tier-3 monster (one weight-2 type in Sewers): a few
+	# more depth-6 seeds settle it.
+	for k in 4:
+		for grp in DungeonGenerator.new().generate(2000 + k * 7919, fd, 1.0, 6).spawns:
+			for m in grp.monsters:
+				tiers_seen[int(GameData.monsters[str(m.id)].get("tier", 1))] = true
 	da.check(tiers_seen.has(1) and tiers_seen.has(2) and tiers_seen.has(3), "%s: depths 1-6 bring in tiers 1, 2 and 3 (%s)" % [fid, tiers_seen.keys()])
 	var basic := true
 	for d0 in [1, 2]:
