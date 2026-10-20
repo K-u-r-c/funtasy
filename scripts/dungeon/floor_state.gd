@@ -188,10 +188,18 @@ static func restore_hero(p: Player, h: Dictionary) -> void:
 
 ## The part every peer applies (Game._restore_floor_view): props, doors, torches, grates and
 ## changed cells, without sounds or animations, and the portal if the boss was beaten.
-static func view_of(snap: Dictionary, portal_pos: Vector2) -> Dictionary:
+static func view_of(snap: Dictionary, portal_pos: Vector2, g: Node = null) -> Dictionary:
 	var v := {}
 	for k in ["destroyed", "opened", "altars", "doors", "torches", "grates_down", "cells"]:
 		v[k] = snap.get(k, [] if k != "torches" else {})
+	# #63: an altar saved where it blocks the way (a doorway, a corridor) rises on open floor.
+	if g:
+		var moved: Array = []
+		for a in v.altars:
+			var a2: Dictionary = a.duplicate()
+			a2.pos = _v(g.altar_spot(vec(a.pos)))
+			moved.append(a2)
+		v.altars = moved
 	if not bool(snap.get("boss_alive", true)):
 		v.portal = _v(portal_pos)
 	return v

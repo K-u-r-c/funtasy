@@ -185,7 +185,7 @@ func start_floor(new_depth: int) -> void:
 		spawn_monster(boss_id, host_layout.boss_pos, true, {"key": true} if carrier.get("kind", "") == "boss" else {})
 	_spawn_floor_hazards(host_layout)
 	if not resume.is_empty():
-		_restore_floor_view.rpc(FloorState.view_of(resume, layout.portal_pos))
+		_restore_floor_view.rpc(FloorState.view_of(resume, layout.portal_pos, self))
 		_sync_clock.rpc(floor_time)
 		for peer in GameState.roster:
 			var cells := FloorState.map_bytes(resume, int(GameState.roster[peer].get("slot", -1)))
@@ -452,7 +452,7 @@ func on_enemy_killed(e: Enemy) -> void:
 	var xp := kill_xp(e.def, e.level, e.is_elite(), maxi(players_root.get_child_count(), 1))
 	if e.is_elite():
 		_dyn_counter += 1
-		dungeon.spawn_prop.rpc("Altar_%d" % _dyn_counter, "elite_altar", nearest_floor(e.global_position))
+		dungeon.spawn_prop.rpc("Altar_%d" % _dyn_counter, "elite_altar", altar_spot(e.global_position))
 		loot.drop_item(LootTable.gold_pile("elite", item_level(), loot.rng), e.global_position + Vector2(12, 6))
 		broadcast_message.rpc("%s falls - an elite altar rises", "#e8c040", [e.display_name])
 	if e.key_carrier:
@@ -1141,6 +1141,43 @@ func floor_beside_door(pos: Vector2) -> Vector2:
 		if best != Vector2.INF:
 			return best
 	return pos
+
+
+## Host (#63): where a solid piece (an elite altar) may rise near `pos` without blocking the way:
+## the nearest dry floor cell with all eight neighbours open (not a corridor), a cell clear of
+## every door and away from other props. Falls back to the nearest floor.
+func altar_spot(pos: Vector2) -> Vector2:
+	var c := dungeon.cell_of(pos)
+	var tile := float(dungeon.tile)
+	for r in range(0, 8):
+		var best := Vector2.INF
+		for dx in range(-r, r + 1):
+			for dy in range(-r, r + 1):
+				if maxi(absi(dx), absi(dy)) != r:
+					continue
+				var cc := c + Vector2i(dx, dy)
+				var at := dungeon.cell_center(cc)
+				if at.distance_to(pos) < best.distance_to(pos) and _altar_fits(cc, at, tile):
+					best = at
+		if best != Vector2.INF:
+			return best
+	return nearest_floor(pos)
+
+
+func _altar_fits(cc: Vector2i, at: Vector2, tile: float) -> bool:
+	if dungeon.cell_at(cc) != DungeonGenerator.CELL_FLOOR or dungeon.safe_rect.has_point(cc):
+		return false
+	for dx in range(-1, 2):
+		for dy in range(-1, 2):
+			if dungeon.cell_at(cc + Vector2i(dx, dy)) != DungeonGenerator.CELL_FLOOR:
+				return false
+	for d in dungeon.doors:
+		if Rect2(d.world_rect).grow(tile).has_point(at):
+			return false
+	for pr in dungeon.props.values():
+		if is_instance_valid(pr) and pr.global_position.distance_to(at) < tile:
+			return false
+	return true
 
 
 func _closest_on_rect(pos: Vector2, r: Rect2) -> Vector2:

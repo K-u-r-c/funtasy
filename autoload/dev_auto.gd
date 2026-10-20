@@ -269,6 +269,8 @@ func _run() -> void:
 				await RiseSuite.new(self).run_lan()
 			"background_lan":
 				await BackgroundSuite.new(self).run_lan()
+			"altars":
+				await AltarSuite.new(self).run()
 			"stacks":
 				await StackSuite.new(self).run()
 			"stacks_lan":

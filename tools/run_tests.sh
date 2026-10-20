@@ -137,6 +137,7 @@ if [ "$WHAT" = all ] || [ "$WHAT" = quick ]; then
 	run hero-art --scenario=hero_art --quit=300
 	run gamepad-menu --scenario=gamepad_menu --quit=60
 	run gamepad --auto=solo --class=warrior --name=PadTester --scenario=gamepad --quit=60
+	run altars --auto=solo --class=warrior --name=Pious --scenario=altars --quit=60
 	run stacks --auto=solo --class=priest --name=Stacker --scenario=stacks --quit=60
 	run resume --auto=solo --class=warrior --name=Back --scenario=resume --quit=90
 	run continue --auto=solo --class=ranger --gender=female --name=Saver --scenario=continue --quit=60
