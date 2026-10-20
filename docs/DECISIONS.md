@@ -1103,3 +1103,12 @@ Tree shapes ("A > B": B grows from A; {x / y}: branches; (x): a fork side; [n]: 
 | Count | `scaling.count_per_extra_player` 0.167 (was 0.3; 0.08 was tried first and was too few for the player): a party of four meets x1.5 the monsters per room (about 4.5 instead of 5.7 with the biomes' 2-4); HP (+60% per extra player), damage (+12%) and boss HP scaling are unchanged, so each fight stays as hard per hero but shorter. Kill XP's party share uses the same value, so each hero's XP per floor follows the smaller count. |
 | XP | `progression.xp_mult` 0.69 (was 0.55): every kill gives 25% more XP, at the player's request. The levels-per-floor band of the balance probe moves with it to `probe.levels_per_floor` [2.4, 3.75] (was [2, 3]). |
 | Tests | `biomes`: over 8 seeds per biome, 4 heroes meet x1.49-1.62 the monsters per ordinary room of a lone hero (4.0-4.8 against 2.5-3.1). `balance-*`: floors 1-5 give 2.4-3.75 levels each, solo and with four. |
+
+### #69 Lore: 205 books, rewritten
+
+| Topic | Decision |
+| --- | --- |
+| Books | 100 new books (lore_106-205: 20 per biome, 17 lore and 3 tomes each) next to the 105, every one of which was rewritten: in-world documents with a voice (diaries, ledgers, letters, depositions, orders, rules, chants), concrete and grounded, tied to the biome's monsters, bosses, hazards and to each other, without slapstick and without the phrasing typical of AI text. Each biome has its own setting: Coldharrow and the convent of Saint Ilse over the Crypt, the city of Dunmark and its Low Church in the Sewers, the Galt Works in the Foundry, Malazar's chapter in the Archives, Margrave Haske's lands in the Kurgan; the Ancient Lore books hint at the dungeon as a whole. 158 lore, 46 tomes, 1 legendary. New tomes use the existing effect strings. |
+| Polish | Written with the books, then proofread in a second pass by a separate editor (66 corrections: meaning, agreement, calques, terms, inner quotes); the game's own Polish names for monsters, bosses, biomes and merchants. ASCII punctuation only (the pixel font has no typographic quotes or dashes). |
+| Sources | `.design/lore_books/book_*.md` (local) -> `tools/import_lore.py` -> `data/lore_books.json`; the old keys of the rewritten texts drop out of `translations.csv` on extraction. |
+| Tests | `lore`: 205 books (158 / 46 / 1), every tome effect parsed; `i18n`: every key has Polish in the font, the language switch changes book 1; a scan of all 205 texts finds no listed AI phrase in either language and no typographic character. |

@@ -121,7 +121,8 @@ func language_switch() -> void:
 			"the language switch changes an item tooltip (%s -> %s)" % [en.tip.left(60), pl.tip.left(60)])
 	da.check(en.skill != pl.skill and pl.skill.contains(Loc.t("Cooldown")) and not pl.skill.contains("Cooldown"),
 			"the language switch changes a skill tooltip (%s -> %s)" % [en.skill.left(60), pl.skill.left(60)])
-	da.check(en.book.contains("Day 42") and pl.book.contains("Dzień 42") and pl.book.contains("Dziennik Ostatniego Grabarza"),
+	var opening := str(GameData.lore_books["lore_001"].text).substr(1, 24)
+	da.check(en.book.contains(opening) and not pl.book.contains(opening) and pl.book.contains("Dziennik Ostatniego Grabarza"),
 			"the language switch changes a lore book (%s -> %s)" % [en.book.left(40), pl.book.left(40)])
 
 

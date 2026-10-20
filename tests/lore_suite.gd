@@ -29,8 +29,9 @@ func library() -> void:
 	for id in GameData.lore_order:
 		var c := str(GameData.lore_books[id].classification)
 		counts[c] = int(counts.get(c, 0)) + 1
-	da.check(GameData.lore_order.size() == 105 and counts == {"standard": 73, "tome": 31, "legendary": 1},
-		"105 books imported: %s" % [counts])
+	# #69: 105 books + 100 new ones (17 lore and 3 tomes per biome).
+	da.check(GameData.lore_order.size() == 205 and counts == {"standard": 158, "tome": 46, "legendary": 1},
+		"205 books imported: %s" % [counts])
 	var unparsed := GameData.lore_order.filter(func(id):
 		var b: Dictionary = GameData.lore_books[id]
 		return b.classification != "standard" and b.effect.is_empty())

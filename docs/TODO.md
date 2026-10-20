@@ -153,6 +153,7 @@ screenshot review at 1920x1080 and 3440x1440.
 ## Seventh playtest issues (GitHub #61-#62)
 
 - [x] #61 Split item stacks: drop or split off part of a stack through an amount picker, host-checked (`stacks`, `stacks-lan`)
+- [x] #69 Lore: 100 new books and all 105 rewritten, in English and proofread Polish (`lore`, `i18n`)
 - [x] #68 Fewer extra monsters per room in a big party: x1.5 with four heroes instead of x1.9; +25% XP per kill (`biomes`, `balance-*`)
 - [x] #67 Priest Smite: no casting through walls, nerfed heal and mana, a click on an ally picks and casts, a restrained light-ray effect (`smite-lan`)
 - [x] #66 Every remaining English text translated; extractor finds the keys it missed; `pl-sweep` reads back cards, screens, hover texts and messages in Polish

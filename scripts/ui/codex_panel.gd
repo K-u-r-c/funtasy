@@ -1,5 +1,5 @@
 extends UIModal
-## The library codex (D18): all 105 books grouped by where they come from. Books this profile
+## The library codex (D18): all 205 books grouped by where they come from. Books this profile
 ## has read show their title and can be reopened; the rest are "???". A tab of the game menu and
 ## a page of the main menu (standalone: no player, closes on Cancel itself).
 
