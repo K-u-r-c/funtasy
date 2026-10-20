@@ -1100,5 +1100,6 @@ Tree shapes ("A > B": B grows from A; {x / y}: branches; (x): a fork side; [n]: 
 
 | Topic | Decision |
 | --- | --- |
-| Count | `scaling.count_per_extra_player` 0.08 (was 0.3): a party of four meets x1.24 the monsters per room (about 3.7 instead of 5.7 with the biomes' 2-4); HP (+60% per extra player), damage (+12%) and boss HP scaling are unchanged, so each fight stays as hard per hero but shorter. Kill XP's party share uses the same value, so each hero's XP per floor follows the smaller count. |
-| Tests | `biomes`: over 8 seeds per biome, 4 heroes meet 3.0-3.7 monsters per ordinary room against 2.5-3.1 for a lone hero (at most one more). |
+| Count | `scaling.count_per_extra_player` 0.167 (was 0.3; 0.08 was tried first and was too few for the player): a party of four meets x1.5 the monsters per room (about 4.5 instead of 5.7 with the biomes' 2-4); HP (+60% per extra player), damage (+12%) and boss HP scaling are unchanged, so each fight stays as hard per hero but shorter. Kill XP's party share uses the same value, so each hero's XP per floor follows the smaller count. |
+| XP | `progression.xp_mult` 0.69 (was 0.55): every kill gives 25% more XP, at the player's request. The levels-per-floor band of the balance probe moves with it to `probe.levels_per_floor` [2.4, 3.75] (was [2, 3]). |
+| Tests | `biomes`: over 8 seeds per biome, 4 heroes meet x1.49-1.62 the monsters per ordinary room of a lone hero (4.0-4.8 against 2.5-3.1). `balance-*`: floors 1-5 give 2.4-3.75 levels each, solo and with four. |

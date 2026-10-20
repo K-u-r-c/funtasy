@@ -30,7 +30,7 @@ func run(biome: String = "") -> void:
 	await check_live_floor()
 
 
-## #68: a party of four meets only a few more monsters per room than a lone hero (the count
+## #68: a party of four meets about x1.5 the monsters per room of a lone hero (the count
 ## multiplier Game.start_floor passes the generator; HP and damage scale per player).
 func party_counts(fid: String) -> void:
 	var fd: Dictionary = GameData.floor_types[fid]
@@ -45,7 +45,8 @@ func party_counts(fid: String) -> void:
 				total += grp.monsters.size()
 				rooms += 1
 		avg[n] = float(total) / maxf(rooms, 1.0)
-	da.check(avg[4] - avg[1] <= 1.0 and avg[4] >= avg[1], "%s: 4 heroes meet %.1f monsters per room, a lone hero %.1f" % [fid, avg[4], avg[1]])
+	var ratio: float = avg[4] / maxf(avg[1], 0.01)
+	da.check(ratio > 1.3 and ratio < 1.7, "%s: 4 heroes meet %.1f monsters per room, a lone hero %.1f (x%.2f, data x%.2f)" % [fid, avg[4], avg[1], ratio, 1.0 + per * 3.0])
 
 
 ## #58: deeper floors are a little bigger. Over several seeds per depth: the room count and the
