@@ -131,12 +131,20 @@ func click_empty(pid: int) -> void:
 	da.check(p.friendly_peer == 0, "%s: a second click on the picked teammate clears the pick" % ["host" if p.peer_id == 1 else "client"])
 
 
-## Host: two training dummies 110 px east and west of `pl`; returns their node names.
+## Host: two training dummies on opposite sides of `pl`, about 110 px away, where `pl` sees both
+## (a dummy behind a wall can't be hit by an aimed spell); returns their node names.
 func _enemy_pair(pl: Player) -> Array:
 	var out: Array = []
-	for dx in [110.0, -110.0]:
-		var e: Node = g.spawn_monster("training_dummy", g.nearest_floor(pl.global_position + Vector2(dx, 0)), false)
-		out.append(str(e.name))
+	var from := pl.global_position
+	for dir in [Vector2.RIGHT, Vector2.DOWN, Vector2(1, 1).normalized(), Vector2(1, -1).normalized(), Vector2.UP]:
+		var a: Vector2 = g.nearest_floor(from + dir * 110.0)
+		var b: Vector2 = g.nearest_floor(from - dir * 110.0)
+		var clear: bool = Combat.instance.has_los(from, a) and Combat.instance.has_los(from, b) \
+				and from.distance_to(a) > 70.0 and from.distance_to(b) > 70.0 and from.distance_to(a) < 160.0 and from.distance_to(b) < 160.0
+		if clear or dir == Vector2.UP:
+			for at in [a, b]:
+				out.append(str(g.spawn_monster("training_dummy", at, false).name))
+			break
 	await da._wait(0.8)
 	return out
 
