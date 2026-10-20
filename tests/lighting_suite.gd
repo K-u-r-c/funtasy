@@ -174,3 +174,178 @@ func run() -> void:
 		pr.queue_free()
 	da.check(n > 5 and pbad.is_empty(), "every sight-blocking prop (%d) casts from its footprint and never shadows its own art%s" % [n, "" if pbad.is_empty() else ": %s" % [pbad.slice(0, 5)]])
 	holder.queue_free()
+	await run_walls()
+
+
+## #79: walls fully stop light and hands. A wall face tile also closes its foot to lights behind
+## the wall (the soft shadow edge of its top strip bled into the room in front); a wall torch can
+## only be taken, seen and lit from its own side; the things behind a wall (an item, a chest) can't
+## be reached through it; closed doors and spouts out of sight take light like walls; taking a
+## torch from the front works as before. The pixels are measured by --tour=leak_probe (windowed).
+func run_walls() -> void:
+	var p: Player = da._local()
+	p.iframe_left = 9999.0
+	# Every face tile: the strip (both sides) and the one-sided back line, 4 px behind the face's
+	# top, casting only for lights north of it (shadow south), never for lights in front.
+	var lines_ok := 0
+	var lines_bad := 0
+	var src := (g.dungeon.wall_layer as TileMapLayer).tile_set.get_source(0) as TileSetAtlasSource
+	var h: float = g.dungeon.tile / 2.0
+	for i in src.get_tiles_count():
+		var td := src.get_tile_data(src.get_tile_id(i), 0)
+		var strip := td.get_occluder(0)
+		if strip == null or strip.polygon.size() != 4 or absf(strip.polygon[2].y - strip.polygon[0].y) > 8.0:
+			continue  # not a face tile
+		var back := td.get_occluder(1)
+		var ok := back != null and not back.closed and back.cull_mode == OccluderPolygon2D.CULL_CLOCKWISE and back.polygon.size() == 2
+		if ok:
+			var a := back.polygon[0]
+			var b := back.polygon[1]
+			var y := -h - Dungeon.BACK_LINE
+			# casts for c when cross(b - a, c - a) < 0 (LightLayers.one_sided)
+			ok = absf(a.y - y) < 0.1 and absf(b.y - y) < 0.1 and absf(b.x - a.x) >= g.dungeon.tile - 0.1 \
+					and (b - a).cross(Vector2(0, y - 4.0) - a) < 0.0 and (b - a).cross(Vector2(0, h + 8.0) - a) > 0.0
+		if ok:
+			lines_ok += 1
+		else:
+			lines_bad += 1
+	da.check(lines_ok > 0 and lines_bad == 0, "every wall face tile stops lights behind the wall before its art (%d ok, %d without)" % [lines_ok, lines_bad])
+	# A floor with a wall torch on a one-cell wall (open floor behind it).
+	var t: Node = null
+	for depth_try in range(1, 10):
+		for tt in g.dungeon.torches.values():
+			var up: int = g.dungeon.cell_at(tt.cell + Vector2i(0, -1))
+			if tt.is_lit() and up != DungeonGenerator.CELL_WALL and up != DungeonGenerator.CELL_CANAL:
+				t = tt
+				break
+		if t:
+			break
+		g.start_floor(depth_try + 1)
+		await da._wait(1.0)
+	da.check(t != null, "found a wall torch on a one-cell wall")
+	if t == null:
+		return
+	for e in g.enemies_root.get_children():
+		e.queue_free()
+	var d: Dungeon = g.dungeon
+	var behind := d.cell_center(t.cell + Vector2i(0, -1)) + Vector2(0, d.tile * 0.5 - 7.0)
+	var front := d.cell_center(t.front_cell()) + Vector2(0, -d.tile * 0.5 + 9.0)
+	# From behind: right above the torch, within reach of it, but on the wrong side.
+	p.torch_left = 0.0
+	p.torch_sync = 0
+	p.host_teleport(behind)
+	p.aim_pos = t.interact_pos()
+	await da._wait(0.6)
+	da.check(p.global_position.distance_to(t.interact_pos()) < float(GameData.bal("world.interact_range")), "behind the wall the torch is within plain reach (%.0f px)" % p.global_position.distance_to(t.interact_pos()))
+	var offered: Dictionary = g.find_interactable(p, 0)
+	da.check(offered.get("node") != t, "from behind the wall the torch isn't offered (prompt '%s')" % str(offered.get("text", "")))
+	g.host_interact(p, t)
+	await da._wait(0.2)
+	da.check(t.is_lit() and p.torch_left <= 0.0, "from behind the wall the host refuses to hand over the torch")
+	await da._wait(0.5)
+	da.check(not t.seen_local and not t.seen_shown() and not t.light.enabled, "from behind the wall the torch, its glow and its light aren't drawn")
+	# An item and a chest on the far side of the wall: within reach, never through it.
+	var item_at := d.cell_center(t.front_cell()) + Vector2(14, -6)
+	g.loot.drop_item(g.gold_key_item(), item_at)
+	await da._wait(0.3)
+	var near_items: Array = g.items_root.get_children().filter(func(x): return x.global_position.distance_to(item_at) < 20.0)
+	da.check(not near_items.is_empty(), "an item lies in front of the torch")
+	if not near_items.is_empty():
+		p.aim_pos = near_items[0].global_position
+		da.check(g.find_interactable(p, 0).get("node") != near_items[0], "an item behind the wall isn't offered")
+		var keys: int = g.party_keys
+		g.loot.try_pickup(p, near_items[0])
+		await da._wait(0.2)
+		da.check(g.party_keys == keys, "the host refuses a pickup through the wall")
+		for it in near_items:
+			it.queue_free()
+	da.check(not d.reach_clear(behind, front), "no reach through the wall (%s -> %s)" % [behind, front])
+	# Every wall orientation, thin and thick: nothing on the far side is in reach.
+	var through := []
+	var cases := wall_cases(d)
+	for cs in cases:
+		var far_pt: Vector2 = (cs.far[0] as Rect2).get_center()
+		var pr := Rect2(cs.far[1]).get_center()
+		for pt in [far_pt, pr]:
+			if d.reach_clear(cs.hero, pt):
+				through.append(cs.name)
+	da.check(cases.size() >= 4 and through.is_empty(), "no reach through a wall in %d orientations / thicknesses%s" % [cases.size(), "" if through.is_empty() else ": %s" % [through]])
+	# Closed doors and spouts out of sight take light like walls.
+	var hidden_doors := 0
+	var lit_wrong := 0
+	for door in d.doors:
+		for c in door._sprites.get_children():
+			if c.has_meta("self_lit"):
+				var seen := false
+				for dc in door.cells:
+					seen = seen or g.visibility.is_cell_visible(dc)
+				if not seen:
+					hidden_doors += 1
+					if c.light_mask != LightLayers.LIT:
+						lit_wrong += 1
+	da.check(lit_wrong == 0, "closed doors out of sight (%d) take light like the walls" % hidden_doors)
+	# From the front: the torch shows and is taken as before.
+	p.host_teleport(front)
+	p.aim_pos = t.interact_pos()
+	await da._wait(0.6)
+	da.check(t.seen_local and t.light.enabled, "in front of the torch it is drawn with its light")
+	da.check(g.find_interactable(p, 0).get("node") == t, "in front of the torch it is offered")
+	g.host_interact(p, t)
+	await da._wait(0.3)
+	da.check(not t.is_lit() and p.torch_left > 0.0, "taken from the front the torch burns in the hero's hand")
+
+
+## #79: places where a hero can stand pressed against a wall, one per wall orientation, for thin
+## (one cell, open floor on both sides) and thick walls. Each: {name, hero (position, feet just
+## off the wall), wall (the wall cells between), far (floor / wall-face cells on the far side that
+## the hero's light must not reach)}.
+static func wall_cases(d: Dungeon) -> Array:
+	var out: Array = []
+	var open := func(c: Vector2i) -> bool: return d.cell_at(c) != DungeonGenerator.CELL_WALL and d.cell_at(c) != DungeonGenerator.CELL_CANAL
+	var solid := func(c: Vector2i) -> bool: return d.cell_at(c) == DungeonGenerator.CELL_WALL
+	var hs := d.tile * 0.5
+	var dirs := {"south": Vector2i(0, 1), "north": Vector2i(0, -1), "east": Vector2i(1, 0), "west": Vector2i(-1, 0)}
+	var found := {}
+	for y in range(3, d.size.y - 3):
+		for x in range(3, d.size.x - 3):
+			var c := Vector2i(x, y)
+			if not open.call(c):
+				continue
+			for dn in dirs:
+				var dv: Vector2i = dirs[dn]
+				var side := Vector2i(dv.y, dv.x)
+				# The hero stands on c; the wall starts at c + dv; three floor cells along it on the
+				# hero's side and three wall cells along it, so the case is a straight run of wall.
+				if not (open.call(c - side) and open.call(c + side) and solid.call(c + dv) and solid.call(c + dv - side) and solid.call(c + dv + side)):
+					continue
+				var thick := 1
+				while thick < 4 and solid.call(c + dv * (thick + 1)) and solid.call(c + dv * (thick + 1) - side) and solid.call(c + dv * (thick + 1) + side):
+					thick += 1
+				var beyond := c + dv * (thick + 1)
+				if thick >= 4 or not (open.call(beyond) and open.call(beyond - side) and open.call(beyond + side)):
+					continue
+				var key := "%s_%s" % ["thin" if thick == 1 else "thick", dn]
+				if found.has(key):
+					continue
+				# Doors are lit from both sides on purpose (#50): keep them out of the frame.
+				var near_door := false
+				for door in d.doors:
+					near_door = near_door or door.world_rect.grow(d.tile * 3.0).has_point(d.cell_center(c))
+				if near_door:
+					continue
+				var far: Array = []  # world rects
+				for along in range(-1, 2):
+					for depth in range(0, 2):
+						far.append(Rect2(Vector2((beyond + side * along + dv * depth) * d.tile), Vector2(d.tile, d.tile)))
+				# A face tile (wall with floor below) belongs to the room south of it: seen from
+				# the north it is the far side too, its top strip included.
+				if dn == "south":
+					for along in range(-1, 2):
+						var fc := c + dv * thick + side * along
+						far.append(Rect2(Vector2(fc * d.tile), Vector2(d.tile, d.tile)))
+				var hero := d.cell_center(c) + Vector2(dv) * (hs - 7.0)
+				found[key] = {"name": key, "hero": hero, "far": far, "wall": c + dv}
+	for k in ["thin_south", "thin_north", "thin_east", "thin_west", "thick_south", "thick_north", "thick_east", "thick_west"]:
+		if found.has(k):
+			out.append(found[k])
+	return out

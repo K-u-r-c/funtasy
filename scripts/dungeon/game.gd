@@ -480,6 +480,11 @@ func host_interact(p: Player, node: Node) -> void:
 	var reach := float(GameData.bal("world.interact_range")) + 24.0
 	if node.has_method("interact_pos") and p.global_position.distance_to(node.interact_pos()) > reach:
 		return
+	# #79: never through a wall or a closed door (a door itself is reached from either side).
+	if not node.has_method("host_set_open") and node is Node2D:
+		var at: Vector2 = node.interact_pos() if node.has_method("interact_pos") else node.global_position
+		if not dungeon.reach_clear(p.global_position, at):
+			return
 	for b in get_tree().get_nodes_in_group("boss"):
 		if b.has_method("on_mechanic_interact") and b.on_mechanic_interact(p, node):
 			return
@@ -1064,6 +1069,8 @@ func find_interactable(p: Player, pick: int = 0) -> Dictionary:
 		var ready := portal_ready.has(p.peer_id)
 		var text := Loc.t("Cancel - stay on this floor") if ready else Loc.t("Enter the portal")
 		candidates.append([portal.global_position, portal, "portal", Loc.f("%s (%d/%d ready)", [text, portal_ready.size(), _alive_count()])])
+	# #79: only what the hero can reach on its own side of a wall (doors: from either side).
+	candidates = candidates.filter(func(c): return c[2] == "door" or dungeon.reach_clear(pos, c[1].interact_pos() if c[1].has_method("interact_pos") else c[0]))
 	var best: Array = []
 	var best_score := INF
 	for c in candidates:

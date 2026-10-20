@@ -152,6 +152,7 @@ screenshot review at 1920x1080 and 3440x1440.
 
 ## Eighth playtest issues (GitHub #70-#82)
 
+- [x] #79 Light and hands stop at walls: wall faces stop lights behind them, torches / closed doors / spouts are drawn lit only when seen, no interaction through a wall or closed door (`lighting-rules`, `interact*`, windowed `leak_probe` in all biomes)
 - [x] Playtest: the own-hero marker shows only while Dodge is held a moment (`marker-lan`); the HUD health fill is as wide as the resource bar (one gauge of the ornament sheet, caps outside the fill)
 ## Seventh playtest issues (GitHub #61-#62)
 

@@ -8,7 +8,11 @@ extends Node2D
 ##   them too) AND lit. Optional shared vision also uses every teammate's sight;
 ## - the viewer's own light sits at its feet: collisions keep the feet out of every occluder,
 ##   so standing right against a door or table never puts the light inside its shadow caster;
-## - far-away torches/lava lights are switched off to keep lighting cheap.
+## - far-away torches/lava lights are switched off to keep lighting cheap;
+## - #79: a wall torch (sprite, embers, light) shows only while one of the floor cells it lights is
+##   in this viewer's sight, and closed doors and wall spouts (art lit from both sides) only take
+##   light that way while seen, so nothing shows or glows through a wall. Rendering only: the
+##   gameplay light registry (what counts as lit) is untouched, so every peer's rules agree.
 
 const FOG_UNSEEN := 1.0
 const FOG_REMEMBERED := 0.55
@@ -28,6 +32,7 @@ var _visible_now: Dictionary = {}
 var _fov_left := 0.0
 var _enemy_left := 0.0
 var _opaque := PackedByteArray()
+var _torch_cells: Dictionary = {}  ## torch -> {cell: true}: the floor cells its light reaches (grid LOS)
 
 
 func _ready() -> void:
@@ -89,6 +94,17 @@ func rebuild_opaque() -> void:
 		if not d.is_open:
 			for c in d.cells:
 				_opaque[c.y * s.x + c.x] = 1
+	_torch_cells.clear()
+	for t in dungeon.torches.values():
+		var front: Vector2i = t.front_cell()
+		var r := int(ceil(float(t.light.get_meta("radius", 0.0)) / dungeon.tile))
+		var cells := {}
+		for dy in range(-r, r + 1):
+			for dx in range(-r, r + 1):
+				var c := front + Vector2i(dx, dy)
+				if dx * dx + dy * dy <= r * r and not _is_opaque(c) and _line_clear(front, c):
+					cells[c] = true
+		_torch_cells[t] = cells
 
 
 func _process(delta: float) -> void:
@@ -142,6 +158,35 @@ func _update_fov() -> void:
 	_visible_now = now
 	if changed:
 		_fog_tex.update(_fog_img)
+	_update_seen_things()
+
+
+## #79: what of the wall furniture this viewer can see right now (see the header).
+func _update_seen_things() -> void:
+	for t in _torch_cells:
+		if not is_instance_valid(t):
+			continue
+		var seen := false
+		var cells: Dictionary = _torch_cells[t]
+		if t.global_position.distance_to(viewer.global_position) < max_sight + 400.0:
+			if _visible_now.size() < cells.size():
+				for c in _visible_now:
+					if cells.has(c):
+						seen = true
+						break
+			else:
+				for c in cells:
+					if _visible_now.has(c):
+						seen = true
+						break
+		t.seen_local = seen
+	for d in dungeon.doors:
+		var seen_d := false
+		for c in d.cells:
+			seen_d = seen_d or _visible_now.has(c)
+		d.set_seen_local(seen_d)
+	for sp in dungeon.spouts:
+		sp.set_seen_local(_visible_now.has(sp.cell + sp.dir))
 
 
 func _set_fog(c: Vector2i, a: float) -> void:
@@ -229,4 +274,6 @@ func _cull_lights() -> void:
 	var focus := viewer.global_position
 	for l in dungeon.lights:
 		if is_instance_valid(l):
-			l.enabled = l.global_position.distance_to(focus) < 1000.0
+			var host: Node = l.get_parent()
+			var shown: bool = host.seen_shown() if host.has_method("seen_shown") else true
+			l.enabled = shown and l.global_position.distance_to(focus) < 1000.0

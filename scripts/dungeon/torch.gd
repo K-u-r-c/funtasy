@@ -6,6 +6,8 @@ extends Node2D
 enum State { LIT, TAKEN, BROKEN }
 
 var torch_id := ""
+var cell := Vector2i.ZERO  ## the wall cell it hangs on; its light faces south (front_cell)
+var seen_local := true  ## #79: set by the local Visibility; the torch fades out of sight
 var state: int = State.LIT
 var color := Color(1.0, 0.6, 0.27)
 var light: PointLight2D
@@ -13,6 +15,7 @@ var _sprite: Sprite2D
 var _embers: CPUParticles2D
 var _t := 0.0
 var _base_energy := 1.15
+var _seen_a := 1.0
 
 
 func _ready() -> void:
@@ -70,6 +73,17 @@ func interact_pos() -> Vector2:
 	return global_position + Vector2(0, 2)
 
 
+## The floor cell in front of the torch, where its light falls and where a hero stands to take it.
+## Torches hang on rooms' north walls only (DungeonGenerator._place_torches), so the front is south.
+func front_cell() -> Vector2i:
+	return cell + Vector2i(0, 1)
+
+
+## Is any of it drawn on this peer right now (the light follows it)?
+func seen_shown() -> bool:
+	return _seen_a > 0.0
+
+
 func destructible() -> bool:
 	return is_lit()
 
@@ -106,7 +120,10 @@ func _apply_state() -> void:
 
 
 func _process(delta: float) -> void:
+	_seen_a = move_toward(_seen_a, 1.0 if seen_local else 0.0, delta / 0.25)
+	_sprite.self_modulate.a = _seen_a
+	_embers.visible = _seen_a > 0.0
 	if not is_lit() or not light.enabled:
 		return
 	_t += delta
-	light.energy = _base_energy + sin(_t * 9.0) * 0.06 + sin(_t * 23.0) * 0.04
+	light.energy = (_base_energy + sin(_t * 9.0) * 0.06 + sin(_t * 23.0) * 0.04) * _seen_a

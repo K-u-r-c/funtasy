@@ -1128,3 +1128,193 @@ func _grab(_arg: String) -> void:
 	await da._wait(1.0)
 	await snap("boss_grab")
 
+
+
+## #79: light and torches at walls. A wall torch seen from the far side of a one-cell wall, the
+## hero's carried torch and personal light pressed against a wall from every side (thin walls
+## between two open spaces and thick ones), only the hero's own lights lighting the scene.
+func _wall_leaks(_arg: String) -> void:
+	for e in g.enemies_root.get_children():
+		e.queue_free()
+	p.iframe_left = 9999.0
+	# A floor with a wall torch on a one-cell wall (floor on its far side) shows the torch case.
+	for depth_try in range(1, 9):
+		var found := false
+		for t in g.dungeon.torches.values():
+			var c0: Vector2i = g.dungeon.cell_of(t.global_position - Vector2(0, g.dungeon.tile * 0.5 + 2.0))
+			var up: int = g.dungeon.cell_at(c0 + Vector2i(0, -1))
+			found = found or (up != DungeonGenerator.CELL_WALL and up != DungeonGenerator.CELL_CANAL)
+		if found:
+			break
+		g.start_floor(depth_try + 1)
+		await da._wait(1.5)
+		for e in g.enemies_root.get_children():
+			e.queue_free()
+	# Everything already explored (remembered fog) so light leaking into the next room shows.
+	var all := PackedByteArray()
+	all.resize(g.dungeon.size.x * g.dungeon.size.y)
+	all.fill(1)
+	g.visibility.restore_discovered(all)
+	var fid: String = g.floor_type_for(g.depth)
+	var d: Dungeon = g.dungeon
+	var floorish := func(c: Vector2i) -> bool: return d.cell_at(c) != DungeonGenerator.CELL_WALL and d.cell_at(c) != DungeonGenerator.CELL_CANAL
+	var wall := func(c: Vector2i) -> bool: return d.cell_at(c) == DungeonGenerator.CELL_WALL
+	# A wall torch with open floor on the far (north) side of its wall cell.
+	var back_torch: Node = null
+	for t in d.torches.values():
+		var tc := d.cell_of(t.global_position - Vector2(0, d.tile * 0.5 + 2.0))
+		if floorish.call(tc + Vector2i(0, -1)):
+			back_torch = t
+			break
+	var shots := []  # [hero pos, name, light origin for the torch filter]
+	if back_torch:
+		var tc2 := d.cell_of(back_torch.global_position - Vector2(0, d.tile * 0.5 + 2.0))
+		shots.append([d.cell_center(tc2 + Vector2i(0, -1)) + Vector2(0, -2), "torch_from_behind", false, back_torch])
+	else:
+		da.log_line("no wall torch with floor behind it on this floor")
+	# One-cell walls between open floor, both orientations, and a thick wall per side.
+	var thin_h := Vector2i(-1, -1)
+	var thin_v := Vector2i(-1, -1)
+	var thick := {}
+	for y in range(2, d.size.y - 2):
+		for x in range(2, d.size.x - 2):
+			var c := Vector2i(x, y)
+			if not wall.call(c):
+				continue
+			var n: bool = floorish.call(c + Vector2i(0, -1))
+			var s: bool = floorish.call(c + Vector2i(0, 1))
+			var w: bool = floorish.call(c + Vector2i(-1, 0))
+			var e2: bool = floorish.call(c + Vector2i(1, 0))
+			if n and s and wall.call(c + Vector2i(-1, 0)) and wall.call(c + Vector2i(1, 0)) and thin_h.x < 0:
+				thin_h = c
+			if w and e2 and wall.call(c + Vector2i(0, -1)) and wall.call(c + Vector2i(0, 1)) and thin_v.x < 0:
+				thin_v = c
+			if n and not s and wall.call(c + Vector2i(0, 2)) and floorish.call(c + Vector2i(0, 3)) and not thick.has("n"):
+				thick["n"] = c  # hero north of a 3-thick wall, facing south
+			if s and not n and not thick.has("s") and wall.call(c + Vector2i(0, -2)):
+				thick["s"] = c
+			if w and not e2 and not thick.has("w") and wall.call(c + Vector2i(2, 0)):
+				thick["w"] = c
+			if e2 and not w and not thick.has("e") and wall.call(c + Vector2i(-2, 0)):
+				thick["e"] = c
+	var hs := d.tile * 0.5
+	if thin_h.x >= 0:
+		shots.append([d.cell_center(thin_h) + Vector2(0, -hs - 7), "thin_wall_from_north", true, null])
+		shots.append([d.cell_center(thin_h) + Vector2(0, hs + 7), "thin_wall_from_south", true, null])
+	if thin_v.x >= 0:
+		shots.append([d.cell_center(thin_v) + Vector2(-hs - 7, 0), "thin_wall_from_west", true, null])
+		shots.append([d.cell_center(thin_v) + Vector2(hs + 7, 0), "thin_wall_from_east", true, null])
+	if thick.has("n"):
+		shots.append([d.cell_center(thick.n) + Vector2(0, -hs - 7), "thick_wall_south_of_hero", true, null])
+	if thick.has("s"):
+		shots.append([d.cell_center(thick.s) + Vector2(0, hs + 7), "thick_wall_north_of_hero", true, null])
+	if thick.has("w"):
+		shots.append([d.cell_center(thick.w) + Vector2(-hs - 7, 0), "thick_wall_east_of_hero", true, null])
+	if thick.has("e"):
+		shots.append([d.cell_center(thick.e) + Vector2(hs + 7, 0), "thick_wall_west_of_hero", true, null])
+	da.log_line("wall_leaks: thin_h %s thin_v %s thick %s torch %s" % [thin_h, thin_v, thick, back_torch != null])
+	for sh in shots:
+		var own_light: bool = sh[2]
+		for t in d.torches.values():
+			t.visible = not own_light or t.global_position.distance_to(sh[0]) > 420.0
+		if own_light:
+			p.host_take_torch()
+			p.torch_left = 99.0
+		else:
+			p.torch_left = 0.0
+			p.torch_sync = 0
+		p.host_teleport(sh[0])
+		await da._wait(1.0)
+		if sh[3] != null:
+			var target: Dictionary = g.find_interactable(p, 0)
+			da.log_line("torch_from_behind: prompt '%s' torch shown %s" % [str(target.get("text", "")), sh[3].is_visible_in_tree()])
+		await snap("wall_leaks_%s_%s_%s" % [fid, sh[1], Settings.language])
+	for t in d.torches.values():
+		t.visible = true
+
+
+## #79 (windowed): how much the hero's own lights (personal light and carried torch) brighten the
+## far side of a wall it is pressed against, in every wall orientation, thin and thick walls. Two
+## frames per case, with and without the hero's lights (no other light, no fog, the hero sprite
+## hidden); the brightest pixel difference behind the wall must stay under `leak_max`.
+func _leak_probe(_arg: String) -> void:
+	for e in g.enemies_root.get_children():
+		e.queue_free()
+	p.iframe_left = 9999.0
+	var d: Dungeon = g.dungeon
+	for t in d.torches.values():
+		t.visible = false
+	for l in d.lights:
+		if is_instance_valid(l):
+			l.visible = false
+	g.visibility._fog_sprite.visible = false
+	p.modulate.a = 0.0  # the hero's sprites (its lights still shine)
+	var hud: Node = da.get_tree().get_first_node_in_group("hud")
+	if hud:
+		hud.visible = false
+	var leak_max := 6.0
+	if not _arg.is_empty():
+		for l in [g.visibility.vision_light, p._torch_light]:
+			l.shadow_filter_smooth = float(_arg)
+	var cases := LightingSuite.wall_cases(d)
+	da.log_line("leak_probe: %d cases" % cases.size())
+	for cs in cases:
+		p.host_take_torch()
+		p.torch_left = 99.0
+		p.host_teleport(cs.hero)
+		await da._wait(0.8)
+		var lights: Array = [g.visibility.vision_light, p._torch_light]
+		var a := await _frame()
+		for l in lights:
+			l.enabled = false
+		var b := await _frame()
+		for l in lights:
+			l.enabled = true
+		var worst := 0.0
+		var sum := 0.0
+		var n := 0
+		var vp := da.get_viewport()
+		var k := Vector2(a.get_width(), a.get_height()) / vp.get_visible_rect().size
+		var xf := vp.get_canvas_transform()
+		for r: Rect2 in cs.far:
+			var p0 := (xf * r.position) * k
+			var p1 := (xf * r.end) * k
+			for y in range(maxi(0, int(p0.y)), mini(a.get_height(), int(p1.y))):
+				for x in range(maxi(0, int(p0.x)), mini(a.get_width(), int(p1.x))):
+					var diff := (a.get_pixel(x, y).get_luminance() - b.get_pixel(x, y).get_luminance()) * 255.0
+					worst = maxf(worst, diff)
+					sum += maxf(diff, 0.0)
+					n += 1
+		da.log_line("leak %s: worst %.1f mean %.2f over %d px" % [cs.name, worst, sum / maxf(n, 1), n])
+		if worst > leak_max:
+			var rows := []
+			for yy in range(-3, 4):
+				var row := ""
+				for xx in range(-10, 11):
+					var cc: Vector2i = cs.wall + Vector2i(xx, yy)
+					var v := d.cell_at(cc)
+					var ch := "#" if v == DungeonGenerator.CELL_WALL else "."
+					if d.cell_at(cc + Vector2i(0, 1)) != DungeonGenerator.CELL_WALL and v == DungeonGenerator.CELL_WALL:
+						ch = "F"
+					for door in d.doors:
+						if door.cells.has(cc):
+							ch = "D"
+					if cc == d.cell_of(cs.hero):
+						ch = "@"
+					row += ch
+				rows.append(row)
+			da.log_line("map around %s (F = face):\n%s" % [cs.name, "\n".join(rows)])
+			a.save_png(dir.path_join("leak_%s_lit.png" % cs.name))
+			b.save_png(dir.path_join("leak_%s_dark.png" % cs.name))
+		da.check(n > 0 and worst <= leak_max, "%s: the hero's light doesn't reach behind the wall (worst %.1f / 255)" % [cs.name, worst])
+	p.modulate.a = 1.0
+	if hud:
+		hud.visible = true
+	g.visibility._fog_sprite.visible = true
+
+
+func _frame() -> Image:
+	await da.get_tree().process_frame
+	await da.get_tree().process_frame
+	await RenderingServer.frame_post_draw
+	return da.get_viewport().get_texture().get_image()

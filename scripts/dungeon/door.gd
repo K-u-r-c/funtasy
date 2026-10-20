@@ -28,6 +28,7 @@ var world_rect := Rect2()
 var _shape: CollisionShape2D
 var _occluder: Node2D  ## the door's one-sided shadow lines (#46), hidden while open
 var _sprites: Node2D
+var _seen_local := true  ## #79: in the local viewer's sight (its closed art takes light from both sides only then)
 
 
 func setup(d: Dictionary, tile: int) -> void:
@@ -256,7 +257,8 @@ func _refresh() -> void:
 		if style == "bookshelf":
 			dt = GameData.texture("props.bookshelf")
 		var s3 := Sprite2D.new()
-		s3.light_mask = LightLayers.SELF_LIT
+		s3.light_mask = LightLayers.SELF_LIT if _seen_local else LightLayers.LIT
+		s3.set_meta("self_lit", true)
 		s3.texture = dt
 		s3.offset = Vector2(0, -dt.get_height() / 2.0)
 		s3.scale.x = world_rect.size.x / float(dt.get_width())
@@ -321,12 +323,25 @@ func _refresh_typed(fallback: Texture2D) -> void:
 		_sprites.add_child(s2)
 	else:
 		var wide: Texture2D = GameData.texture("props.door_closed_wide")
-		s.light_mask = LightLayers.SELF_LIT
+		s.light_mask = LightLayers.SELF_LIT if _seen_local else LightLayers.LIT
+		s.set_meta("self_lit", true)
 		s.texture = wide
 		s.offset = Vector2(0, -wide.get_height() / 2.0)
 		s.scale = Vector2(world_rect.size.x * 1.5 / float(wide.get_width()), 1.25)
 	s.modulate = _type_tint() if art.is_empty() else Color(0.82, 0.8, 0.84)
 	_sprites.add_child(s)
+
+
+## #79 (every peer, from its own Visibility): a closed door's art is lit from both sides (#50) only
+## while the local hero can see the door; out of sight it takes light like the walls, so a light
+## behind another wall never brightens it.
+func set_seen_local(seen: bool) -> void:
+	if seen == _seen_local:
+		return
+	_seen_local = seen
+	for c in _sprites.get_children():
+		if c.has_meta("self_lit"):
+			c.light_mask = LightLayers.SELF_LIT if seen else LightLayers.LIT
 
 
 func _type_tint() -> Color:

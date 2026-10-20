@@ -9,6 +9,7 @@ const DOOR_SCRIPT := preload("res://scripts/dungeon/door.gd")
 const PROP_SCRIPT := preload("res://scripts/dungeon/prop.gd")
 const SPIKES_SCRIPT := preload("res://scripts/dungeon/spikes.gd")
 const TORCH_SCRIPT := preload("res://scripts/dungeon/torch.gd")
+const BACK_LINE := 4.0  ## #79: px behind a wall face's top where lights behind the wall stop
 const PLATE_SCRIPT := preload("res://scripts/dungeon/pressure_plate.gd")
 const SPOUT_SCRIPT := preload("res://scripts/dungeon/wall_spout.gd")
 const GRATE_SCRIPT := preload("res://scripts/dungeon/grate.gd")
@@ -125,6 +126,7 @@ func build(new_layout: Dictionary, def: Dictionary, entity_root: Node2D) -> void
 		var torch: Node2D = TORCH_SCRIPT.new()
 		torch.name = "Torch_%d" % n
 		torch.torch_id = torch.name
+		torch.cell = t.cell
 		# Sorted just in front of the wall cell (its y-sort origin is the cell's bottom edge),
 		# otherwise the wall tile is drawn over the torch; the sprite itself sits up on the wall.
 		torch.position = Vector2(t.cell * tile) + Vector2(tile / 2.0, tile + 2.0)
@@ -269,6 +271,8 @@ func _make_tileset(entry: Dictionary) -> TileSet:
 	ts.set_physics_layer_collision_layer(1, 128)
 	ts.set_physics_layer_collision_mask(1, 0)
 	ts.add_occlusion_layer()
+	# #79: a second layer for the wall face's back line (one-sided, see below).
+	ts.add_occlusion_layer()
 	var src := TileSetAtlasSource.new()
 	src.texture = load(str(entry.path))
 	src.texture_region_size = Vector2i(tile, tile)
@@ -300,6 +304,17 @@ func _make_tileset(entry: Dictionary) -> TileSet:
 				var occ := OccluderPolygon2D.new()
 				occ.polygon = full if t[1] == "top" else face_top
 				data.set_occluder(0, occ)
+				if t[1] == "face":
+					# #79: a light pressed against the back of a wall (a hero's light at its feet,
+					# 8 px off the wall) lit the face's top strip, which shows in the room in front
+					# as a glow along the top of its wall. A line 4 px behind the face's top that
+					# casts only for lights behind it (north) moves that shadow's start off the
+					# wall art; lights in front of the face are on its open side.
+					var back := OccluderPolygon2D.new()
+					back.closed = false
+					back.cull_mode = OccluderPolygon2D.CULL_CLOCKWISE
+					back.polygon = PackedVector2Array([Vector2(-half, -half - BACK_LINE), Vector2(half, -half - BACK_LINE)])
+					data.set_occluder(1, back)
 				data.y_sort_origin = int(half)
 			"canal":
 				data.add_collision_polygon(1)
@@ -699,6 +714,29 @@ func map_markers() -> Array:
 		if seen:
 			out.append({"kind": e[0], "npc": e[2], "cell": rect.get_center(), "locked": door != null and door.sealed})
 	return out
+
+
+## #79: can a hero at `from` reach `to` without going through a wall or a closed door? Walks the
+## segment in 2 px steps; a step counts only well inside a blocking cell (3 px from its edges), so
+## grazing a wall corner doesn't refuse, while any wall (at least one cell thick) always does. The
+## target's own cell and the last half cell before it may block (an item lying in a closed doorway,
+## a lever on its wall) and are ignored; a whole cell of wall or door never is.
+func reach_clear(from: Vector2, to: Vector2) -> bool:
+	var end_cell := cell_of(to)
+	var n := maxi(ceili(from.distance_to(to) / 2.0), 1)
+	var last := Vector2i(-9999, -9999)
+	for i in range(n + 1):
+		var pt := from.lerp(to, float(i) / n)
+		var c := cell_of(pt)
+		if c == end_cell or pt.distance_to(to) < tile * 0.5:
+			continue
+		var local := pt - Vector2(c * tile)
+		if local.x < 3.0 or local.y < 3.0 or local.x > tile - 3.0 or local.y > tile - 3.0:
+			continue
+		if c != last and blocks_sight(c):
+			return false
+		last = c
+	return true
 
 
 ## Cells that block sight for the grid FOV (walls and closed doors).

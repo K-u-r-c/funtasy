@@ -53,6 +53,8 @@ func try_pickup(player: Player, g: GroundItem) -> void:
 		return
 	if player.global_position.distance_to(g.global_position) > float(GameData.bal("world.pickup_range")) + 16.0:
 		return
+	if not game.dungeon.reach_clear(player.global_position, g.global_position):
+		return  # #79: never through a wall
 	if g.item.get("kind", "") == "gold_key":
 		game.add_party_key(1)
 		game.broadcast_message.rpc("%s found a Gold Key - Archibald will trade", "#f0c850", [player.display_name])

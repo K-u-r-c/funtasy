@@ -15,7 +15,18 @@ var _glow: PointLight2D
 var _on := false
 var _hit: Dictionary = {}
 var kind := "acid"
+var _seen_local := true
 var cfg: Dictionary = {}
+
+
+## #79 (every peer, from its own Visibility): the pipe art is lit from every side only while the
+## room it sprays into is in the local hero's sight; out of sight it is shadowed like its wall.
+func set_seen_local(seen: bool) -> void:
+	if seen == _seen_local:
+		return
+	_seen_local = seen
+	if _pipe:
+		_pipe.light_mask = LightLayers.SELF_LIT if seen else LightLayers.LIT
 
 
 func setup(c: Vector2i, d: Vector2i, tile: int, p: float, spout_kind: String = "acid") -> void:
