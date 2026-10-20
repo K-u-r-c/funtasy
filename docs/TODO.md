@@ -148,7 +148,7 @@ screenshot review at 1920x1080 and 3440x1440.
 - [x] #58 Deeper floors grow a little: +2.5% rooms (and grid area) per floor, at most 1.5x from floor 21 (`biomes*` depths 1-40 in every biome, `teleport-lan` same layout on every peer)
 - [x] #59 Your own hero: a cyan ring with turning ticks under the feet and a pin over the head on your screen only, teammates a faint ring in their class colour, kept while downed, an option to turn it off (`marker-lan`, 4 instances; screenshots of four windowed peers, marker on and off)
 - [x] #55 A continued game resumes its floor: run seed and a floor snapshot in the save (monsters, boss / portal, items, props, chests, doors, torches, cells, Gold Key, merchant, every hero's place / HP / life state, every player's map), written on quit, window close, boss kill and every 20 s (`resume`, `resume-lan`; old saves still load)
-- [ ] #60 Lobby preview of a saved hero shows its saved gear
+- [x] #60 The lobby preview of a saved hero shows its saved gear (replicated with the game info), on the host and every client (`resume`, `resume-lan`; lobby screenshot before / after)
 
 ## PixelLab ledger
 

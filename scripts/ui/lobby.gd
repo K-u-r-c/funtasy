@@ -334,6 +334,9 @@ func _update_preview() -> void:
 	var cid := _selected_class
 	var nm := _name_edit.text.strip_edges()
 	var level := 1
+	var look: Dictionary = class_look(cid) if _gear_toggle.button_pressed else {}
+	# The "class gear" preview is for new heroes; a saved hero is shown in what it wears (#60).
+	_gear_toggle.disabled = GameState.is_continuing()
 	if GameState.is_continuing():
 		# Saved game: show this player's hero (or the first one).
 		var members: Array = GameState.game_info.get("members", [])
@@ -344,7 +347,8 @@ func _update_preview() -> void:
 			cid = str(members[slot].class_id)
 			nm = str(members[slot].name)
 			level = int(members[slot].level)
-	_preview.set_look(gender, class_look(cid) if _gear_toggle.button_pressed else {})
+			look = members[slot].get("look", {})
+	_preview.set_look(gender, look)
 	var gname := str(GameData.assets.characters.get("genders", {}).get(CharacterSprite.valid_gender(gender), {}).get("name", ""))
 	_hero_summary.text = Loc.f("%s - %s %s, level %d", [nm if not nm.is_empty() else "?", gname, GameData.classes.get(cid, {}).get("name", cid), level])
 

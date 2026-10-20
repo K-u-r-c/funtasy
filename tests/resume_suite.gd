@@ -6,7 +6,9 @@ extends RefCounted
 ## real path) and continues the game from the lobby (the client rejoins and claims its hero).
 ## The floor must come back as it was left: the same layout, the same living monsters where
 ## they stood, the chest open, the prop broken, the door open, the item in its place, every hero
-## where it stood with its HP, and every player's discovered map.
+## where it stood with its HP, and every player's discovered map. #60: the heroes wear armour and a
+## legendary, and the lobby preview of the continued game (host and client) shows exactly the
+## layers each hero shows in the world.
 
 const POS_TOL := 8.0
 const ENEMY_TOL := 24.0
@@ -25,6 +27,11 @@ func _kill(e: Actor) -> void:
 	Combat.instance.deal_damage(Combat.instance.test_ctx(p, GameData.skill(str(p.skills[0]))), e, e.health.hp + 50.0, {"damage_type": "true"})
 
 
+## Looks compare by value (the world's variant keys are StringNames, the save's Strings).
+static func same_look(a: Dictionary, b: Dictionary) -> bool:
+	return JSON.parse_string(JSON.stringify(a)) == JSON.parse_string(JSON.stringify(b))
+
+
 static func discovered_count(d: Dungeon) -> int:
 	return d.discovered.count(1)
 
@@ -36,13 +43,15 @@ func record() -> Dictionary:
 		if e is Enemy and e.is_alive() and e.team == Actor.Team.MONSTERS and not e.has_meta("summoned"):
 			enemies.append([e.def_id, e.global_position, e.is_boss])
 	var heroes := {}
+	var looks := {}
 	for pl in g.players_root.get_children():
 		heroes[pl.display_name] = [pl.global_position, pl.health.hp]
+		looks[pl.display_name] = pl.appearance.duplicate(true)
 	var items: Array = []
 	for gi in g.items_root.get_children():
 		items.append([str(gi.item.get("uid", "")), gi.global_position])
 	var rooms: Array = g.layout.rooms.map(func(r): return str(r.rect))
-	return {"size": g.layout.size, "rooms": rooms, "enemies": enemies, "heroes": heroes, "items": items,
+	return {"looks": looks, "size": g.layout.size, "rooms": rooms, "enemies": enemies, "heroes": heroes, "items": items,
 		"props": g.dungeon.props.keys(), "opened": g.dungeon.props.keys().filter(func(n): return g.dungeon.props[n].opened),
 		"doors": g.dungeon.doors.map(func(dr): return dr.is_open), "map": discovered_count(g.dungeon), "depth": g.depth}
 
@@ -92,8 +101,32 @@ static func _item_pos(rec: Dictionary, uid: String) -> Vector2:
 	return Vector2.INF
 
 
+## Host (#60): a hero puts on a plate set and a legendary helm (the client's through its own
+## equip request).
+func gear_up(pl: Player) -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 60
+	var items: Array = []
+	for b in ["plate_chest", "greaves", "boots", "gloves"]:
+		items.append(ItemGenerator.generate_equipment(b, 2, 3, rng))
+	items.append(ItemGenerator.make_legendary("crown_blood_chieftain", 2, rng))
+	for it in items:
+		it.req = 1
+		pl.host_give_item(it)
+		await da._wait(0.2)
+		if pl.is_local():
+			pl.request_equip.rpc_id(1, pl.inv.backpack.size() - 1)
+		else:
+			NetworkManager.to_clients("DevAuto", "client_cmd", ["equip_uid", it.uid])
+		await da._wait(0.3)
+
+
 ## Host: changes the floor and walks the heroes away. Returns [chest, broken prop, door, uid].
 func change_floor() -> Array:
+	for pl in g.players_root.get_children():
+		await gear_up(pl)
+	da.check(g.players_root.get_children().all(func(q): return q.appearance.has("chest") and q.appearance.has("head")),
+			"every hero wears the plate chest and the legendary helm")
 	var enemies: Array = g.enemies_root.get_children().filter(func(e): return e is Enemy and not e.is_boss)
 	for i in mini(2, enemies.size()):
 		_kill(enemies[i])
@@ -169,6 +202,14 @@ func quit_and_continue(players: int) -> bool:
 		NetworkManager.to_clients("DevAuto", "client_cmd", ["claim_mine", null])
 	var ready: bool = await da._wait_until(func(): return GameState.start_problem().is_empty(), 10.0)
 	da.check(ready, "every player claimed their hero")
+	await da._wait(0.5)
+	var lobby: Node = da.get_tree().current_scene
+	var want: Dictionary = _before.looks.get(da.char_name, {})
+	da.check(same_look(lobby._preview.look, want) and want.has("chest"),
+			"host: the lobby preview shows the saved hero in its own gear (%s), not the class default" % [lobby._preview.look.keys()])
+	if players > 1:
+		NetworkManager.to_clients("DevAuto", "client_cmd", ["resume_preview", null])
+		await da._wait(0.8)
 	NetworkManager.start_run()
 	# Read the restored world at once, before a monster can land a hit or walk off.
 	var ok: bool = await da._wait_until(func(): return _restored(players), 20.0)
@@ -245,7 +286,12 @@ func client_cmd(cmd: String, _arg: Variant) -> void:
 			# Rejoin after the host ends the session, and remember this peer's own view.
 			da.set_meta("rejoin", true)
 			var me: Player = da._local()
-			da.set_meta("rs_before", [me.global_position, discovered_count(g.dungeon), g.dungeon.props.keys()])
+			da.set_meta("rs_before", [me.global_position, discovered_count(g.dungeon), g.dungeon.props.keys(), me.appearance.duplicate(true)])
+		"resume_preview":
+			var lobby: Node = da.get_tree().current_scene
+			var want: Dictionary = da.get_meta("rs_before")[3]
+			da.check(lobby.name == "Lobby" and same_look(lobby._preview.look, want) and want.has("chest"),
+					"client: the lobby preview shows its saved hero in its own gear (%s)" % [lobby._preview.look.keys() if lobby.name == "Lobby" else []])
 		"resume_compare":
 			var before: Array = da.get_meta("rs_before")
 			var me: Player = da._local()

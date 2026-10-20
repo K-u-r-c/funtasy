@@ -13,7 +13,8 @@ signal game_changed
 
 var roster: Dictionary = {}  ## peer id -> {name, class_id, gender, level, slot}
 var settings: Dictionary = {}  ## game setting id -> value
-## Replicated: {mode: "new"|"continue", id, party_size, depth, members: [{name, class_id, gender, level}]}
+## Replicated: {mode: "new"|"continue", id, party_size, depth, members: [{name, class_id, gender, level, look}]}
+## (look, #60: the saved hero's worn gear in the Inventory.appearance format, for the lobby preview)
 var game_info: Dictionary = {}
 var local_choice: Dictionary = {}  ## this peer's pick: {name, class_id, gender} (new) or {slot} (continue)
 var last_hero: Dictionary = {}  ## last name/class this peer typed, to pre-fill the lobby
@@ -89,10 +90,18 @@ func select_saved_game(id: String) -> bool:
 	game = g
 	var members: Array = []
 	for m in g.members:
-		members.append({"name": m.name, "class_id": m.class_id, "gender": CharacterSprite.valid_gender(str(m.get("gender", ""))), "level": int(m.level)})
+		members.append({"name": m.name, "class_id": m.class_id, "gender": CharacterSprite.valid_gender(str(m.get("gender", ""))), "level": int(m.level),
+			"look": saved_look(m)})
 	game_info = {"mode": "continue", "id": g.id, "party_size": int(g.party_size), "depth": int(g.get("depth", 1)), "members": members}
 	_reset_choices()
 	return true
+
+
+## #60: how a saved hero looks in its saved gear - the same layers the world draws for it.
+static func saved_look(character: Dictionary) -> Dictionary:
+	var inv := Inventory.new()
+	inv.load_dict({"equipment": character.get("equipment", {})})
+	return inv.appearance()
 
 
 ## Host: can the run start with the players currently connected?
