@@ -18,6 +18,7 @@ var _version: Label
 const SHINE := preload("res://assets/shaders/title_shine.gdshader")
 
 var _pages_box: VBoxContainer
+static var _splash_shown := false  ## The boot splash plays once per launch, not on every return.
 
 
 func _ready() -> void:
@@ -77,6 +78,10 @@ func _ready() -> void:
 	if not msg.is_empty():
 		_set_status(msg)
 	AudioManager.play_music("menu")
+	# Automated test runs (user args) and headless instances go straight to the menu.
+	if not _splash_shown and OS.get_cmdline_user_args().is_empty() and DisplayServer.get_name() != "headless":
+		_splash_shown = true
+		add_child(SplashScreen.new())
 
 
 func _spacer() -> Control:

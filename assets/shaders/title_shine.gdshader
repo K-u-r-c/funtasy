@@ -6,6 +6,9 @@ uniform vec4 shine : source_color = vec4(1.0, 0.96, 0.8, 1.0);
 uniform float period = 5.0;
 uniform float span = 480.0;
 uniform float band = 10.0;
+// Manual mode (splash screen): one sweep driven by `progress` (0..1) instead of TIME.
+uniform bool manual = false;
+uniform float progress = 0.0;
 
 varying vec2 local_pos;
 
@@ -16,7 +19,8 @@ void vertex() {
 void fragment() {
 	vec4 c = texture(TEXTURE, UV) * COLOR;
 	vec2 p = floor(local_pos);
-	float sweep = fract(TIME / period) * (span * 1.6) - span * 0.3;
+	float t = manual ? progress : fract(TIME / period);
+	float sweep = t * (span * 1.6) - span * 0.3;
 	float d = abs((p.x + p.y * 0.6) - sweep);
 	float luma = dot(c.rgb, vec3(0.299, 0.587, 0.114));
 	float k = step(d, band) * step(0.35, luma) * 0.75;

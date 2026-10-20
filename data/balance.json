@@ -330,7 +330,17 @@
 		"modal_max_height": 520,
 		"bar_trail_delay": 0.3,
 		"bar_trail_time": 0.45,
-		"window_pop_time": 0.25
+		"window_pop_time": 0.25,
+		"splash": {
+			"_comment": "Boot splash over the title screen (seconds). Any key/button skips it.",
+			"title_scale": 2,
+			"black_hold": 0.4,
+			"title_fade_in": 1.2,
+			"shine_time": 0.9,
+			"title_hold": 0.9,
+			"fade_out": 0.8,
+			"skip_fade": 0.25
+		}
 	},
 	"anomaly": {
 		"cost_swing": 0.3,
