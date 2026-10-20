@@ -44,7 +44,7 @@ func _ready() -> void:
 	plain.light_mode = CanvasItemMaterial.LIGHT_MODE_UNSHADED
 	material = plain
 	_ground = Node2D.new()
-	_ground.z_index = -1  # under the remains, over the floor
+	_ground.z_index = 0  # additive, over the floor and the remains (a corpse lies on z -1)
 	_ground.material = add
 	_ground.draw.connect(_draw_ground)
 	add_child(_ground)
