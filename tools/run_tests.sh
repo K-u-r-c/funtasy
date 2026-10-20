@@ -175,6 +175,7 @@ if [ "$WHAT" = all ] || [ "$WHAT" = lan ]; then
 	pair party-lan "--class=priest --name=HostP --scenario=party_lan --quit=60" "--class=warrior --name=ClientP --quit=60"
 	pair interact-lan "--class=warrior --name=HostH --scenario=interact_lan --quit=60" "--class=priest --name=ClientH --quit=60"
 	pair i18n-lan "--class=mage --name=HostI --scenario=i18n_lan --quit=60" "--class=warrior --name=ClientI --quit=60"
+	pair background-lan "--class=warrior --name=HostBg --scenario=background_lan --quit=60" "--class=mage --name=ClientBg --quit=60"
 	trio teleport-lan "--class=warrior --name=HostTp --scenario=teleport_lan --quit=60" "--class=ranger --quit=60"
 	pair wipe "--class=ranger --name=HostWipe --scenario=wipe --quit=60" "--class=priest --name=ClientWipe --quit=60"
 fi

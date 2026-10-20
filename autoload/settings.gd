@@ -21,6 +21,10 @@ var volumes: Dictionary = {"Master": 0.8, "Music": 0.7, "SFX": 0.8}
 ## Interface language (#32): [locale, name shown in its own language].
 const LANGUAGES := [["en", "English"], ["pl", "Polski"]]
 var language := "en"
+## #56: the window is out of focus (alt-tab, minimised, another workspace). The compositor then
+## throttles or stops the window's frames and V-Sync would stall the main loop with them; the host
+## simulates for the whole party, so it keeps running at full rate behind a frame cap instead.
+var in_background := false
 
 
 func _ready() -> void:
@@ -70,9 +74,24 @@ func apply() -> void:
 			window.mode = Window.MODE_FULLSCREEN
 		WindowMode.FULLSCREEN:
 			window.mode = Window.MODE_EXCLUSIVE_FULLSCREEN
-	DisplayServer.window_set_vsync_mode(
-		DisplayServer.VSYNC_ENABLED if vsync else DisplayServer.VSYNC_DISABLED
-	)
+	_apply_frame_pacing()
+
+
+func _notification(what: int) -> void:
+	match what:
+		NOTIFICATION_APPLICATION_FOCUS_OUT:
+			in_background = true
+			_apply_frame_pacing()
+		NOTIFICATION_APPLICATION_FOCUS_IN:
+			in_background = false
+			_apply_frame_pacing()
+
+
+func _apply_frame_pacing() -> void:
+	var sync := vsync and not in_background
+	if DisplayServer.get_name() != "headless":
+		DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_ENABLED if sync else DisplayServer.VSYNC_DISABLED)
+	Engine.max_fps = int(GameData.bal("performance.background_fps", 60)) if in_background else 0
 
 
 func apply_audio() -> void:

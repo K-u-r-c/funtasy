@@ -309,6 +309,10 @@
 	"audio": {
 		"music_crossfade": 1.5
 	},
+	"performance": {
+		"_comment": "#56: frame cap while the window is out of focus (V-Sync off then, so the host keeps simulating at full rate).",
+		"background_fps": 60
+	},
 	"camera": {
 		"zoom": 1.0,
 		"smoothing": 8.0,

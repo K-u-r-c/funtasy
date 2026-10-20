@@ -267,6 +267,8 @@ func _run() -> void:
 				await TalentSuite.new(self).run_lan()
 			"rise_lan":
 				await RiseSuite.new(self).run_lan()
+			"background_lan":
+				await BackgroundSuite.new(self).run_lan()
 			"teleport_lan":
 				await TeleportSuite.new(self).run_lan()
 			"lever_lan":
@@ -576,6 +578,8 @@ func client_cmd(cmd: String, arg: Variant) -> void:
 			await LeverSuite.new(self).client_cmd(cmd, arg)
 		_ when cmd.begins_with("pt_"):
 			await PartySuite.new(self).client_cmd(cmd, arg)
+		_ when cmd.begins_with("bg_"):
+			await BackgroundSuite.new(self).client_cmd(cmd, arg)
 		_ when cmd.begins_with("tp_"):
 			await TeleportSuite.new(self).client_cmd(cmd, arg)
 		_ when cmd.begins_with("ia_"):

@@ -144,6 +144,7 @@ screenshot review at 1920x1080 and 3440x1440.
 ## Sixth playtest issues (GitHub #55-#59)
 
 - [x] #57 Next floor: every copy of a hero (host, owner, other clients) snaps to the start, stale position packets are held off by a teleport counter, the camera cuts instead of panning (`teleport-lan`, 3 instances, with a simulated slow link)
+- [x] #56 The host keeps full speed out of focus: V-Sync off and a 60 fps cap while unfocused, restored on focus (`background-lan`; measured with a real hidden window on Hyprland: 1 -> 60 frames per second)
 
 ## PixelLab ledger
 
