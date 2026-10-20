@@ -1076,6 +1076,31 @@ func request_drop(from_backpack: bool, key: String) -> void:
 	_inventory_changed()
 
 
+## Owner -> host (#61): drop `amount` items of the stack in backpack[index] (the rest stays).
+@rpc("any_peer", "call_local", "reliable")
+func request_drop_some(index: int, amount: int) -> void:
+	if not _from_owner() or life_state == Life.GHOST:
+		return
+	var game := get_tree().get_first_node_in_group("game")
+	if game == null:
+		return
+	var item := inv.take_from_stack(index, amount, game.loot.rng)
+	if item.is_empty():
+		return
+	game.loot.drop_item(item, global_position + facing * 18.0)
+	_inventory_changed()
+
+
+## Owner -> host (#61): split `amount` items of the stack in backpack[index] into their own slot.
+@rpc("any_peer", "call_local", "reliable")
+func request_split(index: int, amount: int) -> void:
+	if not _from_owner():
+		return
+	var game := get_tree().get_first_node_in_group("game")
+	if game:
+		_report(inv.split_stack(index, amount, game.loot.rng), "pickup")
+
+
 @rpc("any_peer", "call_local", "reliable")
 func request_learn_talent(node_id: String) -> void:
 	if not _from_owner():

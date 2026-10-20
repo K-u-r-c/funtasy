@@ -120,6 +120,36 @@ func take_backpack(index: int) -> Dictionary:
 	return backpack.pop_at(index)
 
 
+## #61: `amount` items off the stack in backpack[index] - the whole entry when that is all of it,
+## else a new stack with its own uid while the rest stays. {} when there is nothing to take.
+func take_from_stack(index: int, amount: int, rng: RandomNumberGenerator) -> Dictionary:
+	if index < 0 or index >= backpack.size() or amount < 1:
+		return {}
+	var it: Dictionary = backpack[index]
+	var count := int(it.get("count", 1))
+	if amount >= count:
+		return backpack.pop_at(index)
+	it.count = count - amount
+	var part := it.duplicate(true)
+	part.count = amount
+	part.uid = ItemGenerator.new_uid(rng)
+	return part
+
+
+## #61: splits `amount` items off the stack in backpack[index] into their own slot right after
+## it. Returns "" or an error (translation key).
+func split_stack(index: int, amount: int, rng: RandomNumberGenerator) -> String:
+	if index < 0 or index >= backpack.size():
+		return "No such item"
+	var count := int(backpack[index].get("count", 1))
+	if amount < 1 or amount >= count:
+		return "Can't split that"
+	if free_slots() <= 0:
+		return "Backpack is full"
+	backpack.insert(index + 1, take_from_stack(index, amount, rng))
+	return ""
+
+
 func take_equipped(slot: String) -> Dictionary:
 	var it: Dictionary = equipment.get(slot, {})
 	equipment.erase(slot)

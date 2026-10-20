@@ -315,9 +315,11 @@ func _slot_input(ev: InputEvent, b: ItemSlot) -> void:
 		return
 	var from_bag := b.slot_key.begins_with("b:")
 	if ev.is_action_pressed("ui_secondary"):
+		accept_event()
+		if from_bag and _open_splitter(int(b.slot_key.get_slice(":", 1)), b):
+			return
 		AudioManager.play_sfx("ui_drop", 0.05)
 		player.request_drop.rpc_id(1, from_bag, b.slot_key.get_slice(":", 1))
-		accept_event()
 	elif ev.is_action_pressed("ui_tertiary") and b.item.get("kind") == "consumable":
 		player.request_assign_quick.rpc_id(1, "e", b.item.base)
 		accept_event()
@@ -329,8 +331,38 @@ func _can_drop_ground(_at: Vector2, data: Variant) -> bool:
 
 func _drop_ground(_at: Vector2, data: Variant) -> void:
 	var from := str(data.from)
+	if from.begins_with("b:") and _open_splitter(int(from.get_slice(":", 1)), _slots.get(from)):
+		return
 	AudioManager.play_sfx("ui_drop", 0.05)
 	player.request_drop.rpc_id(1, from.begins_with("b:"), from.get_slice(":", 1))
+
+
+## #61: a stack of more than one asks how many (StackSplitter); false for a single item.
+func _open_splitter(i: int, from: Control) -> bool:
+	if i < 0 or i >= player.inv.backpack.size() or int(player.inv.backpack[i].get("count", 1)) <= 1:
+		return false
+	if get_node_or_null("StackSplitter"):
+		return true
+	var uid := str(player.inv.backpack[i].get("uid", ""))
+	var sp := StackSplitter.new(player.inv.backpack[i])
+	sp.chosen.connect(func(action: String, n: int):
+		# The backpack may have changed meanwhile: find the stack again by its uid.
+		var idx := -1
+		for k in player.inv.backpack.size():
+			if str(player.inv.backpack[k].get("uid", "")) == uid:
+				idx = k
+		if idx < 0:
+			return
+		if action == "drop":
+			AudioManager.play_sfx("ui_drop", 0.05)
+			player.request_drop_some.rpc_id(1, idx, n)
+		else:
+			player.request_split.rpc_id(1, idx, n))
+	sp.tree_exited.connect(func():
+		if is_instance_valid(from) and from.is_inside_tree():
+			from.grab_focus())
+	add_child(sp)
+	return true
 
 
 # --- Item card + prompts ---------------------------------------------------------------------
@@ -470,7 +502,7 @@ func _prompts_for(item: Dictionary, key: String = "") -> Array:
 	elif has and item.get("kind") == "consumable":
 		out.append(["ui_accept", Loc.t("Put on Q")])
 		out.append(["ui_tertiary", Loc.t("Put on E")])
-		out.append(["ui_secondary", Loc.t("Drop")])
+		out.append(["ui_secondary", Loc.t("Drop / split") if int(item.get("count", 1)) > 1 and key.begins_with("b:") else Loc.t("Drop")])
 	elif has and ItemGenerator.too_high_level(item, player.level):
 		out.append(["ui_accept", Loc.f("Equip (needs level %d)", [int(item.get("req", 1))])])
 		out.append(["ui_secondary", Loc.t("Drop")])

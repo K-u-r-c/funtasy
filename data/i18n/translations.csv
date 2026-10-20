@@ -139,6 +139,7 @@ Requires level %d (you are level %d),Wymaga poziomu %d (masz poziom %d)
 You already wear %s,Już nosisz: %s
 Not enough backpack space,Za mało miejsca w plecaku
 Nothing equipped,Nic nie założono
+Can't split that,Nie można tego podzielić
 Main Hand,Główna ręka
 Off Hand,Druga ręka
 Weapon,Broń
@@ -285,6 +286,7 @@ Unequip,Zdejmij
 Drop,Upuść
 Put on Q,Przypisz do Q
 Put on E,Przypisz do E
+Drop / split,Upuść / podziel
 Equip (needs level %d),Załóż (wymaga poziomu %d)
 Equip,Załóż
 DPS,DPS
@@ -606,6 +608,13 @@ up to %d%% of the target's max health,do %d%% maks. zdrowia celu
 Damage before the target's armor.,Obrażenia przed uwzględnieniem pancerza celu.
 Not on the bar,Nie na pasku
 Skill %d,Umiejętność %d
+Split stack,Podziel stos
+Cancel,Anuluj
+Less,Mniej
+More,Więcej
+%d of %d,%d z %d
+Drop %d,Upuść %d
+Split off %d,Oddziel %d
 Armor penetration,Przebicie pancerza
 Armor against magic and elements,Pancerz przeciw magii i żywiołom
 Block chance,Szansa na blok

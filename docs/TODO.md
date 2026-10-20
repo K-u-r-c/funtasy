@@ -152,6 +152,7 @@ screenshot review at 1920x1080 and 3440x1440.
 
 ## Seventh playtest issues (GitHub #61-#62)
 
+- [x] #61 Split item stacks: drop or split off part of a stack through an amount picker, host-checked (`stacks`, `stacks-lan`)
 - [x] #62 Foundry: the magma eruptions under the heroes' feet are removed (`biomes-foundry`: 30 s beside lava without damage)
 
 ## PixelLab ledger

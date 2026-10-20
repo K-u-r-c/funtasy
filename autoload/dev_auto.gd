@@ -269,6 +269,10 @@ func _run() -> void:
 				await RiseSuite.new(self).run_lan()
 			"background_lan":
 				await BackgroundSuite.new(self).run_lan()
+			"stacks":
+				await StackSuite.new(self).run()
+			"stacks_lan":
+				await StackSuite.new(self).run_lan()
 			"resume":
 				await ResumeSuite.new(self).run_solo()
 			"resume_lan":
@@ -595,6 +599,8 @@ func client_cmd(cmd: String, arg: Variant) -> void:
 			await PartySuite.new(self).client_cmd(cmd, arg)
 		_ when cmd.begins_with("bg_"):
 			await BackgroundSuite.new(self).client_cmd(cmd, arg)
+		_ when cmd.begins_with("st_"):
+			await StackSuite.new(self).client_cmd(cmd, arg)
 		_ when cmd.begins_with("resume_"):
 			await ResumeSuite.new(self).client_cmd(cmd, arg)
 		_ when cmd.begins_with("mk_"):

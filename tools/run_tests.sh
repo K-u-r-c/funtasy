@@ -137,6 +137,7 @@ if [ "$WHAT" = all ] || [ "$WHAT" = quick ]; then
 	run hero-art --scenario=hero_art --quit=300
 	run gamepad-menu --scenario=gamepad_menu --quit=60
 	run gamepad --auto=solo --class=warrior --name=PadTester --scenario=gamepad --quit=60
+	run stacks --auto=solo --class=priest --name=Stacker --scenario=stacks --quit=60
 	run resume --auto=solo --class=warrior --name=Back --scenario=resume --quit=90
 	run continue --auto=solo --class=ranger --gender=female --name=Saver --scenario=continue --quit=60
 	timeout 60 $LB "$GODOT" --headless --path . -- --nosteam --profile=test_rebind --scenario=rebind --quit=20 > "$OUT/rebind.log" 2>&1
@@ -177,6 +178,7 @@ if [ "$WHAT" = all ] || [ "$WHAT" = lan ]; then
 	pair i18n-lan "--class=mage --name=HostI --scenario=i18n_lan --quit=60" "--class=warrior --name=ClientI --quit=60"
 	pair background-lan "--class=warrior --name=HostBg --scenario=background_lan --quit=60" "--class=mage --name=ClientBg --quit=60"
 	group teleport-lan 2 "--class=warrior --name=HostTp --scenario=teleport_lan --quit=60" "--class=ranger --quit=60"
+	pair stacks-lan "--class=warrior --name=HostSt --scenario=stacks_lan --quit=60" "--class=mage --name=ClientSt --quit=60"
 	pair resume-lan "--class=priest --name=HostRs --scenario=resume_lan --quit=120" "--class=ranger --name=ClientRs --quit=120"
 	group marker-lan 3 "--class=warrior --name=HostMk --scenario=marker_lan --quit=60" "--class=warrior --quit=60"
 	pair wipe "--class=ranger --name=HostWipe --scenario=wipe --quit=60" "--class=priest --name=ClientWipe --quit=60"
