@@ -6,7 +6,7 @@ extends Node
 ## Launching with the user arg --profile=<name> moves both under user://profiles/<name>/
 ## (used by the automated tests so they never touch real saves and settings).
 
-const SAVE_VERSION := 1
+const SAVE_VERSION := 2  ## 2 (#55): run_seed and the floor snapshot (older saves start a new floor)
 
 var base_dir := "user://"
 var SETTINGS_PATH := "user://settings.cfg"

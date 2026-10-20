@@ -58,6 +58,7 @@ func _open_settings() -> void:
 
 func _leave() -> void:
 	if multiplayer.is_server():
-		for p in get_tree().get_nodes_in_group("players"):
-			p.persist()
+		var game := get_tree().get_first_node_in_group("game")
+		if game:
+			game.host_save()
 	NetworkManager.leave_to_menu()

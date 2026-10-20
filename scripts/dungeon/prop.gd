@@ -119,10 +119,21 @@ func take_damage(amount: float, ctx: Dictionary) -> void:
 		game.loot.roll_and_drop(str(def.get("loot", "prop")), global_position)
 
 
-## Every peer: replace the prop with debris.
-func break_apart() -> void:
+## Every peer: replace the prop with debris (`quiet`: restored from a save, no sound or dust).
+func break_apart(quiet: bool = false) -> void:
 	_broken = true
 	collision_layer = 0
+	for c in get_children():
+		if c is LightOccluder2D or c is PointLight2D:
+			c.queue_free()
+	if bool(def.get("debris", false)):
+		_sprite.texture = GameData.texture("props.debris")
+		_sprite.offset = Vector2(0, -8)
+		_sprite.z_index = -5
+	else:
+		_sprite.visible = false
+	if quiet:
+		return
 	AudioManager.play_sfx_at(str(def.get("sfx", "break")), global_position)
 	var p := CPUParticles2D.new()
 	p.texture = GameData.texture("fx.pixel")
@@ -138,21 +149,20 @@ func break_apart() -> void:
 	p.position = Vector2(0, -10)
 	add_child(p)
 	p.emitting = true
-	for c in get_children():
-		if c is LightOccluder2D or c is PointLight2D:
-			c.queue_free()
-	if bool(def.get("debris", false)):
-		_sprite.texture = GameData.texture("props.debris")
-		_sprite.offset = Vector2(0, -8)
-		_sprite.z_index = -5
-	else:
-		_sprite.visible = false
 
 
-func set_opened() -> void:
+## `instant`: restored from a save - the end state at once, without a sound or the lever's pull.
+func set_opened(instant: bool = false) -> void:
 	opened = true
 	if lever_handle:
-		_pull_lever()
+		if not instant:
+			_pull_lever()
+			return
+		var art: Dictionary = def.lever_art
+		lever_handle.rotation_degrees = float(art.get("on", 60))
+		_lamp_color = Color.from_string(str(art.get("on_color", "#4dff6a")), Color.GREEN)
+		_lever_light.color = _lamp_color
+		_lever_light.energy = 1.1
 		return
 	if def.has("sprite_open"):
 		_sprite.texture = GameData.texture(str(def.sprite_open))
@@ -166,7 +176,8 @@ func set_opened() -> void:
 		l.position = Vector2(0, -16)
 		LightLayers.register(l, 72.0)
 		add_child(l)
-	AudioManager.play_sfx_at("pickup", global_position)
+	if not instant:
+		AudioManager.play_sfx_at("pickup", global_position)
 
 
 # --- Levers (#51) ------------------------------------------------------------------------------

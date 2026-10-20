@@ -215,6 +215,14 @@ func _sync_open(open: bool) -> void:
 		game.visibility.rebuild_opaque()
 
 
+## #55, every peer: the state saved with the game, without a sound.
+func restore_state(open: bool, now_sealed: bool, now_floodgate: bool) -> void:
+	is_open = open
+	sealed = now_sealed
+	floodgate = now_floodgate
+	_refresh()
+
+
 func _refresh() -> void:
 	_shape.set_deferred("disabled", is_open)
 	_occluder.visible = not is_open

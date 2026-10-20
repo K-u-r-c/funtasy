@@ -52,6 +52,17 @@ func _ready() -> void:
 	add_child(_fog_sprite)
 
 
+## #55: the discovered cells saved with the game come back, remembered (dimmed) in the fog.
+func restore_discovered(cells: PackedByteArray) -> void:
+	dungeon.discovered = cells.duplicate()
+	var s := dungeon.size
+	for y in s.y:
+		for x in s.x:
+			if cells[y * s.x + x] == 1:
+				_fog_img.set_pixel(x, y, Color(0, 0, 0, FOG_REMEMBERED))
+	_fog_tex.update(_fog_img)
+
+
 func reset_floor() -> void:
 	_visible_now.clear()
 	# Sewer mist and the like: the floor type scales how far heroes see.

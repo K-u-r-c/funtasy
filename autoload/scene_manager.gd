@@ -58,8 +58,11 @@ func take_message() -> String:
 ## (otherwise they are reported as leaked at exit), then quits.
 func quit_game(code: int = 0) -> void:
 	# Free the game scene before the peer is reset (see SessionRpc).
-	get_tree().multiplayer_poll = false
 	var game := get_tree().get_first_node_in_group("game")
+	# #55: closing the window mid-floor keeps the floor in the saved game.
+	if game and multiplayer.is_server() and game.has_method("host_save"):
+		game.host_save()
+	get_tree().multiplayer_poll = false
 	if game:
 		game.process_mode = Node.PROCESS_MODE_DISABLED
 		game.queue_free()

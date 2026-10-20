@@ -314,6 +314,11 @@
 		"size_growth_per_floor": 0.025,
 		"size_max_mult": 1.5
 	},
+	"save": {
+		"_comment": "#55: the host writes the saved game (heroes and the floor) this often, and clients send their discovered map this often when it changed.",
+		"autosave_interval": 20,
+		"map_report_interval": 5
+	},
 	"performance": {
 		"_comment": "#56: frame cap while the window is out of focus (V-Sync off then, so the host keeps simulating at full rate).",
 		"background_fps": 60

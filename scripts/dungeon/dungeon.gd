@@ -605,6 +605,40 @@ func destroy_prop(prop_name: String) -> void:
 	p.break_apart()
 
 
+## #55: the names of the props the layout put on this floor (the same on every peer).
+func layout_prop_names() -> Array:
+	var out: Array = []
+	for i in layout.props.size():
+		out.append("Prop_%d" % i)
+	for i in layout.chests.size():
+		out.append("Chest_%d" % i)
+	if not layout.get("merchant", {}).is_empty():
+		out.append("Merchant")
+	return out
+
+
+## #55, every peer: a prop destroyed before the game was saved is rubble again, without a sound.
+func remove_prop_quietly(prop_name: String) -> void:
+	var p: Node = props.get(prop_name)
+	if p == null or not is_instance_valid(p):
+		return
+	props.erase(prop_name)
+	proximity_props.erase(p)
+	debris.append(p)
+	astar.set_point_solid(cell_of(p.global_position), false)
+	p.break_apart(true)
+
+
+## #55, host: cells whose kind changed since the layout was built, as [x, y, kind].
+func changed_cells() -> Array:
+	var out: Array = []
+	var base: PackedByteArray = layout.cells
+	for i in mini(cells.size(), base.size()):
+		if cells[i] != base[i]:
+			out.append([i % size.x, i / size.x, cells[i]])
+	return out
+
+
 ## Host -> all (reliable, call_local): a chest was opened.
 @rpc("authority", "call_local", "reliable")
 func open_chest(prop_name: String) -> void:

@@ -36,6 +36,12 @@ var _dyn_counter := 0
 var boss_id := ""  ## this floor's boss, picked from the floor type's list by the floor seed
 var floor_mechanics: Array = []  ## host: FloorMechanic modules of the floor type
 var _prox_left := 0.0
+var reported_maps: Dictionary = {}  ## host (#55): peer -> that client's discovered cells (raw)
+var _resume: Dictionary = {}  ## host (#55): the saved floor to lay over the continued game's first floor
+var _building := false  ## host: start_floor is half way (no snapshot of a half-built floor)
+var _autosave_left := 0.0
+var _map_report_left := 0.0
+var _map_reported := 0  ## client: hash of the discovered cells last sent to the host
 
 @onready var dungeon: Dungeon = $Dungeon
 @onready var entities: Node2D = $Entities
@@ -110,11 +116,18 @@ func _try_begin() -> void:
 	if _begun or not NetworkManager.all_loaded(GameState.roster.keys()):
 		return
 	_begun = true
-	run_seed = randi()
+	# #55: the run seed is part of the saved game, so a continued floor is the same floor.
+	if GameState.game.has("run_seed"):
+		run_seed = int(GameState.game.run_seed)
+	else:
+		run_seed = randi()
+		GameState.game.run_seed = run_seed
+	_resume = GameState.game.get("floor", {}) if GameState.is_continuing() else {}
 	start_floor(GameState.start_depth())
 
 
 func start_floor(new_depth: int) -> void:
+	_building = true
 	depth = new_depth
 	# Floor-bound buffs (Eater of Battles) and once-per-floor legendaries reset.
 	for p in players_root.get_children():
@@ -124,6 +137,10 @@ func start_floor(new_depth: int) -> void:
 		p.remove_meta("crosier_used")
 	var ft_id := floor_type_for(new_depth)
 	var floor_seed := hash(run_seed + new_depth * 7919)
+	# #55: the first floor of a continued game, if it is the floor the game was saved on.
+	var resume: Dictionary = _resume if int(_resume.get("depth", -1)) == new_depth and int(_resume.get("seed", 0)) == floor_seed else {}
+	_resume = {}
+	reported_maps.clear()
 	combat.clear_floor()
 	loot.clear_floor()
 	corpses.clear()
@@ -142,33 +159,71 @@ func start_floor(new_depth: int) -> void:
 	var n := players_root.get_child_count() if players_root.get_child_count() > 0 else GameState.roster.size()
 	var count_mult := 1.0 + float(GameData.bal("scaling.count_per_extra_player")) * (maxi(n, 1) - 1)
 	var host_layout := DungeonGenerator.new().generate(floor_seed, floor_def, count_mult, new_depth, merchant_id)
-	_place_players()
+	_place_players(resume)
 	merchants.host_new_floor(floor_seed, item_level())
-	var elites := _pick_elites(host_layout, floor_seed, merchant_id == "archibald")
-	var carrier := pick_key_carrier(host_layout, floor_seed, merchant_id == "archibald", elites.keys())
-	key_chest = "Chest_%d" % int(carrier.index) if carrier.get("kind", "") == "chest" else ""
-	for gi in host_layout.spawns.size():
-		var group: Dictionary = host_layout.spawns[gi]
-		for mi in group.monsters.size():
-			var m: Dictionary = group.monsters[mi]
-			spawn_monster(str(m.id), m.pos, false, elites.get(Vector2i(gi, mi), {}))
+	var carrier := {}
+	boss_alive = true
+	boss_engaged = false
+	if resume.is_empty():
+		var elites := _pick_elites(host_layout, floor_seed, merchant_id == "archibald")
+		carrier = pick_key_carrier(host_layout, floor_seed, merchant_id == "archibald", elites.keys())
+		key_chest = "Chest_%d" % int(carrier.index) if carrier.get("kind", "") == "chest" else ""
+		for gi in host_layout.spawns.size():
+			var group: Dictionary = host_layout.spawns[gi]
+			for mi in group.monsters.size():
+				var m: Dictionary = group.monsters[mi]
+				spawn_monster(str(m.id), m.pos, false, elites.get(Vector2i(gi, mi), {}))
+	else:
+		FloorState.restore_host(self, resume, host_layout.boss_pos)
 	floor_mechanics.clear()
 	for md in floor_def.get("floor_mechanics", []):
 		var scr: Script = load(GameData.FLOOR_MECHANIC_DIR + str(md.id) + ".gd")
 		var fm: FloorMechanic = scr.new()
 		fm.setup(self, md)
 		floor_mechanics.append(fm)
-	spawn_monster(boss_id, host_layout.boss_pos, true, {"key": true} if carrier.get("kind", "") == "boss" else {})
+	if resume.is_empty():
+		spawn_monster(boss_id, host_layout.boss_pos, true, {"key": true} if carrier.get("kind", "") == "boss" else {})
 	_spawn_floor_hazards(host_layout)
-	boss_alive = true
-	boss_engaged = false
+	if not resume.is_empty():
+		_restore_floor_view.rpc(FloorState.view_of(resume, layout.portal_pos))
+		_sync_clock.rpc(floor_time)
+		for peer in GameState.roster:
+			var cells := FloorState.map_bytes(resume, int(GameState.roster[peer].get("slot", -1)))
+			if cells.size() != dungeon.discovered.size():
+				continue
+			if int(peer) == 1:
+				visibility.restore_discovered(cells)
+			else:
+				reported_maps[int(peer)] = cells
+				_restore_map.rpc_id(int(peer), cells)
+	_building = false
+	_autosave_left = float(GameData.bal("save.autosave_interval", 20.0))
 	GameState.current_depth = new_depth
 	GameState.save_game()
 
 
+## Host: the saved game catches up with the world (every hero, then the floor as it stands).
+func host_save() -> void:
+	if not multiplayer.is_server():
+		return
+	for p in players_root.get_children():
+		if not p.is_queued_for_deletion():
+			GameState.characters[p.peer_id] = p.to_character()
+	GameState.save_game()
+
+
+## Host (#55): the snapshot of this floor for the saved game, or `prev` while there is no whole
+## floor to describe (before the run, while a floor is being built, after a wipe).
+func floor_snapshot(prev: Dictionary) -> Dictionary:
+	if not _begun or _building or _wiped or depth <= 0 or layout.is_empty() or not is_inside_tree():
+		return prev
+	return FloorState.capture(self, prev)
+
+
 ## Spawns connected players that have no character in the world yet (start of a run, which can
 ## be a later floor when a saved game is continued) and moves everyone else to the start room.
-func _place_players() -> void:
+## `resume` (#55): a continued floor puts every hero back where it stood, as it was.
+func _place_players(resume: Dictionary = {}) -> void:
 	var start: Vector2 = layout.start
 	var i := 0
 	var ids: Array = GameState.roster.keys()
@@ -179,7 +234,12 @@ func _place_players() -> void:
 		var connected: bool = id == 1 or multiplayer.get_peers().has(id)
 		if existing == null and connected:
 			var r: Dictionary = GameState.roster[id]
-			player_spawner.spawn({"peer": id, "pos": pos, "class_id": r.class_id, "gender": r.get("gender", ""), "name": r.name, "level": r.level})
+			var saved := FloorState.hero_of(resume, id)
+			if not saved.is_empty():
+				pos = FloorState.vec(saved.pos)
+			var spawned: Node = player_spawner.spawn({"peer": id, "pos": pos, "class_id": r.class_id, "gender": r.get("gender", ""), "name": r.name, "level": r.level})
+			if spawned is Player:
+				FloorState.restore_hero(spawned, saved)
 		elif existing:
 			existing.host_teleport(pos)
 			if existing.life_state != Player.Life.ALIVE:
@@ -476,8 +536,15 @@ func _physics_process(delta: float) -> void:
 		s.update_state(floor_time)
 	for sp in dungeon.spouts:
 		sp.update_state(floor_time)
+	if not multiplayer.is_server() and depth > 0:
+		_report_map_tick(delta)
 	if not multiplayer.is_server() or depth == 0:
 		return
+	# #55: the saved game follows the floor, so a crash or a killed process loses little.
+	_autosave_left -= delta
+	if _autosave_left <= 0.0:
+		_autosave_left = float(GameData.bal("save.autosave_interval", 20.0))
+		host_save()
 	_clock_sync_left -= delta
 	if _clock_sync_left <= 0.0:
 		_clock_sync_left = 5.0
@@ -702,10 +769,55 @@ func _boss_defeated(portal_pos: Vector2) -> void:
 	AudioManager.play_music(str(floor_def.music))
 	EventBus.boss_defeated.emit(null)
 	EventBus.hud_message.emit(Loc.t("The boss is defeated! A portal opens..."), Color(0.75, 0.55, 1.0))
+	place_portal(portal_pos)
+
+
+func place_portal(portal_pos: Vector2) -> void:
+	if portal and is_instance_valid(portal):
+		return
 	portal = PORTAL_SCRIPT.new()
 	portal.name = "Portal"
 	portal.position = portal_pos
 	entities.add_child(portal)
+
+
+## Host -> all (reliable, #55): the continued floor's props, doors, torches, grates and cells as
+## they were saved, laid over the floor just built from the seed; the portal if the boss is dead.
+@rpc("authority", "call_local", "reliable")
+func _restore_floor_view(view: Dictionary) -> void:
+	FloorState.apply_view(self, view)
+
+
+## Host -> one client (reliable, #55): the cells its player had discovered on this floor.
+@rpc("authority", "call_remote", "reliable")
+func _restore_map(cells: PackedByteArray) -> void:
+	if cells.size() == dungeon.discovered.size():
+		visibility.restore_discovered(cells)
+	_map_reported = hash(dungeon.discovered)
+
+
+## Client: sends its discovered cells to the host every few seconds when they changed, so the
+## host can keep them in the saved game.
+func _report_map_tick(delta: float) -> void:
+	_map_report_left -= delta
+	if _map_report_left > 0.0:
+		return
+	_map_report_left = float(GameData.bal("save.map_report_interval", 5.0))
+	var h := hash(dungeon.discovered)
+	if h == _map_reported:
+		return
+	_map_reported = h
+	_report_map.rpc_id(1, depth, dungeon.discovered.compress(FloorState.MAP_COMPRESSION))
+
+
+## Client -> host (reliable, #55): the sender's discovered cells on floor `at_depth`.
+@rpc("any_peer", "call_remote", "reliable")
+func _report_map(at_depth: int, packed: PackedByteArray) -> void:
+	if not multiplayer.is_server() or at_depth != depth:
+		return
+	var cells := packed.decompress(dungeon.discovered.size(), FloorState.MAP_COMPRESSION)
+	if cells.size() == dungeon.discovered.size():
+		reported_maps[multiplayer.get_remote_sender_id()] = cells
 
 
 ## Host -> all (reliable): who is ready to descend.

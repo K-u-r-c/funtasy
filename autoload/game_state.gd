@@ -137,6 +137,12 @@ func save_game() -> void:
 		if slot >= 0 and slot < game.members.size():
 			game.members[slot] = characters[peer].duplicate(true)
 	game.depth = current_depth
+	# #55: the floor the party is on, as it stands.
+	var g := get_tree().get_first_node_in_group("game")
+	if g and g.has_method("floor_snapshot"):
+		var snap: Dictionary = g.floor_snapshot(game.get("floor", {}))
+		if not snap.is_empty():
+			game.floor = snap
 	SaveSystem.save_game(game)
 
 

@@ -269,6 +269,10 @@ func _run() -> void:
 				await RiseSuite.new(self).run_lan()
 			"background_lan":
 				await BackgroundSuite.new(self).run_lan()
+			"resume":
+				await ResumeSuite.new(self).run_solo()
+			"resume_lan":
+				await ResumeSuite.new(self).run_lan()
 			"marker_lan":
 				await MarkerSuite.new(self).run_lan()
 			"teleport_lan":
@@ -346,6 +350,15 @@ func _on_client_session_closed() -> void:
 		return
 	var ok := await _wait_until(func(): return get_tree().current_scene and get_tree().current_scene.name == "MainMenu", 5.0)
 	check(ok, "client returned to the main menu when the session closed")
+	if has_meta("rejoin"):
+		# #55: the host continues the saved game; this player joins it again.
+		remove_meta("rejoin")
+		await _wait(3.0)
+		NetworkManager.join_enet("127.0.0.1")
+		var back := await _wait_until(func(): return get_tree().current_scene and get_tree().current_scene.name == "Lobby", 15.0)
+		check(back, "client rejoined the host's lobby")
+		NetworkManager.session_closed.connect(_on_client_session_closed, CONNECT_ONE_SHOT)
+		return
 	await _wait(2.0)
 	_finish("session closed")
 
@@ -582,6 +595,8 @@ func client_cmd(cmd: String, arg: Variant) -> void:
 			await PartySuite.new(self).client_cmd(cmd, arg)
 		_ when cmd.begins_with("bg_"):
 			await BackgroundSuite.new(self).client_cmd(cmd, arg)
+		_ when cmd.begins_with("resume_"):
+			await ResumeSuite.new(self).client_cmd(cmd, arg)
 		_ when cmd.begins_with("mk_"):
 			await MarkerSuite.new(self).client_cmd(cmd, arg)
 		_ when cmd.begins_with("tp_"):
