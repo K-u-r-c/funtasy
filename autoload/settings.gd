@@ -17,6 +17,7 @@ var window_mode: int = WindowMode.WINDOWED
 var window_size: Vector2i = Vector2i(1920, 1080)
 var vsync: bool = true
 var screen_shake: bool = true
+var hero_marker: bool = true  ## #59: ring and pin marking your own hero (teammates: a faint ring)
 var volumes: Dictionary = {"Master": 0.8, "Music": 0.7, "SFX": 0.8}
 ## Interface language (#32): [locale, name shown in its own language].
 const LANGUAGES := [["en", "English"], ["pl", "Polski"]]
@@ -105,7 +106,7 @@ func apply_audio() -> void:
 func save_settings() -> void:
 	SaveSystem.write_section("video", {
 		"window_mode": window_mode, "window_size": window_size, "vsync": vsync,
-		"screen_shake": screen_shake,
+		"screen_shake": screen_shake, "hero_marker": hero_marker,
 	})
 	SaveSystem.write_section("audio", volumes)
 	SaveSystem.write_section("game", {"language": language})
@@ -120,6 +121,7 @@ func load_settings() -> void:
 		window_size = available_sizes().back()
 	vsync = bool(v.get("vsync", vsync))
 	screen_shake = bool(v.get("screen_shake", screen_shake))
+	hero_marker = bool(v.get("hero_marker", hero_marker))
 	var gsec := SaveSystem.read_section("game")
 	language = str(gsec.get("language", language))
 	var a := SaveSystem.read_section("audio")

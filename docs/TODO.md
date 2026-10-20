@@ -146,6 +146,7 @@ screenshot review at 1920x1080 and 3440x1440.
 - [x] #57 Next floor: every copy of a hero (host, owner, other clients) snaps to the start, stale position packets are held off by a teleport counter, the camera cuts instead of panning (`teleport-lan`, 3 instances, with a simulated slow link)
 - [x] #56 The host keeps full speed out of focus: V-Sync off and a 60 fps cap while unfocused, restored on focus (`background-lan`; measured with a real hidden window on Hyprland: 1 -> 60 frames per second)
 - [x] #58 Deeper floors grow a little: +2.5% rooms (and grid area) per floor, at most 1.5x from floor 21 (`biomes*` depths 1-40 in every biome, `teleport-lan` same layout on every peer)
+- [x] #59 Your own hero: a cyan ring with turning ticks under the feet and a pin over the head on your screen only, teammates a faint ring in their class colour, kept while downed, an option to turn it off (`marker-lan`, 4 instances; screenshots of four windowed peers, marker on and off)
 
 ## PixelLab ledger
 
@@ -238,6 +239,14 @@ the free workbenches.
 | 2026-10-19 | (goal start) | 4328 | 4328 | 0 | 0 |
 | 2026-10-20 | #51 Sewers lever: 2 map objects (iron gearbox housing on a stone plinth 48x48, lever arm 32x64; the arm swings in code) | 4328 | 4330 | 2 | 2 |
 | 2026-10-20 | (goal end: level-up, rise marks, charge display and the talent trees drawn in code; no more generations) | 4330 | 4330 | 0 | 2 |
+
+
+Sixth playtest goal (#55-#59), start 2026-10-20: **used 4330, remaining 476**, resets 2026-11-14.
+Goal cap: only #59 if drawn markers fall short. Spent none: the hero marker is drawn in code.
+
+| Date | Batch | Used before | Used after | Spend | Goal spend |
+| --- | --- | --- | --- | --- | --- |
+| 2026-10-20 | (#59 drawn in code; no generations) | 4330 | 4330 | 0 | 0 |
 
 ## Done (MVP)
 

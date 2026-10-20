@@ -999,3 +999,14 @@ Tree shapes ("A > B": B grows from A; {x / y}: branches; (x): a fork side; [n]: 
 | What follows | Monster packs come one per ordinary room, so they grow with the rooms; props, torches, hazards and chests are placed per room as before. Room sizes, the boss chamber and the per-room monster counts are unchanged. The party-size multiplier (`count_mult`) still scales monsters per room on top. |
 | Peers | Every peer passes the floor's depth to the generator already (darker deep floors), so the layout stays identical everywhere. |
 | Tests | `biomes*`: per biome, 6 seeds at each of depths 1, 5, 10, 20, 40 - the room count grows with depth, the grid never passes 1.5x the area, and every layout keeps the #23 / #30 leaf rules. The tier-3 sample of the depth 1-6 check takes four more depth-6 seeds (one Sewers seed rolled no Gutter Stalker once the floors grew). `teleport-lan`: floor 2 is already bigger than the biome's grid and both clients build the same layout as the host. |
+
+### #59 Your own hero is marked
+
+| Topic | Decision |
+| --- | --- |
+| Look | On each peer its own hero gets a ring on the floor in the "you" colour (`ui.hero_marker_color`, ice cyan, apart from the gold of a picked ally and the class colours): a flat ellipse (light 3/4 view) with a soft glow fill that pulses slowly and four short ticks turning around it; over the head a bobbing cyan diamond pin with a soft halo (the picked-ally marker stays a gold ring and chevron). Teammates get a faint ring in their class colour (they keep their name and health bar). |
+| Drawing | `HeroMarker`, a child of every `Player` (z -1: under the hero, over the floor), unshaded and additive like the level-up ring, so it reads in the darkness of every biome; the pin is drawn by the Overhead layer (above the dark), only for the local hero. Purely local: nothing is replicated, every peer marks its own hero. |
+| States | Kept while downed (that is when a player needs to find their hero); none for a ghost (spectating). |
+| Setting | Options > Video: "Mark my hero" (`Settings.hero_marker`, default on, saved in `[video]`), turns the ring, the teammates' rings and the pin off. |
+| Art | Drawn in code; no PixelLab generation (the drawn ring and pin read clearly at 960x540 and 1280x720 in a four-warrior huddle). |
+| Tests | `marker-lan` (host + 3 clients, all warriors, in a tight huddle; `group` in `tools/run_tests.sh`): on every peer only its own hero carries the bright ring and pin, the other three a faint ring; a downed hero keeps its marker on its owner's screen, a ghost has none; the setting off hides every marker. Screenshots: the same scenario with four windowed instances and `--shot=<dir>/mk.png` saves each peer's view with the marker on and off. |

@@ -14,6 +14,7 @@ var _lang_opt: OptionButton
 var _res_opt: OptionButton
 var _vsync: CheckButton
 var _shake: CheckButton
+var _marker: CheckButton
 var _confirm_label: Label
 var _confirm_box: HBoxContainer
 var _apply_btn: Button
@@ -157,6 +158,12 @@ func _build_video() -> Control:
 		Settings.screen_shake = on
 		Settings.save_settings())
 	grid.add_child(_shake)
+	grid.add_child(UITheme.label(Loc.t("Mark my hero")))
+	_marker = CheckButton.new()
+	_marker.toggled.connect(func(on: bool):
+		Settings.hero_marker = on
+		Settings.save_settings())
+	grid.add_child(_marker)
 
 	_apply_btn = AnimButton.new()
 	_apply_btn.text = Loc.t("Apply video settings")
@@ -188,6 +195,7 @@ func _load_video() -> void:
 	_res_opt.disabled = Settings.window_mode != Settings.WindowMode.WINDOWED
 	_vsync.button_pressed = Settings.vsync
 	_shake.set_pressed_no_signal(Settings.screen_shake)
+	_marker.set_pressed_no_signal(Settings.hero_marker)
 
 
 func _on_apply() -> void:

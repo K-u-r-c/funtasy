@@ -67,21 +67,20 @@ pair() { # name, host-args, client-args
 	report "$name-client"
 }
 
-trio() { # name, host-args, client-args (two clients)
-	local name=$1 hargs=$2 cargs=$3
+group() { # name, clients, host-args, client-args (a host and 2-3 clients)
+	local name=$1 n=$2 hargs=$3 cargs=$4
 	skip "$name" && return
-	timeout 320 $LB "$GODOT" --headless --path . -- --nosteam --profile=test_$name-host --auto=host --players=3 $hargs > "$OUT/$name-host.log" 2>&1 &
-	local hp=$!
+	timeout 320 $LB "$GODOT" --headless --path . -- --nosteam --profile=test_$name-host --auto=host --players=$((n + 1)) $hargs > "$OUT/$name-host.log" 2>&1 &
+	local pids=($!)
 	sleep 2
-	timeout 320 $LB "$GODOT" --headless --path . -- --nosteam --profile=test_$name-client1 --auto=join --name=${name}C1 $cargs > "$OUT/$name-client1.log" 2>&1 &
-	local c1=$!
-	sleep 1
-	timeout 320 $LB "$GODOT" --headless --path . -- --nosteam --profile=test_$name-client2 --auto=join --name=${name}C2 $cargs > "$OUT/$name-client2.log" 2>&1 &
-	local c2=$!
-	wait $hp; wait $c1; wait $c2
+	for i in $(seq 1 "$n"); do
+		timeout 320 $LB "$GODOT" --headless --path . -- --nosteam --profile=test_$name-client$i --auto=join --name=${name//-/}C$i $cargs > "$OUT/$name-client$i.log" 2>&1 &
+		pids+=($!)
+		sleep 1
+	done
+	for pid in "${pids[@]}"; do wait "$pid"; done
 	report "$name-host"
-	report "$name-client1"
-	report "$name-client2"
+	for i in $(seq 1 "$n"); do report "$name-client$i"; done
 }
 
 echo "== script check"
@@ -176,7 +175,8 @@ if [ "$WHAT" = all ] || [ "$WHAT" = lan ]; then
 	pair interact-lan "--class=warrior --name=HostH --scenario=interact_lan --quit=60" "--class=priest --name=ClientH --quit=60"
 	pair i18n-lan "--class=mage --name=HostI --scenario=i18n_lan --quit=60" "--class=warrior --name=ClientI --quit=60"
 	pair background-lan "--class=warrior --name=HostBg --scenario=background_lan --quit=60" "--class=mage --name=ClientBg --quit=60"
-	trio teleport-lan "--class=warrior --name=HostTp --scenario=teleport_lan --quit=60" "--class=ranger --quit=60"
+	group teleport-lan 2 "--class=warrior --name=HostTp --scenario=teleport_lan --quit=60" "--class=ranger --quit=60"
+	group marker-lan 3 "--class=warrior --name=HostMk --scenario=marker_lan --quit=60" "--class=warrior --quit=60"
 	pair wipe "--class=ranger --name=HostWipe --scenario=wipe --quit=60" "--class=priest --name=ClientWipe --quit=60"
 fi
 if [ "$WHAT" = steam ]; then

@@ -146,6 +146,7 @@ func _ready() -> void:
 		_host_init()
 	_apply_appearance()
 	_build_carried_torch()
+	add_child(HeroMarker.new(self))
 	if is_local():
 		EventBus.local_player_spawned.emit(self)
 

@@ -43,6 +43,8 @@ func _draw() -> void:
 			if p.revive_progress > 0.0:
 				draw_arc(p.global_position + Vector2(0, -20), 16.0, -PI / 2.0, -PI / 2.0 + TAU * p.revive_progress, 24, Color(0.5, 1.0, 0.6), 3.0)
 		_cast(p, head + Vector2(0, -16), now)
+		if p.is_local() and Settings.hero_marker:
+			_you_pin(head, now)
 	if is_instance_valid(game.local_player):
 		_ally_target_marker(game, game.local_player)
 	if lp:
@@ -52,6 +54,19 @@ func _draw() -> void:
 				_text(g.global_position + Vector2(0, -30), Loc.item_name(g.item), Color.from_string(rar.color, Color.WHITE), 12)
 				if ItemGenerator.too_high_level(g.item, lp.level):
 					_text(g.global_position + Vector2(0, -20), Loc.f("Requires level %d", [int(g.item.req)]), Color(1.0, 0.4, 0.35), 12)
+
+
+## #59: a small bobbing pin over your own hero (the gold chevron marks a picked ally instead).
+func _you_pin(head: Vector2, now: float) -> void:
+	var c := HeroMarker.you_color()
+	var tip := head + Vector2(0, -2.0 + sin(now * 3.0) * 1.5)
+	var mid := tip + Vector2(0, -9)
+	draw_circle(mid, 10.0, Color(c, 0.18))
+	var pts := PackedVector2Array([tip, tip + Vector2(-7, -9), tip + Vector2(0, -18), tip + Vector2(7, -9)])
+	draw_colored_polygon(pts, c)
+	pts.append(tip)
+	draw_polyline(pts, Color(0.02, 0.1, 0.14), 1.5)
+	draw_circle(mid, 2.0, Color(1, 1, 1, 0.95))
 
 
 func _bar(center: Vector2, width: float, frac: float, color: Color) -> void:
