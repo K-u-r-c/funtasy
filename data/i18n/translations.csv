@@ -157,6 +157,7 @@ One-handed,Jednoręczna
 %.1f DPS,%.1f DPS
 Legendary,Legendarny
 %d Armor,Pancerz %d
+%s: +%d%% to every stat,%s: +%d%% do każdej cechy
 Requires level %d,Wymaga poziomu %d
 "  (-%d%% damage, slower cooldowns for you)","  (-%d%% obrażeń, dłuższe odnowienia dla ciebie)"
 Class: %s%s,Klasa: %s%s
@@ -1373,14 +1374,6 @@ Warrior,Wojownik
 Melee fighter fuelled by Fury. Holds the line as a tank or cleaves through crowds.,"Wojownik walczący wręcz, napędzany Furią. Trzyma linię jako obrońca albo przebija się przez tłumy."
 Worn Sword,Zużyty Miecz
 Forgotten Crypt,Zapomniana Krypta
-of the Bear,Niedźwiedzia
-of the Ox,Wołu
-of the Falcon,Sokoła
-of the Owl,Sowy
-of Ruin,Zagłady
-of Swiftness,Chyżości
-of Evasion,Uników
-of the Leech,Pijawki
 Critical Chance,Szansa na kryt.
 Move Speed,Szybkość ruchu
 Block Chance,Szansa na blok
@@ -1392,6 +1385,9 @@ Fire Damage,Obrażenia od ognia
 Magic Penetration,Przebicie magii
 Low-health heal threshold,Próg leczenia przy niskim zdrowiu
 Healing on low-health allies,Leczenie sojuszników z niskim zdrowiem
+Flawless craftsmanship,Nieskazitelna robota
+Superior craftsmanship,Wyborna robota
+Fine craftsmanship,Przednia robota
 Health Potion,Mikstura Zdrowia
 Restores 40% of maximum health.,Przywraca 40% maksymalnego zdrowia.
 Mana Potion,Mikstura Many
@@ -2489,6 +2485,149 @@ Vent exhaust valve,Upuść parę z zaworu wydechowego
 Crack open slag safe,Rozbij sejf z żużlu
 Unlock locked lectern,Otwórz zamek pulpitu
 Open barrow coffer,Otwórz kufer z kurhanu
+of the Bear,Niedźwiedzia
+of the Boar,Dzika
+of the Titan,Tytana
+of the Giant,Olbrzyma
+of Might,Mocy
+of the Bull,Byka
+of the Ox,Wołu
+of the Tortoise,Żółwia
+of the Mountain,Góry
+of Endurance,Wytrwałości
+of the Oak,Dębu
+of Vigor,Wigoru
+of the Falcon,Sokoła
+of the Fox,Lisa
+of the Lynx,Rysia
+of the Wind,Wiatru
+of the Viper,Żmii
+of the Hawk,Jastrzębia
+of the Owl,Sowy
+of the Sage,Mędrca
+of the Raven,Kruka
+of Wisdom,Mądrości
+of the Stars,Gwiazd
+of Secrets,Tajemnic
+of Ruin,Zagłady
+of Slaughter,Rzezi
+of Carnage,Masakry
+of the Executioner,Kata
+of Butchery,Jatki
+of Swiftness,Chyżości
+of Haste,Pośpiechu
+of the Gale,Wichury
+of Quickening,Przyspieszenia
+of the Hummingbird,Kolibra
+of Evasion,Uników
+of Shadows,Cieni
+of the Phantom,Zjawy
+of Mist,Mgły
+of the Cat,Kota
+of the Leech,Pijawki
+of the Vampire,Wampira
+of Blood,Krwi
+of the Bat,Nietoperza
+of the Lamprey,Minoga
+of the Juggernaut,Kolosa
+of the Bastion,Bastionu
+of the Mammoth,Mamuta
+of the Gladiator,Gladiatora
+of the Tiger,Tygrysa
+of the Warlord,Wodza
+of the Crusader,Krzyżowca
+of the Templar,Templariusza
+of the Battlemage,Maga Bitewnego
+of the Wolf,Wilka
+of the Nomad,Koczownika
+of the Stag,Jelenia
+of the Oracle,Wyroczni
+of the Hermit,Pustelnika
+of the Whale,Wieloryba
+of the Serpent,Węża
+of the Mystic,Mistyka
+of the Trickster,Szelmy
+Flawless,Nieskazitelny
+Flawless [f],Nieskazitelna
+Flawless [n],Nieskazitelne
+Flawless [pl],Nieskazitelne
+Peerless,Niezrównany
+Peerless [f],Niezrównana
+Peerless [n],Niezrównane
+Peerless [pl],Niezrównane
+Glorious,Chwalebny
+Glorious [f],Chwalebna
+Glorious [n],Chwalebne
+Glorious [pl],Chwalebne
+Exalted,Wzniosły
+Exalted [f],Wzniosła
+Exalted [n],Wzniosłe
+Exalted [pl],Wzniosłe
+Mighty,Potężny
+Mighty [f],Potężna
+Mighty [n],Potężne
+Mighty [pl],Potężne
+Superior,Wyborny
+Superior [f],Wyborna
+Superior [n],Wyborne
+Superior [pl],Wyborne
+Exquisite,Wykwintny
+Exquisite [f],Wykwintna
+Exquisite [n],Wykwintne
+Exquisite [pl],Wykwintne
+Masterwork,Mistrzowski
+Masterwork [f],Mistrzowska
+Masterwork [n],Mistrzowskie
+Masterwork [pl],Mistrzowskie
+Triumphant,Zwycięski
+Triumphant [f],Zwycięska
+Triumphant [n],Zwycięskie
+Triumphant [pl],Zwycięskie
+Fine,Przedni
+Fine [f],Przednia
+Fine [n],Przednie
+Fine [pl],Przednie
+Sturdy,Solidny
+Sturdy [f],Solidna
+Sturdy [n],Solidne
+Sturdy [pl],Solidne
+Polished,Wypolerowany
+Polished [f],Wypolerowana
+Polished [n],Wypolerowane
+Polished [pl],Wypolerowane
+Tempered,Hartowany
+Tempered [f],Hartowana
+Tempered [n],Hartowane
+Tempered [pl],Hartowane
+Balanced,Wyważony
+Balanced [f],Wyważona
+Balanced [n],Wyważone
+Balanced [pl],Wyważone
+Arcane Wand [gender],f
+Axe [gender],m
+Battle Staff [gender],m
+Boots [gender],pl
+Bow [gender],m
+Crossbow [gender],f
+Gloves [gender],pl
+Greataxe [gender],m
+Greatsword [gender],m
+Greaves [gender],pl
+Holy Staff [gender],m
+Holy Wand [gender],f
+Hood [gender],m
+Mace [gender],f
+Necklace [gender],m
+Breastplate [gender],m
+Helm [gender],m
+Quiver [gender],m
+Ring [gender],m
+Robe [gender],f
+Shield [gender],f
+Sling [gender],f
+Sword [gender],m
+Trinket [gender],m
+Warhammer [gender],m
 Male,Mężczyzna
 Female,Kobieta
 %s %s,%s - %s

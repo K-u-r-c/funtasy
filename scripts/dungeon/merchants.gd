@@ -67,7 +67,8 @@ static func item_value(item: Dictionary) -> int:
 			return int(GameData.bal("merchant.book_value", {}).get(str(item.get("classification", "standard")), 5))
 	var tiers: Array = GameData.bal("merchant.tier_value")
 	var r := clampi(int(item.get("rarity", 1)), 1, tiers.size())
-	return roundi(float(tiers[r - 1]) * (1.0 + float(GameData.bal("merchant.per_item_level")) * (int(item.get("ilvl", 1)) - 1)))
+	# A better-made item (#64) is worth its quality.
+	return roundi(float(tiers[r - 1]) * (1.0 + float(GameData.bal("merchant.per_item_level")) * (int(item.get("ilvl", 1)) - 1)) * float(item.get("quality_mult", 1.0)))
 
 
 static func buy_price(item: Dictionary) -> int:

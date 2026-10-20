@@ -50,11 +50,12 @@ static func name(s: String) -> String:
 	var direct := t(s)
 	if direct != s or s.is_empty():
 		return direct
-	var best := ""
-	for id in GameData.item_bases:
-		var bn := str(GameData.item_bases[id].get("name", ""))
-		if not bn.is_empty() and s.begins_with(bn + " ") and bn.length() > best.length():
-			best = bn
+	# #64: "Mighty Sword of the Ox" - the quality prefix takes the base's gender in the language.
+	var pre := _quality_prefix(s)
+	if not pre.is_empty():
+		var rest := s.substr(pre.length() + 1)
+		return "%s %s" % [prefix_form(pre, _base_of(rest)), name(rest)]
+	var best := _base_of(s)
 	if best.is_empty():
 		# An elite monster: "Vampiric Frenzied Ghoul" = modifier names + the monster name.
 		for id in GameData.elite_modifiers:
@@ -66,6 +67,37 @@ static func name(s: String) -> String:
 	if rest.begins_with("(") and rest.ends_with(")"):
 		return "%s %s" % [t(best), f("(%d slots)", [int(rest.trim_prefix("(").to_int())])]
 	return "%s %s" % [t(best), t(rest)]
+
+
+static func _quality_prefix(s: String) -> String:
+	for q in GameData.affixes.get("qualities", []):
+		for p in q.get("prefixes", []):
+			if s.begins_with(str(p) + " "):
+				return str(p)
+	return ""
+
+
+## The longest item base name `s` starts with ("" when none).
+static func _base_of(s: String) -> String:
+	var best := ""
+	for id in GameData.item_bases:
+		var bn := str(GameData.item_bases[id].get("name", ""))
+		if not bn.is_empty() and (s == bn or s.begins_with(bn + " ")) and bn.length() > best.length():
+			best = bn
+	return best
+
+
+## #64: a quality prefix in the form that agrees with `base`: the translation data gives each
+## base a gender ("Sword [gender]" -> m / f / n / pl) and each prefix a form per gender
+## ("Mighty [f]"); English and the masculine use the prefix itself.
+static func prefix_form(prefix: String, base: String) -> String:
+	var g := t("%s [gender]" % base)
+	if g in ["f", "n", "pl"]:
+		var k := "%s [%s]" % [prefix, g]
+		var v := t(k)
+		if v != k:
+			return v
+	return t(prefix)
 
 
 ## The display name of an item dictionary in the current language.

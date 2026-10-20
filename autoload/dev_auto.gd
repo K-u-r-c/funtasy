@@ -181,6 +181,10 @@ func _run() -> void:
 		"rebind_check":
 			_rebind_check()
 			return
+		"gear_names":
+			await GearNameSuite.new(self).run()
+			_finish("gear names")
+			return
 		"art_check":
 			_art_check()
 			_finish("art check")

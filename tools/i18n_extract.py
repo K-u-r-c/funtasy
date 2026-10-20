@@ -149,6 +149,22 @@ def data_keys():
         name = str(p.get("name", ""))
         verb = str(p.get("verb", "Open"))
         keys.append("%s %s" % (verb, name if ("npc" in p or "gate" in p) else name.lower()))
+    # Gear names (#64): the suffix pools, every quality prefix with its gendered forms, and each
+    # item base's grammatical gender ("Sword [gender]" -> m / f / n / pl) the prefix agrees with.
+    with open(os.path.join(data, "items", "affixes.json"), encoding="utf-8") as fh:
+        affixes = json.load(fh)
+    for pool in affixes.get("suffix_pools", {}).values():
+        keys.extend(pool)
+    for q in affixes.get("qualities", []):
+        for pre in q.get("prefixes", []):
+            keys.extend([pre] + ["%s [%s]" % (pre, g) for g in ("f", "n", "pl")])
+    bases = os.path.join(data, "items", "bases")
+    for f in sorted(os.listdir(bases)):
+        if f.endswith(".json"):
+            with open(os.path.join(bases, f), encoding="utf-8") as fh:
+                b = json.load(fh)
+            if b.get("name") and b.get("kind") != "backpack":
+                keys.append("%s [gender]" % b["name"])
     # Hero body names (assets.json is otherwise only paths).
     with open(os.path.join(data, "assets.json"), encoding="utf-8") as fh:
         genders = json.load(fh).get("characters", {}).get("genders", {})

@@ -4,3 +4,4 @@
 "coef"
 q:<quick slot>
 GodotSteam extension not loaded
+%s [gender]

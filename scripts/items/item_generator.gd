@@ -45,6 +45,14 @@ static func generate_equipment(base_id: String, item_level: int, tier: int, rng:
 	var look_rng := RandomNumberGenerator.new()
 	look_rng.seed = hash(str(item.uid))
 	ItemLooks.apply(item, look_rng)
+	# #64: the quality and the name come from the uid too (another stream, same reason).
+	var name_rng := RandomNumberGenerator.new()
+	name_rng.seed = hash(str(item.uid) + "#name")
+	var quality := roll_quality(name_rng)
+	if not quality.is_empty():
+		mult *= float(quality.mult)
+		item.quality = str(quality.id)
+		item.quality_mult = float(quality.mult)
 	if base.has("dps"):
 		var d: Array = base.dps
 		item.dps = snappedf((rng.randf_range(float(d[0]), float(d[1])) + float(base.get("dps_per_level", 0.0)) * (lvl - 1)) * mult, 0.1)
@@ -55,8 +63,8 @@ static func generate_equipment(base_id: String, item_level: int, tier: int, rng:
 	if tier >= 2:
 		for k in base.get("base_stats", {}):
 			var r: Array = base.base_stats[k]
-			item.stats[k] = roundi(rng.randf_range(float(r[0]), float(r[1])) * (1.0 + 0.1 * (lvl - 1)))
-	var suffix := ""
+			item.stats[k] = roundi(rng.randf_range(float(r[0]), float(r[1])) * (1.0 + 0.1 * (lvl - 1)) * float(item.get("quality_mult", 1.0)))
+	var rolled: Array = []  ## [stat, strength of the roll 0..1, primary]
 	var growth := float(GameData.affixes.get("level_growth", 0.1))
 	for group in ["primary", "secondary"]:
 		var range_: Array = rar[group]
@@ -71,10 +79,44 @@ static func generate_equipment(base_id: String, item_level: int, tier: int, rng:
 			var is_pct := Array(GameData.affixes.percent_stats).has(af.stat)
 			v = snappedf(v, 0.005) if is_pct else float(roundi(v))
 			item.stats[af.stat] = float(item.stats.get(af.stat, 0.0)) + v
-			if suffix.is_empty():
-				suffix = af.suffix
-	item.name = base.name if suffix.is_empty() else "%s %s" % [base.name, suffix]
+			var span := float(af.max) - float(af.min)
+			rolled.append([str(af.stat), (v / mult - float(af.min)) / span if span > 0.0 else 0.5, group == "primary"])
+	item.name = item_name(str(base.name), rolled, quality, name_rng)
 	return item
+
+
+## #64: a better-made item (data "qualities", best first), or {} for an ordinary one.
+static func roll_quality(rng: RandomNumberGenerator) -> Dictionary:
+	for q in GameData.affixes.get("qualities", []):
+		if rng.randf() < float(q.chance):
+			return q
+	return {}
+
+
+## #64: "[Prefix] Base [suffix]": the prefix from the quality, the suffix from the strongest rolled
+## primary stat - or the pair of the two strongest when there are two - else the strongest
+## secondary, each picked from its pool (affixes.json suffix_pools).
+static func item_name(base_name: String, rolled: Array, quality: Dictionary, rng: RandomNumberGenerator) -> String:
+	var pools: Dictionary = GameData.affixes.get("suffix_pools", {})
+	var prim := rolled.filter(func(r): return r[2])
+	var pick := prim if not prim.is_empty() else rolled
+	pick.sort_custom(func(a, b): return float(a[1]) > float(b[1]))
+	var key := ""
+	if prim.size() >= 2:
+		var order := ["strength", "stamina", "agility", "intellect"]
+		var two := [str(pick[0][0]), str(pick[1][0])]
+		two.sort_custom(func(a, b): return order.find(a) < order.find(b))
+		key = "+".join(two)
+	elif not pick.is_empty():
+		key = str(pick[0][0])
+	var out := base_name
+	var pool: Array = pools.get(key, [])
+	if not pool.is_empty():
+		out = "%s %s" % [out, pool[rng.randi_range(0, pool.size() - 1)]]
+	var prefixes: Array = quality.get("prefixes", [])
+	if not prefixes.is_empty():
+		out = "%s %s" % [prefixes[rng.randi_range(0, prefixes.size() - 1)], out]
+	return out
 
 
 ## A named legendary (GDD 6, D6/D7): rarity 5, fixed stats and affix scaled from their level-30
@@ -171,6 +213,14 @@ static func describe(item: Dictionary, class_id: String = "", char_level: int = 
 		lines.append([txt, Color(0.55, 0.9, 0.55), str(UITheme.STAT_ICONS.get(str(k).trim_suffix("_pct"), "sil_star"))])
 	if item.has("affix"):
 		lines.append([Loc.t(str(item.affix)), Color(1.0, 0.72, 0.3), "sil_star"])
+	if item.has("quality"):
+		# #64: what the prefix stands for.
+		var label := ""
+		for q in GameData.affixes.get("qualities", []):
+			if str(q.id) == str(item.quality):
+				label = str(q.label)
+		if not label.is_empty():
+			lines.append([Loc.f("%s: +%d%% to every stat", [Loc.t(label), roundi((float(item.get("quality_mult", 1.0)) - 1.0) * 100.0)]), Color(0.95, 0.85, 0.55), "sil_star"])
 		var lg: Dictionary = GameData.legendaries.get(str(item.get("legendary", "")), {})
 		if lg.has("description"):
 			lines.append([Loc.t(str(lg.description)), Color(0.6, 0.6, 0.65)])

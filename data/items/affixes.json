@@ -4,29 +4,25 @@
 			"stat": "strength",
 			"min": 2,
 			"max": 4,
-			"per_level": 0.9,
-			"suffix": "of the Bear"
+			"per_level": 0.9
 		},
 		{
 			"stat": "stamina",
 			"min": 2,
 			"max": 4,
-			"per_level": 0.9,
-			"suffix": "of the Ox"
+			"per_level": 0.9
 		},
 		{
 			"stat": "agility",
 			"min": 2,
 			"max": 4,
-			"per_level": 0.9,
-			"suffix": "of the Falcon"
+			"per_level": 0.9
 		},
 		{
 			"stat": "intellect",
 			"min": 2,
 			"max": 4,
-			"per_level": 0.9,
-			"suffix": "of the Owl"
+			"per_level": 0.9
 		}
 	],
 	"secondary": [
@@ -34,29 +30,25 @@
 			"stat": "crit_damage",
 			"min": 0.05,
 			"max": 0.1,
-			"per_level": 0.004,
-			"suffix": "of Ruin"
+			"per_level": 0.004
 		},
 		{
 			"stat": "haste",
 			"min": 0.02,
 			"max": 0.05,
-			"per_level": 0.002,
-			"suffix": "of Swiftness"
+			"per_level": 0.002
 		},
 		{
 			"stat": "dodge",
 			"min": 0.01,
 			"max": 0.03,
-			"per_level": 0.001,
-			"suffix": "of Evasion"
+			"per_level": 0.001
 		},
 		{
 			"stat": "leech",
 			"min": 0.01,
 			"max": 0.03,
-			"per_level": 0.001,
-			"suffix": "of the Leech"
+			"per_level": 0.001
 		}
 	],
 	"level_growth": 0.12,
@@ -92,5 +84,139 @@
 		"haste",
 		"dodge",
 		"leech"
+	],
+	"_suffix_comment": "#64: the name of a rolled item: the suffix comes from its strongest rolled affix (or, with two primary stats, the pair of its two strongest), picked from these pools by the item's uid.",
+	"suffix_pools": {
+		"strength": [
+			"of the Bear",
+			"of the Boar",
+			"of the Titan",
+			"of the Giant",
+			"of Might",
+			"of the Bull"
+		],
+		"stamina": [
+			"of the Ox",
+			"of the Tortoise",
+			"of the Mountain",
+			"of Endurance",
+			"of the Oak",
+			"of Vigor"
+		],
+		"agility": [
+			"of the Falcon",
+			"of the Fox",
+			"of the Lynx",
+			"of the Wind",
+			"of the Viper",
+			"of the Hawk"
+		],
+		"intellect": [
+			"of the Owl",
+			"of the Sage",
+			"of the Raven",
+			"of Wisdom",
+			"of the Stars",
+			"of Secrets"
+		],
+		"crit_damage": [
+			"of Ruin",
+			"of Slaughter",
+			"of Carnage",
+			"of the Executioner",
+			"of Butchery"
+		],
+		"haste": [
+			"of Swiftness",
+			"of Haste",
+			"of the Gale",
+			"of Quickening",
+			"of the Hummingbird"
+		],
+		"dodge": [
+			"of Evasion",
+			"of Shadows",
+			"of the Phantom",
+			"of Mist",
+			"of the Cat"
+		],
+		"leech": [
+			"of the Leech",
+			"of the Vampire",
+			"of Blood",
+			"of the Bat",
+			"of the Lamprey"
+		],
+		"strength+stamina": [
+			"of the Juggernaut",
+			"of the Bastion",
+			"of the Mammoth"
+		],
+		"strength+agility": [
+			"of the Gladiator",
+			"of the Tiger",
+			"of the Warlord"
+		],
+		"strength+intellect": [
+			"of the Crusader",
+			"of the Templar",
+			"of the Battlemage"
+		],
+		"stamina+agility": [
+			"of the Wolf",
+			"of the Nomad",
+			"of the Stag"
+		],
+		"stamina+intellect": [
+			"of the Oracle",
+			"of the Hermit",
+			"of the Whale"
+		],
+		"agility+intellect": [
+			"of the Serpent",
+			"of the Mystic",
+			"of the Trickster"
+		]
+	},
+	"_quality_comment": "#64: some items roll better: every stat (DPS, armor, base and rolled stats) x mult, a prefix from the list (Polish forms by the base's gender, '<prefix> [f]' / '[n]' / '[pl]' keys), the item card shows the bonus and merchants value it x mult. Chances are per item, checked best first.",
+	"qualities": [
+		{
+			"id": "flawless",
+			"label": "Flawless craftsmanship",
+			"chance": 0.02,
+			"mult": 1.3,
+			"prefixes": [
+				"Flawless",
+				"Peerless",
+				"Glorious",
+				"Exalted"
+			]
+		},
+		{
+			"id": "superior",
+			"label": "Superior craftsmanship",
+			"chance": 0.07,
+			"mult": 1.2,
+			"prefixes": [
+				"Mighty",
+				"Superior",
+				"Exquisite",
+				"Masterwork",
+				"Triumphant"
+			]
+		},
+		{
+			"id": "fine",
+			"label": "Fine craftsmanship",
+			"chance": 0.18,
+			"mult": 1.1,
+			"prefixes": [
+				"Fine",
+				"Sturdy",
+				"Polished",
+				"Tempered",
+				"Balanced"
+			]
+		}
 	]
 }
