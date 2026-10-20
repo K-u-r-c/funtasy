@@ -130,16 +130,6 @@
 			"max": 10,
 			"cool": 5,
 			"test_wait": 3
-		},
-		{
-			"id": "magma_eruptions",
-			"every": [
-				6,
-				10
-			],
-			"globs": 3,
-			"radius": 34,
-			"test_wait": 3
 		}
 	]
 }

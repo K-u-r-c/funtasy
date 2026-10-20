@@ -1031,3 +1031,12 @@ Tree shapes ("A > B": B grows from A; {x / y}: branches; (x): a fork side; [n]: 
 | Look | When the host picks a saved game, every member in the replicated game info carries `look`: its saved equipment run through `Inventory.appearance` (`GameState.saved_look`), the same layers, colour variants and tints the world draws for the hero. Clients get it with the game info; nobody reads another machine's save. |
 | Preview | Continuing a saved game, the lobby preview shows the player's hero in that look (with its gender's body), never the class's typical gear; a hero still in underwear and its first weapon is shown that way. The "Class gear" toggle is only for new heroes and is disabled while a saved game is picked. |
 | Tests | `resume` / `resume-lan`: the heroes put on a plate set and a legendary helm, the game is saved and continued; in the lobby the host's and the client's previews show exactly the layers their heroes showed in the world. Screenshot of the lobby before / after (class default -> the saved helm, plate and sword). `continue`, `continue-lan`, `ui-fit`, `gamepad-menu` unchanged. |
+
+## Seventh playtest round (#61-#62)
+
+### #62 No magma eruptions on Foundry floors
+
+| Topic | Decision |
+| --- | --- |
+| Change | The Foundry's "Magma Geysers" floor mechanic (GDD 1.3: every 6-10 s three telegraphed globs between a lava channel and a hero, 8 fire damage each and a burning patch for 5 s) is removed at the player's request: it kept landing under the heroes' feet, hit too hard and was unmanageable with several players. The Foundry keeps its Heat / armour-loss mechanic, lava, flame spouts, cauldrons and monsters; Vulkania's geysers, the Hellfire Cultist's glyphs and the Flame Revenant's fire walls are unchanged. The mechanic's script is deleted. |
+| Tests | `biomes-foundry`: no eruption mechanic runs, and a hero standing 30 s beside a lava channel (away from spouts and cauldrons, no monsters, no i-frames) loses no HP. With the eruptions back the same check wiped the party. |

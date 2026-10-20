@@ -333,6 +333,50 @@ func check_live_floor() -> void:
 		da.check(err.is_empty(), "%s mechanic %s%s" % [fid, fm.params.get("id", "?"), "" if err.is_empty() else ": " + err])
 	_ready_hero()
 	p.iframe_left = 9999.0
+	if fid == "foundry":
+		await no_eruptions()
+
+
+## #62: the Foundry has no magma eruptions any more: a hero standing by a lava channel (away from
+## spouts and cauldrons, no monsters) for 30 s takes no damage at all.
+func no_eruptions() -> void:
+	var d: Node = g.dungeon
+	var quiet := func(pos: Vector2) -> bool:
+		if d.cell_at(d.cell_of(pos)) != DungeonGenerator.CELL_FLOOR:
+			return false
+		for sp in d.spouts:
+			if sp.global_position.distance_to(pos) < 220.0:
+				return false
+		for pr in d.pulse_props:
+			if is_instance_valid(pr) and pr.global_position.distance_to(pos) < 160.0:
+				return false
+		var c: Vector2i = d.cell_of(pos)
+		for dx in range(-3, 4):
+			for dy in range(-3, 4):
+				if d.cell_at(c + Vector2i(dx, dy)) == DungeonGenerator.CELL_LAVA:
+					return absi(dx) > 1 or absi(dy) > 1
+		return false
+	var spot := find_spot(quiet)
+	var found: bool = quiet.call(spot)
+	da.check(found, "foundry: a quiet spot by a lava channel")
+	if not found:
+		return
+	da.check(not g.floor_mechanics.any(func(fm): return str(fm.params.get("id", "")) == "magma_eruptions"), "foundry: no magma eruption mechanic runs")
+	for e in g.enemies_root.get_children():
+		e.queue_free()
+	_ready_hero()
+	p.iframe_left = 0.0
+	p.host_teleport(spot)
+	await da._wait(0.5)
+	var hp0 := p.health.hp
+	var lowest := hp0
+	var t := 0.0
+	while t < 30.0:
+		await da._wait(0.5)
+		t += 0.5
+		lowest = minf(lowest, p.health.hp)
+	da.check(lowest >= hp0, "foundry: 30 s beside a lava channel and nothing erupts under the hero (HP %.0f -> lowest %.0f)" % [hp0, lowest])
+	p.iframe_left = 9999.0
 
 
 ## A floor position (away from the merchant chamber) that satisfies `pred`.
