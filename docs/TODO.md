@@ -137,6 +137,7 @@ screenshot review at 1920x1080 and 3440x1440.
 - [x] #49 Bone piles and corpses being raised show a mark with a countdown on every peer (`rise-lan`, tour `rise`)
 - [x] #51 Sewers lever: PixelLab housing and arm, the arm swings from off to on with dust, sparks and a clunk, a red / green lamp readable from afar (`lever-lan`, tour `lever`)
 - [x] #47 Talent trees as real trees: prerequisites, forks, keystones at path ends, a T5 keystone needs 16 points; a drawn tree panel with lines, node states and a learn animation; old saves refunded (`talents-*`, `talents-lan`, tour `talent_tree`)
+- [x] LAN `tank` test steadied: the test tank fights with its tank kit (Taunting Shout, Shield Slam) and taunts when it peels a monster off the mage; the share had swung between 57% and 100% against the 70% bar (75-100% before this round too), now 77-100% over 8 runs
 - [x] Screenshot review in English and Polish: tours `controls`, `charge`, `quiver`, `door_torch` (all five biomes), `level_up`, `rise`, `lever` (Sewers) and `talent_tree` (all four classes: locked, partly learned, a branch to its end, learn animation frames); the Linux release build smoke-tested with `--lang=pl`
 
 ## PixelLab ledger

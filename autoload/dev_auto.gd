@@ -1258,6 +1258,13 @@ func _tank_scenario() -> void:
 	await _wait(0.3)
 	tank.host_teleport(c + Vector2(0, 0))
 	dps.host_teleport(c + Vector2(-120, 30))
+	# A tank fights with its tank tools: a new hero knows only Strike and Cleave, so winning a
+	# monster back from the mage was left to damage rolls (the share swung from 57% to 100%).
+	# Taunting Shout and Shield Slam are Juggernaut roots (one point each).
+	if tank.class_id == "warrior":
+		tank.talents = {"w_s_taunt": 1, "w_s_shield_bash": 1}
+		tank.skills = ["warrior_strike", "warrior_cleave", "warrior_taunt", "warrior_shield_bash", "", ""]
+		tank.recompute_stats()
 	await _wait(0.6)
 	var pack: Array = []
 	for i in 4:
@@ -1297,13 +1304,19 @@ func _tank_scenario() -> void:
 			for e in alive_pack:
 				mid += e.global_position
 			mid /= alive_pack.size()
-			# A monster that turned to the damage dealer is the one to go and win back (peel).
+			# A monster that turned to the damage dealer is the one to go and win back (peel), with
+			# Taunting Shout as soon as it is ready, as a tank player would.
+			var peel := false
 			for e in alive_pack:
 				if e.target == dps:
 					mid = e.global_position
+					peel = true
 					break
 			if tank.global_position.distance_to(mid) > 50.0:
 				tank.host_teleport(g.nearest_floor(mid + Vector2(-30, 0)))
+			var taunt_slot := tank.skills.find("warrior_taunt")
+			if peel and taunt_slot > 0 and tank.cooldown_left("warrior_taunt") <= 0.0:
+				tank.request_skill.rpc_id(1, taunt_slot, mid)
 		await _wait(0.5)
 		t += 0.5
 		if t < 2.0:
