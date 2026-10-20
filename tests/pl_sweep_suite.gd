@@ -140,6 +140,9 @@ func statuses() -> void:
 		hud._update_status()
 		await da.get_tree().process_frame
 		scan_tree(hud._status_box, "status")
+		for chip in hud._status_box.get_children():
+			if chip.visible:
+				da.log_line("status tip: %s" % chip.tooltip_text)
 		i += 12
 	p.status.shown = []
 
