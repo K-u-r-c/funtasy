@@ -182,6 +182,7 @@ if [ "$WHAT" = all ] || [ "$WHAT" = lan ]; then
 	pair i18n-lan "--class=mage --name=HostI --scenario=i18n_lan --quit=60" "--class=warrior --name=ClientI --quit=60"
 	pair background-lan "--class=warrior --name=HostBg --scenario=background_lan --quit=60" "--class=mage --name=ClientBg --quit=60"
 	group teleport-lan 2 "--class=warrior --name=HostTp --scenario=teleport_lan --quit=60" "--class=ranger --quit=60"
+	pair smite-lan "--class=priest --name=HostSm --scenario=smite_lan --quit=60" "--class=warrior --name=ClientSm --quit=60"
 	pair stacks-lan "--class=warrior --name=HostSt --scenario=stacks_lan --quit=60" "--class=mage --name=ClientSt --quit=60"
 	pair resume-lan "--class=priest --name=HostRs --scenario=resume_lan --quit=120" "--class=ranger --name=ClientRs --quit=120"
 	group marker-lan 3 "--class=warrior --name=HostMk --scenario=marker_lan --quit=60" "--class=warrior --quit=60"

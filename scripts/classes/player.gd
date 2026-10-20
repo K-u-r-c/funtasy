@@ -696,7 +696,11 @@ func _handle_friendly_target() -> void:
 	# A click already taken by the HUD (a party frame) sets _click_select before this runs.
 	if not InputSettings.using_gamepad and Input.is_action_just_pressed("attack") and not _click_select:
 		var picked := ally_at(aim_pos)
-		if picked:
+		if picked and picked != self and primary_helps_allies():
+			# #67: a primary attack that heals (Smite) picks the teammate and casts on them in the
+			# same click.
+			set_friendly_target(picked.peer_id)
+		elif picked:
 			set_friendly_target(0 if friendly_peer == picked.peer_id else picked.peer_id)
 			_click_select = true
 		elif friendly_peer != 0 and enemy_at(aim_pos) == null and not _pointer_on_ui():
@@ -707,6 +711,16 @@ func _handle_friendly_target() -> void:
 	if friendly_peer != 0 and (t == null or t.life_state != Life.ALIVE \
 			or t.global_position.distance_to(global_position) > float(GameData.bal("combat.friendly_target_range", 700))):
 		set_friendly_target(0)
+
+
+## Can the primary attack (slot 0) land on a teammate (an aim_ally / aim_any effect)?
+func primary_helps_allies() -> bool:
+	if skills.is_empty():
+		return false
+	for eff in GameData.skills.get(str(skills[0]), {}).get("effects", []):
+		if str(eff.get("target", "")) in ["aim_ally", "aim_any"]:
+			return true
+	return false
 
 
 ## Owner: the living teammate (or yourself) under `pos`, or null.

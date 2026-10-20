@@ -90,9 +90,10 @@ func select_targets(eff: Dictionary, ctx: Dictionary, origin: Vector2, aim: Vect
 			# A teammate picked as the friendly target (#39) takes the spell wherever the cursor is.
 			var fr: Variant = ctx.get("friendly")
 			if is_instance_valid(fr) and fr is Actor and fr.team == ctx.team and fr.is_targetable_by_allies() \
-					and origin.distance_to(fr.global_position) <= reach + float(fr.radius) + 16.0:
+					and origin.distance_to(fr.global_position) <= reach + float(fr.radius) + 16.0 and has_los(origin, fr.global_position):
 				return [fr]
-			var a := nearest_to(allies_of(ctx.team, origin, reach), aim, float(eff.get("snap", 90)))
+			# #67: no help through walls, as no harm.
+			var a := nearest_to(allies_of(ctx.team, origin, reach).filter(func(x): return x == caster or has_los(origin, x.global_position)), aim, float(eff.get("snap", 90)))
 			if a == null and caster and caster.is_alive():
 				a = caster
 			return [a] if a else []
@@ -101,7 +102,7 @@ func select_targets(eff: Dictionary, ctx: Dictionary, origin: Vector2, aim: Vect
 			return [e] if e else []
 		"aim_any":
 			var e2 := aim_enemy(ctx, origin, aim, reach, float(eff.get("snap", 60)))
-			var a2 := nearest_to(allies_of(ctx.team, origin, reach).filter(func(x): return x != caster), aim, float(eff.get("snap", 60)))
+			var a2 := nearest_to(allies_of(ctx.team, origin, reach).filter(func(x): return x != caster and has_los(origin, x.global_position)), aim, float(eff.get("snap", 60)))
 			if a2 and (e2 == null or a2.global_position.distance_to(aim) < e2.global_position.distance_to(aim)):
 				return [a2]
 			return [e2] if e2 else []

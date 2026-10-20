@@ -434,6 +434,9 @@ func beam(a: Vector2, b: Vector2, color_html: String, duration: float, kind: Str
 	if world == null:
 		return
 	var c := Color.from_string(color_html, Color.WHITE)
+	if kind == "smite":
+		_smite(a, b, c)
+		return
 	var line := Line2D.new()
 	line.width = 5.0 if kind == "beam" else (2.5 if kind in ["chain", "bolt"] else 4.0)
 	line.default_color = Color(c.r * 2.4, c.g * 2.4, c.b * 2.4, 1.0)
@@ -471,6 +474,63 @@ func beam(a: Vector2, b: Vector2, color_html: String, duration: float, kind: Str
 		line.queue_free()
 		l.queue_free())
 	_puff(b, c, 5)
+
+
+## #67 Smite, a primary attack: beautiful but quiet. A faint thread of light from the hand, a
+## thin ray falling onto the target from above (tapering, brightest at the bottom), a small rune
+## turning open at its feet and a few motes; a short, small light. All gone in a third of a second.
+func _smite(a: Vector2, b: Vector2, c: Color) -> void:
+	var add := CanvasItemMaterial.new()
+	add.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+	add.light_mode = CanvasItemMaterial.LIGHT_MODE_UNSHADED
+	var root := Node2D.new()
+	root.z_index = 5
+	world.add_child(root)
+	var thread := Line2D.new()
+	thread.width = 1.0
+	thread.default_color = Color(c.r * 1.6, c.g * 1.6, c.b * 1.6, 0.45)
+	thread.material = add
+	thread.add_point(a + HEIGHT)
+	thread.add_point(b + HEIGHT)
+	root.add_child(thread)
+	var ray := Line2D.new()
+	ray.material = add
+	ray.width = 5.0
+	var taper := Curve.new()
+	taper.add_point(Vector2(0.0, 0.15))
+	taper.add_point(Vector2(1.0, 1.0))
+	ray.width_curve = taper
+	var grad := Gradient.new()
+	grad.set_color(0, Color(c.r * 2.0, c.g * 2.0, c.b * 2.0, 0.0))
+	grad.set_color(1, Color(c.r * 2.2, c.g * 2.2, c.b * 2.2, 0.95))
+	ray.gradient = grad
+	ray.add_point(b + Vector2(0, -54))
+	ray.add_point(b + Vector2(0, -6))
+	root.add_child(ray)
+	var rune := Node2D.new()
+	rune.material = add
+	rune.position = b + Vector2(0, 1)
+	rune.scale = Vector2(0.6, 0.3)
+	rune.draw.connect(func():
+		rune.draw_arc(Vector2.ZERO, 11.0, 0.0, TAU, 28, Color(c.r * 1.8, c.g * 1.8, c.b * 1.8, 0.8), 1.5)
+		for i in 4:
+			var d := Vector2.RIGHT.rotated(i * TAU / 4.0 + PI / 4.0)
+			rune.draw_line(d * 7.0, d * 14.0, Color(c.r * 1.8, c.g * 1.8, c.b * 1.8, 0.7), 1.0))
+	root.add_child(rune)
+	var l := _light(c, 0.7, 0.35)
+	LightLayers.register(l, 40.0)
+	l.position = b + Vector2(0, -10)
+	root.add_child(l)
+	var t := root.create_tween().set_parallel(true)
+	t.tween_property(thread, "modulate:a", 0.0, 0.12)
+	t.tween_property(ray, "width", 2.0, 0.28).set_ease(Tween.EASE_IN)
+	t.tween_property(ray, "modulate:a", 0.0, 0.28).set_delay(0.06)
+	t.tween_property(rune, "scale", Vector2(1.1, 0.55), 0.32).set_ease(Tween.EASE_OUT)
+	t.tween_property(rune, "rotation", 0.6, 0.32)
+	t.tween_property(rune, "modulate:a", 0.0, 0.32).set_delay(0.08)
+	t.tween_property(l, "energy", 0.0, 0.3)
+	t.chain().tween_callback(root.queue_free)
+	_puff(b + Vector2(0, -4), c, 3)
 
 
 ## Host -> all (unreliable): an actor leaps (the sprite arcs up and lands).
