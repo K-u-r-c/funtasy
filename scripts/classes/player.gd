@@ -106,6 +106,7 @@ var auto_aim := Vector2.INF  ## test harness override for the aim point
 var _cc_wander := Vector2.ZERO
 var _cc_wander_left := 0.0
 var _moved_acc := 0.0  ## host: distance moved since the last on_move proc
+var loadout_error_args: Array = []  ## host: format arguments of the last loadout_error key
 var history: Array = []  ## host: [{pos, hp, t}] every 0.25 s for the last 5 s (Temporal Singularity)
 var _history_left := 0.0
 var _last_host_pos := Vector2.ZERO
@@ -355,10 +356,13 @@ func default_loadout() -> Array:
 
 
 ## "" when `lo` is a valid loadout: a primary_ok skill first, then distinct unlocked active
-## skills or empty slots ("").
+## skills or empty slots (""). An error is a translation key; its arguments are left in
+## `loadout_error_args` (the owner's screen translates both).
 func loadout_error(lo: Array) -> String:
+	loadout_error_args = []
 	if lo.size() != SLOT_ACTIONS.size():
-		return "A loadout has %d slots" % SLOT_ACTIONS.size()
+		loadout_error_args = [SLOT_ACTIONS.size()]
+		return "A loadout has %d slots"
 	var unlocked := unlocked_skills()
 	var seen := {}
 	for i in lo.size():
@@ -366,15 +370,17 @@ func loadout_error(lo: Array) -> String:
 		if sid.is_empty() and i > 0:
 			continue
 		var sk: Dictionary = GameData.skills.get(sid, {})
+		loadout_error_args = [str(sk.get("name", sid))]
 		if sk.is_empty() or not unlocked.has(sid):
-			return "%s is not unlocked" % sk.get("name", sid)
+			return "%s is not unlocked"
 		if sk.get("passive", false):
-			return "%s is passive" % sk.name
+			return "%s is passive"
 		if seen.has(sid):
-			return "%s is slotted twice" % sk.name
+			return "%s is slotted twice"
 		seen[sid] = true
 		if i == 0 and not sk.get("primary_ok", false):
-			return "%s can't be the primary attack" % sk.name
+			return "%s can't be the primary attack"
+	loadout_error_args = []
 	return ""
 
 
@@ -1211,7 +1217,7 @@ func request_loadout(slots: Array) -> void:
 		return
 	var err := loadout_error(slots)
 	if not err.is_empty():
-		_notify.rpc_id(peer_id, err)
+		_notify.rpc_id(peer_id, err, loadout_error_args)
 		return
 	skills = slots.duplicate()
 	cooldowns.clear()

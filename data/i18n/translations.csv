@@ -1,5 +1,9 @@
 keys,pl
 A loadout has %d slots,Zestaw umiejętności ma %d miejsc
+%s is not unlocked,%s nie jest odblokowana
+%s is passive,%s jest pasywna
+%s is slotted twice,%s jest przypisana dwa razy
+%s can't be the primary attack,%s nie może być atakiem podstawowym
 Talent and stat points refunded: spend them again.,Zwrócono punkty talentów i cech: rozdaj je ponownie.
 Talent points refunded: spend them again.,Zwrócono punkty talentów: rozdaj je ponownie.
 Stat points refunded: spend them again.,Zwrócono punkty cech: rozdaj je ponownie.
@@ -16,6 +20,8 @@ Spend %d points in this branch first,Najpierw wydaj %d pkt. w tej gałęzi
 Learned %s - slot it in the Skill Book,Poznano: %s - umieść to w Księdze umiejętności
 You learned: %s,Poznano: %s
  (Permanent), (na stałe)
+ for this run, do końca wyprawy
++%d talent point and +%d stat points,+%d punkt talentu i +%d punktów cech
 Can't change skills in combat,Nie można zmieniać umiejętności w walce
 No stat points left,Brak punktów cech
 You already have a backpack this big,Masz już tak duży plecak
@@ -55,6 +61,7 @@ Ward shattered,Osłona pękła
 Interrupted,Przerwano
 Reflect,Odbicie
 Level %d,Poziom %d
+(%d slots),(miejsca: %d)
 Unlock the vault (Gold Key),Otwórz skarbiec (Złoty Klucz)
 Break the blood seal (%s),Złam krwawą pieczęć (%s)
 Floodgate - rusted shut,Wrota śluzy - zardzewiałe
@@ -63,6 +70,7 @@ Close the bookshelf,Zamknij regał
 Close door,Zamknij drzwi
 Open door,Otwórz drzwi
 Merchant,Kupiec
+%s falls - an elite altar rises,%s pada - powstaje ołtarz elity
 +%d XP,+%d PD
 Rusted shut - find a lever,Zardzewiałe - znajdź dźwignię
 Descending...,Schodzenie...
@@ -74,6 +82,7 @@ Enter the portal,Wejdź do portalu
 %s (%d/%d ready),%s (gotowi: %d/%d)
 Gold Key,Złoty Klucz
 The vault is sealed: bring the floor's Gold Key (an elite or a chest carries it),Skarbiec jest zapieczętowany: przynieś Złoty Klucz z tego piętra (nosi go elita lub skrzynia)
+%s opens Archibald's vault with the Gold Key,%s otwiera skarbiec Archibalda Złotym Kluczem
 Malphas's seal asks for blood: %s for the rest of the run. The door then stays open for the whole party.,Pieczęć Malphasa żąda krwi: %s do końca wyprawy. Potem drzwi pozostają otwarte dla całej drużyny.
 Max Health,Maks. zdrowie
 Critical Strike Chance,Szansa na trafienie krytyczne
@@ -85,9 +94,11 @@ Bought %s for %d gold,Kupiono: %s za %d szt. złota
 Archibald won't buy that,Archibald tego nie kupi
 Sold %s for %d gold,Sprzedano: %s za %d szt. złota
 Demonic tithe,Demoniczna danina
+%s breaks Malphas's blood seal (%s),%s łamie krwawą pieczęć Malphasa (%s)
 You already signed that contract,Ten kontrakt jest już podpisany
 Contract with Malphas,Kontrakt z Malphasem
 Signed: %s for %s,Podpisano: %s za %s
+%s is yours. Malphas keeps %s,%s należy do ciebie. Malphas zatrzymuje %s
 Descend to the next floor,Zejdź na następne piętro
 Open,Otwórz
 Take the torch,Weź pochodnię
@@ -97,18 +108,22 @@ Knocked off,Strącony
 Reassembles,Składa się na nowo
 Shell shattered!,Pancerz pękł!
 Vespera takes wing! Light both consecrated shrines to bring her down!,"Vespera wzbija się w powietrze! Zapal obie poświęcone kapliczki, by ją strącić!"
+%s lights a shrine (%d / 2),%s rozpala kapliczkę (%d / 2)
 Vespera crashes to the ground!,Vespera spada na ziemię!
 Antler Stampede!,Szarża poroży!
 Cernunnos crashes into the wall!,Cernunnos wbija się w ścianę!
 Anvil of Doom! Ingots fall from the rafters!,Kowadło Zagłady! Sztaby spadają z krokwi!
 Boulders smash the outer walkway!,Głazy miażdżą zewnętrzny pomost!
+%s and %s are bound by a Blood Thread - stay together!,%s i %s są związani Krwawą Nicią - trzymajcie się razem!
 The Blood Thread snaps!,Krwawa Nić pęka!
 Morvath draws the bones of the fallen into a shield!,Morvath zbiera kości poległych w tarczę!
 Time slows to a crawl!,Czas zwalnia do pełzania!
 The briar creeps inward!,Ciernie pełzną do środka!
+%s bears the Black Anointing - spread out!,%s nosi Czarne Namaszczenie - rozproszcie się!
 Cernunnos drinks the blood of the fallen!,Cernunnos pije krew poległych!
 Echoes of Regret replay your past...,Echa Żalu odtwarzają twoją przeszłość...
 The Amalgam engulfs %s! Burst it down!,Amalgamat pochłania: %s! Zniszcz go!
+%s is torn free!,%s zostaje uwolniony!
 Forbidden Inversion! %s,Zakazana Inwersja! %s
 Your steps betray you!,Twoje kroki cię zdradzają!
 Healing burns!,Leczenie parzy!
@@ -121,9 +136,11 @@ Bone Whirlwind!,Kościany Wir!
 Malazar seals you inside the Tome Prison! Break the 4 Authorial Seals!,Malazar więzi cię w Więzieniu Księgi! Rozbij 4 Pieczęcie Autora!
 The Tome Prison collapses - the seals held!,Więzienie Księgi upada - pieczęcie wytrzymały!
 Reality returns - the Archivist is weakened!,Rzeczywistość wraca - Archiwista słabnie!
+%s vents the green fog!,%s uwalnia zieloną mgłę!
 A vermin swarm darkens the air!,Rój robactwa zaćmiewa powietrze!
 Tidal Flush! Climb a raised platform!,Wielkie Płukanie! Wejdź na podniesioną platformę!
 Pick up %s,Podnieś: %s
+ (requires level %d), (wymaga poziomu %d)
 Head,Głowa
 Chest,Tors
 Legs,Nogi
@@ -150,7 +167,6 @@ Lore book,Księga wiedzy
 Tome of Enlightenment,Księga Oświecenia
 Legendary tome,Legendarna księga
 Book,Księga
- for this run, do końca wyprawy
 Read it: Accept / click,Przeczytaj: Akceptuj / kliknij
 Two-handed,Dwuręczna
 One-handed,Jednoręczna
@@ -164,6 +180,8 @@ Class: %s%s,Klasa: %s%s
 Rewind,Cofnięcie
 Dodge ready,Unik gotowy
 Echo,Echo
+%s found a Gold Key - Archibald will trade,%s znajduje Złoty Klucz - Archibald będzie handlował
++%d gold,+%d złota
 %d Gold,%d szt. złota
 Charging %d%%,Ładowanie %d%%
 Health,Zdrowie
@@ -447,8 +465,18 @@ Passive skills work as soon as they are learned.,Umiejętności pasywne działaj
 Pick a skill below first.,Najpierw wybierz umiejętność poniżej.
 Primary attack,Atak główny
 slows and roots,spowolnienia i unieruchomienia
+poisons,trucizny
+enrage,szał
+curses,klątwy
+diseases,choroby
 stuns and control,ogłuszenia i kontrolę
+bleeds,krwawienia
 every harmful effect,każdy szkodliwy efekt
+magic,magię
+to the aimed spot,we wskazane miejsce
+to the target,do celu
+behind the target,za cel
+in front of the target,przed cel
 %+d%% effect,%+d%% efektu
 %+d%% healing,%+d%% leczenia
 %+d%% cooldown,%+d%% odnowienia
@@ -548,6 +576,8 @@ On take-off: ,Przy wybiciu:
 On landing: ,Przy lądowaniu: 
 Path damage,Obrażenia na drodze
 On impact: ,Przy uderzeniu: 
+Knockback,Odrzut
+Pull,Przyciągnięcie
 "%s radius, %d force","promień %s, siła %d"
 After %.1fs: ,Po %.1fs: 
 Deploys,Rozstawia
@@ -573,6 +603,8 @@ Interrupts,Przerywa
 spellcasting%s,rzucanie czarów%s
 ", locks the school for %.0fs",", blokuje szkołę na %.0fs"
 Cooldowns,Odnowienia
+reduces,skraca
+resets,odnawia
 Costs,Koszty
 %d%% of your health,%d%% twojego zdrowia
 Tether,Więź
@@ -583,7 +615,6 @@ the ally to your feet,sojusznika do twoich stóp
 Inside: ,Wewnątrz: 
 When it ends: ,Na koniec: 
 Allies: ,Sojusznicy: 
-Knockback,Odrzut
 %d force,siła %d
 On hit: ,Przy trafieniu: 
 %d every %.1fs for %.1fs (%d total),%d co %.1fs przez %.1fs (razem %d)

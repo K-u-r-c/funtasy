@@ -277,6 +277,8 @@ func _run() -> void:
 				await RiseSuite.new(self).run_lan()
 			"background_lan":
 				await BackgroundSuite.new(self).run_lan()
+			"pl_sweep":
+				await PlSweepSuite.new(self).run()
 			"altars":
 				await AltarSuite.new(self).run()
 			"stacks":

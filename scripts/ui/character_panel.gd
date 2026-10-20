@@ -277,7 +277,7 @@ func _refresh_mods() -> void:
 		if not sums.has(k):
 			order.append(k)
 		sums[k] = float(sums.get(k, 0.0)) + float(m.value)
-		srcs[k] = str(srcs.get(k, "")) + "%s%s %s\n" % ["+" if float(m.value) >= 0 else "", _fmt(k, float(m.value)), m.get("source", "")]
+		srcs[k] = str(srcs.get(k, "")) + "%s%s %s\n" % ["+" if float(m.value) >= 0 else "", _fmt(k, float(m.value)), Loc.name(str(m.get("source", "")))]
 	for k in order:
 		var v := float(sums[k])
 		var key := str(UITheme.STAT_ICONS.get(k.trim_suffix("_pct"), "sil_star"))
@@ -364,7 +364,7 @@ static func run_mods_text(mods: Array) -> String:
 
 static func _stat_name(k: String) -> String:
 	return {"max_hp": Loc.t("Max health"), "max_resource": Loc.t("Max mana"), "crit_chance": Loc.t("Crit chance"), "move_speed": Loc.t("Move speed"),
-		"max_hp_pct": Loc.t("Max health")}.get(k, k.replace("_", " ").capitalize())
+		"max_hp_pct": Loc.t("Max health")}.get(k, Loc.t(k.replace("_", " ").capitalize()))
 
 
 static func _fmt(k: String, v: float) -> String:

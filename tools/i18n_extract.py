@@ -32,6 +32,9 @@ SKIP_LINE = re.compile(
     r"NetSync\.make|get_node|has_node|find_child|set_meta|get_meta|has_meta|add_to_group|"
     r"is_in_group|get_nodes_in_group|get_first_node_in_group|\.name = \"|OS\.get_environment|"
     r"begins_with\(\"--|ClassDB|has_method|\.call\(\"|_test_fail|test_problem")
+TEXT_DICT = re.compile(r"^const [A-Z_]*(TEXT|NAMES|LABELS) := \{")
+DICT_VALUE = re.compile(r'"(?:[^"\\]|\\.)*"\s*:\s*"((?:[^"\\]|\\.)*)"')
+LOC_CALL = re.compile(r'Loc\.(?:t|f|plural)\(\s*"(?:[^"\\]|\\.)*"(?:\s*,\s*"(?:[^"\\]|\\.)*")?')
 LITERAL = re.compile(r'(?<![&^])"((?:[^"\\]|\\.)*)"')
 # Files whose lower-case fragments are shown ("around you", "hold up to ..."); elsewhere a
 # lower-case literal is an id or a test diagnostic.
@@ -83,6 +86,10 @@ def looks_like_text(s, path):
         return False
     if re.fullmatch(r"[A-Z][a-z]+[A-Z]\w*", s):  # CamelCase node / class names
         return False
+    # A sentence around a filled-in name ("%s falls - ...", "+%d gold") is text even though its
+    # first word is lower case.
+    if re.match(r"^[\s+\-(]*%[sd] [a-z]+", s) or re.match(r"^[+\-]?%d [a-z]", s):
+        return True
     first = re.sub(r"^[\s%+\-(.,:\\n\d]+[a-z]?\s*", "", s)
     if first[:1].islower() and not path.startswith(LOWERCASE_OK):
         return False
@@ -99,14 +106,34 @@ def code_keys(ignore):
                 rel = os.path.relpath(os.path.join(dp, f), ROOT)
                 if rel in CODE_SKIP_FILES:
                     continue
+                in_text_dict = False
                 for line in open(os.path.join(dp, f), encoding="utf-8"):
+                    # Values of a const ..._TEXT / _NAMES / _LABELS dictionary are shown through
+                    # Loc.t, even single lower-case words ("poisons").
+                    if TEXT_DICT.match(line):
+                        in_text_dict = True
+                    if in_text_dict:
+                        for m in DICT_VALUE.finditer(strip_comment(line)):
+                            v = unescape(m.group(1))
+                            if v not in ignore and re.search(r"[A-Za-z]{2}", v):
+                                keys.append(v)
+                        if "}" in strip_comment(line):
+                            in_text_dict = False
                     if SKIP_LINE.search(line):
                         continue
-                    for m in LITERAL.finditer(strip_comment(line)):
+                    code = strip_comment(line)
+                    for m in LITERAL.finditer(code):
                         s = unescape(m.group(1))
                         if s in ignore or not looks_like_text(s, rel):
                             continue
                         keys.append(s)
+                    # Whatever goes straight into Loc.t / Loc.f / Loc.plural is a key, even a
+                    # lower-case word ("resets") or a fragment starting with a space.
+                    for m in LOC_CALL.finditer(code):
+                        for lit in LITERAL.finditer(m.group(0)):
+                            s = unescape(lit.group(1))
+                            if s not in ignore and re.search(r"[A-Za-z]{2}", s):
+                                keys.append(s)
     return keys
 
 

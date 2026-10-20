@@ -144,7 +144,7 @@ func _on_slot(i: int) -> void:
 	lo[i] = _picked
 	var err := player.loadout_error(lo)
 	if not err.is_empty():
-		notice(err)
+		notice(Loc.f(err, player.loadout_error_args))
 		return
 	if player.in_combat():
 		notice(Loc.t("Can't change skills in combat"))

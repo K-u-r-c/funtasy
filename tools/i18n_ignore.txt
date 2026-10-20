@@ -5,3 +5,7 @@
 q:<quick slot>
 GodotSteam extension not loaded
 %s [gender]
+%s and %s share a cell
+%s is on tier 0 but has a prerequisite
+%s has no prerequisite
+%s requires %s, not a lower node of its branch

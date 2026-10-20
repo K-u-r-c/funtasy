@@ -124,6 +124,7 @@ if [ "$WHAT" = all ] || [ "$WHAT" = quick ]; then
 	run fx --auto=solo --class=mage --name=Sparks --scenario=fx --quit=60
 	run party --auto=solo --class=priest --name=Pals --scenario=party --quit=60
 	run interact --auto=solo --class=warrior --name=Hands --scenario=interact --quit=90
+	run pl-sweep --auto=solo --class=priest --name=Lang --scenario=pl_sweep --quit=200
 	run i18n --auto=solo --class=priest --name=Lang --scenario=i18n --quit=120
 	run preview --auto=solo --class=mage --name=Aim --scenario=preview --quit=60
 	run tooltips --auto=solo --class=warrior --name=Tips --scenario=tooltips --quit=60

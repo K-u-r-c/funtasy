@@ -11,6 +11,8 @@ const POWER_NAMES := {"melee": "Melee power", "ranged": "Ranged power", "spell":
 ## Debuff categories cleansed or dispelled, by name.
 const CATEGORY_TEXT := {"movement": "slows and roots", "poison": "poisons", "enrage": "enrage", "curse": "curses",
 	"disease": "diseases", "control": "stuns and control", "bleed": "bleeds", "any": "every harmful effect", "magic": "magic"}
+## Where a teleport puts the caster, by its data "to".
+const TELEPORT_TEXT := {"aim": "to the aimed spot", "target": "to the target", "behind_target": "behind the target", "target_front": "in front of the target"}
 const MOD_TEXT := {
 	"damage_mult": "%+d%% effect", "heal_mult": "%+d%% healing", "cooldown_mult": "%+d%% cooldown",
 	"cost_mult": "%+d%% cost", "radius_mult": "%+d%% radius", "duration_mult": "%+d%% duration",
@@ -213,7 +215,7 @@ static func _effect(out: Array, eff: Dictionary, nums: Dictionary, p: Player, pr
 			for sub3 in eff.get("on_arrive", []):
 				deals = _effect(out, sub3, nums, p, Loc.t("On impact: ")) or deals
 		"knockback", "pull":
-			out.append(_row(prefix + Loc.t(str(eff.type).capitalize()), Loc.f("%s radius, %d force", [_m(float(eff.get("radius", 100)) * rmul), int(eff.get("force", 120))]), Kind.STATUS))
+			out.append(_row(prefix + (Loc.t("Knockback") if str(eff.type) == "knockback" else Loc.t("Pull")), Loc.f("%s radius, %d force", [_m(float(eff.get("radius", 100)) * rmul), int(eff.get("force", 120))]), Kind.STATUS))
 			_on_hit(out, eff, nums, prefix)
 		"delayed":
 			for sub4 in eff.get("effects", []):
@@ -223,7 +225,7 @@ static func _effect(out: Array, eff: Dictionary, nums: Dictionary, p: Player, pr
 				+ (Loc.f(", %s radius", [_m(float(eff.radius) * rmul)]) if eff.has("radius") else "")))
 			if eff.has("heal"):
 				out.append(_row(prefix + Loc.t("Healing"), Loc.f("%d every %.1fs%s", [_amount(eff.heal, nums, true), float(eff.get("tick", 1.0)),
-					" (below %d%% health)" % roundi(float(eff.heal_below) * 100.0) if eff.has("heal_below") else ""]), Kind.HEAL))
+					Loc.f(" (below %d%% health)", [roundi(float(eff.heal_below) * 100.0)]) if eff.has("heal_below") else ""]), Kind.HEAL))
 			for sub5 in eff.get("tick_effects", []):
 				deals = _effect(out, sub5, nums, p, Loc.t("Each shot: ")) or deals
 		"consume_dots":
@@ -258,7 +260,7 @@ static func _effect(out: Array, eff: Dictionary, nums: Dictionary, p: Player, pr
 		"fetch":
 			out.append(_row(prefix + Loc.t("Pulls"), Loc.t("the ally to your feet") + (", %s" % _m(float(eff.range)) if eff.has("range") else "")))
 		"teleport":
-			out.append(_row(prefix + Loc.t("Teleport"), str(eff.get("to", "aim")).replace("_", " ")))
+			out.append(_row(prefix + Loc.t("Teleport"), Loc.t(str(TELEPORT_TEXT.get(str(eff.get("to", "aim")), TELEPORT_TEXT.aim)))))
 	if str(eff.type) in ["melee", "projectile", "aoe", "zone", "cone", "hit", "line", "chain", "beam"]:
 		_on_hit(out, eff, nums, prefix)
 	if str(eff.type) == "zone":
