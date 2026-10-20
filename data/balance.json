@@ -113,7 +113,6 @@
 		"hp_per_extra_player": 0.6,
 		"damage_per_extra_player": 0.12,
 		"count_per_extra_player": 0.3,
-		"rarity_bonus_per_depth": 0.04,
 		"boss_hp_per_extra_player": 0.7, "early_depths": [{"hp": 0.55, "damage": 0.5, "boss_hp": 0.65}, {"hp": 0.55, "damage": 0.4}, {"hp": 0.42, "damage": 0.45, "boss_hp": 0.6}], "tier_depths": [1, 3, 6]
 	},
 	"loot": {
@@ -131,13 +130,22 @@
 		"party_class_weight": 3.0,
 		"consumable_chance": 0.35,
 		"backpack_chance": 0.04,
+		"_rarity_comment": "#65: drop rarity weights (Common..Relic) move linearly from rarity_weights on floor 1 to rarity_weights_deep on floor rarity_deep_depth and stay there; the Relic weight is the same at every depth.",
 		"rarity_weights": [
 			60,
 			26,
 			10,
 			3.5,
-			0.5
+			0.3
 		],
+		"rarity_weights_deep": [
+			41,
+			32,
+			18,
+			9,
+			0.3
+		],
+		"rarity_deep_depth": 50,
 		"drop_scatter": 22, "upgrade_chance": 0.03, "upgrade_levels": [2, 3], "upgrade_rarity": 1
 	},
 	"gold": {
@@ -365,12 +373,13 @@
 	"legendary": {
 		"scale_floor": 0.35,
 		"party_class_weight": 3.0,
+		"_drop_comment": "#65: named legendaries stay rare at every depth (no depth scaling); bosses are the generous source.",
 		"drop_chance": {
-			"boss": 0.4,
-			"elite": 0.06,
-			"chest": 0.02,
-			"secret": 0.05,
-			"altar": 0.05
+			"boss": 0.18,
+			"elite": 0.015,
+			"chest": 0.005,
+			"secret": 0.01,
+			"altar": 0.01
 		}
 	},
 	"combat": {

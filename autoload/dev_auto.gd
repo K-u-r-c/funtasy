@@ -181,6 +181,10 @@ func _run() -> void:
 		"rebind_check":
 			_rebind_check()
 			return
+		"loot_rarity":
+			await RaritySuite.new(self).run()
+			_finish("loot rarity")
+			return
 		"gear_names":
 			await GearNameSuite.new(self).run()
 			_finish("gear names")

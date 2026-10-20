@@ -134,6 +134,7 @@ if [ "$WHAT" = all ] || [ "$WHAT" = quick ]; then
 	run lighting-rules --auto=solo --class=warrior --name=Lamp --scenario=lighting_rules --quit=60
 	run tooltips-pl --auto=solo --class=priest --name=Tips --scenario=tooltips --lang=pl --quit=60
 	run gear-names --scenario=gear_names --quit=60
+	run loot-rarity --scenario=loot_rarity --quit=200
 	run art-check --scenario=art_check --quit=120
 	run hero-art --scenario=hero_art --quit=300
 	run gamepad-menu --scenario=gamepad_menu --quit=60

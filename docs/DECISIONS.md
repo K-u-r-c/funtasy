@@ -241,7 +241,7 @@ proposal left a choice open, the chosen option is stated, and any change to a pr
 | --- | --- |
 | Data | `data/items/legendaries.json`: 108 items (27 per class), each with GDD stats, affix text, `mods` (stats or per-skill modifiers), `flags`, `procs` (the shared proc system: event, `if`, `icd`, effect list or a `hook` in `scripts/items/legendary_affixes.gd`) and a `test` block run by `tests/legendary_suite.gd`. |
 | Scaling | The GDD numbers are the level-30 values. Stats and flat proc numbers scale with the item level: `scale_floor + (1 - scale_floor) * min(level / 30, 1)` with `balance.legendary.scale_floor` 0.35. Percent effects never scale. |
-| Drops | Legendary (Relic, tier 5) chance per source in `balance.legendary.drop_chance`: boss 40%, elite 6%, secret 5%, altar 5%, chest 2%. Classes in the party weigh x3 (`party_class_weight`), any class can drop. |
+| Drops | Legendary (Relic, tier 5) chance per source in `balance.legendary.drop_chance`: boss 18%, elite 1.5%, secret 1%, altar 1%, chest 0.5% (#65; was 40 / 6 / 5 / 5 / 2%). Classes in the party weigh x3 (`party_class_weight`), any class can drop. |
 | Unique rings (D8) | Two copies of the same legendary ring cannot be worn. |
 | Quiver | New off-hand base `quiver` (ranger) that can be worn with a two-handed bow / crossbow. Titan's grip (warrior) lets a two-handed weapon and a shield be worn together. |
 | Slippers of Grace | Heroes already move at full speed while casting, so the "does not slow" part is always true; the flag also keeps healing channels alive while moving. |
@@ -1067,3 +1067,12 @@ Tree shapes ("A > B": B grows from A; {x / y}: branches; (x): a fork side; [n]: 
 | Polish | Names stay English in the item and are composed on display (`Loc.name`). The prefix agrees with the base's grammatical gender: the translation data holds each base's gender ("Sword [gender]" -> m, "Shield [gender]" -> f, "Boots [gender]" -> pl) and each prefix's forms ("Mighty" / "Mighty [f]" / "[n]" / "[pl]": Potężny / Potężna / Potężne / Potężne); `tools/i18n_extract.py` lists these keys. |
 | Old items | Saved items keep their names ("Sword of the Bear" still reads "Miecz Niedźwiedzia"); legendaries keep their own names. |
 | Tests | `gear-names`: 2000 items carry 42 different suffixes, 27% are better made with their quality's prefix, pair names sit only on items with two primary stats, better-made swords average x1.11 / x1.21 / x1.30 DPS, and every name reads in Polish with the right gender (Potężny Miecz Wołu, Potężna Tarcza Wołu, Potężne Buty Wołu). |
+
+### #65 Rarer drops deeper, very slowly; legendaries stay rare
+
+| Topic | Decision |
+| --- | --- |
+| Curve | Drop rarity weights (Common, Uncommon, Rare, Epic, Relic) move linearly from `loot.rarity_weights` [60, 26, 10, 3.5, 0.3] on floor 1 to `loot.rarity_weights_deep` [41, 32, 18, 9, 0.3] on floor `loot.rarity_deep_depth` (50) and stay there (`ItemGenerator.rarity_weights_at`). Rare or better: about 14% on floor 1, 16% on floor 10, 20% on floor 25, 27% from floor 50. This replaces `scaling.rarity_bonus_per_depth` (0.04 per floor), which had Commons at about 13% of drops by floor 10. |
+| Relics | A random tier-5 drop keeps the same tiny weight at every depth (about 0.3% of equipment drops; it was 0.5% and grew with depth). Chest / boss minimum rarities and the 3% upgrade roll are unchanged. |
+| Legendaries | Named legendaries never scale with depth. Bosses stay the generous source (the player's choice): boss 18%, elite 1.5%, secret 1%, altar 1%, chest 0.5% per drop event (was 40 / 6 / 5 / 5 / 2%). |
+| Tests | `loot-rarity`: 40 000 rarity rolls per floor (1, 10, 25, 50, 80) - Rare-or-better grows by small steps and stops at 50, Relics stay ~0.3% everywhere; named legendary rates per source match the data on floor 1 and floor 50. |

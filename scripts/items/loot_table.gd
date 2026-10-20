@@ -38,7 +38,6 @@ static func roll(source: String, item_level: int, depth: int, party_classes: Arr
 			out.append(b)
 			if source == "altar":
 				count = 0
-	var bonus := float(GameData.bal("scaling.rarity_bonus_per_depth")) * (depth - 1)
 	# Legendaries (GDD 6): bosses, elites and chests can drop one, weighted to the party's classes.
 	var lchance := float((GameData.bal("legendary.drop_chance") as Dictionary).get(source, 0.0))
 	if lchance > 0.0 and rng.randf() < lchance:
@@ -53,7 +52,7 @@ static func roll(source: String, item_level: int, depth: int, party_classes: Arr
 			out.append(ItemGenerator.generate_backpack(depth, rng))
 		else:
 			var base_id := pick_base(party_classes, rng)
-			var tier := ItemGenerator.roll_rarity(rng, bonus, min_tier)
+			var tier := ItemGenerator.roll_rarity(rng, depth, min_tier)
 			var up := upgrade_roll(item_level, tier, rng)
 			out.append(ItemGenerator.generate_equipment(base_id, int(up[0]), int(up[1]), rng))
 	return out

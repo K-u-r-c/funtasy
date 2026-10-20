@@ -19,14 +19,21 @@ static func new_uid(rng: RandomNumberGenerator) -> String:
 	return "%x%x" % [rng.randi(), _uid_counter]
 
 
-static func roll_rarity(rng: RandomNumberGenerator, bonus: float, min_tier: int) -> int:
-	var weights: Array = GameData.bal("loot.rarity_weights")
-	var adjusted: Array = []
-	for i in weights.size():
-		# Depth bonus shifts weight from common toward the higher tiers.
-		adjusted.append(float(weights[i]) * (1.0 + bonus * i * 2.0) if i > 0 else float(weights[i]) * maxf(0.2, 1.0 - bonus * 3.0))
-	var tier := _weighted_index(adjusted, rng) + 1
+static func roll_rarity(rng: RandomNumberGenerator, depth: int, min_tier: int) -> int:
+	var tier := _weighted_index(rarity_weights_at(depth), rng) + 1
 	return maxi(tier, min_tier)
+
+
+## #65: the drop rarity weights on floor `depth`: very slowly from the floor-1 weights toward the
+## deep ones (balance loot.rarity_weights / rarity_weights_deep / rarity_deep_depth).
+static func rarity_weights_at(depth: int) -> Array:
+	var shallow: Array = GameData.bal("loot.rarity_weights")
+	var deep: Array = GameData.bal("loot.rarity_weights_deep", shallow)
+	var t := clampf(float(depth - 1) / maxf(float(GameData.bal("loot.rarity_deep_depth", 50)) - 1.0, 1.0), 0.0, 1.0)
+	var out: Array = []
+	for i in shallow.size():
+		out.append(lerpf(float(shallow[i]), float(deep[i]), t))
+	return out
 
 
 static func generate_equipment(base_id: String, item_level: int, tier: int, rng: RandomNumberGenerator) -> Dictionary:
