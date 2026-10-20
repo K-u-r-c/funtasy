@@ -355,6 +355,8 @@
 		"bar_trail_time": 0.45,
 		"window_pop_time": 0.25,
 		"hero_marker_color": "#6fe8ff",
+		"hero_marker_hold": 0.35,
+		"hero_marker_fade": 0.15,
 		"splash": {
 			"_comment": "Boot splash over the title screen (seconds). Any key/button skips it.",
 			"title_scale": 2,

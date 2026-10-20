@@ -2,7 +2,8 @@ class_name MarkerSuite
 extends RefCounted
 ## #59 Your own hero (scenario "marker_lan", host + 3 clients, all the same class): the four
 ## heroes stand close together; on every peer only its own hero has the bright ring and the pin,
-## the others a faint ring; the own marker stays while downed and goes for a ghost; the setting
+## the others a faint ring; the own marker shows only while Dodge is held a moment (or while downed)
+## and goes for a ghost; the setting
 ## turns all markers off. With --shot=<dir>/<name> (windowed instances) every peer saves a
 ## screenshot: <name>_host.png, <name>_<peer>.png, and <name>_off_* with the setting off.
 
@@ -20,6 +21,14 @@ static func marker(pl: Player) -> HeroMarker:
 
 ## On this peer: only the own hero is marked as "you", every teammate as a teammate.
 func check_marks(who: String) -> void:
+	HeroMarker.test_hold = false
+	await da._wait(0.5)
+	var lp: Player = g.local_player
+	da.check(not marker(lp).visible and HeroMarker.reveal_of(lp) == 0.0, "%s: the own marker is hidden while Dodge isn't held" % who)
+	HeroMarker.test_hold = true
+	await da._wait(0.2)
+	da.check(HeroMarker.reveal_of(lp) == 0.0, "%s: a short Dodge press doesn't show it" % who)
+	await da._wait(0.5)
 	var own := 0
 	var mates := 0
 	var wrong := []
@@ -33,7 +42,7 @@ func check_marks(who: String) -> void:
 		else:
 			mates += 1
 	da.check(wrong.is_empty() and own == 1 and mates == g.players_root.get_child_count() - 1,
-			"%s: only its own hero carries the bright ring and pin, %d teammates a faint ring%s" % [who, mates, "" if wrong.is_empty() else " (wrong: %s)" % [wrong]])
+			"%s: holding Dodge, only its own hero carries the bright ring and pin, %d teammates a faint ring%s" % [who, mates, "" if wrong.is_empty() else " (wrong: %s)" % [wrong]])
 
 
 func check_off(who: String) -> void:
@@ -65,8 +74,8 @@ func run_lan() -> void:
 		pl.host_teleport(g.nearest_floor(g.layout.start) + offs[i % offs.size()])
 		i += 1
 	await da._wait(1.5)
-	check_marks("host")
 	NetworkManager.to_clients("DevAuto", "client_cmd", ["mk_check", null])
+	await check_marks("host")
 	await snap("host")
 	await da._wait(1.5)
 	# Downed: the owner still finds its hero; a ghost isn't marked.
@@ -94,9 +103,11 @@ func client_cmd(cmd: String, arg: Variant) -> void:
 	var who := "client %d" % da.multiplayer.get_unique_id()
 	match cmd:
 		"mk_check":
-			check_marks(who)
+			await check_marks(who)
 			await snap(str(da.multiplayer.get_unique_id()))
 		"mk_downed":
+			HeroMarker.test_hold = false
+			await da._wait(0.4)
 			var pl: Player = g.player_by_peer(int(arg))
 			if pl.is_local():
 				da.check(pl.life_state == Player.Life.DOWNED and marker(pl).mode() == 2 and marker(pl).visible,

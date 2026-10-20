@@ -150,6 +150,9 @@ screenshot review at 1920x1080 and 3440x1440.
 - [x] #55 A continued game resumes its floor: run seed and a floor snapshot in the save (monsters, boss / portal, items, props, chests, doors, torches, cells, Gold Key, merchant, every hero's place / HP / life state, every player's map), written on quit, window close, boss kill and every 20 s (`resume`, `resume-lan`; old saves still load)
 - [x] #60 The lobby preview of a saved hero shows its saved gear (replicated with the game info), on the host and every client (`resume`, `resume-lan`; lobby screenshot before / after)
 
+## Eighth playtest issues (GitHub #70-#82)
+
+- [x] Playtest: the own-hero marker shows only while Dodge is held a moment (`marker-lan`); the HUD health fill is as wide as the resource bar (one gauge of the ornament sheet, caps outside the fill)
 ## Seventh playtest issues (GitHub #61-#62)
 
 - [x] #61 Split item stacks: drop or split off part of a stack through an amount picker, host-checked (`stacks`, `stacks-lan`)
@@ -261,6 +264,17 @@ Goal cap: only #59 if drawn markers fall short. Spent none: the hero marker is d
 | Date | Batch | Used before | Used after | Spend | Goal spend |
 | --- | --- | --- | --- | --- | --- |
 | 2026-10-20 | (#59 drawn in code; no generations) | 4330 | 4330 | 0 | 0 |
+
+Eighth playtest goal (#70-#82), start 2026-10-21: **used 4330, remaining 476**, resets 2026-11-14.
+Goal cap: 300 generations, 150 kept in reserve (the 300 cap binds: 476 - 150 = 326). The daily bonus is
+never counted as headroom. Planned: boon icons (#73, ~250 icons at 16 per Pixen sheet: ~17 sheets), modifier
+/ event / badge icons (#71, #72: ~3 sheets), the blacksmith (#77: character + idle / hammer animations, ~40),
+forge props (map objects, ~8), legendary tome covers (#76, ~2); the ghost (#82), deep variants (#74) and the
+gameplay effects (#81) from shaders, particles and the free vfx workbench; re-rolls ~10%.
+
+| Date | Batch | Used before | Used after | Spend | Goal spend |
+| --- | --- | --- | --- | --- | --- |
+| 2026-10-21 | (goal start) | 4330 | 4330 | 0 | 0 |
 
 ## Done (MVP)
 
