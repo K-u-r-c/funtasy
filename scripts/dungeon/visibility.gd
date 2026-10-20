@@ -225,8 +225,14 @@ func _viewers() -> Array:
 ## Registered gameplay lights (see LightLayers) that can reach `range` px around `pos`.
 func _lights_near(pos: Vector2, range_px: float) -> Array:
 	var out: Array = []
+	var own_ghost := -1
+	if viewer is Player and viewer.life_state == Player.Life.GHOST:
+		own_ghost = viewer.peer_id
 	for l in get_tree().get_nodes_in_group(LightLayers.GROUP):
 		if not l.is_visible_in_tree():
+			continue
+		# #82: a ghost's light shows the floor to that ghost only.
+		if l.has_meta("ghost_of") and int(l.get_meta("ghost_of")) != own_ghost:
 			continue
 		var rad := float(l.get_meta("radius", 0.0))
 		if rad > 0.0 and l.global_position.distance_to(pos) <= range_px + rad:

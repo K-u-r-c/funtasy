@@ -485,6 +485,10 @@ func host_interact(p: Player, node: Node) -> void:
 		var at: Vector2 = node.interact_pos() if node.has_method("interact_pos") else node.global_position
 		if not dungeon.reach_clear(p.global_position, at):
 			return
+	# #82: a ghost only works doors that open by hand.
+	if p.life_state == Player.Life.GHOST:
+		if not p.ghost_can_use(node) or (node.floodgate and not node.is_open):
+			return
 	for b in get_tree().get_nodes_in_group("boss"):
 		if b.has_method("on_mechanic_interact") and b.on_mechanic_interact(p, node):
 			return
@@ -1022,18 +1026,8 @@ func _on_local_player(p: Node) -> void:
 func _process(_delta: float) -> void:
 	if local_player == null or not is_instance_valid(local_player):
 		return
-	# Dead players spectate a living teammate (cycle with the attack button).
-	if local_player.life_state == Player.Life.GHOST:
-		var living: Array = []
-		for p in players_root.get_children():
-			if p.life_state == Player.Life.ALIVE:
-				living.append(p)
-		if not living.is_empty():
-			var idx := living.find(camera.target)
-			if idx < 0 or Input.is_action_just_pressed("attack"):
-				camera.target = living[(idx + 1) % living.size()]
-				visibility.viewer = camera.target
-	elif camera.target != local_player:
+	# #82: the camera and sight stay on the local hero, ghost or not (no spectating).
+	if camera.target != local_player:
 		camera.target = local_player
 		visibility.viewer = local_player
 
@@ -1049,6 +1043,12 @@ func find_interactable(p: Player, pick: int = 0) -> Dictionary:
 	var pos := p.global_position
 	var reach := float(GameData.bal("world.interact_range"))
 	var candidates: Array = []  ## [point to aim at, node, kind, text]
+	if p.life_state == Player.Life.GHOST:
+		# #82: a ghost only opens and closes doors.
+		for door in dungeon.doors:
+			if p.ghost_can_use(door) and _distance_to_rect(pos, door.world_rect) < reach * 0.6:
+				candidates.append([door.world_rect.get_center(), door, "door", door.interact_text()])
+		return _pick_interactable(p, candidates, pick)
 	for g in items_root.get_children():
 		if pos.distance_to(g.global_position) < float(GameData.bal("world.pickup_range")):
 			candidates.append([g.global_position, g, "item", g.interact_text(p.level)])
@@ -1071,6 +1071,12 @@ func find_interactable(p: Player, pick: int = 0) -> Dictionary:
 		candidates.append([portal.global_position, portal, "portal", Loc.f("%s (%d/%d ready)", [text, portal_ready.size(), _alive_count()])])
 	# #79: only what the hero can reach on its own side of a wall (doors: from either side).
 	candidates = candidates.filter(func(c): return c[2] == "door" or dungeon.reach_clear(pos, c[1].interact_pos() if c[1].has_method("interact_pos") else c[0]))
+	return _pick_interactable(p, candidates, pick)
+
+
+## The candidate `p` points at, and the stack of things at that spot (see find_interactable).
+func _pick_interactable(p: Player, candidates: Array, pick: int) -> Dictionary:
+	var pos := p.global_position
 	var best: Array = []
 	var best_score := INF
 	for c in candidates:

@@ -59,7 +59,7 @@ var _goal_label: Label
 var _portal_label: Label
 var _center_panel: PanelContainer
 var _center_label: Label
-var _spectate_hint: HBoxContainer
+var _ghost_hint: HBoxContainer
 var _overlay: Control
 var _relocalize_pending := false
 var _back_to: Dictionary = {}  ## {tab, state}: the menu panel a book was opened from (#38)
@@ -275,12 +275,13 @@ func _build_bottom() -> void:
 	_center_label = UITheme.label("", Color("ff8a75"), UITheme.FONT_BODY)
 	_center_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	cv.add_child(_center_label)
-	_spectate_hint = HBoxContainer.new()
-	_spectate_hint.alignment = BoxContainer.ALIGNMENT_CENTER
-	_spectate_hint.add_theme_constant_override("separation", 4)
-	_spectate_hint.add_child(InputGlyph.new("attack"))
-	_spectate_hint.add_child(UITheme.label(Loc.t("Switch spectated player"), UITheme.TEXT_DIM, UITheme.FONT_SMALL))
-	cv.add_child(_spectate_hint)
+	_ghost_hint = HBoxContainer.new()
+	_ghost_hint.alignment = BoxContainer.ALIGNMENT_CENTER
+	_ghost_hint.add_theme_constant_override("separation", 4)
+	# #82: a ghost roams the floor; doors are the one thing it can still work.
+	_ghost_hint.add_child(InputGlyph.new("interact"))
+	_ghost_hint.add_child(UITheme.label(Loc.t("Roam the floor - only doors still answer you"), UITheme.TEXT_DIM, UITheme.FONT_SMALL))
+	cv.add_child(_ghost_hint)
 
 	_prompt_row = HBoxContainer.new()
 	_prompt_row.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -570,7 +571,7 @@ func _update_center() -> void:
 			t = Loc.t("You are a ghost until the next floor.")
 			ghost = true
 	_center_label.text = t
-	_spectate_hint.visible = ghost
+	_ghost_hint.visible = ghost
 	_center_panel.visible = not t.is_empty()
 
 

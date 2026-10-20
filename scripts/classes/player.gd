@@ -8,6 +8,11 @@ extends Actor
 
 enum Life { ALIVE, DOWNED, GHOST }
 
+const LIVING_MASK := 1 | 4 | 8 | 16 | 32 | 64 | 128
+## #82: a ghost walks into walls (1), closed doors (16) and canals / movement blockers (128) only;
+## nothing collides with it (layer 0).
+const GHOST_MASK := 1 | 16 | 128
+
 const SLOT_ACTIONS := ["attack", "skill_1", "skill_2", "skill_3", "skill_4", "skill_5"]
 
 var peer_id := 1
@@ -28,7 +33,7 @@ var held_by := NodePath():  ## a boss holding this hero (the Amalgam's engulf, #
 		held_by = v
 		# Held inside the boss: no collision (it would shove the boss around), pinned to it.
 		collision_layer = 0 if not v.is_empty() else 2
-		collision_mask = 0 if not v.is_empty() else (1 | 4 | 8 | 16 | 32 | 64 | 128)
+		collision_mask = 0 if not v.is_empty() else LIVING_MASK
 		# Drawn over the boss, green and see-through (the Engulfed look), so the party sees who is held.
 		z_index = 1 if not v.is_empty() else 0
 var still_time := 0.0  ## host: seconds without moving
@@ -126,7 +131,7 @@ func setup(data: Dictionary) -> void:
 	radius = 8.0
 	skills = default_loadout()
 	collision_layer = 2
-	collision_mask = 1 | 4 | 8 | 16 | 32 | 64 | 128
+	collision_mask = LIVING_MASK
 	NetSync.make(self, "StateSync", [
 		"Health:hp", "Health:max_hp", "Health:absorb", "Resource:value", "Resource:max_value", "Resource:kind",
 		"Status:shown", "Stats:final", ".:life_state", ".:downed_left", ".:revive_progress", ".:level",
@@ -147,6 +152,7 @@ func _ready() -> void:
 		_host_init()
 	_apply_appearance()
 	_build_carried_torch()
+	_build_ghost_fx()
 	add_child(HeroMarker.new(self))
 	if is_local():
 		EventBus.local_player_spawned.emit(self)
@@ -518,13 +524,11 @@ func _process(delta: float) -> void:
 	if life_state != _seen_life:
 		_fall_left = sprite.anim_length("death") if sprite and life_state == Life.DOWNED and _seen_life == Life.ALIVE else 0.0
 		_seen_life = life_state
+		apply_ghost_body()
 	_fall_left -= delta
 	update_visuals(delta)
 	_update_carried_torch(delta)
-	if sprite:
-		sprite.visible = life_state != Life.GHOST or is_local()
-		if life_state == Life.GHOST:
-			sprite.modulate.a = 0.45
+	_update_ghost_fx(delta)
 	for k in local_cd.keys():
 		local_cd[k][0] -= delta
 		if local_cd[k][0] <= 0.0:
@@ -553,7 +557,7 @@ func _host_follow(delta: float) -> void:
 	if tp_seq < _tp_want:
 		return
 	var limit := move_speed() * float(GameData.bal("player.movement_tolerance")) * delta + 2.0
-	if _move_allowance > 0.0 or life_state == Life.GHOST:
+	if _move_allowance > 0.0:
 		limit = 2000.0 * delta + 40.0
 	if life_state == Life.DOWNED:
 		limit = 0.0
@@ -570,12 +574,13 @@ func _owner_tick(delta: float) -> void:
 	var blocked := input_blocked or get_tree().paused
 	var dir := Vector2.ZERO if blocked else InputSettings.move_vector()
 	_update_aim(dir)
+	if life_state == Life.GHOST:
+		_ghost_tick(dir)
+		return
 	if life_state != Life.ALIVE:
 		velocity = Vector2.ZERO
 		_dodge_left = 0.0
 		dash_sync = false
-		if life_state == Life.GHOST:
-			net_pos = position
 		return
 	var h := holder()
 	if h:
@@ -1019,7 +1024,10 @@ func request_dodge(dir: Vector2) -> void:
 
 @rpc("any_peer", "call_local", "reliable")
 func request_interact(target_path: NodePath) -> void:
-	if not _from_owner() or life_state != Life.ALIVE:
+	if not _from_owner() or life_state == Life.DOWNED:
+		return
+	# #82: a ghost only opens and closes doors.
+	if life_state == Life.GHOST and not ghost_can_use(get_node_or_null(target_path)):
 		return
 	var game := get_tree().get_first_node_in_group("game")
 	if game:
@@ -1172,7 +1180,7 @@ func request_reset_talents() -> void:
 ## five stat points. The reader opens only on the reader's screen.
 @rpc("any_peer", "call_local", "reliable")
 func request_read_book(index: int) -> void:
-	if not _from_owner() or index < 0 or index >= inv.backpack.size():
+	if not _from_owner() or index < 0 or index >= inv.backpack.size() or life_state == Life.GHOST:
 		return
 	var item: Dictionary = inv.backpack[index]
 	if item.get("kind", "") != "book":
@@ -1512,7 +1520,7 @@ func _host_life_tick(delta: float) -> void:
 	if downed_left <= 0.0:
 		life_state = Life.GHOST
 		downed_left = 0.0
-		collision_mask = 1
+		apply_ghost_body()
 		var game := get_tree().get_first_node_in_group("game")
 		if game:
 			game.on_player_ghosted(self)
@@ -1523,12 +1531,140 @@ func revive(hp_fraction: float) -> void:
 	downed_left = 0.0
 	revive_progress = 0.0
 	_reviver = null
-	collision_mask = 1 | 4 | 8 | 16 | 32 | 64 | 128
+	apply_ghost_body()
 	health.hp = maxf(1.0, health.max_hp * hp_fraction)
 	iframe_left = float(GameData.bal("player.respawn_invuln"))
 
 
 # --- Visual ------------------------------------------------------------------------------------
+
+
+# --- Ghost (#82) -----------------------------------------------------------------------------
+# A ghost walks the floor until the next one: it opens and closes doors and its map grows, but it
+# can't fight, use or take anything, nothing targets it and traps ignore it (it isn't targetable).
+# It glows with a soft blue light of its own that counts only for its own sight; the living see it
+# as a faint shimmering silhouette with a hint of that light.
+
+var _ghost_fx: Node2D
+var _ghost_light: PointLight2D
+var _ghost_wisps: CPUParticles2D
+var _ghost_halo: Sprite2D
+var _ghost_t := 0.0
+
+
+static func ghost_cfg(key: String) -> Variant:
+	return GameData.bal("ghost." + key)
+
+
+## Every peer: collisions follow the life state (the owner moves its ghost locally).
+func apply_ghost_body() -> void:
+	if not held_by.is_empty():
+		return
+	var ghost := life_state == Life.GHOST
+	collision_layer = 0 if ghost else 2
+	collision_mask = GHOST_MASK if ghost else LIVING_MASK
+
+
+## What a ghost may interact with: doors that open by hand (not the sealed merchant doors).
+func ghost_can_use(node: Node) -> bool:
+	return node != null and node.has_method("host_set_open") and not bool(node.get("sealed"))
+
+
+## Owner: a ghost walks (no dodge, no skills, no quick items); Interact only works doors.
+func _ghost_tick(dir: Vector2) -> void:
+	_dodge_left = 0.0
+	dash_sync = false
+	_knock = Vector2.ZERO
+	velocity = dir * stats.get_stat("move_speed", 100.0) * float(ghost_cfg("speed_mult"))
+	move_and_slide()
+	net_pos = position
+	_release_quick_holds()
+	_skill_hold.clear()
+	_charge_held.clear()
+	if not (input_blocked or get_tree().paused):
+		_handle_interact()
+
+
+func _build_ghost_fx() -> void:
+	_ghost_fx = Node2D.new()
+	_ghost_fx.name = "GhostFx"
+	add_child(_ghost_fx)
+	_ghost_light = PointLight2D.new()
+	LightLayers.setup_light(_ghost_light)
+	_ghost_light.texture = GameData.texture("fx.light")
+	_ghost_light.color = Color.from_string(str(ghost_cfg("light_color")), Color(0.45, 0.65, 1.0))
+	_ghost_light.shadow_enabled = true
+	_ghost_light.shadow_filter = Light2D.SHADOW_FILTER_PCF5
+	_ghost_light.shadow_filter_smooth = 2.0
+	LightLayers.register(_ghost_light, float(GameData.bal("lighting.carried_torch_radius")) * float(ghost_cfg("light_radius_mult")))
+	# Only for its own sight (Visibility); never lit for the rules (LightLayers.is_lit).
+	_ghost_light.set_meta("ghost_of", peer_id)
+	_ghost_fx.add_child(_ghost_light)
+	var add := CanvasItemMaterial.new()
+	add.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+	add.light_mode = CanvasItemMaterial.LIGHT_MODE_UNSHADED
+	# A soft glow around the body, behind it.
+	_ghost_halo = Sprite2D.new()
+	_ghost_halo.texture = GameData.texture("fx.light")
+	_ghost_halo.material = add
+	_ghost_halo.position = Vector2(0, -16)
+	_ghost_halo.scale = Vector2(0.22, 0.3)
+	_ghost_halo.z_index = -1
+	_ghost_halo.modulate = Color(0.45, 0.7, 1.4, 0.3)
+	_ghost_fx.add_child(_ghost_halo)
+	_ghost_wisps = CPUParticles2D.new()
+	_ghost_wisps.texture = GameData.texture("fx.light")
+	_ghost_wisps.amount = int(ghost_cfg("wisps"))
+	_ghost_wisps.lifetime = 1.8
+	_ghost_wisps.position = Vector2(0, -14)
+	_ghost_wisps.emission_shape = CPUParticles2D.EMISSION_SHAPE_SPHERE
+	_ghost_wisps.emission_sphere_radius = 9.0
+	_ghost_wisps.direction = Vector2(0, -1)
+	_ghost_wisps.spread = 40.0
+	_ghost_wisps.gravity = Vector2(0, -14)
+	_ghost_wisps.initial_velocity_min = 3.0
+	_ghost_wisps.initial_velocity_max = 9.0
+	_ghost_wisps.scale_amount_min = 0.018
+	_ghost_wisps.scale_amount_max = 0.04
+	var ramp := Gradient.new()
+	ramp.set_color(0, Color(0.7, 0.9, 1.6, 0.0))
+	ramp.add_point(0.25, Color(0.6, 0.85, 1.8, 0.9))
+	ramp.set_color(ramp.get_point_count() - 1, Color(0.4, 0.6, 1.4, 0.0))
+	_ghost_wisps.color_ramp = ramp
+	_ghost_wisps.material = add
+	_ghost_fx.add_child(_ghost_wisps)
+	_ghost_fx.visible = false
+
+
+## Every peer: the ghost's look. Its owner sees it clearly (a translucent blue body that glows,
+## bobbing gently, wisps drifting up, its light at full strength); everyone else sees it very
+## faintly, shimmering slowly, with a hint of its light.
+func _update_ghost_fx(delta: float) -> void:
+	var ghost := life_state == Life.GHOST
+	_ghost_fx.visible = ghost
+	if sprite == null:
+		return
+	if not ghost:
+		if _ghost_t > 0.0:
+			_shadow.modulate.a = 1.0
+		_ghost_t = 0.0
+		return  # update_visuals() owns the living look
+	_ghost_t += delta
+	var own := is_local()
+	var tint := Color.from_string(str(ghost_cfg("tint")), Color(0.6, 0.82, 1.0))
+	var glow := float(ghost_cfg("glow"))
+	var shimmer := 0.5 + 0.5 * sin(_ghost_t * float(ghost_cfg("shimmer_speed")))
+	var a := float(ghost_cfg("alpha_own" if own else "alpha_others"))
+	a *= 1.0 - float(ghost_cfg("shimmer_depth")) * shimmer
+	sprite.visible = true
+	sprite.modulate = Color(tint.r * glow, tint.g * glow, tint.b * glow, a)
+	sprite.position.y = sin(_ghost_t * float(ghost_cfg("bob_speed"))) * float(ghost_cfg("bob_px")) - float(ghost_cfg("hover_px"))
+	_ghost_light.energy = float(ghost_cfg("light_energy_own" if own else "light_energy_others")) * (0.9 + 0.1 * shimmer)
+	_ghost_wisps.modulate.a = 1.0 if own else float(ghost_cfg("wisps_alpha_others"))
+	_ghost_halo.modulate.a = (0.3 if own else 0.08) * (0.75 + 0.25 * shimmer)
+	_ghost_halo.position.y = -16.0 + sprite.position.y
+	# It hovers: hardly any shadow on the floor.
+	_shadow.modulate.a = 0.25 if own else 0.0
 
 
 # --- Carried torch ---------------------------------------------------------------------------
@@ -1548,7 +1684,8 @@ func host_take_torch() -> void:
 
 
 func _host_torch_tick(delta: float) -> void:
-	if torch_left <= 0.0:
+	# #82: a ghost's torch waits for it (paused until it lives again).
+	if torch_left <= 0.0 or life_state == Life.GHOST:
 		return
 	torch_left = maxf(torch_left - delta, 0.0)
 	var t := ceili(torch_left)

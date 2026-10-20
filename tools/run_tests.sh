@@ -185,6 +185,7 @@ if [ "$WHAT" = all ] || [ "$WHAT" = lan ]; then
 	pair smite-lan "--class=priest --name=HostSm --scenario=smite_lan --quit=60" "--class=warrior --name=ClientSm --quit=60"
 	pair stacks-lan "--class=warrior --name=HostSt --scenario=stacks_lan --quit=60" "--class=mage --name=ClientSt --quit=60"
 	pair resume-lan "--class=priest --name=HostRs --scenario=resume_lan --quit=120" "--class=ranger --name=ClientRs --quit=120"
+	group ghost-lan 2 "--class=warrior --name=HostGh --scenario=ghost_lan --quit=90" "--class=priest --quit=90"
 	group marker-lan 3 "--class=warrior --name=HostMk --scenario=marker_lan --quit=60" "--class=warrior --quit=60"
 	pair wipe "--class=ranger --name=HostWipe --scenario=wipe --quit=60" "--class=priest --name=ClientWipe --quit=60"
 fi

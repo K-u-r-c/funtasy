@@ -8,7 +8,8 @@ extends RefCounted
 ##
 ## Registry: every light that matters for gameplay (torches, carried torches, lava, spell
 ## lights, the local player's own small light) joins the "light_sources" group with a "radius"
-## meta in pixels. Darkness is a mechanic: monsters are only visible while they are lit
+## meta in pixels. A ghost's light (#82, meta "ghost_of" = its peer) counts only for that ghost's
+## own sight on its own screen, never for the rules. Darkness is a mechanic: monsters are only visible while they are lit
 ## (see Visibility).
 
 const LIT := 1  ## normal items: lit and shadowed
@@ -56,6 +57,8 @@ static func is_lit(tree: SceneTree, pos: Vector2, exclude_personal: bool = false
 	for l in tree.get_nodes_in_group(GROUP):
 		if exclude_personal and l.has_meta("personal"):
 			continue
+		if l.has_meta("ghost_of"):
+			continue  # #82: a ghost's light is for its own sight only
 		if l.is_visible_in_tree() and l.global_position.distance_to(pos) <= float(l.get_meta("radius", 0.0)):
 			return true
 	return false

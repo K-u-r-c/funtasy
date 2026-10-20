@@ -299,6 +299,8 @@ func _run() -> void:
 				await ResumeSuite.new(self).run_lan()
 			"marker_lan":
 				await MarkerSuite.new(self).run_lan()
+			"ghost_lan":
+				await GhostSuite.new(self).run_lan()
 			"teleport_lan":
 				await TeleportSuite.new(self).run_lan()
 			"lever_lan":
@@ -631,6 +633,8 @@ func client_cmd(cmd: String, arg: Variant) -> void:
 			await ResumeSuite.new(self).client_cmd(cmd, arg)
 		_ when cmd.begins_with("mk_"):
 			await MarkerSuite.new(self).client_cmd(cmd, arg)
+		_ when cmd.begins_with("gh_"):
+			await GhostSuite.new(self).client_cmd(cmd, arg)
 		_ when cmd.begins_with("tp_"):
 			await TeleportSuite.new(self).client_cmd(cmd, arg)
 		_ when cmd.begins_with("ia_"):

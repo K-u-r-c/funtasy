@@ -29,6 +29,25 @@
 		"max_sight": 600,
 		"fov_radius": 16
 	},
+	"ghost": {
+		"_comment": "#82: a ghost roams the floor until the next one. Light radius = lighting.carried_torch_radius x light_radius_mult; it counts only for the ghost's own sight. Alphas: the ghost's own view / the living's view.",
+		"speed_mult": 1.0,
+		"light_radius_mult": 0.95,
+		"light_color": "#5f9dff",
+		"light_energy_own": 1.0,
+		"light_energy_others": 0.22,
+		"tint": "#9ccaff",
+		"glow": 1.35,
+		"alpha_own": 0.72,
+		"alpha_others": 0.17,
+		"shimmer_speed": 1.7,
+		"shimmer_depth": 0.35,
+		"bob_px": 1.5,
+		"bob_speed": 2.3,
+		"hover_px": 2.0,
+		"wisps": 10,
+		"wisps_alpha_others": 0.25
+	},
 	"lighting": {
 		"_comment": "Darkness is a mechanic: monsters are only visible while lit. Radii are lit areas in px.",
 		"personal_light_radius": 75,

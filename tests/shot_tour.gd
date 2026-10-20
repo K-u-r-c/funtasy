@@ -1318,3 +1318,36 @@ func _frame() -> Image:
 	await da.get_tree().process_frame
 	await RenderingServer.frame_post_draw
 	return da.get_viewport().get_texture().get_image()
+
+
+## #82: the ghost as its owner sees it (roaming with its own blue light) in a dark room and next
+## to a closed door. Solo: the hero is turned into a ghost directly (a real death would wipe a
+## party of one); the living teammate's view is reviewed with the ghost-lan pair (--shot).
+func _ghost(_arg: String) -> void:
+	for e in g.enemies_root.get_children():
+		e.queue_free()
+	p.iframe_left = 9999.0
+	p.torch_left = 0.0
+	p.torch_sync = 0
+	p.life_state = Player.Life.GHOST
+	p.apply_ghost_body()
+	await da._wait(1.0)
+	var fid: String = g.floor_type_for(g.depth)
+	await snap("ghost_%s_start_%s" % [fid, Settings.language])
+	# A dark spot away from torches.
+	var spot := Vector2.ZERO
+	var best := 0.0
+	for room in g.layout.rooms:
+		var c: Vector2 = g.dungeon.cell_center(room.rect.get_center())
+		var far := INF
+		for t in g.dungeon.torches.values():
+			far = minf(far, t.global_position.distance_to(c))
+		if far > best:
+			best = far
+			spot = c
+	p.host_teleport(g.nearest_floor(spot))
+	await da._wait(1.2)
+	await snap("ghost_%s_dark_%s" % [fid, Settings.language])
+	for i in 6:
+		await da._wait(0.25)
+		await snap("ghost_%s_dark_frame%d_%s" % [fid, i, Settings.language])
