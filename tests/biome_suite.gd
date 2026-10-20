@@ -26,7 +26,26 @@ func run(biome: String = "") -> void:
 			check_layouts(str(id))
 			leaf_rules(str(id), 150 if not biome.is_empty() else 100)
 			depth_growth(str(id))
+			party_counts(str(id))
 	await check_live_floor()
+
+
+## #68: a party of four meets only a few more monsters per room than a lone hero (the count
+## multiplier Game.start_floor passes the generator; HP and damage scale per player).
+func party_counts(fid: String) -> void:
+	var fd: Dictionary = GameData.floor_types[fid]
+	var per := float(GameData.bal("scaling.count_per_extra_player"))
+	var avg := {}
+	for n in [1, 4]:
+		var total := 0
+		var rooms := 0
+		for i in 8:
+			var lay: Dictionary = DungeonGenerator.new().generate(777 + i * 7919, fd, 1.0 + per * (n - 1), 3)
+			for grp in lay.spawns:
+				total += grp.monsters.size()
+				rooms += 1
+		avg[n] = float(total) / maxf(rooms, 1.0)
+	da.check(avg[4] - avg[1] <= 1.0 and avg[4] >= avg[1], "%s: 4 heroes meet %.1f monsters per room, a lone hero %.1f" % [fid, avg[4], avg[1]])
 
 
 ## #58: deeper floors are a little bigger. Over several seeds per depth: the room count and the

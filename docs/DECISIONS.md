@@ -1095,3 +1095,10 @@ Tree shapes ("A > B": B grows from A; {x / y}: branches; (x): a fork side; [n]: 
 | Click | With a primary attack that can land on teammates (an `aim_ally` / `aim_any` effect, `Player.primary_helps_allies`), a left click on a teammate picks them (#39) and casts on them in the same click; it no longer toggles the pick off. Other primaries keep #39 / #40 (a click on a teammate only picks). |
 | Effect | `CombatFx` kind "smite": a 1 px thread of light from the hand (gone in 0.12 s), a thin ray falling onto the target from 54 px above, tapering and brightest at the bottom, a small rune opening and turning at the target's feet, three motes and a small short light - gold on enemies, soft green on allies, all gone in about a third of a second. |
 | Tests | `smite-lan` (priest host + client): no damage to an enemy and no heal to the ally behind a wall; in the open it hurts an enemy for +1.5 Mana and heals the ally by no more than the nerfed card amount; a click on the ally with Smite on the left button picks and heals them. Review: the same scenario with a windowed host and `--shot` saves the effect at three moments on an enemy and on the ally. |
+
+### #68 Fewer extra monsters in a big party
+
+| Topic | Decision |
+| --- | --- |
+| Count | `scaling.count_per_extra_player` 0.08 (was 0.3): a party of four meets x1.24 the monsters per room (about 3.7 instead of 5.7 with the biomes' 2-4); HP (+60% per extra player), damage (+12%) and boss HP scaling are unchanged, so each fight stays as hard per hero but shorter. Kill XP's party share uses the same value, so each hero's XP per floor follows the smaller count. |
+| Tests | `biomes`: over 8 seeds per biome, 4 heroes meet 3.0-3.7 monsters per ordinary room against 2.5-3.1 for a lone hero (at most one more). |

@@ -153,6 +153,7 @@ screenshot review at 1920x1080 and 3440x1440.
 ## Seventh playtest issues (GitHub #61-#62)
 
 - [x] #61 Split item stacks: drop or split off part of a stack through an amount picker, host-checked (`stacks`, `stacks-lan`)
+- [x] #68 Fewer extra monsters per room in a big party: x1.24 with four heroes instead of x1.9 (`biomes`)
 - [x] #67 Priest Smite: no casting through walls, nerfed heal and mana, a click on an ally picks and casts, a restrained light-ray effect (`smite-lan`)
 - [x] #66 Every remaining English text translated; extractor finds the keys it missed; `pl-sweep` reads back cards, screens, hover texts and messages in Polish
 - [x] #65 Rarer drops deeper, very slowly (Rare+ 14% -> 27% by floor 50); random Relics fixed at ~0.3%; named legendaries rare at any depth, bosses 18% (`loot-rarity`)
