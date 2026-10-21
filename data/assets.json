@@ -163,6 +163,10 @@
 			"floor": [[0, 0], [1, 0], [2, 0], [3, 0]], "wall_top": [0, 1], "wall_face": [[1, 1], [2, 1]], "lava": [3, 1]}
 	},
 	"props": {
+		"wall_bone_spears": "res://assets/sprites/pixellab/props/wall_bone_spears.png",
+		"wall_briar": "res://assets/sprites/pixellab/props/wall_briar.png",
+		"wall_thorns": "res://assets/sprites/pixellab/props/wall_thorns.png",
+		"wall_stakes": "res://assets/sprites/pixellab/props/wall_stakes.png",
 		"root_snare": "res://assets/sprites/pixellab/props/root_snare.png",
 		"weeping_root": "res://assets/sprites/pixellab/props/weeping_root.png",
 		"thorn_bush": "res://assets/sprites/pixellab/props/thorn_bush.png",

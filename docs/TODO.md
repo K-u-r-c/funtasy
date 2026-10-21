@@ -167,6 +167,7 @@ screenshot review at 1920x1080 and 3440x1440.
 - [x] #93 Archibald sells 10 pieces a floor (Uncommon to Relic by weight, item level +0-2, mostly for the party's classes) and more potions (`economy`)
 - [x] #94 Merchants mark what is bought: greyed, stamped (Sold / Signed / Bought), unpressable, last; the purchase stamps its row and flies the item to the backpack (`economy`, `economy-lan`)
 - [x] #95 Malphas offers 5 contracts and 2 seeded pact potions a floor, each potion once per hero (`economy`, `economy-lan`)
+- [x] #98 Summoned walls (stakes, thorns, briar, bone spears) fall to one hero hit (swing, shot, thrust, area); cover and flames stand; new PixelLab art with variants, a rise and a splinter break (`walls`, `walls-lan`)
 - [x] #99 The freed prisoner follows its rescuer, fights the monsters around it with its class's abilities, opens doors, catches up when left behind or stuck, never blocks a hero (`events`, `events-lan`)
 - [x] #100 Will-o'-the-Blight: the detonation deals 40% of the drained pool, at most 30% of the hero's health (was the whole pool) (`monsters`)
 
@@ -316,6 +317,14 @@ gameplay effects (#81) from shaders, particles and the free vfx workbench; re-ro
 | 2026-10-21 | #78 NPC bubbles: drawn in code, no generations | 4378 | 4378 | 0 | 48 |
 | 2026-10-21 | #76 the Ownerless Book: 1 Pixen 32x32 icon, 1 Pixen 96x96 open-book cover | 4378 | 4380 | 2 | 50 |
 | 2026-10-21 | #74 deep variants: the aura shader, halo and warnings drawn in code, no generations | 4380 | 4380 | 0 | 50 |
+
+Ninth playtest goal (#83-#100), start 2026-10-21: **used 4380, remaining 426**, resets 2026-11-14.
+Goal cap: 40 generations (only #98's wall art and, if needed, #91's light; everything else in code).
+
+| Date | Batch | Used before | Used after | Spend | Goal spend |
+| --- | --- | --- | --- | --- | --- |
+| 2026-10-21 | (goal start; #91's forge light is a shader, no generations) | 4380 | 4380 | 0 | 0 |
+| 2026-10-21 | #98 wall art: 4 Pixen 32x32 (stakes, thorns, briar, bone spears; rejected: isometric tiles with grass bases), 4 Pixen 32x48 side views (kept; the bone spears desaturated in code) | 4380 | 4388 | 8 | 8 |
 
 ## Done (MVP)
 

@@ -488,6 +488,7 @@ func add_obstacle(id: int, kind: String, cell_list: Array, lifetime: float, bloc
 	var def: Dictionary = GameData.obstacles.get(kind, {})
 	var body := StaticBody2D.new()
 	body.name = "Obstacle_%d" % id
+	body.y_sort_enabled = true  # its cells' art sorts with the actors by their own feet
 	body.collision_layer = 64 if blocks == "all" else (128 if blocks == "movement" else 0)
 	body.collision_mask = 0
 	var color := Color.from_string(str(def.get("color", "#555555")), Color.GRAY)
@@ -498,11 +499,23 @@ func add_obstacle(id: int, kind: String, cell_list: Array, lifetime: float, bloc
 		cs.shape = rect
 		cs.position = cell_center(c)
 		body.add_child(cs)
-		if def.has("sprite") and GameData.asset_exists(str(def.sprite)):
+		# #98: drawn walls pick a variant per cell (and a mirror), and rise out of the ground.
+		var keys: Array = def.get("sprites", [def.sprite] if def.has("sprite") else [])
+		keys = keys.filter(func(k): return GameData.asset_exists(str(k)))
+		if not keys.is_empty():
+			var hsh: int = absi(hash([c.x, c.y, id]))
 			var s := Sprite2D.new()
-			s.texture = GameData.texture(str(def.sprite))
-			s.position = cell_center(c) + Vector2(0, -6)
+			s.texture = GameData.texture(str(keys[hsh % keys.size()]))
+			s.flip_h = (hsh >> 3) % 2 == 1
+			# Standing on the cell's lower edge and sorted with the heroes by that foot.
+			s.offset = Vector2(0, -s.texture.get_height() / 2.0)
+			var at := cell_center(c) + Vector2(0, tile * 0.4)
+			s.position = at + Vector2(0, 10)
+			s.modulate.a = 0.0
 			body.add_child(s)
+			var tw := s.create_tween().set_parallel(true)
+			tw.tween_property(s, "position", at, 0.22).set_delay(float(hsh % 5) * 0.03).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tw.tween_property(s, "modulate:a", 1.0, 0.12).set_delay(float(hsh % 5) * 0.03)
 		else:
 			body.add_child(_obstacle_placeholder(str(def.get("style", "spikes")), color, cell_center(c)))
 		if blocks != "none" and astar.is_in_boundsv(c):
@@ -521,7 +534,7 @@ func add_obstacle(id: int, kind: String, cell_list: Array, lifetime: float, bloc
 		body.add_child(l)
 	if entities:
 		entities.add_child(body)
-	obstacles[id] = {"node": body, "cells": cell_list, "blocks": blocks, "kind": kind}
+	obstacles[id] = {"node": body, "cells": cell_list, "blocks": blocks, "kind": kind, "breakable": bool(def.get("breakable", false))}
 	if lifetime > 0.0:
 		get_tree().create_timer(lifetime).timeout.connect(remove_obstacle.bind(id))
 
@@ -585,6 +598,58 @@ static func _ellipse(rx: float, ry: float, n: int) -> PackedVector2Array:
 	for i in n:
 		out.append(Vector2(cos(TAU * i / n) * rx, sin(TAU * i / n) * ry))
 	return out
+
+
+## #98: the breakable walls (a hero's hit brings one down) with a cell within `r` px of `pos`:
+## [[id, cell centre], ...], nearest cell per wall.
+func breakable_near(pos: Vector2, r: float) -> Array:
+	var out: Array = []
+	for id in obstacles:
+		var o: Dictionary = obstacles[id]
+		if not o.get("breakable", false):
+			continue
+		var best := Vector2.INF
+		for c in o.cells:
+			var cc := cell_center(c)
+			if cc.distance_to(pos) <= r + tile * 0.5 and cc.distance_to(pos) < best.distance_to(pos):
+				best = cc
+		if best != Vector2.INF:
+			out.append([id, best])
+	return out
+
+
+## #98, host -> all (reliable): a hero's hit brings the wall down: splinters fly from every cell,
+## a crack sounds and the cells are free again.
+@rpc("authority", "call_local", "reliable")
+func break_obstacle(id: int) -> void:
+	var o: Dictionary = obstacles.get(id, {})
+	if o.is_empty():
+		return
+	var def: Dictionary = GameData.obstacles.get(str(o.kind), {})
+	var col := Color.from_string(str(def.get("color", "#6b4a2a")), Color.SADDLE_BROWN)
+	for c in o.cells:
+		var p := CPUParticles2D.new()
+		p.texture = GameData.texture("fx.pixel")
+		p.one_shot = true
+		p.explosiveness = 0.9
+		p.amount = 10
+		p.lifetime = 0.6
+		p.direction = Vector2.UP
+		p.spread = 70.0
+		p.gravity = Vector2(0, 260)
+		p.initial_velocity_min = 50.0
+		p.initial_velocity_max = 110.0
+		p.scale_amount_min = 1.5
+		p.scale_amount_max = 2.5
+		p.color = col.lightened(0.15)
+		p.position = cell_center(c) + Vector2(0, -8)
+		if entities:
+			entities.add_child(p)
+			p.emitting = true
+			p.finished.connect(p.queue_free)
+	if not o.cells.is_empty():
+		AudioManager.play_sfx_at("break", cell_center(o.cells[0]))
+	remove_obstacle(id)
 
 
 func remove_obstacle(id: int) -> void:

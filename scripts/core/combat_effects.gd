@@ -9,6 +9,7 @@ var projectiles: Dictionary = {}
 var zones: Dictionary = {}
 var delayed: Array = []
 var tethers: Dictionary = {}
+var walls_broken := 0  ## #98: breakable walls brought down by heroes (tests)
 var last_dealt := 0.0  ## damage of the last hit_target (on_hit effects can scale with it)
 var _next_id := 1
 
@@ -476,6 +477,7 @@ func _melee(eff: Dictionary, ctx: Dictionary, origin: Vector2, dir: Vector2) -> 
 				var near: Vector2 = Vector2(clampf(origin.x, d.world_rect.position.x, d.world_rect.end.x), clampf(origin.y, d.world_rect.position.y, d.world_rect.end.y))
 				if near.distance_to(origin) <= reach and (near.distance_to(origin) < 10.0 or absf(dir.angle_to(dc - origin)) <= half_arc):
 					d.host_set_open(true)
+		break_walls(ctx, origin, reach, dir, half_arc)
 	fx.melee.rpc(origin, dir, reach, rad_to_deg(half_arc * 2.0), str(eff.get("fx", "slash")))
 
 
@@ -528,6 +530,7 @@ func apply_aoe(eff: Dictionary, ctx: Dictionary, center: Vector2) -> void:
 	if eff.has("damage") and game:
 		for p in game.dungeon.props_in_radius(center, r):
 			p.take_damage(value_of_spec(eff.damage, ctx), ctx)
+		break_walls(ctx, center, r)
 	if eff.get("destroys_projectiles", false):
 		destroy_projectiles_in(ctx, center, Vector2.RIGHT, r, 360.0)
 	fx.ring.rpc(center, r, str(eff.get("color", "#ffffff")), str(eff.get("fx", "")), fx_element(eff, ctx))
@@ -553,7 +556,42 @@ func _line(eff: Dictionary, ctx: Dictionary, origin: Vector2, dir: Vector2) -> v
 			c = ctx.duplicate()
 			c.damage_mult = float(ctx.damage_mult) * float(eff.wall_bonus)
 		hit_target(t, eff, c, false)
+	if eff.has("damage"):
+		break_walls_on(ctx, origin, end)
 	fx.beam.rpc(origin, end, str(eff.get("color", "#ffffff")), float(eff.get("fx_time", 0.15)), str(eff.get("fx", "thrust")))
+
+
+## #98: a hero's hit brings down every breakable wall (stakes, thorns, briar, bone spears) with a
+## cell within `r` px of `pos` (and inside the swing's arc around `dir`): one hit each. Returns how
+## many fell.
+func break_walls(ctx: Dictionary, pos: Vector2, r: float, dir := Vector2.ZERO, half_arc := PI) -> int:
+	if game == null or ctx.get("team") != Actor.Team.PLAYERS:
+		return 0
+	var n := 0
+	for w in game.dungeon.breakable_near(pos, r):
+		var to: Vector2 = w[1] - pos
+		if dir == Vector2.ZERO or to.length() < game.dungeon.tile or absf(dir.angle_to(to)) <= half_arc + 0.35:
+			game.dungeon.break_obstacle.rpc(int(w[0]))
+			n += 1
+	walls_broken += n
+	return n
+
+
+## #98: the same along a segment (thrusts, beams, shots): the first wall on it falls. Returns the
+## point where the segment met it, or Vector2.INF.
+func break_walls_on(ctx: Dictionary, a: Vector2, b: Vector2) -> Vector2:
+	if game == null or ctx.get("team") != Actor.Team.PLAYERS or game.dungeon.obstacles.is_empty():
+		return Vector2.INF
+	var len := a.distance_to(b)
+	var steps := maxi(1, int(len / 8.0))
+	for i in steps + 1:
+		var pt := a.lerp(b, float(i) / steps)
+		var hit: Array = game.dungeon.breakable_near(pt, 0.0)
+		if not hit.is_empty():
+			game.dungeon.break_obstacle.rpc(int(hit[0][0]))
+			walls_broken += 1
+			return pt
+	return Vector2.INF
 
 
 func _actors_on_segment(ctx: Dictionary, a: Vector2, b: Vector2, width: float) -> Array:
@@ -824,7 +862,10 @@ func _step_projectiles(delta: float) -> void:
 			if p.left <= 0.0:
 				_end_projectile(id, p.land)
 			continue
-		if space and not eff.get("through_walls", false):
+		# #98: a hero's shot brings down the first breakable wall in its way and stops there.
+		if p.ctx.get("team") == Actor.Team.PLAYERS and not eff.get("through_walls", false):
+			end_at = break_walls_on(p.ctx, p.pos, to)
+		if end_at == Vector2.INF and space and not eff.get("through_walls", false):
 			var q := PhysicsRayQueryParameters2D.create(p.pos, to, PROJECTILE_MASK)
 			var hit := space.intersect_ray(q)
 			if not hit.is_empty():

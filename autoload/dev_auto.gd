@@ -357,6 +357,10 @@ func _run() -> void:
 				await AimSuite.new(self).run()
 			"ui_stable":
 				await UiStableSuite.new(self).run()
+			"walls":
+				await WallSuite.new(self).run()
+			"walls_lan":
+				await WallSuite.new(self).run_lan()
 			"aim_lan":
 				await AimSuite.new(self).run_lan()
 			"tooltips":
@@ -665,6 +669,8 @@ func client_cmd(cmd: String, arg: Variant) -> void:
 			await SkillSuite.new(self).client_cmd(cmd, arg)
 		_ when cmd.begins_with("fx_"):
 			await FxSuite.new(self).client_cmd(cmd, arg)
+		_ when cmd.begins_with("wl_"):
+			await WallSuite.new(self).client_cmd(cmd, arg)
 		_ when cmd.begins_with("aim_"):
 			await AimSuite.new(self).client_cmd(cmd, arg)
 		_ when cmd.begins_with("tg_"):

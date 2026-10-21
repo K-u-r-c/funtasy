@@ -1,5 +1,5 @@
 {
-	"_comment": "Dynamic terrain kinds (D30). `sprite` (optional) is an asset key drawn per cell; otherwise the cell is drawn as a tinted block.",
+	"_comment": "Dynamic terrain kinds (D30). `sprites` (variants, picked per cell) or `sprite` (optional) are asset keys drawn per cell; otherwise the cell is drawn as a tinted block. #98: `breakable` walls fall to one hero hit (melee, shot, area, thrust); cover (lid, ingot) and flames are not breakable.",
 	"fire_wall": {
 		"name": "Wall of Fire",
 		"color": "#ff6a1a",
@@ -7,11 +7,15 @@
 		"style": "flames"
 	},
 	"thorns": {
+		"breakable": true,
+		"sprites": ["props.wall_thorns"],
 		"name": "Living Thorns",
 		"color": "#3b5a2a",
 		"style": "spikes"
 	},
 	"stakes": {
+		"breakable": true,
+		"sprites": ["props.wall_stakes"],
 		"name": "Wooden Stakes",
 		"color": "#6b4a2a",
 		"style": "spikes"
@@ -30,6 +34,8 @@
 		"sprite": "props.ingot"
 	},
 	"bone_spears": {
+		"breakable": true,
+		"sprites": ["props.wall_bone_spears"],
 		"name": "Bone Spears",
 		"color": "#d8d0b8",
 		"style": "spikes"
@@ -41,6 +47,8 @@
 		"style": "flames"
 	},
 	"briar": {
+		"breakable": true,
+		"sprites": ["props.wall_briar"],
 		"name": "Creeping Briar",
 		"color": "#2a3a1a",
 		"style": "spikes"
