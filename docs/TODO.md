@@ -160,6 +160,7 @@ screenshot review at 1920x1080 and 3440x1440.
 - [x] #89 Forging is clicked through: forging again ends the running animation at once; the animation is 1.7 s instead of 3 (`forge`)
 - [x] #90 The forge list only selects (hover previews); the Forge button upgrades the selected piece; accept on a row moves to the button (`forge`)
 - [x] #91 The forge window never moves during or after an upgrade; no upgrade message; a warm light sweeps the card (pixel-stepped shader) with rising motes (`forge`)
+- [x] #92 Forging costs 1.5x (base 15); a legendary kept current takes 63-93% of a hero's floor gold (`forge`)
 
 ## Eighth playtest issues (GitHub #70-#82)
 

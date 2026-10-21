@@ -2,7 +2,7 @@
 	"_comment": "Merchant room (GDD 5, #6): one merchant per floor, a seeded pick weighted by floor_pick. Archibald's stock rules; Malphas's tithe options and contract pool. Prices in balance.merchant.",
 	"floor_pick": {"archibald": 4, "malphas": 1},
 	"blacksmith": {
-		"_comment": "#77 Rolf Hult's forge: a sealed leaf chamber on floor_chance of the floors (seeded). layout: cell offsets from the room centre ('wall': from its top row) plus a pixel nudge for each piece; pieces: the prop type of each. upgrade: one step raises an item's level by 'step' up to min(hero level, floor item level + cap_above_floor); gold per step = base x rarity_mult[rarity - 1] x (1 + per_level x (ilvl - 1))^level_exponent x the item's quality x party_price[heroes - 1] (gold piles are split between the heroes; checked against a floor's gold by BalanceSuite.forge_probe). anim: the smith's idle, frame times in seconds.",
+		"_comment": "#77 Rolf Hult's forge: a sealed leaf chamber on floor_chance of the floors (seeded). layout: cell offsets from the room centre ('wall': from its top row) plus a pixel nudge for each piece; pieces: the prop type of each. upgrade: one step raises an item's level by 'step' up to min(hero level, floor item level + cap_above_floor); gold per step (#92: base 15, was 10) = base x rarity_mult[rarity - 1] x (1 + per_level x (ilvl - 1))^level_exponent x the item's quality x party_price[heroes - 1] (gold piles are split between the heroes; checked against a floor's gold by BalanceSuite.forge_probe). anim: the smith's idle, frame times in seconds.",
 		"name": "Rolf Hult",
 		"title": "Ironhand of the Galt Works",
 		"floor_chance": 0.5,
@@ -20,7 +20,7 @@
 		"upgrade": {
 			"step": 1,
 			"cap_above_floor": 0,
-			"base": 10,
+			"base": 15,
 			"rarity_mult": [0.4, 0.7, 1.1, 1.8, 2.6],
 			"per_level": 0.2,
 			"level_exponent": 1.0,

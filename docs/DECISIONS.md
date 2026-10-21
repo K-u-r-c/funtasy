@@ -1333,3 +1333,11 @@ Tree shapes ("A > B": B grows from A; {x / y}: branches; (x): a fork side; [n]: 
 | Cause | The "<item> forged to item level N for N gold" message went to the window's footer and widened the window, and the card rebuilt after the forging stacked the old and the new numbers for one frame (fixed for every card by #85). |
 | Rule | No message. When the piece comes back (or the animation is cut short, #89) a warm light sweeps diagonally across the card, its rim glows and fades and gold motes rise from it (`assets/shaders/forge_shine.gdshader`, additive, stepped in 2 px blocks and five levels to sit with the pixel art; 0.75 s), next to the raised numbers' flash. The light is drawn over the card and takes no room. The reason line under the card keeps two lines' height so it never moves the card. |
 | Tests | `forge`: from the press to after the light the window, the card, the list and the anvil keep their rects on every frame; no upgrade message; the light plays once and goes. |
+
+### #92 Forging costs 50% more
+
+| Topic | Decision |
+| --- | --- |
+| Rule | `merchants.json blacksmith.upgrade.base` 10 -> 15: every step of every item costs 1.5x what it did (same rarity, level, quality and party factors). |
+| Probe | Keeping a legendary current now takes 63-66% of a solo hero's floor gold on floors 2-6 (was 43-44%) and 89-93% in a party of four (was 61%); the probe band `probe.forge_legendary_share` moves from [0.1, 0.65] to [0.15, 1.0]: a real gold sink that still fits a floor's income. |
+| Tests | `forge`: every rarity at levels 1, 5, 12 and 25 costs 1.5x the old price (+-1 for rounding); the probe band. |

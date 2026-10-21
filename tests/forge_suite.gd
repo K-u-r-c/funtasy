@@ -265,6 +265,16 @@ func host_upgrades() -> void:
 		var it := ItemGenerator.generate_equipment("plate_helm", 5, r, RandomNumberGenerator.new()) if r < 5 else ItemGenerator.make_legendary("crown_blood_chieftain", 5, RandomNumberGenerator.new())
 		it.erase("quality_mult")
 		cost_r.append(Forge.cost(it))
+	# #92: every step costs 1.5x the old price (base 10 -> 15), for every rarity and level.
+	var off: Array = []
+	for r in range(1, 6):
+		for lv in [1, 5, 12, 25]:
+			var it2 := ItemGenerator.generate_equipment("plate_helm", lv, r, RandomNumberGenerator.new())
+			var rm: Array = Forge.cfg("rarity_mult")
+			var old := 10.0 * float(rm[r - 1]) * pow(1.0 + float(Forge.cfg("per_level")) * (lv - 1), float(Forge.cfg("level_exponent"))) * float(it2.get("quality_mult", 1.0))
+			if absi(Forge.cost(it2) - roundi(old * 1.5)) > 1:
+				off.append("r%d L%d %d vs %.0f" % [r, lv, Forge.cost(it2), old])
+	da.check(off.is_empty(), "forging costs 1.5x the old price (%s)" % [off])
 	var rising := true
 	for i in range(1, cost_r.size()):
 		rising = rising and cost_r[i] > cost_r[i - 1]
