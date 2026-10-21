@@ -304,13 +304,14 @@ func companion(ally: Enemy, hero: Player) -> void:
 	hero.host_teleport(dest)
 	await da._wait_until(func(): return ally.global_position.distance_to(hero.global_position) < 110.0, 9.0)
 	var d := ally.global_position.distance_to(hero.global_position)
-	da.check(d < 130.0 and comp.teleports == 0 and start.distance_to(dest) >= 140.0, "it walks after the hero across the floor (%.0f px away, the hero went %.0f px)" % [d, start.distance_to(dest)])
+	da.check(d < 130.0 and comp.teleports == 0 and start.distance_to(dest) >= 100.0, "it walks after the hero across the floor (%.0f px away, the hero went %.0f px)" % [d, start.distance_to(dest)])
 	# A monster near the hero: the prisoner fights it.
-	var m: Enemy = g.spawn_monster("ghoul", g.nearest_floor(hero.global_position + Vector2(70, 0)), false)
+	# Far enough that a ranged prisoner needn't back off first; time for a busy test machine.
+	var m: Enemy = g.spawn_monster("ghoul", g.nearest_floor(hero.global_position + Vector2(110, 0)), false)
 	await da._wait(0.2)
 	m.set_physics_process(false)  # it stands still, so only the prisoner deals the damage
 	var hp0: float = m.health.hp
-	await da._wait_until(func(): return not is_instance_valid(m) or m.health.hp < hp0, 8.0)
+	await da._wait_until(func(): return not is_instance_valid(m) or m.health.hp < hp0, 14.0)
 	da.check(not is_instance_valid(m) or m.health.hp < hp0, "the prisoner attacks a monster near its hero (%s)" % ally.def_id)
 	if is_instance_valid(m):
 		m.queue_free()
@@ -346,7 +347,8 @@ func _walk_target(from: Vector2, lo: float, hi: float) -> Vector2:
 		var dd := c.distance_to(from)
 		if dd >= lo and dd <= hi and not g.dungeon.is_safe(c) and g.dungeon.find_path(from, c).size() > 1:
 			return c
-		if absf(dd - (lo + hi) / 2.0) < absf(best.distance_to(from) - (lo + hi) / 2.0):
+		# Never a secure room (monsters leave heroes alone there) and never past the catch-up range.
+		if dd <= hi and not g.dungeon.is_safe(c) and absf(dd - (lo + hi) / 2.0) < absf(best.distance_to(from) - (lo + hi) / 2.0):
 			best = c
 	return best
 

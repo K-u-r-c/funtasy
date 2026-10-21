@@ -88,7 +88,8 @@ func move_override(delta: float) -> Vector2:
 
 
 func _track_stuck(delta: float, moving: bool) -> void:
-	if not moving:
+	# Casting, stunned or rooted is standing still on purpose, not being stuck.
+	if not moving or not enemy.casting.is_empty() or not enemy.can_act() or enemy.status.has_flag("rooted"):
 		_stuck = 0.0
 		_last_pos = enemy.global_position
 		return
