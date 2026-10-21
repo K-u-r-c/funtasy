@@ -147,15 +147,15 @@ func _open_ui() -> void:
 
 
 @rpc("authority", "call_local", "reliable")
-func _forged(peer: int, before: Dictionary, after: Dictionary, price: int) -> void:
+func _forged(peer: int, before: Dictionary, after: Dictionary, _price: int) -> void:
 	var smith: Node = game.dungeon.props.get("Forge_npc") if game and game.dungeon else null
 	if smith and is_instance_valid(smith):
 		var anim: Node = smith.get_node_or_null("NpcAnim")
 		if anim and anim.has_method("work_piece"):
 			anim.work_piece()
 	if peer == multiplayer.get_unique_id():
+		# #91: no message - the window's card shows the result with its light.
 		forged.emit(before, after)
-		EventBus.hud_message.emit(Loc.f("%s forged to item level %d for %d gold", [Loc.item_name(after), int(after.ilvl), price]), Color("ffb060"))
 
 
 @rpc("authority", "call_local", "reliable")

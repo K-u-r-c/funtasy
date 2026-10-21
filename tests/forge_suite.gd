@@ -365,6 +365,22 @@ func window() -> void:
 	da.check(panel._button.has_focus(), "with a gamepad, accept on a row moves on to the Forge button")
 	InputSettings.last_kind = kind0
 	var lvl0 := int(cheap_row.item.ilvl)
+	# #91: from the press until the light is gone the window, the card and the list keep their
+	# rects on every frame; no "forged" message; the card's light plays.
+	var msgs: Array = []
+	var on_msg := func(t: String, _c: Color): msgs.append(t)
+	EventBus.hud_message.connect(on_msg)
+	var watch := [panel.window, panel._card_panel, panel._list.get_parent(), panel.stage]
+	var rects0: Array = watch.map(func(c): return c.get_global_rect())
+	var jumps: Array = []
+	var shines0: int = panel.shines
+	var lit := [false]  # an array: a lambda can't assign a captured local
+	var sampler := func():
+		for i in watch.size():
+			if not watch[i].get_global_rect().is_equal_approx(rects0[i]):
+				jumps.append("%s %s -> %s" % [watch[i].name, rects0[i], watch[i].get_global_rect()])
+		lit[0] = lit[0] or panel._shine.visible
+	da.get_tree().process_frame.connect(sampler)
 	panel._button.pressed.emit()
 	await da._wait_until(func(): return panel.stage.phase == "strike", 2.0)
 	da.check(panel.stage.phase == "strike", "forging: the hammer strikes on the anvil")
@@ -378,6 +394,12 @@ func window() -> void:
 		if it.uid == cheap_row.item.uid:
 			now = it
 	da.check(int(now.get("ilvl", 0)) == lvl0 + 1, "the gloves came back one level higher")
+	await da._wait(0.9)
+	da.get_tree().process_frame.disconnect(sampler)
+	EventBus.hud_message.disconnect(on_msg)
+	da.check(jumps.is_empty(), "the window, the card and the list never move during the forging and after it (%s)" % [jumps.slice(0, 2)])
+	da.check(msgs.is_empty(), "no text message about the upgrade (%s)" % [msgs])
+	da.check(panel.shines == shines0 + 1 and lit[0] and not panel._shine.visible, "a light sweeps the card once the piece is back, then goes")
 	# #89: clicking through: Forge again while the anvil works ends its animation at once and the
 	# next step goes out; each step is paid once.
 	var gold0 := p.gold

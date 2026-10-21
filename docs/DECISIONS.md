@@ -1325,3 +1325,11 @@ Tree shapes ("A > B": B grows from A; {x / y}: branches; (x): a fork side; [n]: 
 | --- | --- |
 | Rule | A click, focus or accept on a gear row only selects it (its card stays); hovering another row previews that card only while hovered. Only the Forge button upgrades, always the selected piece; its state and reason follow the selected piece, not the previewed one. With a keyboard or a gamepad, accept on a row moves the focus on to the Forge button. The footer prompt for accept reads Select. |
 | Tests | `forge`: a click on a row forges nothing and selects it; a hover previews another row's card and the selection and button stay; leaving shows the selected piece again; with a gamepad accept moves to the button; the button forges the selected piece. |
+
+### #91 The forge window never jumps; a light instead of the message
+
+| Topic | Decision |
+| --- | --- |
+| Cause | The "<item> forged to item level N for N gold" message went to the window's footer and widened the window, and the card rebuilt after the forging stacked the old and the new numbers for one frame (fixed for every card by #85). |
+| Rule | No message. When the piece comes back (or the animation is cut short, #89) a warm light sweeps diagonally across the card, its rim glows and fades and gold motes rise from it (`assets/shaders/forge_shine.gdshader`, additive, stepped in 2 px blocks and five levels to sit with the pixel art; 0.75 s), next to the raised numbers' flash. The light is drawn over the card and takes no room. The reason line under the card keeps two lines' height so it never moves the card. |
+| Tests | `forge`: from the press to after the light the window, the card, the list and the anvil keep their rects on every frame; no upgrade message; the light plays once and goes. |

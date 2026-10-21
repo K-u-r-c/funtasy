@@ -5,7 +5,8 @@ extends UIModal
 ## click / accept on a row only selects it (accept then moves to the button); hovering another row
 ## previews its card while hovered; the Forge button forges one step of the selected piece; the
 ## host validates it (Forge.request_upgrade),
-## the anvil plays the forging and the card flashes the raised numbers. #89: forging again while
+## the anvil plays the forging and the card flashes the raised numbers. #91: no message; a warm
+## light sweeps the card and gold motes rise from it (the layout never moves). #89: forging again while
 ## the anvil works ends that animation at once, so upgrades can be clicked through.
 
 var forge: Forge
@@ -22,6 +23,10 @@ var flashed: Array = []  ## the card's numbers that just rose with a forging (te
 var _pending: Dictionary = {}  ## the forged piece's "after", shown once the anvil is done
 var _was: Dictionary = {}  ## the piece before its last forging: the card flashes what rose
 var rows: Array = []  ## [{button, where, key, item}] (tests)
+var shines := 0  ## success lights played (tests)
+var _card_panel: PanelContainer
+var _shine: ColorRect
+const SHINE := preload("res://assets/shaders/forge_shine.gdshader")
 
 
 func _init() -> void:
@@ -72,6 +77,14 @@ func _build() -> void:
 	body.add_child(cv)
 	var cardp := UITheme.scroll_card(256)
 	cv.add_child(cardp)
+	_card_panel = cardp
+	# #91: the success light, over the card (the panel stretches it over its whole rect).
+	_shine = ColorRect.new()
+	_shine.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_shine.material = ShaderMaterial.new()
+	_shine.material.shader = SHINE
+	_shine.visible = false
+	cardp.add_child(_shine)
 	_card = cardp.get_meta("content")
 	_card_scroll = cardp.get_meta("scroll")
 	_reason = UITheme.label("", UITheme.DANGER, UITheme.FONT_SMALL)
@@ -342,3 +355,41 @@ func _on_forged_done() -> void:
 	_pending = {}
 	_rebuild()
 	_was = {}
+	_shine_card()
+
+
+## #91: a warm light sweeps across the card, its rim glows and fades, gold motes rise.
+func _shine_card() -> void:
+	shines += 1
+	var mat: ShaderMaterial = _shine.material
+	mat.set_shader_parameter("px_size", _card_panel.size)
+	mat.set_shader_parameter("progress", 0.0)
+	_shine.visible = true
+	var tw := _shine.create_tween()
+	tw.tween_method(func(v: float): mat.set_shader_parameter("progress", v), 0.0, 1.0, 0.75).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
+	tw.tween_callback(func(): _shine.visible = false)
+	var p := CPUParticles2D.new()
+	p.texture = GameData.texture("fx.pixel")
+	p.amount = 22
+	p.one_shot = true
+	p.explosiveness = 0.7
+	p.lifetime = 0.9
+	p.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
+	p.emission_rect_extents = Vector2(_card_panel.size.x * 0.45, 4)
+	p.position = Vector2(_card_panel.size.x / 2.0, _card_panel.size.y * 0.7)
+	p.direction = Vector2(0, -1)
+	p.spread = 20.0
+	p.gravity = Vector2(0, -30)
+	p.initial_velocity_min = 20.0
+	p.initial_velocity_max = 60.0
+	p.scale_amount_min = 1.5
+	p.scale_amount_max = 2.5
+	var grad := Gradient.new()
+	grad.set_color(0, Color(1.6, 1.25, 0.6))
+	grad.set_color(1, Color(1.0, 0.55, 0.2, 0.0))
+	p.color_ramp = grad
+	p.material = CanvasItemMaterial.new()
+	p.material.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+	_shine.add_child(p)
+	p.emitting = true
+	p.finished.connect(p.queue_free)
