@@ -103,10 +103,10 @@ static func roll_legendary(party_classes: Array, item_level: int, rng: RandomNum
 	return ItemGenerator.make_legendary(str(ids[ItemGenerator._weighted_index(weights, rng)]), item_level, rng)
 
 
-static func pick_base(party_classes: Array, rng: RandomNumberGenerator) -> String:
+static func pick_base(party_classes: Array, rng: RandomNumberGenerator, class_weight: float = -1.0) -> String:
 	var ids: Array = []
 	var weights: Array = []
-	var boost := float(GameData.bal("loot.party_class_weight"))
+	var boost := class_weight if class_weight > 0.0 else float(GameData.bal("loot.party_class_weight"))
 	for id in GameData.item_bases:
 		var b: Dictionary = GameData.item_bases[id]
 		if b.kind == "backpack":

@@ -37,15 +37,17 @@
 		}
 	},
 	"archibald": {
+		"_comment": "#93: equipment pieces per floor, their rarity by weight (Uncommon..Relic), item level = the floor's + a roll in ilvl_above, the base drawn with party_class_weight for the party's classes (loot uses loot.party_class_weight); consumables: count of each on sale.",
 		"name": "Archibald the Gilded",
-		"equipment": 3,
-		"rarity": [
-			2,
-			3
-		],
+		"equipment": 10,
+		"rarity_weights": {"2": 40, "3": 38, "4": 18, "5": 4},
+		"ilvl_above": [0, 2],
+		"party_class_weight": 6.0,
 		"consumables": {
-			"potion_health": 3,
-			"potion_mana": 3,
+			"potion_health": 5,
+			"potion_mana": 5,
+			"potion_haste": 2,
+			"food": 3,
 			"torch_bundle": 2
 		}
 	},

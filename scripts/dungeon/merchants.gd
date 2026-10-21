@@ -34,10 +34,18 @@ func host_new_floor(floor_seed: int, item_level: int) -> void:
 	shop_open = false
 	var a: Dictionary = GameData.merchants.get("archibald", {})
 	var st: Array = []
-	var rar: Array = a.get("rarity", [2, 3])
+	# #93: a big stock, sometimes Epic, rarely a Relic, at or a little above the floor's level,
+	# mostly for the party's classes (data).
+	var rw: Dictionary = a.get("rarity_weights", {"2": 1, "3": 1})
+	var tiers: Array = rw.keys()
+	var weights: Array = tiers.map(func(k): return float(rw[k]))
+	var above: Array = a.get("ilvl_above", [0, 0])
+	var cap := int(GameData.bal("progression.max_level"))
 	for i in int(a.get("equipment", 3)):
-		var base := LootTable.pick_base(GameState.classes_in_party(), rng)
-		var it := ItemGenerator.generate_equipment(base, item_level, rng.randi_range(int(rar[0]), int(rar[1])), rng)
+		var base := LootTable.pick_base(GameState.classes_in_party(), rng, float(a.get("party_class_weight", -1.0)))
+		var rarity := int(tiers[ItemGenerator._weighted_index(weights, rng)])
+		var il := mini(item_level + rng.randi_range(int(above[0]), int(above[1])), cap)
+		var it := ItemGenerator.generate_equipment(base, il, rarity, rng)
 		st.append({"item": it, "price": buy_price(it), "left": 1})
 	var cons: Dictionary = a.get("consumables", {})
 	for cid in cons:

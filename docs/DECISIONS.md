@@ -1365,3 +1365,11 @@ Tree shapes ("A > B": B grows from A; {x / y}: branches; (x): a fork side; [n]: 
 | --- | --- |
 | Rule | The detonation still blinds the hero and drains the whole Mana / Fury pool, but deals `pool_damage` 0.4 of the drained pool, at most `max_hp_share` 0.3 of the hero's health, as physical damage (before armor; the monster's behaviour params in `data/monsters/will_o_blight.json`). It was the whole pool, so a full pool could exceed a hero's health. The Blood Tick's burst (`tick_burst`) stays: a few percent of a hero's health. |
 | Tests | `monsters`: for pools of 100-800 and heroes of 150-900 health the blast is at most half the old one and 30% of the health; a full-health hero with a full pool lives through a real detonation; a Blood Tick's burst takes under a quarter of a hero's health. |
+
+### #93 Archibald's bigger, better stock
+
+| Topic | Decision |
+| --- | --- |
+| Rule | Every Archibald floor offers 10 pieces of gear (was 3, Uncommon / Rare only): rarity by weight Uncommon 40, Rare 38, Epic 18, Relic 4; item level = the floor's + 0-2; the base drawn with weight 6 for the party's classes (drops use 3), so about 70% fit the party. Consumables: 5 Health and 5 Mana Potions, 2 Haste Potions, 3 food, 2 torch bundles (none when the party plays without torches). All in `merchants.json archibald`; seeded per floor and replicated as before (the same seed gives the same pieces). |
+| Prices | Unchanged rules (#24): an Epic at item level 12 costs about 560 gold and a Relic about 1100, against a hero's 500-1000 gold a floor on floors 4-9 - a real choice, now with something worth buying. |
+| Tests | `economy`: 150 seeded floors: 10 pieces at the floor's item level to +2, every consumable line, the rarity mix within 3% of the data with Epics and Relics, 71% for the party's class; the same seed gives the same pieces; prices follow the #24 rules. |

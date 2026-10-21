@@ -306,6 +306,7 @@ func merchants() -> void:
 	await da._wait(0.3)
 	da.check(p.gold == gold0 - cost + sp and sp > 0, "selling pays %d gold" % sp)
 	price_rules()
+	stock_rules()
 	var mods_a := p.run_mods.size()
 	mer.request_tithe.rpc_id(1, true)
 	await da._wait(0.2)
@@ -375,6 +376,53 @@ func merchants() -> void:
 	var got := p.stats.get_stat("stamina") - sta0
 	da.check(absf(got - expect) < 2.0, "Colossus Draught adds %.0f Stamina at level %d (D15, got %.1f)" % [expect, p.level, got])
 
+
+
+## #93: over 150 seeded floors Archibald offers the data's number of pieces, at the floor's item
+## level up to ilvl_above higher, with the data's rarity mix (Epic about a fifth, Relics rare but
+## there), mostly for the party's classes, plus every consumable line; the same seed, the same stock.
+func stock_rules() -> void:
+	var a: Dictionary = GameData.merchants.archibald
+	var mer: Merchants = g.merchants
+	var il := 10
+	var counts := {}
+	var n_eq := 0
+	var mine := 0
+	var bad := ""
+	for sd in 150:
+		mer.host_new_floor(1000 + sd * 7, il)
+		var eq: Array = mer.stock.filter(func(e): return str(e.item.get("kind", "")) != "consumable")
+		if eq.size() != int(a.equipment):
+			bad = "seed %d: %d pieces" % [sd, eq.size()]
+		for e in eq:
+			n_eq += 1
+			var r := int(e.item.rarity)
+			counts[r] = int(counts.get(r, 0)) + 1
+			var lv := int(e.item.ilvl)
+			if lv < il or lv > il + int(a.ilvl_above[1]):
+				bad = "item level %d on a floor of %d" % [lv, il]
+			if Array(GameData.item_bases.get(str(e.item.base), {}).get("classes", [])).has(p.class_id):
+				mine += 1
+		var cons := mer.stock.filter(func(e): return str(e.item.get("kind", "")) == "consumable").size()
+		if cons < a.consumables.size() - 1:
+			bad = "only %d consumable lines" % cons
+	var total_w := 0.0
+	for k in a.rarity_weights:
+		total_w += float(a.rarity_weights[k])
+	var off := ""
+	for k in a.rarity_weights:
+		var want := float(a.rarity_weights[k]) / total_w
+		var got := float(counts.get(int(k), 0)) / n_eq
+		if absf(got - want) > 0.03:
+			off += " r%s %.2f vs %.2f" % [k, got, want]
+	da.check(bad.is_empty(), "Archibald offers %d pieces a floor at item level %d-%d and every consumable line%s" % [int(a.equipment), il, il + int(a.ilvl_above[1]), "" if bad.is_empty() else ": " + bad])
+	da.check(off.is_empty() and int(counts.get(4, 0)) > 0 and int(counts.get(5, 0)) > 0, "the rarity mix follows the data, Epics and rare Relics included (%s)%s" % [counts, off])
+	da.check(float(mine) / n_eq > 0.4, "most pieces are for the party's classes (%.0f%%)" % (100.0 * mine / n_eq))
+	mer.host_new_floor(4242, il)
+	var key := func(e): return "%s/%d/%d" % [str(e.item.get("base", "")), int(e.item.get("rarity", 1)), int(e.item.get("ilvl", 1))]
+	var a1 := mer.stock.map(key)
+	mer.host_new_floor(4242, il)
+	da.check(a1 == mer.stock.map(key), "the same floor seed gives the same pieces (base, rarity, level)")
 
 
 ## #24: merchants sell at 3x the old price (buy_mult was 1.0) and still pay the old 30% of the
