@@ -322,8 +322,18 @@ func run_walls() -> void:
 		g.host_interact(p, lit_one)
 		await da._wait(0.2)
 		da.check(lit_one.is_lit() and p.torch_sync == 0, "torches off: the host refuses to hand over a wall torch, which stays lit")
-	GameState.set_setting("torches", true)
+	# No torch bundles for sale, and one already carried isn't lit.
+	g.merchants.host_new_floor(1234, 5)
 	await da._wait(0.2)
+	da.check(not g.merchants.stock.any(func(e): return str(e.item.get("base", "")) == "torch_bundle"), "torches off: Archibald sells no torches")
+	p.host_give_item(ItemGenerator.generate_consumable("torch_bundle", 1, RandomNumberGenerator.new()))
+	p._use_consumable("torch_bundle")
+	await da._wait(0.2)
+	da.check(p.torch_sync == 0 and p.inv.count_of("torch_bundle") == 1, "torches off: a carried torch bundle isn't used up")
+	GameState.set_setting("torches", true)
+	g.merchants.host_new_floor(1234, 5)
+	await da._wait(0.2)
+	da.check(g.merchants.stock.any(func(e): return str(e.item.get("base", "")) == "torch_bundle"), "torches on: Archibald sells torches")
 
 
 ## #79: places where a hero can stand pressed against a wall, one per wall orientation, for thin

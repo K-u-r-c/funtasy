@@ -41,6 +41,9 @@ func host_new_floor(floor_seed: int, item_level: int) -> void:
 		st.append({"item": it, "price": buy_price(it), "left": 1})
 	var cons: Dictionary = a.get("consumables", {})
 	for cid in cons:
+		# #80: no torches for sale when the party plays without them.
+		if GameData.consumables.get(str(cid), {}).get("needs_torches", false) and not GameState.torches_on():
+			continue
 		var ci := ItemGenerator.generate_consumable(str(cid), 1, rng)
 		st.append({"item": ci, "price": buy_price(ci), "left": int(cons[cid])})
 	stock = st

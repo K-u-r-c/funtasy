@@ -9,5 +9,5 @@
 		"description": "Regenerate 25% health over 10 s and deal 5% more damage for 60 s.",
 		"effects": [{"type": "status", "status": "regeneration", "duration": 10.0, "magnitude_fraction": 0.025}, {"type": "status", "status": "well_fed", "duration": 60.0}], "sfx": "potion"},
 	"torch_bundle": {"name": "Torch", "icon": "items.torch_bundle", "max_stack": 3, "cooldown": 2.0, "weight": 0,
-		"description": "Light a fresh torch that burns for 120 seconds.", "effects": [{"type": "torch"}], "sfx": "pickup"}
+		"description": "Light a fresh torch that burns for five minutes.", "needs_torches": true, "effects": [{"type": "torch"}], "sfx": "pickup"}
 }

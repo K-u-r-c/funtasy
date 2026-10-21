@@ -1405,6 +1405,9 @@ func _use_consumable(base_id: String) -> void:
 	if float(_item_cd_host.get("potion", 0.0)) > 0.0:
 		_notify.rpc_id(peer_id, "Item not ready")
 		return
+	if def.get("needs_torches", false) and not GameState.torches_on():
+		_notify.rpc_id(peer_id, "No torches on this run - you carry your own light")
+		return
 	inv.consume(base_id)
 	var cd := float(def.get("cooldown", 5.0))
 	_item_cd_host["potion"] = cd

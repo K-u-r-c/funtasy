@@ -29,6 +29,7 @@ Backpack upgraded to %d slots,Plecak powiększony: %d miejsc
 Backpack is full,Plecak jest pełny
 No %s left,Brak: %s
 Item not ready,Przedmiot jeszcze niegotowy
+No torches on this run - you carry your own light,W tej wyprawie nie ma pochodni - niesiesz własne światło
 "Level %d! +%d talent point, +%d stat points","Poziom %d! Punkt talentu +%d, punkty cech +%d"
 "Level %d! +%d talent points, +%d stat points","Poziom %d! Punkty talentów +%d, punkty cech +%d"
 Eternal Dawn,Wieczny Świt
@@ -2684,7 +2685,7 @@ Haste Potion,Mikstura Pośpiechu
 Hearty Ration,Sycąca Racja
 Regenerate 25% health over 10 s and deal 5% more damage for 60 s.,Regeneruje 25% zdrowia przez 10 s i zwiększa zadawane obrażenia o 5% na 60 s.
 Torch,Pochodnia
-Light a fresh torch that burns for 120 seconds.,"Zapala świeżą pochodnię, która płonie 120 sekund."
+Light a fresh torch that burns for five minutes.,"Zapala świeżą pochodnię, która płonie pięć minut."
 Crown of the Blood Chieftain,Korona Krwawego Wodza
 A cracked iron crown caked in gore with twin horns.,"Pęknięta żelazna korona oblepiona posoką, z dwoma rogami."
 Fury Strike generates x3 Fury; reaching 100 Fury erupts a blood nova dealing 10% of max HP to all nearby enemies.,Cios Furii generuje x3 Furii; po osiągnięciu 100 Furii wybucha krwawa nowa zadająca 10% maks. zdrowia wszystkim pobliskim wrogom.
