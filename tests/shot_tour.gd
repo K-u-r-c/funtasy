@@ -1822,3 +1822,200 @@ func _deep(_arg: String) -> void:
 		await snap("deep_ascended_%s" % id)
 		await da._wait(2.0)
 	_clear_monsters(false)
+
+
+## Ninth playtest round (#83-#100): aiming at a body, the talent book's pinned card, the map's
+## badge, the forge (light frames), the merchants' stamps, the boon reroll, the summoned walls
+## and the freed prisoner. Run with --biome=kurgan --forge=on --mod=swarm on a deeper floor.
+func _ninth(_arg: String) -> void:
+	var hud: Node = da.get_tree().get_first_node_in_group("hud")
+	p.iframe_left = 9999.0
+	p.host_take_torch()  # light to see the shots by
+	# #83: a ranger's shot at the body of a dummy to the right and to the upper right.
+	var dummies := await arena(1)
+	var dm: Node2D = dummies[0]
+	p.skills[0] = "ranger_shot"
+	for off in [Vector2(110, 0), Vector2(80, -80)]:
+		dm.global_position = g.nearest_floor(p.global_position + off)
+		await da._wait(0.2)
+		p.auto_cursor = dm.global_position + Vector2(0, -18)
+		await da._wait(0.1)
+		p.local_cd.clear()
+		p._pending.clear()
+		p.request_skill.rpc_id(1, 0, p._cast_aim(0), 0, p.global_position)
+		await da._wait(0.07)
+		await snap("ninth_aim_%d" % roundi(off.angle() * 10))
+		await da._wait(0.6)
+	p.auto_cursor = Vector2.INF
+	for e in g.enemies_root.get_children():
+		e.queue_free()
+	# #98: the walls rising, standing and breaking; #99: the prisoner beside the hero.
+	var base: Vector2i = g.dungeon.cell_of(p.global_position)
+	var kinds := ["stakes", "thorns", "briar", "bone_spears"]
+	var ids: Array = []
+	for i in kinds.size():
+		var id: int = Combat.instance.new_id()
+		ids.append(id)
+		g.dungeon.add_obstacle.rpc(id, kinds[i], [base + Vector2i(2, i - 1), base + Vector2i(3, i - 1)], 30.0, "movement")
+	await da._wait(0.08)
+	await snap("ninth_walls_rise")
+	await da._wait(0.5)
+	var ally: Node = g.events._spawn_ally(g.nearest_floor(p.global_position + Vector2(-30, 20)), p.peer_id) if g.get("events") else null
+	await da._wait(0.6)
+	await snap("ninth_walls")
+	g.dungeon.break_obstacle.rpc(int(ids[0]))
+	await da._wait(0.12)
+	await snap("ninth_walls_break")
+	for id in ids:
+		g.dungeon.remove_obstacle(int(id))
+	if ally and is_instance_valid(ally):
+		ally.queue_free()
+	# #98: Cernunnos's briar ring around the boss room, the hero inside.
+	var br: Rect2i = g.layout.rooms[int(g.layout.boss_room)].rect
+	var ring: Array = []
+	for x in range(br.position.x, br.end.x):
+		for y in range(br.position.y, br.end.y):
+			if (x == br.position.x or y == br.position.y or x == br.end.x - 1 or y == br.end.y - 1) and g.dungeon.cell_at(Vector2i(x, y)) == DungeonGenerator.CELL_FLOOR:
+				ring.append(Vector2i(x, y))
+	var rid: int = Combat.instance.new_id()
+	g.dungeon.add_obstacle.rpc(rid, "briar", ring, 30.0, "all")
+	var back := p.global_position
+	p.host_teleport(g.nearest_floor(g.dungeon.cell_center(br.position + Vector2i(2, br.size.y - 3))))
+	await da._wait(0.8)
+	await snap("ninth_briar_ring")
+	g.dungeon.remove_obstacle(rid)
+	p.host_teleport(back)
+	await da._wait(0.3)
+	# #86: two potion stacks, the picker's Merge stacks, then one stack.
+	p.inv.add(ItemGenerator.generate_consumable("potion_health", 4, RandomNumberGenerator.new()))
+	p.inv.backpack.append(ItemGenerator.generate_consumable("potion_health", 5, RandomNumberGenerator.new()))
+	p._inventory_changed()
+	await da._wait(0.3)
+	hud.open_overlay(hud.menu_panel("inventory"))
+	await da._wait(0.6)
+	var ip: Node = hud._overlay
+	var pi := -1
+	for i in p.inv.backpack.size():
+		if str(p.inv.backpack[i].get("base", "")) == "potion_health":
+			pi = i
+	ip._slots["b:%d" % pi].grab_focus()
+	ip._open_splitter(pi, ip._slots["b:%d" % pi])
+	await da._wait(0.4)
+	await snap("ninth_merge_picker")
+	var sp: Node = ip.get_node_or_null("StackSplitter")
+	if sp and sp.merge_btn:
+		sp.merge_btn.pressed.emit()
+	await da._wait(0.6)
+	await snap("ninth_merged")
+	hud.close_overlay()
+	# #88: the vote at the portal, then the next floor with no vote window.
+	g.mod_offer = FloorMods.offer(g.run_seed, maxi(g.depth + 1, 4), "")  # modifiers start on floor 4
+	hud.open_mod_vote()
+	await da._wait(0.6)
+	await snap("ninth_vote")
+	g.start_floor(g.depth + 1)
+	await da._wait(1.5)
+	p = da._local()
+	p.iframe_left = 9999.0
+	p.host_take_torch()
+	await snap("ninth_next_floor")
+	# #85: the talent book: a talent selected, another hovered.
+	p.talent_points = 5
+	hud.open_overlay(hud.menu_panel("talents"))
+	await da._wait(0.6)
+	var tp: Node = hud._overlay
+	var keys: Array = tp._buttons.keys()
+	tp.select(str(keys[0]))
+	await da._wait(0.2)
+	await snap("ninth_talents_selected")
+	tp._buttons[keys[keys.size() / 2]][0].mouse_entered.emit()
+	await da._wait(0.2)
+	await snap("ninth_talents_hover")
+	hud.close_overlay()
+	# #85: the inventory card of the longest legendary.
+	var rng := RandomNumberGenerator.new()
+	var best: Dictionary = {}
+	for id2 in GameData.legendaries:
+		var it := ItemGenerator.make_legendary(str(id2), 20, rng)
+		if best.is_empty() or ItemGenerator.describe(it, p.class_id, p.level).size() > ItemGenerator.describe(best, p.class_id, p.level).size():
+			best = it
+	p.host_give_item(best)
+	await da._wait(0.3)
+	hud.open_overlay(hud.menu_panel("inventory"))
+	await da._wait(0.6)
+	for k in hud._overlay._slots:
+		var sl: Node = hud._overlay._slots[k]
+		if sl.get("item") is Dictionary and str(sl.item.get("uid", "")) == str(best.get("uid", "")):
+			sl.grab_focus()
+	await da._wait(0.3)
+	await snap("ninth_inventory_card")
+	hud.close_overlay()
+	# #87: the map with its badge, then the badge focused.
+	hud.open_overlay(hud.menu_panel("map"))
+	await da._wait(0.6)
+	await snap("ninth_map")
+	if not hud._overlay._badges.is_empty():
+		hud._overlay._badges[0].grab_focus()
+		await da._wait(0.3)
+		await snap("ninth_map_badge")
+	hud.close_overlay()
+	# #91: the forge's light, three frames.
+	if g.get("forge") != null and not g.layout.get("forge", {}).is_empty():
+		p.host_teleport(g.layout.forge.npc + Vector2(0, 30))
+		p.host_add_gold(5000)
+		p.level = 12
+		p.recompute_stats()
+		p.inv.equipment["main_hand"] = ItemGenerator.generate_equipment("bow", 1, 4, rng)
+		p._inventory_changed()
+		await da._wait(0.4)
+		g.host_interact(p, g.dungeon.props["Forge_npc"])
+		await da._wait(0.6)
+		var fp: Node = hud._overlay
+		# #97: a long list scrolled to its end.
+		var lrng := RandomNumberGenerator.new()
+		p.inv.capacity = maxi(p.inv.capacity, 40)
+		while p.inv.backpack.size() < 30:
+			p.inv.backpack.append(ItemGenerator.generate_equipment(LootTable.pick_base([p.class_id], lrng), 3, lrng.randi_range(1, 4), lrng))
+		p._inventory_changed()
+		await da._wait(0.4)
+		var lsc: ScrollContainer = fp._list.get_parent()
+		lsc.scroll_vertical = 100000
+		await da._wait(0.3)
+		await snap("ninth_forge_list_end")
+		lsc.scroll_vertical = 0
+		for r in fp.rows:
+			if str(r.where) == "equip" and str(r.key) == "main_hand":
+				r.button.grab_focus()
+		await da._wait(0.2)
+		fp._button.pressed.emit()
+		await da._wait_until(func(): return fp.stage.phase == "", 4.0)
+		for t in [0.05, 0.25, 0.45]:
+			await da._wait(0.05 if t == 0.05 else 0.2)
+			await snap("ninth_forge_light_%d" % roundi(t * 100))
+		hud.close_overlay()
+	# #93 / #94: Archibald's stock with a sold line; Malphas's signed and bought rows.
+	var mer: Merchants = g.merchants
+	if not mer.stock.is_empty():
+		mer.stock[1].left = 0
+		mer._sync(mer.stock, mer.contracts, true, mer.pacts)
+	hud.open_overlay(hud.ShopPanel.new())
+	await da._wait(0.6)
+	await snap("ninth_shop")
+	hud.close_overlay()
+	if mer.contracts.is_empty():
+		mer.host_new_floor(1234, g.item_level())
+	mer._sync_mine([1], [mer.pacts[0]] if not mer.pacts.is_empty() else [])
+	hud.open_overlay(hud.PactPanel.new())
+	await da._wait(0.6)
+	await snap("ninth_pact")
+	hud.close_overlay()
+	# #96: the boon cards, the middle one rerolled.
+	g.my_boon_offer = Boons.offer(p.class_id, [], 4242)
+	g.my_boon_rerolled = [false, false, false]
+	hud.open_overlay(hud.BoonPanel.new())
+	await da._wait(0.6)
+	g.my_boon_rerolled = [false, true, false]
+	hud._overlay.rerolled(1, Boons.reroll(p.class_id, [], g.my_boon_offer, 1, 7))
+	await da._wait(0.5)
+	await snap("ninth_boons")
+	hud.close_overlay()
