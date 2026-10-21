@@ -29,7 +29,9 @@
 		{
 			"id": "mana_detonate",
 			"reach": 60,
-			"every": 8
+			"every": 8,
+			"pool_damage": 0.4,
+			"max_hp_share": 0.3
 		}
 	],
 	"collision_radius": 7,

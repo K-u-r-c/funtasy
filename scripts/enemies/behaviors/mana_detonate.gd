@@ -1,6 +1,8 @@
 extends MonsterBehavior
 ## Will-o'-the-Blight: drifts erratically; within `reach` px it blinds the hero and detonates their
-## remaining Mana / Fury as physical damage (the pool empties). params: reach (60), every (8)
+## remaining Mana / Fury (the pool empties) as physical damage: `pool_damage` of the pool, at most
+## `max_hp_share` of the hero's health (#100: it was the whole pool, which one-shot a hero with a
+## full pool). params: reach (60), every (8), pool_damage (0.4), max_hp_share (0.3)
 
 var _cd := 1.0
 var _wobble := Vector2.ZERO
@@ -31,10 +33,16 @@ func on_physics(delta: float) -> void:
 	Combat.instance.apply_status(ctx, t, "blind", 2.5, 0.0)
 	var pool: float = t.resource.value
 	t.resource.gain(-pool)
-	if pool > 0.0:
-		Combat.instance.deal_damage(ctx, t, pool, {"damage_type": "physical", "area": true})
+	var dmg := detonation(pool, t.health.max_hp, params)
+	if dmg > 0.0:
+		Combat.instance.deal_damage(ctx, t, dmg, {"damage_type": "physical", "area": true})
 	Combat.instance.fx.ring.rpc(t.global_position, 36.0, "#a0ff80", "explosion")
 	detonated += 1
+
+
+## The blast for a pool of `pool` on a hero of `max_hp` health, before armor.
+static func detonation(pool: float, max_hp: float, prm: Dictionary) -> float:
+	return minf(pool * float(prm.get("pool_damage", 0.4)), max_hp * float(prm.get("max_hp_share", 0.3)))
 
 
 func test_trigger(suite: RefCounted) -> void:

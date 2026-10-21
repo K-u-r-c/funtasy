@@ -1358,3 +1358,10 @@ Tree shapes ("A > B": B grows from A; {x / y}: branches; (x): a fork side; [n]: 
 | Rule | On top of the per-level growth, from floor 4 every floor deeper multiplies monster HP by (1 + 0.025 x (depth - 3)) and damage by (1 + 0.03 x (depth - 3)) (`scaling.depth_growth_from`, `depth_hp_growth`, `depth_damage_growth`; `Game.spawn_mults`, used by the spawns and the probes alike). Floors 1-3 keep the eased start of #1 / #8. Against the old curve a floor 10 monster has +18% HP and +21% damage, floor 20 +43% / +51%; elites, bosses and every party size scale the same way. |
 | Knock-on | One floor deeper now costs more, so the floor modifier cost band (`probe.mod_cost_band`) is [1.0, 1.6] (Swarm on floor 9 measured x1.51). The cursed chest's mimic hits for x0.85 (`mimic_damage_mult`) and the arena's last wave has 4 monsters and its elite (was 5), so neither can kill a lone hero of the floor's level outright on any biome (the events probe's rule; floor 16 measured up to 0.64 of a hero's health). |
 | Tests | `balance-*`: the growth applies from floor 4 and rises floor by floor (floors 1-3 unchanged), every monster and boss still inside the pacing bands; `mods`, `events`, `deep` probes inside their bands. |
+
+### #100 The Will-o'-the-Blight's detonation can't one-shot a hero
+
+| Topic | Decision |
+| --- | --- |
+| Rule | The detonation still blinds the hero and drains the whole Mana / Fury pool, but deals `pool_damage` 0.4 of the drained pool, at most `max_hp_share` 0.3 of the hero's health, as physical damage (before armor; the monster's behaviour params in `data/monsters/will_o_blight.json`). It was the whole pool, so a full pool could exceed a hero's health. The Blood Tick's burst (`tick_burst`) stays: a few percent of a hero's health. |
+| Tests | `monsters`: for pools of 100-800 and heroes of 150-900 health the blast is at most half the old one and 30% of the health; a full-health hero with a full pool lives through a real detonation; a Blood Tick's burst takes under a quarter of a hero's health. |

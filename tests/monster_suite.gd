@@ -38,6 +38,57 @@ func run(biome: String = "") -> void:
 	await check_lunges(biome)
 	if biome.is_empty() or biome == "crypt":
 		await check_shriek_keeps_torch()
+	if biome.is_empty() or biome == "kurgan":
+		await check_detonations()
+
+
+## #100: the Will-o'-the-Blight's detonation no longer takes a whole full pool as damage: for every
+## pool and health it is at most half of the old blast and max_hp_share of the hero's health, a
+## full-health hero lives through a real detonation, and a Blood Tick's burst takes a small part of
+## a hero's health.
+func check_detonations() -> void:
+	var prm: Dictionary = {}
+	for b in GameData.monsters.will_o_blight.behaviors:
+		if str(b.id) == "mana_detonate":
+			prm = b
+	var bad: Array = []
+	var md: GDScript = load("res://scripts/enemies/behaviors/mana_detonate.gd")
+	for pool in [100.0, 250.0, 500.0, 800.0]:
+		for hp in [150.0, 400.0, 900.0]:
+			var dmg: float = md.detonation(pool, hp, prm)
+			if dmg > pool * 0.5 + 0.01 or dmg > hp * float(prm.get("max_hp_share", 0.3)) + 0.01:
+				bad.append("pool %.0f hp %.0f -> %.0f" % [pool, hp, dmg])
+	da.check(not prm.is_empty() and bad.is_empty() and float(prm.get("pool_damage", 1.0)) <= 0.5,
+			"the blight's detonation is at most half the old blast and %d%% of a hero's health (%s)" % [roundi(float(prm.get("max_hp_share", 0.3)) * 100.0), bad])
+	# A real detonation on the floor's hero with a full pool of 400.
+	_keep_hero()
+	p.iframe_left = 0.0
+	p.host_teleport(start)
+	p.resource.max_value = maxf(p.resource.max_value, 400.0)
+	p.resource.value = p.resource.max_value
+	var hp0 := p.health.max_hp
+	var e: Enemy = g.spawn_monster("will_o_blight", g.nearest_floor(start + Vector2(30, 0)), false)
+	await da._wait(0.2)
+	var det: MonsterBehavior = null
+	for b in e.behaviors:
+		if str(b.params.get("id", "")) == "mana_detonate":
+			det = b
+	det.test_trigger(self)
+	p.iframe_left = 0.0
+	await da._wait_until(func(): return det.detonated > 0, 3.0)
+	await da._wait(0.2)
+	var lost := hp0 - p.health.hp
+	da.check(det.detonated > 0 and p.life_state == Player.Life.ALIVE and lost <= hp0 * float(prm.get("max_hp_share", 0.3)) + 1.0,
+			"a full-health hero with a full pool of %.0f lives through the blast (lost %.0f of %.0f)" % [p.resource.max_value, lost, hp0])
+	if is_instance_valid(e):
+		e.queue_free()
+	# The Blood Tick's burst.
+	var tick: Dictionary = GameData.skill("tick_burst")
+	var ctx := Combat.instance.make_ctx(e if is_instance_valid(e) else p, tick)
+	var tb := Combat.instance.value_of_spec(tick.effects[0].damage, ctx)
+	da.check(tb < p.health.max_hp * 0.25, "a Blood Tick's burst takes a small part of a hero's health (%.0f of %.0f)" % [tb, p.health.max_hp])
+	_keep_hero()
+	await da._wait(0.2)
 
 
 ## The banshee's shriek silences the hero and snuffs wall torches, but the carried torch only
