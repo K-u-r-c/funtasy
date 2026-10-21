@@ -23,6 +23,7 @@
 		"movement_tolerance": 1.6,
 		"respawn_invuln": 2.0,
 		"gamepad_aim_distance": 150,
+		"aim_lag_max": 64,
 		"dash_iframe_ratio": 0.8
 	},
 	"vision": {

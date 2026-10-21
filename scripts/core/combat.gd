@@ -372,7 +372,7 @@ func finish_cast(caster: Actor, skill_id: String, aim: Vector2, extra: Dictionar
 		again.repeat = true
 		get_tree().create_timer(float(rep.get("delay", 0.15))).timeout.connect(func():
 			if is_instance_valid(caster) and caster.is_alive():
-				finish_cast(caster, skill_id, caster.get("aim_pos") if caster.get("aim_pos") != null else aim, again))
+				finish_cast(caster, skill_id, live_aim(caster, skill_id, aim), again))
 
 
 ## The numbers a skill uses, from its caster's stats. Host combat and the UI's skill tooltips
@@ -471,6 +471,14 @@ func release_charge(caster: Actor, aim: Vector2) -> String:
 	return ""
 
 
+## Host: where a hero's ongoing cast of `sid` aims now (the owner's live aim, through the ground
+## point rule of #83); `fallback` for monsters.
+static func live_aim(a: Actor, sid: String, fallback: Vector2) -> Vector2:
+	if a is Player:
+		return a.ground_aim(sid, a.aim_pos)
+	return fallback
+
+
 ## Host: the owner released a channelled skill.
 func stop_channel(caster: Actor) -> void:
 	if not caster.channel.is_empty():
@@ -498,7 +506,7 @@ func _physics_process(delta: float) -> void:
 		if not a.charging.is_empty():
 			a.charging.t += delta
 			if a.charging.t >= float(a.charging.max) + float(GameData.bal("combat.charge_hold_max", 2.0)) or not a.can_act():
-				release_charge(a, a.get("aim_pos") if a.get("aim_pos") != null else a.charging.aim)
+				release_charge(a, live_aim(a, str(a.charging.skill), a.charging.aim))
 
 
 func _step_channel(a: Actor, delta: float) -> void:
@@ -519,7 +527,7 @@ func _step_channel(a: Actor, delta: float) -> void:
 		return
 	ch.left -= delta
 	ch.tick_left -= delta
-	var aim: Vector2 = a.get("aim_pos") if a.get("aim_pos") != null else ch.aim
+	var aim := live_aim(a, str(ch.skill), ch.aim)
 	if a.has_method("channel_aim"):
 		aim = a.channel_aim(aim)
 	if ch.tick_left <= 0.0:

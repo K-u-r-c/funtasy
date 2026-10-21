@@ -127,6 +127,7 @@ if [ "$WHAT" = all ] || [ "$WHAT" = quick ]; then
 	run pl-sweep --auto=solo --class=priest --name=Lang --scenario=pl_sweep --quit=200
 	run i18n --auto=solo --class=priest --name=Lang --scenario=i18n --quit=120
 	run preview --auto=solo --class=mage --name=Aim --scenario=preview --quit=60
+	run aim --auto=solo --class=ranger --name=Aimer --scenario=aim --quit=150
 	run tooltips --auto=solo --class=warrior --name=Tips --scenario=tooltips --quit=60
 	run ui-fit --auto=solo --class=priest --name=Fit --scenario=ui_fit --quit=200
 	run ui-fit-pl --auto=solo --class=priest --name=Fit --scenario=ui_fit --lang=pl --quit=200
@@ -182,6 +183,7 @@ if [ "$WHAT" = all ] || [ "$WHAT" = lan ]; then
 	pair skills-lan "--class=warrior --name=HostK --scenario=skills_lan --quit=90" "--class=priest --name=ClientK --quit=90"
 	pair economy-lan "--class=warrior --name=HostE --scenario=economy_lan --quit=120" "--class=mage --name=ClientE --quit=120"
 	pair fx-lan "--class=priest --name=HostF --scenario=fx_lan --quit=60" "--class=warrior --name=ClientF --quit=60"
+	pair aim-lan "--class=warrior --name=HostAm --scenario=aim_lan --quit=90" "--class=ranger --name=ClientAm --quit=90"
 	pair target-lan "--class=priest --name=HostT --scenario=target_lan --quit=60" "--class=priest --name=ClientT --quit=60"
 	pair lever-lan "--class=ranger --name=HostG --scenario=lever_lan --biome=sewers --quit=60" "--class=priest --name=ClientG --quit=60"
 	pair rise-lan "--class=warrior --name=HostR --scenario=rise_lan --quit=90" "--class=mage --name=ClientR --quit=90"

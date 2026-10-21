@@ -150,6 +150,10 @@ screenshot review at 1920x1080 and 3440x1440.
 - [x] #55 A continued game resumes its floor: run seed and a floor snapshot in the save (monsters, boss / portal, items, props, chests, doors, torches, cells, Gold Key, merchant, every hero's place / HP / life state, every player's map), written on quit, window close, boss kill and every 20 s (`resume`, `resume-lan`; old saves still load)
 - [x] #60 The lobby preview of a saved hero shows its saved gear (replicated with the game info), on the host and every client (`resume`, `resume-lan`; lobby screenshot before / after)
 
+## Ninth playtest issues (GitHub #83-#100)
+
+- [x] #83 Shots go where the cursor points: mouse aims take the ground point under the cursor for shots, beams, swings and target picks (shots drawn at chest height now pass through it), areas land on it, the preview draws shots at chest height, clients keep their aimed direction despite lag (`aim`, `aim-lan`)
+
 ## Eighth playtest issues (GitHub #70-#82)
 
 - [x] #74 Deep variants: corrupted monsters from floor 8 (10% + 1.2%/floor up to 30%, data) with one of five warned abilities (Blightwalker, Splitting, Warding, Shadowstep, Volatile), the "Corrupted" name, tint, aura shader and better loot; ascended bosses (a boss met before, or from floor 11) with ten warned extra mechanics, a halo and golden aura, tougher and richer; saved with the floor; balance probe (`deep`, `deep-lan`)

@@ -36,7 +36,13 @@ func _draw() -> void:
 	var info := lp.preview_info(slot)
 	var col: Color = BAD if not str(info.why).is_empty() else OK
 	var t := Time.get_ticks_msec() / 1000.0
-	var prims := primitives(info.shape, info.origin, info.aim)
+	var origin: Vector2 = info.origin
+	var aim: Vector2 = info.aim
+	# #83: shots and beams fly at chest height, so their path is drawn there (through the cursor).
+	if str(info.shape.kind) in ["projectile", "line"] and not info.shape.get("lob", false):
+		origin += CombatFx.HEIGHT
+		aim += CombatFx.HEIGHT
+	var prims := primitives(info.shape, origin, aim)
 	for pr in prims:
 		_render(pr, col, t)
 	if not str(info.why).is_empty():

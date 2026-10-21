@@ -66,6 +66,10 @@ var appearance: Dictionary = {}:
 		_apply_appearance()
 # Replicated by the owner (OwnerSync).
 var aim_pos := Vector2.ZERO
+## #83: the aim comes from the mouse cursor (OwnerSync). The cursor points at bodies and at shots,
+## which are drawn at chest height (CombatFx.HEIGHT), so aimed shots, swings and target picks take
+## the ground point under it (ground_aim).
+var mouse_aim := false
 ## #57: the last host teleport the owner has applied (OwnerSync). Position packets the owner sent
 ## before it are stale: every peer holds the teleported spot until the stream catches up.
 var tp_seq := 0
@@ -112,6 +116,7 @@ var _interact_pick := 0  ## which of the things at one spot "interact" uses (#35
 var _interact_key := ""  ## the set of things that pick refers to
 var input_blocked := false
 var auto_aim := Vector2.INF  ## test harness override for the aim point
+var auto_cursor := Vector2.INF  ## test harness: the mouse cursor's world position (#83)
 var _cc_wander := Vector2.ZERO
 var _cc_wander_left := 0.0
 var _moved_acc := 0.0  ## host: distance moved since the last on_move proc
@@ -145,7 +150,7 @@ func setup(data: Dictionary) -> void:
 	], [], 0.1)
 	# The owner streams its dash state with its position (#17): the host and other clients don't
 	# simulate the owner's dodge / forced dash, so they draw "dash" from this.
-	var owner_sync := NetSync.make(self, "OwnerSync", [], [".:net_pos", ".:facing", ".:aim_pos", ".:dash_sync", ".:tp_seq"], 0.05)
+	var owner_sync := NetSync.make(self, "OwnerSync", [], [".:net_pos", ".:facing", ".:aim_pos", ".:mouse_aim", ".:dash_sync", ".:tp_seq"], 0.05)
 	owner_sync.set_multiplayer_authority(peer_id)
 
 
@@ -677,7 +682,7 @@ func _owner_tick(delta: float) -> void:
 			_send_skill(slot)
 		if Input.is_action_just_released(action) and _is_hold_skill(str(skills[slot])):
 			_charge_held.erase(slot)
-			request_skill_release.rpc_id(1, slot, _cast_aim(slot))
+			request_skill_release.rpc_id(1, slot, _cast_aim(slot), global_position)
 	_handle_quick_slots(delta)
 	_handle_interact()
 
@@ -798,12 +803,29 @@ func _cast_aim(slot: int) -> Vector2:
 	var fr := friendly_target_node()
 	if fr and shape.kind == "ally":
 		return fr.global_position
-	return aim_pos
+	return ground_aim(str(skills[slot]), aim_pos)
+
+
+## Skill shapes whose direction (or picked target) comes from the aim (#83); areas and ally picks
+## land on the point under the cursor itself.
+const GROUND_AIMED := ["projectile", "melee", "cone", "target", "chain", "line", "dash"]
+
+## #83: the aim a cast of `sid` takes from `aim`. With the mouse, shots, swings and target picks
+## use the ground point under the cursor: a shot drawn at chest height then flies through the
+## cursor, and a click on a monster's body aims at the monster. Mortars land where the cursor
+## points, like areas. The stick and the test harness aim at ground points already.
+func ground_aim(sid: String, aim: Vector2) -> Vector2:
+	if not mouse_aim:
+		return aim
+	var shape := SkillShape.of(GameData.skill(sid))
+	if str(shape.kind) in GROUND_AIMED and not shape.get("lob", false):
+		return aim - CombatFx.HEIGHT
+	return aim
 
 
 func _send_skill(slot: int) -> void:
 	_pending[slot] = 0.3
-	request_skill.rpc_id(1, slot, _cast_aim(slot), friendly_peer)
+	request_skill.rpc_id(1, slot, _cast_aim(slot), friendly_peer, global_position)
 
 
 ## Owner (#42): the skill slot whose aim preview shows now (held past the tap threshold, or a
@@ -875,8 +897,9 @@ func _cc_move(dir: Vector2, delta: float) -> Vector2:
 
 
 func _update_aim(move_dir: Vector2) -> void:
-	if auto_aim != Vector2.INF:
-		aim_pos = auto_aim
+	mouse_aim = auto_aim == Vector2.INF and (auto_cursor != Vector2.INF or not InputSettings.using_gamepad)
+	if auto_aim != Vector2.INF or auto_cursor != Vector2.INF:
+		aim_pos = auto_aim if auto_aim != Vector2.INF else auto_cursor
 		facing = (aim_pos - global_position).normalized() if aim_pos != global_position else facing
 	elif InputSettings.using_gamepad:
 		var stick := InputSettings.stick_aim()
@@ -965,17 +988,19 @@ func _from_owner() -> bool:
 
 
 ## `ally_peer`: the teammate the owner picked as friendly target (#39, 0 = none); the host checks
-## it is a living teammate before ally spells go to them.
+## it is a living teammate before ally spells go to them. `from`: where the owner stood when it
+## aimed (#83, see _lag_aim).
 @rpc("any_peer", "call_local", "reliable")
-func request_skill(slot: int, aim: Vector2, ally_peer: int = 0) -> void:
+func request_skill(slot: int, aim: Vector2, ally_peer: int = 0, from: Vector2 = Vector2.INF) -> void:
 	if not _from_owner() or slot < 0 or slot >= skills.size() or str(skills[slot]).is_empty():
 		return
 	friendly_target = _teammate(ally_peer)
 	if life_state != Life.ALIVE:
 		_skill_result.rpc_id(peer_id, slot, 0.0, false, "")
 		return
-	aim_pos = aim
 	var sid: String = skills[slot]
+	aim = _lag_aim(sid, aim, from)
+	aim_pos = aim
 	var err := Combat.instance.try_use_skill(self, sid, aim, {"primary": slot == 0})
 	# Cooldown races and casting are normal while holding a key; don't nag about them.
 	var quiet := err in ["Not ready", "Busy"] or slot == 0
@@ -986,15 +1011,29 @@ func request_skill(slot: int, aim: Vector2, ally_peer: int = 0) -> void:
 
 ## Owner -> host (reliable): the button of a channelled / charge-up skill was released.
 @rpc("any_peer", "call_local", "reliable")
-func request_skill_release(slot: int, aim: Vector2) -> void:
+func request_skill_release(slot: int, aim: Vector2, from: Vector2 = Vector2.INF) -> void:
 	if not _from_owner() or slot < 0 or slot >= skills.size() or str(skills[slot]).is_empty():
 		return
-	aim_pos = aim
 	var sid := str(skills[slot])
+	aim = _lag_aim(sid, aim, from)
+	aim_pos = aim
 	if str(charging.get("skill", "")) == sid:
 		Combat.instance.release_charge(self, aim)  # pays, fires and tells the owner (#54)
 	elif str(channel.get("skill", "")) == sid:
 		Combat.instance.stop_channel(self)
+
+
+## Host (#83): the host's copy of a client hero trails the client's own position by the network
+## delay, so a shot fired from here at the client's aim point would leave at a slightly different
+## angle. Directional casts keep the direction the owner aimed (the aim moves with the gap); areas
+## and ally picks keep their point. A gap too big for lag is ignored.
+func _lag_aim(sid: String, aim: Vector2, from: Vector2) -> Vector2:
+	if from == Vector2.INF or from.distance_to(global_position) > float(GameData.bal("player.aim_lag_max", 64.0)):
+		return aim
+	var shape := SkillShape.of(GameData.skill(sid))
+	if str(shape.kind) in GROUND_AIMED and not shape.get("lob", false):
+		return aim + (global_position - from)
+	return aim
 
 
 ## Host (#54): a charge-up skill fired on its release (`msg` "") or was cancelled with nothing

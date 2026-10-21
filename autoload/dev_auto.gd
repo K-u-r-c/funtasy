@@ -21,6 +21,7 @@ var tour := ""  ## --tour=<name>[:arg] (screenshot tours)
 var set_args: Dictionary = {}  ## --set=<id>:<value>: game settings the host applies before the run
 var only: Array = []  ## --only=a,b: limit a suite to these ids (debugging one legendary)
 var window_size := Vector2i.ZERO  ## --window=WxH: resize the window (layout checks per aspect)
+var port := NetworkManager.DEFAULT_PORT  ## --port=N: the LAN port of a test pair (pairs can run side by side)
 var fails := 0
 var passes := 0
 
@@ -73,6 +74,8 @@ func _ready() -> void:
 			GameState.set_meta("force_events", v)  # #72: e.g. arena,vault or none
 		elif a.begins_with("--forge="):
 			GameState.set_meta("force_forge", v)  # #77: on / off
+		elif a.begins_with("--port="):
+			port = int(v)
 		elif a.begins_with("--window="):
 			window_size = Vector2i(int(v.get_slice("x", 0)), int(v.get_slice("x", 1)))
 	if window_size != Vector2i.ZERO:
@@ -213,9 +216,9 @@ func _run() -> void:
 		"solo":
 			NetworkManager.host_solo()
 		"host":
-			NetworkManager.host_enet()
+			NetworkManager.host_enet(port)
 		"join":
-			NetworkManager.join_enet("127.0.0.1")
+			NetworkManager.join_enet("127.0.0.1", port)
 		"steamhost":
 			await _steam_host_test()
 			return
@@ -350,6 +353,10 @@ func _run() -> void:
 				await LeverSuite.new(self).run_lan()
 			"preview":
 				await PreviewSuite.new(self).run()
+			"aim":
+				await AimSuite.new(self).run()
+			"aim_lan":
+				await AimSuite.new(self).run_lan()
 			"tooltips":
 				await TooltipSuite.new(self).run()
 			"ui_fit":
@@ -423,7 +430,7 @@ func _on_client_session_closed() -> void:
 		# #55: the host continues the saved game; this player joins it again.
 		remove_meta("rejoin")
 		await _wait(3.0)
-		NetworkManager.join_enet("127.0.0.1")
+		NetworkManager.join_enet("127.0.0.1", port)
 		var back := await _wait_until(func(): return get_tree().current_scene and get_tree().current_scene.name == "Lobby", 15.0)
 		check(back, "client rejoined the host's lobby")
 		NetworkManager.session_closed.connect(_on_client_session_closed, CONNECT_ONE_SHOT)
@@ -656,6 +663,8 @@ func client_cmd(cmd: String, arg: Variant) -> void:
 			await SkillSuite.new(self).client_cmd(cmd, arg)
 		_ when cmd.begins_with("fx_"):
 			await FxSuite.new(self).client_cmd(cmd, arg)
+		_ when cmd.begins_with("aim_"):
+			await AimSuite.new(self).client_cmd(cmd, arg)
 		_ when cmd.begins_with("tg_"):
 			await TargetSuite.new(self).client_cmd(cmd, arg)
 		_ when cmd.begins_with("lv_"):

@@ -188,7 +188,7 @@ func quit_and_continue(players: int) -> bool:
 	da.check(saved.has("run_seed") and not saved.get("floor", {}).is_empty(), "the saved game holds the run seed and the floor")
 	await da._wait(0.5)
 	if players > 1:
-		NetworkManager.host_enet()
+		NetworkManager.host_enet(da.port)
 	else:
 		NetworkManager.host_solo()
 	await da._wait_until(func(): return da.get_tree().current_scene.name == "Lobby", 8.0)
