@@ -1,0 +1,15 @@
+{
+	"id": "chest_mimic",
+	"creature_type": "aberration",
+	"name": "Chest Mimic",
+	"_comment": "#72 Cursed Chest: the chest that bites. Woken by Floor Events (never placed by the generator), it fights like an elite of the floor and drops the cursed chest's treasure on death (events loot 'cursed').",
+	"role": "event",
+	"sprite": "monsters.chest_mimic",
+	"corpse": "none",
+	"no_corpse": true,
+	"ai": {"type": "melee", "aggro_radius": 400, "preferred_range": [0, 34], "abilities": ["chest_bite"]},
+	"base_stats": {"hp": 150, "damage": 10, "armor": 14, "move_speed": 84, "crit_chance": 0.06, "dodge": 0.0},
+	"collision_radius": 11,
+	"xp": 40,
+	"loot": {"source": "cursed"}
+}

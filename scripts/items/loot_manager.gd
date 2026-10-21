@@ -84,6 +84,10 @@ func try_pickup(player: Player, g: GroundItem) -> void:
 		return  # #79: never through a wall
 	if not g.is_landed():
 		return  # #75: still in the air
+	if g.item.get("kind", "") == "cell_key":
+		game.events.host_cell_key(player)
+		g.queue_free()
+		return
 	if g.item.get("kind", "") == "gold_key":
 		game.add_party_key(1)
 		game.broadcast_message.rpc("%s found a Gold Key - Archibald will trade", "#f0c850", [player.display_name])

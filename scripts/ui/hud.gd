@@ -18,6 +18,7 @@ const SkillBookPanel := preload("res://scripts/ui/skill_book_panel.gd")
 const ShopPanel := preload("res://scripts/ui/shop_panel.gd")
 const PactPanel := preload("res://scripts/ui/pact_panel.gd")
 const ForgePanel := preload("res://scripts/ui/forge_panel.gd")
+const ShrinePanel := preload("res://scripts/ui/shrine_panel.gd")
 const ConfirmDialog := preload("res://scripts/ui/confirm_dialog.gd")
 const CodexPanel := preload("res://scripts/ui/codex_panel.gd")
 const LoreReader := preload("res://scripts/ui/lore_reader.gd")
@@ -82,6 +83,7 @@ var _bag_icon: TextureRect
 var _floor_badges: VBoxContainer  ## #70 / #71: what makes this floor different, a badge per line
 var _mod_label: Label  ## #71: the floor modifier's name
 var _hunt_row: HBoxContainer  ## #71 Hunted: the countdown to the next hunter
+var event_tracker: EventTracker  ## #72
 var _hunt_label: Label
 var _boon_row: HFlowContainer  ## #73: small icons of the hero's boons beside the portrait
 var _boon_sig := ""
@@ -233,6 +235,9 @@ func _build_top_right() -> void:
 	_floor_badges = VBoxContainer.new()
 	_floor_badges.add_theme_constant_override("separation", 2)
 	v.add_child(_floor_badges)
+	# #72: the floor's events the hero has found.
+	event_tracker = EventTracker.new()
+	v.add_child(event_tracker)
 	# Each tracker line leads with its icon (#29): the goal (skull / stairs), the portal, the torch.
 	var grow := HBoxContainer.new()
 	grow.add_theme_constant_override("separation", 4)
@@ -976,6 +981,13 @@ func open_merchant(kind: String) -> void:
 ## #77: Rolf Hult's forge window.
 func open_forge() -> void:
 	open_overlay(ForgePanel.new())
+
+
+## #72: the bargain shrine's choice cards.
+func open_shrine(offers: Array) -> void:
+	var sp := ShrinePanel.new()
+	sp.offers = offers
+	open_overlay(sp)
 
 
 ## Malphas asks the local player for the blood tithe (D13).

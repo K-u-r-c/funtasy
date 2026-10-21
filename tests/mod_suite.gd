@@ -38,6 +38,11 @@ func run() -> void:
 	await clear_monsters()
 	g._boss_defeated.rpc(g.layout.portal_pos)
 	await da._wait(0.3)
+	# #73: this hero's boon is out of the way (the boon suites test that choice).
+	p.boon_floor = g.depth
+	g.boon_pending.clear()
+	g._sync_boon_wait.rpc([])
+	g.my_boon_offer = []
 	da.check(g.mod_offer.size() == 2 and g.mod_offer == FloorMods.offer(g.run_seed, 4, ""), "floor 3's portal offers two modifiers for floor 4 (%s)" % [g.mod_offer])
 	p.host_teleport(g.portal.global_position)
 	await da._wait(0.4)
@@ -278,6 +283,11 @@ func run_lan() -> void:
 	await clear_monsters()
 	g._boss_defeated.rpc(g.layout.portal_pos)
 	await da._wait(0.5)
+	# #73: the boons are out of the way (the boon suites test that choice); the portal won't wait.
+	for h in [p, c]:
+		h.boon_floor = g.depth
+	g.boon_pending.clear()
+	g._sync_boon_wait.rpc([])
 	NetworkManager.to_clients("DevAuto", "client_cmd", ["md_offer", g.mod_offer])
 	await da._wait(1.0)
 	da.check(g.mod_votes.get(c.peer_id, "") == g.mod_offer[0] and g.portal_ready.has(c.peer_id), "host: the client's vote arrived and it stepped in")

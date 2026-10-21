@@ -1353,5 +1353,41 @@
 	"sfx.forge_ambience": {
 		"like": "sfx.hit",
 		"prompt": "distant blacksmith at work in a stone room: a single muffled hammer blow on an anvil, soft, with a faint ember crackle, 0.5 s, played quietly and often"
+	},
+	"sfx.event_found": {
+		"like": "sfx.ui_open",
+		"prompt": "discovering a secret room in a dark dungeon: a low resonant chime with a soft whoosh of air, mysterious, 1 s"
+	},
+	"sfx.arena_seal": {
+		"like": "sfx.door",
+		"prompt": "heavy iron bars slamming down across a stone doorway: a deep metallic clang with a rattle of chains, 0.8 s"
+	},
+	"sfx.arena_horn": {
+		"like": "sfx.roar",
+		"prompt": "a war horn blown in an underground arena, short and ominous, with distant crowd-less echo, 1.5 s, dark fantasy"
+	},
+	"sfx.arena_won": {
+		"like": "sfx.level_up",
+		"prompt": "victory in a dungeon arena: a deep gong followed by a rising brass swell and a chest lid creaking open, 2 s"
+	},
+	"sfx.vault_open": {
+		"like": "sfx.door",
+		"prompt": "a massive stone vault door grinding open on old gears, deep rumble and clanks, a puff of dust, 2 s"
+	},
+	"sfx.shrine_bargain": {
+		"like": "sfx.buff",
+		"prompt": "striking a bargain with a dark idol: a whispered chorus, a low heartbeat-like thrum and a glassy shimmer, 1.5 s"
+	},
+	"sfx.mimic_wake": {
+		"like": "sfx.roar",
+		"prompt": "a treasure chest coming alive: wood creaking and splintering, a wet snarl and teeth chattering, 1.2 s"
+	},
+	"sfx.curse_lift": {
+		"like": "sfx.cast",
+		"prompt": "a cursed chest opening safely: a dark hiss fading into a faint sigh, coins clinking, 1 s"
+	},
+	"sfx.cage_open": {
+		"like": "sfx.door",
+		"prompt": "a rusted iron cage door unlocked with a heavy key and swung open, squeaky hinges, chains falling, 1.2 s"
 	}
 }

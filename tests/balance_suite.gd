@@ -559,3 +559,109 @@ func run_forge(depths: Array = [2, 4, 6, 9, 12, 16, 20]) -> void:
 
 static func _avg(r: Variant) -> float:
 	return (float(r[0]) + float(r[1])) / 2.0 if r is Array else float(r)
+
+
+## #72 The events against the floor they stand on, for a party of 1 and of 4 on several depths:
+## the arena's three waves (fought one by one, the last with its elite) and the mimic, priced in
+## fight time and damage like floor_cost prices a room, against their rewards (the chest's items
+## at probe.rarity_gold, its gold). Each must pay at least probe.event_value_min x what the
+## floor's own fights pay per second of fighting, at most event_value_max x (worth seeking out,
+## never the only thing worth doing), and no wave may kill a hero that fights it at full health.
+func run_events(depths: Array = [3, 6, 10, 16]) -> void:
+	g = da._game()
+	p = da._local()
+	for e in g.enemies_root.get_children():
+		e.queue_free()
+	await da._wait(0.3)
+	_curve = run_progression(20)
+	seed(72)
+	var probe: Dictionary = GameData.bal("probe", {})
+	var vmin := float(probe.get("event_value_min", 0.8))
+	var vmax := float(probe.get("event_value_max", 3.0))
+	var rarity_gold: Array = probe.get("rarity_gold", [4, 12, 40, 110, 300])
+	var bad: Array = []
+	print("[balance] events class depth n | floor time dmg reward/s | arena time dmg max_wave reward value | mimic time dmg reward value")
+	for d in depths:
+		for n in [1, 4]:
+			var fd: Dictionary = GameData.floor_types[g.floor_type_for(int(d))]
+			var base := await floor_cost(int(d), n, fd, 3)
+			var floor_rate: float = (float(base.gold) + float(base.loot)) / maxf(float(base.time), 1.0)
+			var lvl := _curve_level(_curve, int(d))
+			var il: int = g.item_level_at(g.monster_level_at(int(d), float(lvl)))
+			var mlvl: int = g.monster_level_at(int(d), float(lvl))
+			var hp_ratio: float = g.spawn_mults(int(d), mlvl, false, n).x / g.spawn_mults(int(d), mlvl, false, 1).x
+			var dmg_ratio: float = g.spawn_mults(int(d), mlvl, false, n).y / g.spawn_mults(int(d), mlvl, false, 1).y
+			# The arena: its waves from the floor's pool (the pool's average monster).
+			var pool: Array = fd.monsters.filter(func(m): return DungeonGenerator.spawnable(str(m.id), int(d)) and not GameData.monsters.get(str(m.id), {}).get("role", "") in ["illusion", "boss_part"])
+			var avg_hp := 0.0
+			var avg_dps := 0.0
+			var wsum := 0.0
+			for m in pool:
+				var stt: Dictionary = await _mon_stats(str(m.id), int(d))
+				if stt.is_empty():
+					continue
+				avg_hp += float(stt.hp) * float(m.weight)
+				avg_dps += float(stt.dps) * float(m.weight)
+				wsum += float(m.weight)
+			avg_hp /= maxf(wsum, 0.01)
+			avg_dps /= maxf(wsum, 0.01)
+			var count_mult: float = 1.0 + float(GameData.bal("scaling.count_per_extra_player")) * (n - 1)
+			var a_time := 0.0
+			var a_dmg := 0.0
+			var max_wave := 0.0
+			for w in FloorEvents.def("arena").get("waves", []):
+				var pack: Array = []
+				for i in roundi(float(w.get("count", 3)) * count_mult):
+					pack.append([avg_hp * hp_ratio, avg_dps * dmg_ratio])
+				for i in int(w.get("elites", 0)):
+					pack.append([avg_hp * hp_ratio * float(GameData.bal("elite.hp_mult")), avg_dps * dmg_ratio * float(GameData.bal("elite.damage_mult"))])
+				var pc := _pack_cost(pack, n)
+				a_time += pc.x
+				a_dmg += pc.y / n / p.health.max_hp
+				max_wave = maxf(max_wave, pc.y / n / p.health.max_hp)
+			var a_reward := _event_reward("arena", il, int(d), rarity_gold)
+			var a_value: float = a_reward / maxf(a_time, 1.0) / maxf(floor_rate, 0.01)
+			# The mimic: one monster of its own.
+			var ms: Dictionary = await _mon_stats("chest_mimic", int(d))
+			# An elite with the chest's extra weight.
+			var mc := _pack_cost([[float(ms.get("hp", 10.0)) * hp_ratio * float(GameData.bal("elite.hp_mult")) * FloorEvents.num("cursed_chest", "mimic_hp_mult", 1.0),
+				float(ms.get("dps", 1.0)) * dmg_ratio * float(GameData.bal("elite.damage_mult")) * FloorEvents.num("cursed_chest", "mimic_damage_mult", 1.0)]], n)
+			var m_reward := _event_reward("cursed", il, int(d), rarity_gold)
+			var m_value: float = m_reward / maxf(mc.x, 1.0) / maxf(floor_rate, 0.01)
+			print("[balance] events %s %d %d | %.0fs %.2f %.1f | %.0fs %.2f %.2f %.0f x%.2f | %.0fs %.2f %.0f x%.2f" % [p.class_id, d, n,
+				base.time, base.damage, floor_rate, a_time, a_dmg, max_wave, a_reward, a_value, mc.x, mc.y / n / p.health.max_hp, m_reward, m_value])
+			if a_value < vmin or a_value > vmax:
+				bad.append("arena@%d x%d value x%.2f" % [d, n, a_value])
+			if m_value < vmin or m_value > vmax:
+				bad.append("mimic@%d x%d value x%.2f" % [d, n, m_value])
+			if mc.y / n / p.health.max_hp >= 1.0:
+				bad.append("mimic@%d x%d deals %.2f of a hero's health" % [d, n, mc.y / n / p.health.max_hp])
+			if max_wave >= 1.0:
+				bad.append("arena@%d x%d a wave deals %.2f of a hero's health" % [d, n, max_wave])
+	da.check(bad.is_empty(), "%s: the arena and the mimic pay x%.1f-x%.1f of the floor's rate and no wave kills (outside: %s)" % [p.class_id, vmin, vmax, bad])
+
+
+## One pack fought at once by `n` probe heroes (as floor_cost does): Vector2(time s, damage).
+func _pack_cost(pack: Array, n: int) -> Vector2:
+	pack.sort_custom(func(a, b): return a[0] < b[0])
+	var t := 0.0
+	var dmg := 0.0
+	for mon in pack:
+		t += float(mon[0]) / maxf(float(n), 0.01)
+		dmg += float(mon[1]) * t
+	return Vector2(t, dmg)
+
+
+## The average gold value of an event's reward: its items at rarity_gold and its gold pile.
+func _event_reward(source: String, il: int, depth: int, rarity_gold: Array) -> float:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = depth * 31 + source.length()
+	var total := 0.0
+	var runs := 300
+	for i in runs:
+		for it in LootTable.roll(source, il, depth, ["warrior"], rng):
+			if str(it.get("kind", "")) == "gold":
+				total += int(it.amount)
+			elif it.has("rarity"):
+				total += float(rarity_gold[clampi(int(it.rarity) - 1, 0, rarity_gold.size() - 1)])
+	return total / runs

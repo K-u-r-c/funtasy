@@ -63,6 +63,8 @@ Interrupted,Przerwano
 Reflect,Odbicie
 Level %d,Poziom %d
 (%d slots),(miejsca: %d)
+Barred by the arena's trial,Zaryglowane na czas próby areny
+Sealed vault - a lever elsewhere opens it,Zapieczętowany skarbiec - otwiera go dźwignia gdzie indziej
 Unlock the vault (Gold Key),Otwórz skarbiec (Złoty Klucz)
 Break the blood seal (%s),Złam krwawą pieczęć (%s)
 Floodgate - rusted shut,Wrota śluzy - zardzewiałe
@@ -71,6 +73,25 @@ Close the bookshelf,Zamknij regał
 Close door,Zamknij drzwi
 Open door,Otwórz drzwi
 Merchant,Kupiec
+You found: %s,Odkryto: %s
+This lever opens the sealed vault - marked on your map,Ta dźwignia otwiera zapieczętowany skarbiec - zaznaczono to na mapie
+The arena is won - its chest rises,Arena zdobyta - wyłania się jej skrzynia
+The arena's trial lapses - the bars lift,Próba areny przepada - kraty się unoszą
+Sealed: a lever somewhere on this floor opens the vault,Zapieczętowane: skarbiec otwiera dźwignia gdzieś na tym piętrze
+%s pulls the lever - somewhere a vault grinds open,%s pociąga za dźwignię - gdzieś z grzmotem otwiera się skarbiec
+The idol has already taken its price from you,Bożek wziął już od ciebie swoją zapłatę
+%s strikes a bargain with the idol: %s,%s zawiera pakt z bożkiem: %s
+The chest was a mimic!,Ta skrzynia to mimik!
+The guard drops the cell key,Strażnik upuszcza klucz do celi
+Cell Key,Klucz do celi
+%s has the cell key - free the prisoner,%s ma klucz do celi - uwolnijcie więźnia
+Locked: a guard on this floor carries the key (marked with a key),Zamknięte: klucz nosi strażnik na tym piętrze (oznaczony kluczem)
+%s is free and fights beside you,%s odzyskuje wolność i staje do walki u waszego boku
+%s is free and rewards %s,%s odzyskuje wolność i nagradza wybawcę: %s
+The arena stirs - its doors are about to seal!,Arena budzi się - zaraz zatrzaśnie swoje drzwi!
+Sealing,Zamykanie
+Wave %d of %d,Fala %d z %d
+Mimic!,Mimik!
 Danger,Zagrożenie
 Reward,Nagroda
 Rolf can't work that,Rolf nie obrobi tej rzeczy
@@ -265,6 +286,15 @@ Read books to fill the codex. It is kept across every run.,"Czytaj księgi, by z
 "Not read yet. Books drop from bookshelves, secret containers and elite altars.","Jeszcze nieprzeczytana. Księgi wypadają z regałów, ukrytych schowków i elitarnych ołtarzy."
 Accept,Akceptuj
 Refuse,Odmów
+The arena seals in %d,Arena zamknie się za %d
+Arena - wave %d of %d,Arena - fala %d z %d
+Arena - wave %d of %d in %d,Arena - fala %d z %d za %d
+The arena is won,Arena zdobyta
+The vault is open,Skarbiec stoi otworem
+Bargain struck: %s,Pakt zawarty: %s
+The cursed chest is spent,Przeklęta skrzynia jest już pusta
+%s fights beside you,%s walczy u waszego boku
+%s is free,%s na wolności
 Floor %d,Piętro %d
 Rolf Hult,Rolf Hult
 Upgrade,Ulepsz
@@ -496,6 +526,12 @@ For sale (shared with the party),Na sprzedaż (wspólne dla drużyny)
 Your backpack - sell,Twój plecak - sprzedaż
 Gold: %d,Złoto: %d
 Nothing to sell.,Nic do sprzedania.
+Bargain Shrine,Kapliczka paktów
+Strike the bargain,Zawrzyj pakt
+Walk away,Odejdź
+The faceless idol offers strength for the rest of this floor - and names its price.,Bożek bez twarzy oferuje siłę do końca tego piętra - i podaje swoją cenę.
+The gift,Dar
+The price,Cena
 Skill Book,Księga umiejętności
 Pick / place,Weź / połóż
 "%s  -  pick a skill, then a slot",%s - wybierz i umieść
@@ -883,6 +919,37 @@ Stoneskin,Kamiennoskóry
 Molten,Magmowy
 Venomous,Jadowity
 Thunderous,Grzmiący
+The Arena,Arena
+Arena: step inside to begin the trial,"Arena: wejdź do środka, by rozpocząć próbę"
+Sealed Vault,Zapieczętowany skarbiec
+A sealed vault: find the lever that opens it,"Zapieczętowany skarbiec: znajdź dźwignię, która go otwiera"
+The lever opens the vault (marked on the map),Dźwignia otwiera skarbiec (zaznaczona na mapie)
+A shrine offers a bargain,Kapliczka oferuje pakt
+Blood Tithe,Krwawa dziesięcina
++25% damage for the rest of the floor,+25% obrażeń do końca piętra
+Costs 30% of your current health now,Kosztuje od razu 30% twojego obecnego zdrowia
+Iron Oath,Żelazna przysięga
++40% armor and +15% max health for the rest of the floor,+40% pancerza i +15% maks. zdrowia do końca piętra
+Curse: 12% slower for the rest of the floor,Klątwa: o 12% wolniejszy ruch do końca piętra
+Quickened Soul,Przyspieszona dusza
++20% haste for the rest of the floor,+20% pośpiechu do końca piętra
+Curse: 30% less healing for the rest of the floor,Klątwa: o 30% słabsze leczenie do końca piętra
+Keen Eye,Bystre Oko
++12% critical strike chance for the rest of the floor,+12% szansy na trafienie krytyczne do końca piętra
+Idol's Wrath,Gniew bożka
++35% damage for the rest of the floor,+35% obrażeń do końca piętra
+"Nearest room's monsters: +25% damage, 33% tougher","Potwory najbliższej komnaty: +25% obrażeń, o 33% wytrzymalsze"
+Unbowed,Niezłomny
+Take 20% less damage for the rest of the floor,Otrzymujesz o 20% mniej obrażeń do końca piętra
+Cursed Chest,Przeklęta skrzynia
+A cursed chest - open it at your own risk,Przeklęta skrzynia - otwierasz ją na własne ryzyko
+The Prisoner,Więzień
+A prisoner in a cage: a guard carries the key,Więzień w klatce: klucz ma strażnik
+You carry the cell key: free the prisoner,Masz klucz do celi: uwolnij więźnia
+Brann Coldwater,Brann Coldwater
+Ysolde Marr,Ysolde Marr
+Teodor Vane,Teodor Vane
+Sister Agnes,Siostra Agnes
 Swarm,Rój
 Far more monsters in every room.,W każdej komnacie dużo więcej potworów.
 "More loot, gold and experience.","Więcej łupów, złota i doświadczenia."
@@ -2401,6 +2468,11 @@ Pillar,Kolumna
 Elite Altar,Elitarny Ołtarz
 Secret Sarcophagus,Tajny Sarkofag
 Bookshelf,Regał
+Prisoner's Cage,Klatka więźnia
+Vault Lever,Dźwignia skarbca
+Vault Chest,Skrzynia ze skarbca
+Trial Chest,Skrzynia próby
+Arena Brazier,Koksownik areny
 Hearth,Palenisko
 Anvil,Kowadło
 Quench Barrel,Beczka do hartowania
@@ -2653,6 +2725,18 @@ Bleak Pain,Posępny Ból
 Covenant Barrier,Bariera Przymierza
 Penitence,Skrucha
 You stood still too long: you take more damage and burn until you move.,"Za długo stoisz w miejscu: dostajesz większe obrażenia i płoniesz, dopóki się nie ruszysz."
+A bargain with the idol: more damage until the floor ends.,Pakt z bożkiem: więcej obrażeń do końca piętra.
+A bargain with the idol: armor and health until the floor ends.,Pakt z bożkiem: pancerz i zdrowie do końca piętra.
+A bargain with the idol: haste until the floor ends.,Pakt z bożkiem: pośpiech do końca piętra.
+A bargain with the idol: critical strikes until the floor ends.,Pakt z bożkiem: trafienia krytyczne do końca piętra.
+A bargain with the idol: much more damage until the floor ends.,Pakt z bożkiem: dużo więcej obrażeń do końca piętra.
+A bargain with the idol: you take less damage until the floor ends.,Pakt z bożkiem: otrzymujesz mniej obrażeń do końca piętra.
+Leaden Limbs,Ołowiane członki
+The idol's price: slower until the floor ends.,Zapłata bożka: wolniejszy ruch do końca piętra.
+Thin Blood,Rzadka krew
+The idol's price: less healing until the floor ends.,Zapłata bożka: słabsze leczenie do końca piętra.
+Empowered by the Idol,Wzmocnione przez bożka
+The idol's price: these monsters hit harder and are tougher.,Zapłata bożka: te potwory biją mocniej i są wytrzymalsze.
 Kindled Mind,Rozpalony Umysł
 +5% fire damage.,+5% obrażeń od ognia.
 Rime-Touched Hands,Dłonie Szronu
@@ -2984,7 +3068,6 @@ Cinder Trail,Szlak Żaru
 Your explosions leave the ground burning for 3 s.,Twoje wybuchy podpalają ziemię na 3 s.
 Thick Hide,Gruba Skóra
 +6% maximum health.,+6% maks. zdrowia.
-Keen Eye,Bystre Oko
 +3% critical strike chance.,+3% szansy na trafienie krytyczne.
 Light Feet,Lekkie Stopy
 +3% dodge chance.,+3% szansy na unik.
@@ -3651,6 +3734,7 @@ Bramble Warden,Strażnik Jeżyn
 Brier-Choked Thrall,Sługa Zduszony Cierniem
 Brimstone Hound,Siarczany Ogar
 Carrion Crawler,Ścierwojad
+Chest Mimic,Skrzynia-mimik
 Cultist,Kultysta
 Cursed Scribe,Przeklęty Skryba
 Dread Wight,Straszliwy Upiór
@@ -3659,6 +3743,7 @@ Echo of the Unwritten,Echo Nienapisanego
 Flame Revenant,Płomienny Upiór
 Heretic Flesh-Stitcher,Heretycki Zszywacz Ciał
 Foundry Taskmaster,Nadzorca Odlewni
+Freed Prisoner,Uwolniony więzień
 Ghoul,Ghul
 The Gristle Twin,Bliźniak Chrząstki
 Gutter Stalker,Rynsztokowy Łowca
@@ -3824,9 +3909,14 @@ Antler Gore,Cios Porożem
 Grasping Roots,Chwytające Korzenie
 Razor Appendages,Brzytwy Odnóży
 Crimson Tears,Szkarłatne Łzy
+Sellsword's Cut,Cięcie najemnika
+Hunter's Arrow,Strzała łowcy
+Arcane Bolt,Tajemny pocisk
+Smite,Porażenie
+Mend,Opatrzenie ran
+Gnashing Lid,Kłapiące wieko
 Holy Strike,Święty Cios
 "Primary melee swing charged with holy force: hits up to 3 enemies in an arc before you, breaks props and barrels and bursts closed doors open. Scales with Intellect.","Główny zamach wręcz naładowany świętą mocą: trafia do 3 wrogów w łuku przed tobą, niszczy rekwizyty i beczki oraz wyważa zamknięte drzwi. Skaluje się z Intelektem."
-Smite,Porażenie
 "A beam of holy fire (250 px): damages the enemy at the cursor, or heals the ally you aim at.","Promień świętego ognia (250 px): rani wroga przy kursorze albo leczy sojusznika, w którego celujesz."
 Flash Heal,Błyskawiczne Leczenie
 "A fast burst heal on the ally at the cursor (240 px), or yourself.","Szybkie, silne leczenie sojusznika przy kursorze (240 px) albo ciebie."
@@ -4310,6 +4400,12 @@ Open chest,Otwórz skrzynię
 Pray at elite altar,Pomódl się przy elitarnym ołtarzu
 Search secret sarcophagus,Przeszukaj tajny sarkofag
 Trade with Archibald the Gilded,Handluj z Archibaldem Pozłacanym
+Kneel at bargain shrine,Uklęknij przy kapliczce paktów
+Open cursed chest,Otwórz przeklętą skrzynię
+Unlock prisoner's cage,Otwórz klatkę więźnia
+Pull vault lever,Pociągnij dźwignię skarbca
+Open vault chest,Otwórz skrzynię ze skarbca
+Open trial chest,Otwórz skrzynię próby
 Forge with Rolf Hult,Zamów kucie u Rolfa Hulta
 Bargain with Malphas the Soul Broker,Targuj się z Malphasem Handlarzem Dusz
 Light consecrated shrine,Zapal poświęconą kapliczkę

@@ -41,6 +41,9 @@ between the floor track and the boss track. Effects: short (0.2-1.5 s), dry, mon
 | --- | --- | --- | --- |
 | `acid_hiss` | `assets/audio/sfx/acid_hiss.ogg` | balance.json | high-pressure acid spout hissing and spraying, 1 second |
 | `anvil` | `assets/audio/sfx/anvil.ogg` | skills/monsters.json | giant anvil struck by a demonic hammer, ringing clang and boom |
+| `arena_horn` | `assets/audio/sfx/arena_horn.ogg` | engine | a war horn blown in an underground arena, short and ominous, with distant crowd-less echo, 1.5 s, dark fantasy |
+| `arena_seal` | `assets/audio/sfx/arena_seal.ogg` | engine | heavy iron bars slamming down across a stone doorway: a deep metallic clang with a rattle of chains, 0.8 s |
+| `arena_won` | `assets/audio/sfx/arena_won.ogg` | engine | victory in a dungeon arena: a deep gong followed by a rising brass swell and a chest lid creaking open, 2 s |
 | `beam` | `assets/audio/sfx/beam.ogg` | skills/mage.json, skills/monsters.json, skills/priest.json | sustained humming light beam, bright and searing |
 | `bell` | `assets/audio/sfx/bell.ogg` | engine | cracked heretical bell tolling once with eerie echo |
 | `blink` | `assets/audio/sfx/blink.ogg` | skills/mage.json, skills/priest.json | short demonic teleport pop with a puff of ash |
@@ -53,6 +56,7 @@ between the floor track and the boss track. Effects: short (0.2-1.5 s), dry, mon
 | `buff` | `assets/audio/sfx/buff.ogg` | skills/monsters.json, skills/priest.json | rising magical shimmer with a soft warm chord, short positive buff |
 | `burrow` | `assets/audio/sfx/burrow.ogg` | skills/monsters.json | creature digging fast through gravel and loose flagstones, short |
 | `cage` | `assets/audio/sfx/cage.ogg` | engine | sharp bone spears bursting out of the ground and locking together, short |
+| `cage_open` | `assets/audio/sfx/cage_open.ogg` | engine | a rusted iron cage door unlocked with a heavy key and swung open, squeaky hinges, chains falling, 1.2 s |
 | `cast` | `assets/audio/sfx/cast.ogg` | skills/mage.json, skills/monsters.json, skills/priest.json, skills/ranger.json | short arcane whoosh with sparkling release, generic spell cast |
 | `cauldron` | `assets/audio/sfx/cauldron.ogg` | engine | boiling metal cauldron bubbling over and splashing |
 | `chain` | `assets/audio/sfx/chain.ogg` | skills/mage.json, skills/monsters.json, skills/ranger.json | crackling electric arc jumping between targets |
@@ -60,6 +64,7 @@ between the floor track and the boss track. Effects: short (0.2-1.5 s), dry, mon
 | `chant` | `assets/audio/sfx/chant.ogg` | engine | low guttural necromantic chant of three voices, rising, 1.5 seconds |
 | `coin` | `assets/audio/sfx/coin.ogg` | engine | short bright clink of a few gold coins dropping into a leather purse, dry, no reverb |
 | `crit` | `assets/audio/sfx/crit.ogg` | engine | heavy meaty critical hit impact with a sharp metallic ring |
+| `curse_lift` | `assets/audio/sfx/curse_lift.ogg` | engine | a cursed chest opening safely: a dark hiss fading into a faint sigh, coins clinking, 1 s |
 | `dash` | `assets/audio/sfx/dash.ogg` | skills/monsters.json, skills/warrior.json | fast cloth and air whoosh of a quick dodge roll |
 | `death` | `assets/audio/sfx/death.ogg` | engine | monster death groan fading out, guttural, short |
 | `devour` | `assets/audio/sfx/devour.ogg` | engine | ghoul tearing and gulping at a corpse, wet crunching, 1 second |
@@ -68,6 +73,7 @@ between the floor track and the boss track. Effects: short (0.2-1.5 s), dry, mon
 | `enemy_hit` | `assets/audio/sfx/enemy_hit.ogg` | engine | blade hitting flesh and leather armor, short thud |
 | `engulf` | `assets/audio/sfx/engulf.ogg` | engine | huge wet gulp of a sludge monster swallowing someone |
 | `equip` | `assets/audio/sfx/equip.ogg` | skills/ranger.json, skills/warrior.json | armor buckle and chainmail rustle as gear is put on |
+| `event_found` | `assets/audio/sfx/event_found.ogg` | engine | discovering a secret room in a dark dungeon: a low resonant chime with a soft whoosh of air, mysterious, 1 s |
 | `explosion` | `assets/audio/sfx/explosion.ogg` | props.json, skills/monsters.json, skills/ranger.json | barrel explosion, deep boom with debris and crackling fire tail |
 | `fire` | `assets/audio/sfx/fire.ogg` | skills/mage.json, skills/monsters.json, skills/priest.json | fireball launch, roaring burst of flame |
 | `fire_wall` | `assets/audio/sfx/fire_wall.ogg` | skills/monsters.json | wall of fire whooshing up from the ground and roaring |
@@ -107,6 +113,7 @@ between the floor track and the boss track. Effects: short (0.2-1.5 s), dry, mon
 | `loot_drop_relic` | `assets/audio/sfx/loot_drop_relic.ogg` | engine | relic landing: heavy golden clang, bright harmonic shimmer and a warm low swell, dark fantasy, short |
 | `merchant_chime` | `assets/audio/sfx/merchant_chime.ogg` | engine | warm shop bell chime with a faint arcane shimmer, dark fantasy |
 | `mimic_snap` | `assets/audio/sfx/mimic_snap.ogg` | skills/monsters.json | wooden chest lid snapping shut like jaws, teeth crunch |
+| `mimic_wake` | `assets/audio/sfx/mimic_wake.ogg` | engine | a treasure chest coming alive: wood creaking and splintering, a wet snarl and teeth chattering, 1.2 s |
 | `page` | `assets/audio/sfx/page.ogg` | engine | single parchment page turning, dry and crisp |
 | `pickup` | `assets/audio/sfx/pickup.ogg` | items/consumables.json | small item picked up, leather and a soft metallic clink |
 | `plate_click` | `assets/audio/sfx/plate_click.ogg` | engine | stone pressure plate sinking with a mechanical click |
@@ -124,6 +131,7 @@ between the floor track and the boss track. Effects: short (0.2-1.5 s), dry, mon
 | `shoot` | `assets/audio/sfx/shoot.ogg` | skills/monsters.json, skills/ranger.json | bow string release and arrow whistle |
 | `shout` | `assets/audio/sfx/shout.ogg` | skills/warrior.json | commanding war cry shout echoing in a stone hall |
 | `shriek` | `assets/audio/sfx/shriek.ogg` | skills/monsters.json | ghostly female banshee shriek with echo, piercing, 1 second |
+| `shrine_bargain` | `assets/audio/sfx/shrine_bargain.ogg` | engine | striking a bargain with a dark idol: a whispered chorus, a low heartbeat-like thrum and a glassy shimmer, 1.5 s |
 | `slime_split` | `assets/audio/sfx/slime_split.ogg` | engine | wet slime blob splitting in two with a squelch |
 | `spikes` | `assets/audio/sfx/spikes.ogg` | engine | iron floor spikes shooting out of stone with a metallic shing |
 | `splash` | `assets/audio/sfx/splash.ogg` | engine | body splashing into murky sewer water, short |
@@ -147,4 +155,5 @@ between the floor track and the boss track. Effects: short (0.2-1.5 s), dry, mon
 | `ui_move` | `assets/audio/sfx/ui_move.ogg` | engine | UI focus move, very short quiet tick |
 | `ui_open` | `assets/audio/sfx/ui_open.ogg` | engine | UI window opening, parchment unfurl with a faint chime |
 | `ui_press` | `assets/audio/sfx/ui_press.ogg` | engine | UI button press, short crisp click |
+| `vault_open` | `assets/audio/sfx/vault_open.ogg` | engine | a massive stone vault door grinding open on old gears, deep rumble and clanks, a puff of dust, 2 s |
 | `wave` | `assets/audio/sfx/wave.ogg` | engine | wall of sewer water crashing across a stone chamber |

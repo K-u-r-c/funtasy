@@ -172,7 +172,7 @@ func _spawn_spot() -> Vector2:
 		if not DungeonGenerator.walkable(d.cell_at(c)) or d.blocks_sight(c) or boss_room.grow(1).has_point(c):
 			continue
 		var pos := d.cell_center(c)
-		if d.is_safe(pos) or game.in_doorway(pos) or d.find_path(hero.global_position, pos).is_empty():
+		if d.is_safe(pos) or game.in_doorway(pos) or game.events.in_arena(pos) or d.find_path(hero.global_position, pos).is_empty():
 			continue
 		return pos
 	return Vector2.INF

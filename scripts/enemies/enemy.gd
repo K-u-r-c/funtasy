@@ -33,6 +33,8 @@ var hunter := ""  ## #71 Hunted: the hunter's name ("" = an ordinary monster)
 var target_peer := 0  ## #81: whom an elite / boss is after (a hero's peer, 0 = none), replicated
 var key_carrier := false  ## host: drops the floor's Gold Key (D11)
 var copy_peer := 0  ## replicated at spawn: draw this player's look instead of the monster art (D31)
+var look: Dictionary = {}  ## #72, from the spawn data: a hero look {gender, appearance} (the freed prisoner)
+var guard := false  ## #72, from the spawn data: carries the prisoner's cell key (a key over its head)
 var _state_sprite: Sprite2D = null
 var _melee_reach := 0.0
 var behaviors: Array = []  ## host: MonsterBehavior modules from data (scripts/enemies/behaviors/)
@@ -61,12 +63,16 @@ func setup(data: Dictionary) -> void:
 	copy_peer = int(data.get("copy_peer", 0))
 	elite = data.get("elite", [])
 	key_carrier = bool(data.get("key", false))
+	look = data.get("look", {})
+	guard = bool(data.get("guard", false))
 	hunter = str(data.get("hunter", ""))
 	if not hunter.is_empty():
 		display_name = Loc.f("%s the Hunter", [hunter])
 	elif not elite.is_empty():
 		var names: Array = elite.map(func(m): return str(GameData.elite_modifiers.get(m, {}).get("name", m)))
 		display_name = "%s %s" % [" ".join(names), display_name]
+	if data.has("display"):
+		display_name = str(data.display)
 	radius = float(def.get("collision_radius", 8))
 	collision_layer = 4
 	collision_mask = 1 | 2 | 8 | 16 | 32 | 64 | 128
@@ -83,6 +89,8 @@ func _ready() -> void:
 	sprite.set_layer("body", str(def.sprite), Color.from_string(str(def.get("tint", "#ffffff")), Color.WHITE))
 	if copy_peer > 0:
 		_copy_look.call_deferred()
+	elif not look.is_empty():
+		_wear_look.call_deferred()
 	if is_elite():
 		# Elites glow in their first modifier's colour so they read from afar.
 		var l := PointLight2D.new()
@@ -143,6 +151,15 @@ func _copy_look() -> void:
 		var a: Array = p.appearance[layer]
 		sprite.set_look_layer(layer, a, p.gender)
 	sprite.self_modulate = Color.from_string(str(def.get("copy_tint", "#b9a8ff")), Color.WHITE)
+
+
+## #72: a hero look from the spawn data (the freed prisoner), untinted.
+func _wear_look() -> void:
+	var g := str(look.get("gender", "male"))
+	sprite.set_layer("body", CharacterSprite.body_key(g))
+	var ap: Dictionary = look.get("appearance", {})
+	for layer in ap:
+		sprite.set_look_layer(layer, ap[layer], g)
 
 
 ## Every peer: the look a behaviour state asks for (data "behavior_visuals": {state: {sprite,
@@ -576,7 +593,7 @@ func _path_dir(game: Node, goal: Vector2, delta: float) -> Vector2:
 	var next := _path[0]
 	# Closed doors: simple monsters open them after a short delay.
 	var door: Node = game.dungeon.closed_door_near(global_position, next)
-	if door and (door.monster_proof or door.floodgate):
+	if door and (door.monster_proof or door.floodgate or door.locked):
 		return Vector2.ZERO  # the merchant chamber is safe ground; floodgates need a lever
 	if door:
 		_door_wait += delta

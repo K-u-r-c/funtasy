@@ -45,6 +45,7 @@ DATA_SKIP = {"assets.json", "assets_placeholders.json", "balance.json", "doors.j
 # kind line: rarity + slot, which Polish separates to avoid adjective agreement).
 EXTRA_KEYS = ["%s %s"]
 TEXT_FIELDS = {"name", "title", "description", "text", "origin", "effect_text", "label", "overrun", "danger", "reward",
+               "tracker", "tracker_seen", "tracker_key", "cost_text",
                "message", "affix", "suffix", "group"}
 # Id fields shown capitalized ("undead" -> "Undead", like GDScript's String.capitalize()).
 CAP_FIELDS = {"element", "school", "creature_type", "target_creature", "flags"}

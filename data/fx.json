@@ -34,7 +34,7 @@
 			"physical": {"color": "#3a0606", "alpha": 0.35, "size": 0.35, "time": 6.0}
 		}
 	},
-	"status_fx": {"chill": "chill", "sundered": "cracks", "armor_break": "cracks", "weakened": "cracks", "hunters_mark": "marked", "enrage": "enraged", "frostbite": "chill", "static_charge": "marked", "holy_dot": "burning", "inverted": "feared", "inverted_controls": "feared", "paranoia": "feared", "school_lockout": "silenced"},
+	"status_fx": {"chill": "chill", "sundered": "cracks", "armor_break": "cracks", "weakened": "cracks", "hunters_mark": "marked", "enrage": "enraged", "frostbite": "chill", "static_charge": "marked", "holy_dot": "burning", "inverted": "feared", "inverted_controls": "feared", "paranoia": "feared", "school_lockout": "silenced", "shrine_empowered": "enraged"},
 	"elite_fx": {
 		"vampiric": {"shape": "ring", "radius": 22, "amount": 10, "life": 0.9, "speed": 6, "radial": -30, "gravity": 0, "size": 1.6, "y": -12},
 		"frenzied": {"shape": "sphere", "radius": 12, "amount": 10, "life": 0.35, "speed": 40, "dir": "none", "spread": 180, "gravity": 0, "size": 1.2, "y": -14},

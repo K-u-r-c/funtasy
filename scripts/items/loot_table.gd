@@ -30,6 +30,13 @@ static func roll(source: String, item_level: int, depth: int, party_classes: Arr
 			# #71: a Hunted floor's hunter always drops a fine item.
 			count = 1
 			min_tier = int(override.get("min_rarity", 4))
+		_:
+			# #72: the events' rewards (balance loot.event_sources: drops [min, max], min_rarity).
+			var es: Dictionary = (GameData.bal("loot.event_sources", {}) as Dictionary).get(source, {})
+			if not es.is_empty():
+				var dr: Array = es.get("drops", [1, 1])
+				count = rng.randi_range(int(dr[0]), int(dr[1]))
+				min_tier = int(es.get("min_rarity", 2))
 	var out: Array = []
 	var g := gold_pile(source, item_level, rng)
 	if not g.is_empty():

@@ -43,7 +43,8 @@ var _size_mult := 1.0
 ## `depth` makes deeper floors darker (fewer lit rooms), so every peer must pass the same value.
 ## `merchant` is the floor's one merchant (Game.pick_merchant); "" = the seeded pick.
 ## `forge` (#77): the floor has the blacksmith's forge chamber (Game.pick_forge).
-func generate(seed_value: int, floor_def: Dictionary, count_mult: float = 1.0, depth: int = 1, merchant: String = "", forge: bool = false) -> Dictionary:
+## `events` (#72): the floor's special rooms and events (Game.pick_events), e.g. ["arena", "vault"].
+func generate(seed_value: int, floor_def: Dictionary, count_mult: float = 1.0, depth: int = 1, merchant: String = "", forge: bool = false, events: Array = []) -> Dictionary:
 	rng.seed = seed_value
 	_depth = depth
 	tile = int(GameData.bal("world.tile_size"))
@@ -64,10 +65,12 @@ func generate(seed_value: int, floor_def: Dictionary, count_mult: float = 1.0, d
 		if attempt > 0:
 			rng.seed = seed_value + attempt * 104729
 			cells.fill(CELL_WALL)
-		rooms = _place_rooms(floor_def, forge)
+		rooms = _place_rooms(floor_def, forge, events.has("vault"))
 		_mark_merchant_room(rooms)
 		if forge:
 			_mark_leaf_room(rooms, "forge")
+		if events.has("vault"):
+			_mark_leaf_room(rooms, "vault")
 		_connect_rooms(rooms)
 		if _attach_leaves(rooms):
 			break
@@ -89,6 +92,7 @@ func generate(seed_value: int, floor_def: Dictionary, count_mult: float = 1.0, d
 	_round_rooms(rooms, doors, door_zone)
 	_cave_rooms(rooms, door_zone)
 	var used := door_zone.duplicate()
+	layout.events = _place_events(rooms, events, used, doors)
 	layout.props = _place_props(rooms, floor_def, used)
 	layout.props.append_array(_place_lore_props(rooms, floor_def, used))
 	layout.chests = _place_chests(rooms, floor_def, used)
@@ -145,11 +149,11 @@ func _cell_center(c: Vector2i) -> Vector2:
 # --- Rooms + corridors ------------------------------------------------------------------------
 
 
-func _place_rooms(fd: Dictionary, forge: bool = false) -> Array:
+func _place_rooms(fd: Dictionary, forge: bool = false, vault: bool = false) -> Array:
 	var spec: Dictionary = fd.rooms
-	# One extra room for the merchant (#6) and one for the forge (#77), so the fighting rooms
-	# keep their count.
-	var target := roundi(rng.randi_range(int(spec.count[0]), int(spec.count[1])) * _size_mult) + 1 + (1 if forge else 0)
+	# One extra room for the merchant (#6), one for the forge (#77) and one for a vault (#72), so
+	# the fighting rooms keep their count.
+	var target := roundi(rng.randi_range(int(spec.count[0]), int(spec.count[1])) * _size_mult) + 1 + (1 if forge else 0) + (1 if vault else 0)
 	var rooms: Array = []
 	var rects: Array = []
 	# Boss room first (largest), then the rest; the start room is the one farthest from it.
@@ -361,7 +365,7 @@ func _attach_leaves(rooms: Array) -> bool:
 			return false
 		max_h = maxi(max_h, int(hops[i]))
 	for mi in rooms.size():
-		if rooms[mi].role != "merchant" and rooms[mi].role != "forge":
+		if not rooms[mi].role in ["merchant", "forge", "vault"]:
 			continue
 		var mc: Vector2i = rooms[mi].rect.get_center()
 		var near: Array = core.filter(func(i): return int(hops[i]) < max_h)
@@ -616,6 +620,125 @@ func _forge_layout(rooms: Array, used: Dictionary) -> Dictionary:
 	return {}
 
 
+## #72: the floor's events in their rooms (only normal rooms; the vault is its own sealed leaf),
+## each in a different room, in the order given; every candidate room is tried (in a seeded order)
+## until the event fits. An event no room fits is left out.
+## [{id, room, ...}]: arena {center, braziers, doors}; vault {lever, lever_room, chests};
+## shrine / cursed_chest / prisoner {pos}.
+func _place_events(rooms: Array, events: Array, used: Dictionary, doors: Array) -> Array:
+	var out: Array = []
+	var taken := {}
+	var spec: Dictionary = GameData.floor_events.get("events", {})
+	var vi := -1
+	for i in rooms.size():
+		if rooms[i].role == "vault":
+			vi = i
+	for ev in events:
+		var id := str(ev)
+		if id == "vault" and vi < 0:
+			continue
+		var cand: Array = []
+		for i in rooms.size():
+			if rooms[i].role == "normal" and not taken.has(i):
+				cand.append(i)
+		if id == "arena":
+			var mn: Array = spec.get("arena", {}).get("room_min", [9, 8])
+			# Every way in must be a door the arena can shut, and sealing it must never cut off a
+			# leaf chamber behind it.
+			cand = cand.filter(func(i):
+				var r: Rect2i = rooms[i].rect
+				var dn := doors.filter(func(d): return Rect2i(d.rect).intersects(r.grow(1))).size()
+				return r.size.x >= int(mn[0]) and r.size.y >= int(mn[1]) and not rooms[i].get("leaf_anchor", false) \
+					and dn > 0 and room_openings(cells, Vector2i(w, h), r) == dn)
+		elif id == "vault":
+			# The lever in a room far from the vault: the farthest candidates first.
+			var vc: Vector2i = rooms[vi].rect.get_center()
+			cand.sort_custom(func(a, b): return (rooms[a].rect.get_center() - vc).length_squared() > (rooms[b].rect.get_center() - vc).length_squared())
+		if id != "vault":
+			for k in range(cand.size() - 1, 0, -1):
+				var j := rng.randi_range(0, k)
+				var tmp: int = cand[k]
+				cand[k] = cand[j]
+				cand[j] = tmp
+		# With every room taken, a small event may share a room (never the arena's).
+		if cand.is_empty() and id in ["shrine", "cursed_chest", "prisoner"]:
+			for i in rooms.size():
+				if rooms[i].role == "normal" and str(rooms[i].get("event", "")) != "arena":
+					cand.append(i)
+		for ri in cand:
+			var e := _event_in(id, int(ri), rooms, used, doors, spec, vi)
+			if not e.is_empty():
+				taken[int(ri)] = true
+				out.append(e)
+				break
+	return out
+
+
+## One event in room `ri` ({} when it doesn't fit there); marks the cells it uses.
+func _event_in(id: String, ri: int, rooms: Array, used: Dictionary, doors: Array, spec: Dictionary, vi: int) -> Dictionary:
+	var r: Rect2i = rooms[ri].rect
+	var e := {"id": id, "room": ri}
+	match id:
+		"arena":
+			rooms[ri].event = "arena"
+			e.center = _cell_center(r.get_center())
+			for dx in range(-1, 2):
+				for dy in range(-1, 2):
+					used[r.get_center() + Vector2i(dx, dy)] = true
+			e.braziers = []
+			for corner in [Vector2i(r.position.x + 1, r.position.y + 1), Vector2i(r.end.x - 2, r.position.y + 1), Vector2i(r.position.x + 1, r.end.y - 2), Vector2i(r.end.x - 2, r.end.y - 2)]:
+				if get_cell(corner) == CELL_FLOOR and not used.has(corner):
+					used[corner] = true
+					e.braziers.append(_cell_center(corner))
+			var ds: Array = []
+			for di in doors.size():
+				if Rect2i(doors[di].rect).intersects(r.grow(1)):
+					ds.append(di)
+			e.doors = ds
+		"vault":
+			var lc := _free_cell(r, 1, used, true)
+			if lc.x < 0:
+				return {}
+			used[lc] = true
+			e.room = vi
+			e.lever_room = ri
+			e.lever = _cell_center(lc)
+			var vr: Rect2i = rooms[vi].rect
+			e.chests = []
+			var n := int(spec.get("vault", {}).get("chests", 2))
+			for k in n:
+				var cc := vr.get_center() + Vector2i(roundi((k - (n - 1) / 2.0) * 3.0), -1)
+				used[cc] = true
+				e.chests.append(_cell_center(cc))
+			for x in range(vr.position.x, vr.end.x):
+				for y in range(vr.position.y, vr.end.y):
+					used[Vector2i(x, y)] = true
+		"prisoner":
+			# The cage stands against the room's back wall.
+			var pc := Vector2i(-1, -1)
+			for x in range(r.position.x + 2, r.end.x - 2):
+				var c := Vector2i(x, r.position.y + 1)
+				if get_cell(c) == CELL_FLOOR and get_cell(c + Vector2i(0, 1)) == CELL_FLOOR and not used.has(c) and not used.has(c + Vector2i(1, 0)) and not used.has(c - Vector2i(1, 0)):
+					pc = c
+					if rng.randf() < 0.35:
+						break
+			if pc.x < 0:
+				return {}
+			for dx in range(-1, 2):
+				for dy in range(0, 2):
+					used[pc + Vector2i(dx, dy)] = true
+			e.pos = _cell_center(pc) + Vector2(0, 10)
+		_:
+			var c2 := _free_cell(r, 2, used, false)
+			if c2.x < 0:
+				return {}
+			for dx in range(-1, 2):
+				for dy in range(-1, 2):
+					used[c2 + Vector2i(dx, dy)] = true
+			e.pos = _cell_center(c2)
+	return e
+
+
 ## Openings in a room's wall ring 2-3 cells wide become doors.
 func _find_doors(rooms: Array) -> Array:
 	var doors: Array = []
@@ -642,9 +765,9 @@ func _find_doors(rooms: Array) -> Array:
 						var rect := Rect2i(run[0], Vector2i.ONE)
 						for rc in run:
 							rect = rect.expand(rc).expand(rc + Vector2i.ONE)
-						var kind := str(room.role) if room.role in ["boss", "merchant", "forge"] else ""
+						var kind := str(room.role) if room.role in ["boss", "merchant", "forge", "vault"] else ""
 						doors.append({"cells": run.duplicate(), "vertical": bool(side[3]), "rect": rect,
-							"monster_proof": room.role in ["merchant", "forge"], "kind": kind})
+							"monster_proof": room.role in ["merchant", "forge", "vault"], "kind": kind})
 					run.clear()
 	return doors
 
@@ -720,7 +843,7 @@ func _place_props(rooms: Array, fd: Dictionary, used: Dictionary) -> Array:
 					used[c] = true
 					out.append({"type": "pillar", "pos": _cell_center(c)})
 			continue
-		if room.role in ["start", "merchant", "forge"]:
+		if room.role in ["start", "merchant", "forge", "vault"]:
 			continue
 		var n := rng.randi_range(int(fd.props_per_room[0]), int(fd.props_per_room[1]))
 		if rng.randf() < float(gen.get("pillared_hall_chance", 0.0)) and r.size.x >= 9 and r.size.y >= 8:
@@ -1219,7 +1342,7 @@ func _place_torches(rooms: Array, fd: Dictionary, depth: int) -> Array:
 		match room.role:
 			"boss":
 				count = 4
-			"start", "merchant", "forge":
+			"start", "merchant", "forge", "vault":
 				count = maxi(count, 2)
 			_:
 				if roll > chance:
@@ -1252,7 +1375,8 @@ func _place_spawns(rooms: Array, fd: Dictionary, used: Dictionary, count_mult: f
 			ids.append(m.id)
 			ws.append(float(m.weight))
 	for i in rooms.size():
-		if rooms[i].role != "normal":
+		# #72: the arena fills with its own waves.
+		if rooms[i].role != "normal" or str(rooms[i].get("event", "")) == "arena":
 			continue
 		var n := roundi(rng.randi_range(int(fd.enemies_per_room[0]), int(fd.enemies_per_room[1])) * count_mult)
 		var group: Array = []

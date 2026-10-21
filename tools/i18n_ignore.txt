@@ -11,3 +11,8 @@ GodotSteam extension not loaded
 %s requires %s, not a lower node of its branch
 Forge_
 Forge_npc
+Event_arena_chest
+Event_vault_lever
+Event_shrine
+Event_cursed_chest
+Event_prisoner

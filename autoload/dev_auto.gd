@@ -69,6 +69,8 @@ func _ready() -> void:
 			GameState.set_meta("force_mix", v)  # #70: every floor mixed by this biome
 		elif a.begins_with("--boss="):
 			GameState.set_meta("force_boss", v)
+		elif a.begins_with("--events="):
+			GameState.set_meta("force_events", v)  # #72: e.g. arena,vault or none
 		elif a.begins_with("--forge="):
 			GameState.set_meta("force_forge", v)  # #77: on / off
 		elif a.begins_with("--window="):
@@ -322,6 +324,10 @@ func _run() -> void:
 				await ModSuite.new(self).run()
 			"mods_lan":
 				await ModSuite.new(self).run_lan()
+			"events":
+				await EventSuite.new(self).run()
+			"events_lan":
+				await EventSuite.new(self).run_lan()
 			"forge":
 				await ForgeSuite.new(self).run()
 			"forge_lan":
@@ -670,6 +676,8 @@ func client_cmd(cmd: String, arg: Variant) -> void:
 			await BoonSuite.new(self).client_cmd(cmd, arg)
 		_ when cmd.begins_with("md_"):
 			await ModSuite.new(self).client_cmd(cmd, arg)
+		_ when cmd.begins_with("ev_"):
+			await EventSuite.new(self).client_cmd(cmd, arg)
 		_ when cmd.begins_with("fg_"):
 			await ForgeSuite.new(self).client_cmd(cmd, arg)
 		_ when cmd.begins_with("dr_"):

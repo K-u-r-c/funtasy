@@ -203,7 +203,9 @@
 		"drop_scatter": 22,
 		"_flight_comment": "#75: loot flies out of its source: time + time_per_px x distance, from from_height px above the source, arc_height px high, spins turns, one bounce; items in one drop follow each other by stagger s.",
 		"flight": {"time": 0.42, "time_per_px": 0.004, "from_height": 14, "arc_height": 30, "spins": 1.5, "bounce_px": 6, "bounce_time": 0.2, "stagger": 0.08},
-		"legendary_beam": {"time": 5.0, "height": 380, "width": 44, "color": "#ff8a1e"}, "upgrade_chance": 0.03, "upgrade_levels": [2, 3], "upgrade_rarity": 1
+		"legendary_beam": {"time": 5.0, "height": 380, "width": 44, "color": "#ff8a1e"}, "upgrade_chance": 0.03, "upgrade_levels": [2, 3], "upgrade_rarity": 1,
+		"_event_sources": "#72: the events' rewards, rolled like a chest: drops = item count, min_rarity = the lowest rarity; gold ranges in gold.<source>.",
+		"event_sources": {"arena": {"drops": [1, 2], "min_rarity": 3}, "vault": {"drops": [1, 2], "min_rarity": 3}, "cursed": {"drops": [2, 3], "min_rarity": 3}, "prisoner": {"drops": [1, 1], "min_rarity": 4}}
 	},
 	"gold": {
 		"_comment": "Gold piles (D12): amount ranges per source, x (1 + per_level x (item level - 1)). A pile is split among living party members.",
@@ -228,6 +230,10 @@
 			15,
 			30
 		],
+		"arena": [30, 60],
+		"vault": [50, 90],
+		"cursed": [30, 60],
+		"prisoner": [20, 40],
 		"per_level": 0.18
 	},
 	"elite": {
@@ -461,6 +467,7 @@
 		"boss_ttd_min": 3.0, "fresh_ttk_max": 8.0, "fresh_ttd_min": 16.0, "fresh_boss_ttk_max": 150.0, "fresh_boss_ttd_min": 6.0, "levels_per_floor": [2.4, 3.75], "xp_probe_floors": 5, "xp_probe_seeds": 4,
 		"_mods_comment": "#71 floor cost probe (BalanceSuite.floor_cost / run_mods): a modded floor's effort (fight time and damage) relative to the plain floor must sit inside mod_cost_band, around what one floor deeper costs the same party (measured x1.02-x1.21), and its reward (gold + gold-valued items + xp/4) must reach mod_reward_min x its cost. Assumptions the layout can't show: the share of fight time a hero stands still on Restless, the darkness's extra damage on Dimmed, the travel time that brings Hunted's hunters.",
 		"forge_legendary_share": [0.1, 0.65],
+		"event_value_min": 0.8, "event_value_max": 4.5,
 		"mod_cost_band": [1.0, 1.5], "mod_reward_min": 0.8, "rarity_gold": [4, 12, 40, 110, 300],
 		"restless_still_melee": 0.25, "restless_still_ranged": 0.2, "dimmed_damage_factor": 1.2, "travel_s_per_floor": 150
 	}

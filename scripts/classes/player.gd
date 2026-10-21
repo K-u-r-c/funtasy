@@ -1633,7 +1633,7 @@ func apply_ghost_body() -> void:
 
 ## What a ghost may interact with: doors that open by hand (not the sealed merchant doors).
 func ghost_can_use(node: Node) -> bool:
-	return node != null and node.has_method("host_set_open") and not bool(node.get("sealed"))
+	return node != null and node.has_method("host_set_open") and not bool(node.get("sealed")) and not bool(node.get("locked"))
 
 
 ## Owner: a ghost walks (no dodge, no skills, no quick items); Interact only works doors.

@@ -29,6 +29,7 @@ var item_bases: Dictionary = {}
 var damage_types: Dictionary = {}  ## data/damage_types.json (types, school_default, creature_types)
 var elite_modifiers: Dictionary = {}
 var floor_modifiers: Dictionary = {}  ## #71
+var floor_events: Dictionary = {}  ## #72: data/floor_events.json
 var boons: Dictionary = {}  ## #73: boon id -> def (data/boons/*.json)
 var boon_tags: Dictionary = {}  ## #73: tag id -> {name}
 var merchants: Dictionary = {}
@@ -74,6 +75,7 @@ func reload() -> void:
 	obstacles = _load_json("obstacles.json", {})
 	elite_modifiers = _load_json("elite_modifiers.json", {})
 	floor_modifiers = _load_json("floor_modifiers.json", {})
+	floor_events = _load_json("floor_events.json", {})
 	boon_tags.clear()
 	for t in _load_json("boon_tags.json", []):
 		boon_tags[t.id] = t

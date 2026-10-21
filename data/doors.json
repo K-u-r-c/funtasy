@@ -20,6 +20,13 @@
 		"embers": "#ff8a30",
 		"monster_proof": true
 	},
+	"vault": {
+		"seal": "lever",
+		"art_closed": "props.door_vault",
+		"art_open": "props.door_vault_open",
+		"light": {"color": "#f0c040", "energy": 0.9, "radius": 110, "flicker": 0.05, "height": 30},
+		"monster_proof": true
+	},
 	"malphas": {
 		"seal": "blood",
 		"art_closed": "props.door_malphas",

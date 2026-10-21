@@ -13,6 +13,7 @@ var radius := 40.0
 var lead := 1.5
 var label := ""
 var color := Color("ff4d3d")
+var fill := true  ## false: the ring and the countdown only (it mustn't hide what is waking inside)
 var _t := 0.0
 var _done := false
 
@@ -40,8 +41,9 @@ static func lead_of(key: String) -> float:
 
 
 ## A ground marker at `pos` (world) under `parent`, filling over `lead` s; logs `key` as warned.
-static func ground(parent: Node, pos: Vector2, radius_px: float, lead_s: float, key: String, text: String = "", col: Color = Color("ff4d3d"), sound: String = "telegraph") -> Telegraph:
+static func ground(parent: Node, pos: Vector2, radius_px: float, lead_s: float, key: String, text: String = "", col: Color = Color("ff4d3d"), sound: String = "telegraph", filled: bool = true) -> Telegraph:
 	var t := Telegraph.new()
+	t.fill = filled
 	t.radius = radius_px
 	t.lead = lead_s
 	t.label = text
@@ -76,7 +78,8 @@ func _draw() -> void:
 	var u := clampf(_t / maxf(lead, 0.01), 0.0, 1.0)
 	var pulse := 0.5 + 0.5 * sin(_t * (6.0 + 10.0 * u))
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2(1.0, 0.55))  # flat on the floor (3/4 view)
-	draw_circle(Vector2.ZERO, radius * u, Color(color, 0.16 + 0.1 * pulse))
+	if fill:
+		draw_circle(Vector2.ZERO, radius * u, Color(color, 0.16 + 0.1 * pulse))
 	draw_arc(Vector2.ZERO, radius, 0.0, TAU, 48, Color(color, 0.85), 2.0)
 	draw_arc(Vector2.ZERO, radius * u, 0.0, TAU, 48, Color(color.lightened(0.3), 0.9), 1.5)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)

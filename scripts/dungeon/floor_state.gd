@@ -29,7 +29,8 @@ static func capture(g: Node, prev: Dictionary) -> Dictionary:
 		if e.has_meta("summoned") or e.lifetime > 0.0:
 			continue
 		enemies.append({"def": e.def_id, "pos": _v(e.global_position), "hp": snappedf(e.health.hp, 0.1),
-			"boss": e.is_boss, "elite": e.elite, "key": e.key_carrier, "hunter": e.hunter})
+			"boss": e.is_boss, "elite": e.elite, "key": e.key_carrier, "hunter": e.hunter, "guard": e.guard,
+			"event_mimic": e.get_meta("event_mimic", false)})
 	snap.enemies = enemies
 	snap.boss_alive = g.boss_alive
 	var items: Array = []
@@ -76,6 +77,8 @@ static func capture(g: Node, prev: Dictionary) -> Dictionary:
 	snap.legendary_from_enemies = g.legendary_from_enemies
 	snap.mod = str(g.floor_def.get("mod", ""))
 	snap.forge = bool(g.has_forge)
+	snap.events = g.events.save_state()
+	snap.events_list = g.floor_events.duplicate()
 	var m: Merchants = g.merchants
 	var signed := {}
 	for peer in m._signed:
@@ -138,6 +141,8 @@ static func restore_host(g: Node, snap: Dictionary, boss_pos: Vector2) -> void:
 			extra.elite = ed.elite
 		if bool(ed.get("key", false)):
 			extra.key = true
+		if bool(ed.get("guard", false)):
+			extra.guard = true
 		# #71: a hunter keeps its name, strength and sure drop.
 		if not str(ed.get("hunter", "")).is_empty():
 			extra.hunter = str(ed.hunter)
@@ -148,6 +153,8 @@ static func restore_host(g: Node, snap: Dictionary, boss_pos: Vector2) -> void:
 		var e: Node = g.spawn_monster(str(ed.def), boss_pos if boss else vec(ed.pos), boss, extra)
 		if e:
 			e.health.hp = clampf(float(ed.hp), 1.0, e.health.max_hp)
+			if bool(ed.get("event_mimic", false)):
+				e.set_meta("event_mimic", true)
 	g.boss_alive = bool(snap.get("boss_alive", true))
 	for it in snap.get("items", []):
 		g.loot.drop_item(it.item, vec(it.pos))
@@ -171,6 +178,7 @@ static func restore_host(g: Node, snap: Dictionary, boss_pos: Vector2) -> void:
 				m._signed[peer] = Array(ms.signed[slot]).map(func(c): return int(c))
 		m._sync.rpc(m.stock, m.contracts, m.shop_open)
 	g.floor_time = float(snap.get("time", 0.0))
+	g.events.host_restore(snap.get("events", {}))
 
 
 ## Host, once the hero is in: HP, resource and life state as saved. Its stats (max HP with the

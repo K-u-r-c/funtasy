@@ -114,7 +114,50 @@ func blocks_path() -> bool:
 	return type in ["pillar", "table", "chest"]
 
 
+## #72: a prop that waits hidden for its event (the arena's reward chest).
+func hide_until_event() -> void:
+	set_meta("hidden", true)
+	visible = false
+	collision_layer = 0
+
+
+## Every peer: the hidden prop appears (rising out of the floor with light and dust).
+func reveal(animate: bool = true) -> void:
+	if not get_meta("hidden", false):
+		return
+	set_meta("hidden", false)
+	visible = true
+	collision_layer = 8 if bool(def.get("blocks_sight", true)) else 32
+	if not animate:
+		return
+	_sprite.position.y = 18.0
+	modulate.a = 0.0
+	var tw := create_tween().set_parallel(true)
+	tw.tween_property(_sprite, "position:y", 0.0, 0.7).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_property(self, "modulate:a", 1.0, 0.35)
+	var p := CPUParticles2D.new()
+	p.texture = GameData.texture("fx.pixel")
+	p.one_shot = true
+	p.explosiveness = 0.9
+	p.amount = 26
+	p.lifetime = 0.9
+	p.direction = Vector2(0, -1)
+	p.spread = 70.0
+	p.initial_velocity_min = 30.0
+	p.initial_velocity_max = 90.0
+	p.gravity = Vector2(0, 90)
+	var grad := Gradient.new()
+	grad.set_color(0, Color(1.0, 0.85, 0.45))
+	grad.set_color(1, Color(1.0, 0.5, 0.2, 0.0))
+	p.color_ramp = grad
+	add_child(p)
+	p.emitting = true
+	p.finished.connect(p.queue_free)
+
+
 func interactable() -> bool:
+	if get_meta("hidden", false):
+		return false
 	if def.has("npc") or def.has("gate"):
 		return true  # merchants and their doors stay usable
 	return bool(def.get("interactable", false)) and not opened

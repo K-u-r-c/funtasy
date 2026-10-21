@@ -8,10 +8,14 @@ var _aggro_seen: Dictionary = {}  ## #81: enemy instance id -> the time it notic
 
 func _ready() -> void:
 	_font = UITheme.font()
+	_key_tex = GameData.texture("items.cell_key")
 
 
 func _process(_delta: float) -> void:
 	queue_redraw()
+
+
+var _key_tex: Texture2D  ## #72: the cell key over the prisoner's guard (loaded outside _draw once)
 
 
 func _draw() -> void:
@@ -26,8 +30,18 @@ func _draw() -> void:
 		var top: Vector2 = e.global_position + Vector2(0, -e.sprite.visual_height() - 7.0)
 		if e.get_meta("hide_bar", false):
 			continue
+		# #72: a freed prisoner fighting for the heroes: its name in blue and a green bar.
+		if e.team == Actor.Team.PLAYERS and e.get("look") is Dictionary and not e.look.is_empty():
+			_text(top + Vector2(0, -4), e.display_name, Color("8fc8ff"), 11)
+			_bar(top, 28.0, e.health.fraction(), Color(0.3, 0.85, 0.35))
+			continue
 		if e.is_elite():
 			_text(top + Vector2(0, -4), Loc.name(e.display_name), Color(0.95, 0.78, 0.3), 11)
+		# #72: the prisoner's guard shows the cell key it carries.
+		if e.get("guard"):
+			if _key_tex:
+				var bob := sin(now * 3.0) * 1.5
+				draw_texture_rect(_key_tex, Rect2(top + Vector2(-8, -30 + bob), Vector2(16, 16)), false)
 		if e.aggro or e.health.hp < e.health.max_hp:
 			_bar(top, 28.0, e.health.fraction(), Color(0.95, 0.7, 0.2) if e.is_elite() else Color(0.85, 0.2, 0.18))
 		_cast(e, top + Vector2(0, -6), now)

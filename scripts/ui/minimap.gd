@@ -19,6 +19,10 @@ func _ready() -> void:
 	clip_contents = true
 	for key in ["ui.map_archibald", "ui.map_malphas", "ui.map_forge", "ui.map_boss", "ui.map_lock"]:
 		_icons[key] = GameData.texture(key)
+	# #72: the events' own icons (the floor sheet's ev_*).
+	for id in GameData.floor_events.get("events", {}):
+		var ik := "icons." + str(FloorEvents.def(str(id)).get("icon", ""))
+		_icons[ik] = GameData.texture(ik)
 
 
 func _process(delta: float) -> void:
@@ -63,13 +67,24 @@ func _draw() -> void:
 	# Discovered merchant, forge (#77) and boss chambers (#28): their sign, a lock while sealed.
 	var icon_px := 16.0 if full_map else 12.0
 	for mk in d.map_markers():
-		var tex := _icon("ui.map_boss" if mk.kind == "boss" else "ui.map_" + str(mk.npc))
+		var tex := _icon("ui.map_boss" if mk.kind == "boss" else ("icons." + str(mk.npc) if mk.kind == "event" else "ui.map_" + str(mk.npc)))
 		if tex == null:
 			continue
 		var mc := (origin + (Vector2(mk.cell) + Vector2(0.5, 0.5)) * px).round()
 		var ir := Rect2(mc - Vector2(icon_px, icon_px) / 2.0, Vector2(icon_px, icon_px)).abs()
 		if mk.kind == "boss":
 			draw_circle(mc, icon_px * 0.6 + sin(_t * 3.0), Color(0.8, 0.1, 0.05, 0.35))
+		elif mk.kind == "event":
+			draw_circle(mc, icon_px * 0.6, Color(mk.get("color", Color.WHITE), 0.28 + 0.1 * sin(_t * 2.0)))
+			# The vault's lever is linked to its door once the lever has been seen.
+			if mk.has("link"):
+				var lc := (origin + (Vector2(mk.link) + Vector2(0.5, 0.5)) * px).round()
+				var seg := lc - mc
+				var n := maxi(int(seg.length() / 6.0), 1)
+				for i in n:
+					if i % 2 == 0:
+						draw_line(mc + seg * (float(i) / n), mc + seg * (float(i + 1) / n), Color(mk.color, 0.75), 1.0)
+				draw_circle(lc, 2.5 + sin(_t * 4.0), Color(mk.color, 0.9))
 		draw_texture_rect(tex, ir, false)
 		if mk.locked:
 			draw_texture_rect(_icon("ui.map_lock"), Rect2(ir.end - Vector2(7, 7), Vector2(8, 8)), false)

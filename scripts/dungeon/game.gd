@@ -43,6 +43,7 @@ var map_pings: Array = []  ## local: [{pos, color, until}] pulsing marks on the 
 var legendary_from_enemies := false  ## host (#75): a named legendary has dropped from a monster, elite or boss on this floor
 var merchant_id := ""  ## every peer: this floor's merchant (archibald / malphas, #6)
 var has_forge := false  ## every peer: this floor has the blacksmith's forge (#77)
+var floor_events: Array = []  ## every peer: this floor's special rooms and events (#72), e.g. ["arena"]
 var _dyn_counter := 0
 var boss_id := ""  ## this floor's boss, picked from the floor type's list by the floor seed
 var floor_mechanics: Array = []  ## host: FloorMechanic modules of the floor type
@@ -75,6 +76,7 @@ var screen_fx: ScreenFx
 @onready var ambient: CanvasModulate = $Ambient
 var merchants: Merchants
 var forge: Forge  ## #77: the blacksmith's upgrades
+var events: FloorEvents  ## #72: the floor's special rooms and events
 
 
 func _ready() -> void:
@@ -86,6 +88,10 @@ func _ready() -> void:
 	forge.name = "Forge"
 	forge.game = self
 	add_child(forge)
+	events = FloorEvents.new()
+	events.name = "FloorEvents"
+	events.game = self
+	add_child(events)
 	mod_runner = ModRunner.new()
 	mod_runner.name = "ModRunner"
 	mod_runner.setup(self)
@@ -182,12 +188,13 @@ func start_floor(new_depth: int) -> void:
 		add_party_key(-party_keys)
 	legendary_from_enemies = false
 	var with_forge := pick_forge(floor_seed) if resume.is_empty() else bool(resume.get("forge", pick_forge(floor_seed)))
-	_build_floor.rpc(new_depth, floor_seed, ft_id, FloorPlan.bosses_to(run_seed, new_depth)[-1], pick_merchant(floor_seed), mix, mod, with_forge)
+	var evs: Array = pick_events(floor_seed, new_depth) if resume.is_empty() else resume.get("events_list", pick_events(floor_seed, new_depth))
+	_build_floor.rpc(new_depth, floor_seed, ft_id, FloorPlan.bosses_to(run_seed, new_depth)[-1], pick_merchant(floor_seed), mix, mod, with_forge, evs)
 	# Host-only: the spawn list depends on party size, so it is generated with that multiplier.
 	var n := players_root.get_child_count() if players_root.get_child_count() > 0 else GameState.roster.size()
 	var count_mult := 1.0 + float(GameData.bal("scaling.count_per_extra_player")) * (maxi(n, 1) - 1)
 	count_mult *= FloorMods.num(floor_def, "count_mult")  # #71 Swarm
-	var host_layout := DungeonGenerator.new().generate(floor_seed, floor_def, count_mult, new_depth, merchant_id, has_forge)
+	var host_layout := DungeonGenerator.new().generate(floor_seed, floor_def, count_mult, new_depth, merchant_id, has_forge, floor_events)
 	_place_players(resume)
 	merchants.host_new_floor(floor_seed, item_level())
 	var carrier := {}
@@ -196,6 +203,14 @@ func start_floor(new_depth: int) -> void:
 	if resume.is_empty():
 		var elites := _pick_elites(host_layout, floor_seed, merchant_id == "archibald")
 		carrier = pick_key_carrier(host_layout, floor_seed, merchant_id == "archibald", elites.keys())
+		# #72: the prisoner's guard carries the cell key (made an elite when it isn't one).
+		var gs: Vector2i = events.pick_guard(host_layout, elites)
+		if gs.x >= 0:
+			if not elites.has(gs):
+				var mods: Array = GameData.elite_modifiers.keys()
+				mods.sort()
+				elites[gs] = {"elite": [mods[hash(floor_seed) % mods.size()]]}
+			elites[gs].guard = true
 		key_chest = "Chest_%d" % int(carrier.index) if carrier.get("kind", "") == "chest" else ""
 		for gi in host_layout.spawns.size():
 			var group: Dictionary = host_layout.spawns[gi]
@@ -352,6 +367,9 @@ func spawn_monster(def_id: String, pos: Vector2, boss: bool, extra: Dictionary =
 	# #71 Hunted: a hunter is an elite with more health and bite.
 	hp_mult *= float(extra.get("hunter_hp", 1.0))
 	dmg_mult *= float(extra.get("hunter_dmg", 1.0))
+	# #72: event monsters with their own weight (the mimic).
+	hp_mult *= float(extra.get("hp_x", 1.0))
+	dmg_mult *= float(extra.get("dmg_x", 1.0))
 	_enemy_counter += 1
 	var data := {"name": "E%d" % _enemy_counter, "def_id": def_id, "boss": boss, "pos": pos,
 		"level": lvl, "hp_mult": hp_mult, "dmg_mult": dmg_mult}
@@ -495,6 +513,7 @@ func on_enemy_killed(e: Enemy) -> void:
 		broadcast_message.rpc("%s falls - an elite altar rises", "#e8c040", [e.display_name])
 	if e.key_carrier:
 		loot.drop_item(gold_key_item(), e.global_position + Vector2(-12, 6))
+	events.host_enemy_killed(e)
 	var earned: Array = []
 	for peer in e.contributors:
 		if now - float(e.contributors[peer]) > window:
@@ -571,7 +590,9 @@ func host_interact(p: Player, node: Node) -> void:
 	for b in get_tree().get_nodes_in_group("boss"):
 		if b.has_method("on_mechanic_interact") and b.on_mechanic_interact(p, node):
 			return
-	if node is GroundItem:
+	if events.handles(node):
+		events.host_interact(p, node)
+	elif node is GroundItem:
 		loot.try_pickup(p, node)
 	elif node.get("def") is Dictionary and str(node.def.get("npc", "")) == "blacksmith":
 		forge.host_interact(p, node)
@@ -924,7 +945,7 @@ func _on_peer_disconnected(id: int) -> void:
 
 
 @rpc("authority", "call_local", "reliable")
-func _build_floor(new_depth: int, floor_seed: int, ft_id: String, floor_boss: String, floor_merchant: String, mix: String = "", mod: String = "", with_forge: bool = false) -> void:
+func _build_floor(new_depth: int, floor_seed: int, ft_id: String, floor_boss: String, floor_merchant: String, mix: String = "", mod: String = "", with_forge: bool = false, ev_list: Array = []) -> void:
 	depth = new_depth
 	floor_time = 0.0
 	# #70: a mixed floor is built from its biome's definition with part of the invader's pool;
@@ -934,8 +955,10 @@ func _build_floor(new_depth: int, floor_seed: int, ft_id: String, floor_boss: St
 	boss_id = floor_boss
 	merchant_id = floor_merchant
 	has_forge = with_forge
-	layout = DungeonGenerator.new().generate(floor_seed, floor_def, 1.0, new_depth, floor_merchant, with_forge)
+	floor_events = ev_list
+	layout = DungeonGenerator.new().generate(floor_seed, floor_def, 1.0, new_depth, floor_merchant, with_forge, ev_list)
 	dungeon.build(layout, floor_def, entities)
+	events.setup_floor(layout)
 	visibility.reset_floor()
 	# Ground fog (Kurgan) shrinks carried torches too.
 	for p in players_root.get_children():
@@ -1003,6 +1026,40 @@ static func pick_forge(floor_seed: int) -> bool:
 	var r := RandomNumberGenerator.new()
 	r.seed = floor_seed + 919
 	return r.randf() < float(GameData.merchants.get("blacksmith", {}).get("floor_chance", 0.5))
+
+
+## Host: the floor's special rooms and events (#72): none before floor_events.first_depth, then
+## a seeded count (count_weights) of different events by weight among those whose min_depth is
+## reached, from their own stream. "force_events" meta on GameState ("arena,vault", "none") pins
+## them for tests and screenshots.
+static func pick_events(floor_seed: int, at_depth: int) -> Array:
+	var forced := str(GameState.get_meta("force_events", ""))
+	if not forced.is_empty():
+		return [] if forced == "none" else Array(forced.split(","))
+	var fe: Dictionary = GameData.floor_events
+	if at_depth < int(fe.get("first_depth", 2)):
+		return []
+	var r := RandomNumberGenerator.new()
+	r.seed = floor_seed + 1231
+	var cw: Array = fe.get("count_weights", [1])
+	var span: Array = fe.get("count", [1, 1])
+	var n := mini(int(span[0]) + ItemGenerator._weighted_index(cw, r), int(span[1]))
+	var ids: Array = []
+	var ws: Array = []
+	var defs: Dictionary = fe.get("events", {})
+	var keys: Array = defs.keys()
+	keys.sort()
+	for id in keys:
+		if at_depth >= int(defs[id].get("min_depth", 1)):
+			ids.append(id)
+			ws.append(float(defs[id].get("weight", 1)))
+	var out: Array = []
+	for i in mini(n, ids.size()):
+		var k := ItemGenerator._weighted_index(ws, r)
+		out.append(ids[k])
+		ids.remove_at(k)
+		ws.remove_at(k)
+	return out
 
 
 static func pick_boss(ft: Dictionary, floor_seed: int, avoid: String = "") -> String:
@@ -1377,7 +1434,7 @@ func _pick_interactable(p: Player, candidates: Array, pick: int) -> Dictionary:
 ## decides on pickup).
 func take_refusal(p: Player, item: Dictionary) -> String:
 	match str(item.get("kind", "")):
-		"gold", "gold_key":
+		"gold", "gold_key", "cell_key":
 			return ""
 		"backpack":
 			return "" if int(item.get("capacity", 0)) > p.inv.capacity else "You already have a backpack this big"

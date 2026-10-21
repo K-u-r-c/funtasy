@@ -18,6 +18,8 @@ var kind := ""  ## "boss" / "merchant": the one door of a sealed leaf chamber (#
 var door_type := ""  ## data/doors.json entry: "boss", "archibald", "malphas" ("" = an ordinary door)
 var type_def: Dictionary = {}
 var sealed := false  ## locked until paid for at the door (#23)
+var locked := false  ## #72: shut by the arena's trial until it ends (red bars, a warning light)
+var _lock_fx: Node2D
 var biome := ""
 var light: PointLight2D
 var _t := 0.0
@@ -162,8 +164,12 @@ func type_art(which: String) -> String:
 
 
 func interact_text() -> String:
+	if locked:
+		return Loc.t("Barred by the arena's trial")
 	if sealed:
 		match str(type_def.get("seal", "")):
+			"lever":
+				return Loc.t("Sealed vault - a lever elsewhere opens it")
 			"gold_key":
 				return Loc.t("Unlock the vault (Gold Key)")
 			"blood":
@@ -186,9 +192,30 @@ func _layout_seed() -> int:
 
 ## Host only. A sealed door stays shut whoever tries (players, swings, monsters).
 func host_set_open(open: bool) -> void:
-	if open == is_open or (open and sealed):
+	if open == is_open or (open and (sealed or locked)):
 		return
 	_sync_open.rpc(open)
+
+
+## Host only (#72): the arena bars its doors (closing them) or lifts the bars.
+func host_set_locked(on: bool) -> void:
+	if on:
+		host_set_open(false)
+	_sync_lock.rpc(on)
+
+
+## Host -> all (reliable, call_local): the red bars of the arena's trial.
+@rpc("authority", "call_local", "reliable")
+func _sync_lock(on: bool) -> void:
+	locked = on
+	if _lock_fx and is_instance_valid(_lock_fx):
+		_lock_fx.queue_free()
+		_lock_fx = null
+	if on:
+		_lock_fx = ArenaBars.new()
+		_lock_fx.setup(world_rect, vertical)
+		add_child(_lock_fx)
+		AudioManager.play_sfx_at("arena_seal", world_rect.get_center())
 
 
 ## Host only: the seal was paid for; the door opens.

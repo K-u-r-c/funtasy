@@ -1598,3 +1598,122 @@ func _forge(_arg: String) -> void:
 		await snap("forge_done")
 		hud.close_overlay()
 	GameState.remove_meta("force_forge")
+
+
+## #72: every event on one floor: the arena (its sigil and braziers, the doors sealing, a wave's
+## rifts, the HUD counter, the reward chest), the vault (its door, the lever with the map link,
+## the open vault), the shrine and its cards, the cursed chest waking as a mimic, the prisoner in
+## the cage, the guard with the key and the freed ally.
+func _events(_arg: String) -> void:
+	var hud: Node = da.get_tree().get_first_node_in_group("hud")
+	GameState.set_meta("force_events", "arena,vault,shrine,cursed_chest,prisoner")
+	GameState.set_meta("test_mimic", true)
+	GameState.set_meta("test_prisoner", "ally")
+	g.start_floor(4)
+	await da._wait(5.0)
+	p = da._local()
+	p.iframe_left = 9999.0
+	var fe: FloorEvents = g.events
+	var ent: Dictionary = fe.entries
+	da.check(ent.size() == 5, "all five events placed (%s)" % [ent.keys()])
+	# The shrine.
+	if ent.has("shrine"):
+		_clear_monsters(true)
+		p.host_teleport(g.nearest_floor(ent.shrine.pos + Vector2(0, 40)))
+		await da._wait(1.2)
+		await snap("ev_shrine_room")
+		g.host_interact(p, g.dungeon.props["Event_shrine"])
+		await da._wait(0.8)
+		await snap("ev_shrine_cards")
+		hud.close_overlay()
+	# The prisoner.
+	if ent.has("prisoner"):
+		_clear_monsters(true)
+		p.host_teleport(g.nearest_floor(ent.prisoner.pos + Vector2(0, 36)))
+		await da._wait(1.2)
+		da.log_line("prisoner npc: %s" % [g.dungeon.props["Event_prisoner"].get_node_or_null("PrisonerNpc")])
+		await snap("ev_prisoner")
+	# The cursed chest waking.
+	if ent.has("cursed_chest"):
+		_clear_monsters(false)
+		p.host_teleport(g.nearest_floor(ent.cursed_chest.pos + Vector2(0, 26)))
+		await da._wait(1.5)
+		await snap("ev_cursed_chest")
+		g.host_interact(p, g.dungeon.props["Event_cursed_chest"])
+		await da._wait(0.7)
+		await snap("ev_mimic_waking")
+		await da._wait(1.0)
+		await snap("ev_mimic")
+		for e in g.enemies_root.get_children():
+			if e.get_meta("event_mimic", false):
+				e.queue_free()
+	# The vault.
+	if ent.has("vault"):
+		var door: Node = g.dungeon.leaf_door("vault")
+		p.host_teleport(g.nearest_floor(door.interact_pos() + Vector2(0, 70)))
+		await da._wait(1.2)
+		await snap("ev_vault_door")
+		p.host_teleport(g.nearest_floor(ent.vault.lever + Vector2(0, 40)))
+		await da._wait(1.2)
+		await snap("ev_vault_lever")
+		g.host_interact(p, g.dungeon.props["Event_vault_lever"])
+		await da._wait(1.0)
+		p.host_teleport(g.nearest_floor(door.interact_pos() + Vector2(0, 60)))
+		await da._wait(1.2)
+		await snap("ev_vault_open")
+	# The arena.
+	if ent.has("arena"):
+		for e in g.enemies_root.get_children():
+			e.queue_free()
+		var c: Vector2 = ent.arena.center
+		p.host_teleport(g.nearest_floor(c + Vector2(0, 90)))
+		await da._wait(1.0)
+		await snap("ev_arena_idle")
+		p.host_teleport(g.nearest_floor(c + Vector2(0, 40)))
+		await da._wait(1.2)
+		await snap("ev_arena_sealing")
+		await da._wait_until(func(): return str(fe.st("arena").get("state", "")) == "fight" and fe.st("arena").get("warned", false), 8.0)
+		await da._wait(0.6)
+		await snap("ev_arena_wave_warn")
+		await da._wait(2.0)
+		await snap("ev_arena_wave")
+		for k in 3:
+			await da._wait_until(func(): return fe._wave_names.size() > 0 or str(fe.st("arena").get("state", "")) == "done", 12.0)
+			for n in fe._wave_names.duplicate():
+				var e2: Node = g.enemies_root.get_node_or_null(NodePath(n))
+				if e2:
+					Combat.instance.deal_damage(Combat.instance.make_ctx(p, {"id": "t", "school": "physical"}), e2, 99999.0, {"damage_type": "true"})
+			await da._wait(0.5)
+		await da._wait_until(func(): return str(fe.st("arena").get("state", "")) == "done", 20.0)
+		await da._wait(1.2)
+		await snap("ev_arena_won")
+	GameState.remove_meta("force_events")
+	GameState.remove_meta("test_mimic")
+	GameState.remove_meta("test_prisoner")
+
+
+func _clear_monsters(keep_guard: bool) -> void:
+	for e in g.enemies_root.get_children():
+		if not (keep_guard and e.get("guard")) and not e.is_boss:
+			e.queue_free()
+
+
+## #72: the cursed chest waking, frame by frame (debug / review).
+func _mimic(_arg: String) -> void:
+	GameState.set_meta("force_events", "cursed_chest")
+	GameState.set_meta("test_mimic", true)
+	g.start_floor(3)
+	await da._wait(5.0)
+	p = da._local()
+	p.iframe_left = 9999.0
+	_clear_monsters(false)
+	var ch: Node2D = g.dungeon.props["Event_cursed_chest"]
+	p.host_teleport(g.nearest_floor(ch.global_position + Vector2(0, 50)))
+	await da._wait(1.5)
+	await snap("mimic_0")
+	g.host_interact(p, ch)
+	for i in 5:
+		await da._wait(0.3)
+		await snap("mimic_%d" % (i + 1))
+	GameState.remove_meta("force_events")
+	GameState.remove_meta("test_mimic")

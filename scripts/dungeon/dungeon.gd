@@ -62,7 +62,7 @@ func build(new_layout: Dictionary, def: Dictionary, entity_root: Node2D) -> void
 		if not str(d.get("kind", "")).is_empty():
 			# The sealed chambers' doors (#23 / #31): the boss door, or the floor merchant's own.
 			d = d0.duplicate()
-			d.type = {"merchant": str(layout.get("merchant", {}).get("npc", "")), "forge": "forge"}.get(str(d.kind), "boss")
+			d.type = {"merchant": str(layout.get("merchant", {}).get("npc", "")), "forge": "forge", "vault": "vault"}.get(str(d.kind), "boss")
 			d.biome = str(def.get("id", ""))
 		var door: Node2D = DOOR_SCRIPT.new()
 		door.name = "Door_%d" % n
@@ -96,6 +96,8 @@ func build(new_layout: Dictionary, def: Dictionary, entity_root: Node2D) -> void
 		for k in pieces:
 			if fg.has(k):
 				_add_prop("Forge_" + str(k), str(pieces[k]), fg[k])
+	# #72: the floor's events: their props (hidden ones wait for their moment) and decor.
+	_build_events()
 	for sr in safe_rects:
 		for x in range(sr.position.x, sr.end.x):
 			for y in range(sr.position.y, sr.end.y):
@@ -672,6 +674,37 @@ func destroy_prop(prop_name: String) -> void:
 	p.break_apart()
 
 
+## #72, every peer: each event's props and decor from the layout (names "Event_<id>..." are the
+## same everywhere, so FloorEvents and the save find them).
+func _build_events() -> void:
+	for e in layout.get("events", []):
+		match str(e.id):
+			"arena":
+				var k := 0
+				for bp in e.braziers:
+					_add_prop("Event_arena_brazier_%d" % k, "arena_brazier", bp)
+					k += 1
+				_add_prop("Event_arena_chest", "arena_chest", e.center + Vector2(0, 6))
+				props["Event_arena_chest"].hide_until_event()
+				var sig := ArenaSigil.new()
+				sig.name = "ArenaSigil"
+				sig.position = e.center
+				add_child(sig)
+			"vault":
+				_add_prop("Event_vault_lever", "vault_lever", e.lever)
+				var k2 := 0
+				for cp in e.chests:
+					_add_prop("Event_vault_chest_%d" % k2, "vault_chest", cp)
+					k2 += 1
+			"shrine":
+				_add_prop("Event_shrine", "bargain_shrine", e.pos)
+			"cursed_chest":
+				_add_prop("Event_cursed_chest", "cursed_chest", e.pos)
+			"prisoner":
+				_add_prop("Event_prisoner", "prison_cage", e.pos)
+				# The captive is drawn by PrisonerNpc once FloorEvents knows who it is.
+
+
 ## #55: the names of the props the layout put on this floor (the same on every peer).
 func layout_prop_names() -> Array:
 	var out: Array = []
@@ -765,6 +798,25 @@ func map_markers() -> Array:
 				seen = is_discovered(Vector2i(x, y))
 		if seen:
 			out.append({"kind": e[0], "npc": e[2], "cell": rect.get_center(), "locked": door != null and door.sealed})
+	# #72: the events this peer has found (the vault with a link to its lever once that was seen).
+	var game := get_tree().get_first_node_in_group("game") if is_inside_tree() else null
+	var fe: Node = game.events if game else null
+	if fe:
+		for id in fe.seen:
+			var ev: Dictionary = fe.entries.get(id, {})
+			if ev.is_empty():
+				continue
+			var at: Vector2 = ev.get("pos", ev.get("center", ev.get("lever", Vector2.ZERO)))
+			var cell := cell_of(at) if id != "vault" else Rect2i(rooms[int(ev.room)].rect).get_center()
+			var mk := {"kind": "event", "npc": str(FloorEvents.def(id).get("icon", "")), "cell": cell, "id": id,
+				"color": Color.from_string(str(FloorEvents.def(id).get("color", "#ffffff")), Color.WHITE),
+				"locked": id == "vault" and not fe.st("vault").get("open", false)}
+			if id == "vault" and fe.lever_seen:
+				mk.link = cell_of(ev.lever)
+			out.append(mk)
+		if fe.entries.has("vault") and fe.lever_seen and not fe.seen.has("vault"):
+			out.append({"kind": "event", "npc": str(FloorEvents.def("vault").get("icon", "")), "cell": cell_of(fe.entries.vault.lever), "id": "vault_lever",
+				"color": Color.from_string(str(FloorEvents.def("vault").get("color", "#ffffff")), Color.WHITE), "locked": false})
 	return out
 
 
