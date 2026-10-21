@@ -62,6 +62,9 @@ func _column(parent: Control, title: String, icon_key: String) -> VBoxContainer:
 
 
 func _process(_delta: float) -> void:
+	# The hero can be freed before the window when a session ends.
+	if not is_instance_valid(player):
+		return
 	var sig := "%d|%d" % [player.gold, player.inv.backpack.size()]
 	if sig != _last_sig:
 		_rebuild()

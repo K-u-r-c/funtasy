@@ -92,9 +92,10 @@ func _wants_look() -> bool:
 	if _look_cd > 0.0 or frames.get("look", []).is_empty():
 		return false
 	var game := get_tree().get_first_node_in_group("game")
-	var me: Node2D = game.local_player if game else null
-	if me == null or not is_instance_valid(me):
+	var ref: Variant = game.local_player if game else null
+	if not is_instance_valid(ref):
 		return false
+	var me: Node2D = ref
 	return me.global_position.distance_to(global_position) < float(cfg.get("look_radius", 150.0))
 
 

@@ -77,6 +77,9 @@ func _chips(first: Array, left: int, arrow_icon := "", then: Array = []) -> HBox
 
 
 func _process(_delta: float) -> void:
+	# The hero can be freed before the window when a session ends.
+	if not is_instance_valid(player):
+		return
 	if str(player.run_mods.size()) != _last_sig:
 		_rebuild()
 

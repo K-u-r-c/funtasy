@@ -87,6 +87,9 @@ func _build() -> void:
 
 
 func _process(_delta: float) -> void:
+	# The hero can be freed before the window when a session ends.
+	if not is_instance_valid(player):
+		return
 	if _sig() != _last_sig:
 		_rebuild()
 
