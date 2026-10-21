@@ -4,11 +4,14 @@ extends Control
 ## `play(item)` forges it: the piece heats up, three hammer strikes (sparks, a ring of light, a
 ## jolt and the clang), a quench (it dips, steam, the hiss) and it comes back glowing brighter in
 ## its rarity colour. Emits `finished` at the end. Local only: the host already made the upgrade.
+## #89: about 1.7 s (it was 3), and `finish_now` cuts it short (the next upgrade needn't wait for it).
 
 signal finished
 
 var phase := ""  ## "", "heat", "strike", "quench", "glow" (tests and screenshots)
 var strikes := 0  ## hammer strikes shown by the last play (tests)
+var last_duration := 0.0  ## seconds the last forging played (tests)
+var _played := 0.0
 var item: Dictionary = {}
 var _anvil: Texture2D
 var _hearth: Texture2D
@@ -65,6 +68,8 @@ func busy() -> bool:
 
 func _process(delta: float) -> void:
 	_t += delta
+	if busy():
+		_played += delta
 	queue_redraw()
 
 
@@ -111,34 +116,52 @@ func _draw() -> void:
 		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
-## Forges `it` (the piece before the upgrade): about 2.2 s.
+## #89: ends a forging at once, as if it had played out (the piece back at rest, `finished` sent).
+func finish_now() -> void:
+	if not busy():
+		return
+	if _tween and _tween.is_valid():
+		_tween.kill()
+	_heat = 0.0
+	_dip = 0.0
+	_ring = 0.0
+	_jolt = Vector2.ZERO
+	_hammer_angle = -70.0
+	_shine = 0.35
+	phase = ""
+	finished.emit()
+
+
+## Forges `it` (the piece before the upgrade): about 1.7 s.
 func play(it: Dictionary) -> void:
 	show_item(it)
 	if _tween and _tween.is_valid():
 		_tween.kill()
 	strikes = 0
 	_shine = 0.0
+	_played = 0.0
 	phase = "heat"
 	_tween = create_tween()
-	_tween.tween_property(self, "_heat", 1.0, 0.3)
+	_tween.tween_property(self, "_heat", 1.0, 0.18)
 	_tween.tween_callback(func(): phase = "strike")
 	for i in 3:
-		_tween.tween_property(self, "_hammer_angle", -70.0, 0.14).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-		_tween.tween_property(self, "_hammer_angle", 8.0, 0.08).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		_tween.tween_property(self, "_hammer_angle", -70.0, 0.09).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		_tween.tween_property(self, "_hammer_angle", 8.0, 0.06).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 		_tween.tween_callback(_strike)
-		_tween.tween_interval(0.12)
+		_tween.tween_interval(0.06)
 	_tween.tween_callback(func(): phase = "quench")
-	_tween.tween_property(self, "_dip", 14.0, 0.16).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	_tween.tween_property(self, "_dip", 14.0, 0.1).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	_tween.tween_callback(_quench)
-	_tween.parallel().tween_property(self, "_heat", 0.0, 0.5)
-	_tween.tween_property(self, "_dip", 0.0, 0.28).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	_tween.parallel().tween_property(self, "_heat", 0.0, 0.2)
+	_tween.tween_property(self, "_dip", 0.0, 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	_tween.tween_callback(func():
 		phase = "glow"
 		AudioManager.play_sfx("forge_done", 0.0))
-	_tween.tween_property(self, "_shine", 1.0, 0.12)
-	_tween.tween_property(self, "_shine", 0.35, 0.6)
+	_tween.tween_property(self, "_shine", 1.0, 0.08)
+	_tween.tween_property(self, "_shine", 0.35, 0.3)
 	_tween.tween_callback(func():
 		phase = ""
+		last_duration = _played
 		finished.emit())
 
 

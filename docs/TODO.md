@@ -157,6 +157,7 @@ screenshot review at 1920x1080 and 3440x1440.
 - [x] #86 Stacks merge: drag a stack onto the same item's stack (up to the stack limit, the rest stays), or Merge stacks in the amount picker (keyboard / gamepad); host-checked (`stacks`, `stacks-lan`)
 - [x] #87 Map screen: the floor modifier is a small badge in the header; its card only on hover / focus, floating over the map (`mods`)
 - [x] #88 The floor modifier vote window closes when the floor changes, on every peer (`mods`, `mods-lan`)
+- [x] #89 Forging is clicked through: forging again ends the running animation at once; the animation is 1.7 s instead of 3 (`forge`)
 
 ## Eighth playtest issues (GitHub #70-#82)
 

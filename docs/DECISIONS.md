@@ -1311,3 +1311,10 @@ Tree shapes ("A > B": B grows from A; {x / y}: branches; (x): a fork side; [n]: 
 | --- | --- |
 | Rule | The HUD closes the portal's vote window whenever a floor starts (`floor_started`, on the host and every client), so it never carries over to the new floor; the game's input comes back with it. |
 | Tests | `mods` (the host votes through the cards) and `mods-lan` (the client votes through its own cards): no vote window is open after the descent. |
+
+### #89 Forging can be clicked through
+
+| Topic | Decision |
+| --- | --- |
+| Rule | The Forge button stays ready while the anvil plays; forging again (button, accept or a click) ends the running animation at once (`ForgeStage.finish_now`: the piece back at rest, the card showing the result) and sends the next step. The animation itself is shorter: about 1.7 s instead of 3 (heat, three quicker strikes, quench, glow). Every click is one host-checked request for the selected piece; each step is paid once. |
+| Tests | `forge`: the forging plays in under 2 s; the button stays ready; two quick clicks end the first animation and forge two steps, each paid once. `forge-lan` unchanged. |

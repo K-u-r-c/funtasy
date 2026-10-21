@@ -340,15 +340,37 @@ func window() -> void:
 	var lvl0 := int(cheap_row.item.ilvl)
 	panel._forge_selected()
 	await da._wait_until(func(): return panel.stage.phase == "strike", 2.0)
-	da.check(panel.stage.phase == "strike" and panel._button.disabled, "forging: the hammer strikes on the anvil, the button waits")
+	da.check(panel.stage.phase == "strike", "forging: the hammer strikes on the anvil")
 	await da._wait_until(func(): return panel.stage.phase == "", 4.0)
+	var took: float = panel.stage.last_duration
 	await da._wait(0.2)
 	da.check(panel.stage.strikes == 3 and panel.flashed.size() >= 2, "three strikes, the quench and the glow; the card flashes the raised numbers (%s)" % [panel.flashed])
+	da.check(took > 0.5 and took < 2.0, "the forging is short (%.2f s, it was 3)" % took)
 	var now: Dictionary = {}
 	for it in p.inv.backpack:
 		if it.uid == cheap_row.item.uid:
 			now = it
 	da.check(int(now.get("ilvl", 0)) == lvl0 + 1, "the gloves came back one level higher")
+	# #89: clicking through: Forge again while the anvil works ends its animation at once and the
+	# next step goes out; each step is paid once.
+	var gold0 := p.gold
+	var c1 := Forge.cost(now)
+	panel._forge_selected()
+	await da._wait_until(func(): return panel.stage.phase == "strike", 2.0)
+	da.check(not panel._button.disabled, "the Forge button stays ready while the anvil works")
+	var mid: Dictionary = {}
+	for it in p.inv.backpack:
+		if it.uid == cheap_row.item.uid:
+			mid = it
+	var c2 := Forge.cost(mid)
+	panel._forge_selected()
+	da.check(panel.stage.phase == "" or panel.stage.strikes == 0, "forging again ends the running animation at once")
+	await da._wait(0.3)
+	for it in p.inv.backpack:
+		if it.uid == cheap_row.item.uid:
+			now = it
+	da.check(int(now.get("ilvl", 0)) == lvl0 + 3 and p.gold == gold0 - c1 - c2, "two quick clicks forge two steps, each paid once (%d -> %d, %d gold)" % [lvl0 + 1, int(now.get("ilvl", 0)), gold0 - p.gold])
+	await da._wait_until(func(): return panel.stage.phase == "", 3.0)
 	hud.close_overlay()
 	await da._wait(0.3)
 

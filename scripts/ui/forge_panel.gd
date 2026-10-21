@@ -3,7 +3,8 @@ extends UIModal
 ## the middle and the chosen piece's "now -> after" card on the right, with the price, the hero's
 ## gold and the Forge button (disabled, with the reason, when the piece can't be raised). Accept /
 ## click on a row or the button forges one step; the host validates it (Forge.request_upgrade),
-## the anvil plays the forging and the card flashes the raised numbers.
+## the anvil plays the forging and the card flashes the raised numbers. #89: forging again while
+## the anvil works ends that animation at once, so upgrades can be clicked through.
 
 var forge: Forge
 var stage: ForgeStage
@@ -260,7 +261,7 @@ func _show(r: Dictionary) -> void:
 		price.add_child(UITheme.icon("sil_lock", 16, Color(1, 1, 1, 0.6)))
 	_card.add_child(price)
 	_reason.text = Loc.f(str(why[0]), why[1]) if not str(why[0]).is_empty() else ""
-	_button.disabled = not str(why[0]).is_empty() or stage.busy()
+	_button.disabled = not str(why[0]).is_empty()
 
 
 ## One "now -> after" line, green where the number rises (red where it would fall); `was` is the
@@ -299,8 +300,10 @@ func _compare(label: String, now: float, after: float, percent: bool, icon_key: 
 
 
 func _forge_selected() -> void:
+	if stage.busy():
+		stage.finish_now()  # shows the last result, rebuilds the list
 	var r := _row_of(_sel_uid)
-	if r.is_empty() or stage.busy():
+	if r.is_empty():
 		return
 	var why := Forge.refusal(r.item, player.level, _floor_ilvl(), player.gold, Forge.party(get_tree()))
 	if not str(why[0]).is_empty():
@@ -316,7 +319,6 @@ func _on_forged(before: Dictionary, after: Dictionary) -> void:
 	_pending = after
 	_was = before
 	_sel_uid = str(after.get("uid", ""))
-	_button.disabled = true
 	stage.play(before)
 
 
