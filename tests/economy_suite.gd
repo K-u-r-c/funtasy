@@ -314,7 +314,10 @@ func merchants() -> void:
 	# Malphas: the tithe once per floor, then contracts and pacts.
 	await _force_merchant("malphas")
 	m = g.layout.merchant
-	da.check(str(m.npc) == "malphas" and mer.contracts.size() == 2, "Malphas has the merchant room and 2 contracts")
+	var mal_def: Dictionary = GameData.merchants.malphas
+	da.check(str(m.npc) == "malphas" and mer.contracts.size() == int(mal_def.contracts_per_floor) and mer.pacts.size() == int(mal_def.pacts_per_floor),
+			"Malphas has the merchant room, %d contracts and %d pact potions (%d, %s)" % [int(mal_def.contracts_per_floor), int(mal_def.pacts_per_floor), mer.contracts.size(), mer.pacts])
+	malphas_offer_rules()
 	var mal_door: Node = g.dungeon.leaf_door("merchant")
 	var mal_room: Rect2i = g.layout.rooms[int(m.room)].rect
 	da.check(mal_door.sealed and not mal_door.is_open and mal_door.door_type == "malphas" and mal_door.monster_proof, "Malphas's door is his own blood-sealed door")
@@ -355,9 +358,22 @@ func merchants() -> void:
 	mer.request_contract.rpc_id(1, 0)
 	await da._wait(0.2)
 	da.check(p.run_mods.size() == mods0 + 3, "each contract is signed once")
+	# #95: only the floor's two potions are for sale, each once per hero (the test puts these two
+	# on offer).
+	var other := ""
+	for pid in GameData.pact_consumables:
+		if not str(pid) in ["hellfire", "colossus"]:
+			other = str(pid)
+	mer.pacts = ["colossus", "hellfire"]
+	mer.request_pact.rpc_id(1, other)
+	await da._wait(0.3)
+	da.check(p.inv.count_of("pact_" + other) == 0 and p.run_mods.size() == mods0 + 3, "a potion Malphas doesn't offer this floor can't be bought (%s)" % other)
 	mer.request_pact.rpc_id(1, "hellfire")
 	await da._wait(0.3)
 	da.check(p.inv.count_of("pact_hellfire") == 1 and p.run_mods.size() == mods0 + 4, "a pact potion costs its stat")
+	mer.request_pact.rpc_id(1, "hellfire")
+	await da._wait(0.3)
+	da.check(p.inv.count_of("pact_hellfire") == 1 and p.run_mods.size() == mods0 + 4, "each potion is bought once per hero per floor")
 	var haste0 := p.stats.get_stat("haste")
 	p.inv.quick.q = "pact_hellfire"
 	p.request_use_quick.rpc_id(1, "q")
@@ -423,6 +439,33 @@ func stock_rules() -> void:
 	var a1 := mer.stock.map(key)
 	mer.host_new_floor(4242, il)
 	da.check(a1 == mer.stock.map(key), "the same floor seed gives the same pieces (base, rarity, level)")
+
+
+## #95: over 120 seeded floors Malphas offers exactly the data's number of different contracts and
+## pact potions, every potion turns up somewhere, and the same seed gives the same offer.
+func malphas_offer_rules() -> void:
+	var mal: Dictionary = GameData.merchants.malphas
+	var mer: Merchants = g.merchants
+	var keep := [mer.stock.duplicate(true), mer.contracts.duplicate(), mer.pacts.duplicate()]
+	var bad := ""
+	var seen := {}
+	for sd in 120:
+		mer.host_new_floor(500 + sd * 13, 10)
+		var cs := {}
+		for c in mer.contracts:
+			cs[c] = true
+		var ps := {}
+		for pid in mer.pacts:
+			ps[pid] = true
+			seen[pid] = true
+		if cs.size() != int(mal.contracts_per_floor) or ps.size() != int(mal.pacts_per_floor):
+			bad = "seed %d: %d contracts, %d potions" % [sd, cs.size(), ps.size()]
+	mer.host_new_floor(777, 10)
+	var first := [mer.contracts.duplicate(), mer.pacts.duplicate()]
+	mer.host_new_floor(777, 10)
+	da.check(bad.is_empty() and first == [mer.contracts, mer.pacts], "every floor: %d different contracts and %d different potions, the same for the same seed%s" % [int(mal.contracts_per_floor), int(mal.pacts_per_floor), "" if bad.is_empty() else ": " + bad])
+	da.check(seen.size() == GameData.pact_consumables.size(), "every pact potion is on offer on some floor (%d of %d)" % [seen.size(), GameData.pact_consumables.size()])
+	mer._sync.rpc(keep[0], keep[1], mer.shop_open, keep[2])
 
 
 ## #24: merchants sell at 3x the old price (buy_mult was 1.0) and still pay the old 30% of the
@@ -691,6 +734,13 @@ func run_lan() -> void:
 	await da._wait(0.4)
 	c.host_teleport(m.pos + Vector2(0, 18))
 	await da._wait(0.4)
+	# #95: the client sees the same five contracts and two potions, and buys a potion only once.
+	var mods_p := c.run_mods.size()
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["eco_offer", [g.merchants.contracts, g.merchants.pacts]])
+	await da._wait(1.2)
+	var pid0 := str(g.merchants.pacts[0])
+	da.check(c.inv.count_of("pact_" + pid0) == 1 and c.run_mods.size() == mods_p + GameData.pact_consumables[pid0].cost.size(),
+			"host: the client bought %s once (two requests, one potion and one price)" % pid0)
 	await lan_markers(c)
 	# Reading: only the reader's screen opens the book; only the reader's codex learns it.
 	c.host_give_item(LootTable.make_book("lore_007", g.loot.rng))
@@ -767,6 +817,11 @@ func client_cmd(cmd: String, arg: Variant) -> void:
 			var mp: Node = g.dungeon.props.get("Merchant")
 			da.check(str(g.merchant_id) == str(arg) and str(g.layout.merchant.npc) == str(arg) and mp != null and str(mp.type) == str(arg)
 					and not g.dungeon.props.has("Merchant_Portal"), "the client sees the same single merchant (%s)" % arg)
+		"eco_offer":
+			da.check(g.merchants.contracts == arg[0] and g.merchants.pacts == arg[1], "client: the same five contracts and two potions as the host (%s)" % [g.merchants.pacts])
+			g.merchants.request_pact.rpc_id(1, str(arg[1][0]))
+			await da._wait(0.3)
+			g.merchants.request_pact.rpc_id(1, str(arg[1][0]))
 		"eco_tithe":
 			var door0: Node = g.dungeon.leaf_door("merchant")
 			da.check(door0.interact_text().contains(Merchants.mod_text(Merchants.blood_price(int(g.layout.seed)))), "the client's door prompt names the same blood price (%s)" % door0.interact_text())

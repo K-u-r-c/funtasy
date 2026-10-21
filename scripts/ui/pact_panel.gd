@@ -1,6 +1,6 @@
 extends UIModal
-## Malphas the Soul Broker (GDD 5.2-5.3): two stat contracts of this floor and the ten pact
-## potions, all paid with run-permanent stat losses. Each row shows exactly what changes
+## Malphas the Soul Broker (GDD 5.2-5.3): the floor's five stat contracts and its two pact potions
+## (#95, seeded), all paid with run-permanent stat losses. Each row shows exactly what changes
 ## (before -> after for the hero's current stats). The host validates every bargain.
 
 var merchants: Merchants
@@ -105,8 +105,7 @@ func _rebuild() -> void:
 		b.mouse_entered.connect(_show_mods.bind(Loc.t("Contract"), "", [c.give, c.get]))
 		_list.add_child(b)
 	_list.add_child(UITheme.section(Loc.t("Pact potions"), "ui_potion"))
-	var ids: Array = GameData.pact_consumables.keys()
-	for pid in ids:
+	for pid in merchants.pacts:
 		var d: Dictionary = GameData.pact_consumables[pid]
 		var b2 := _row(Loc.t(str(d.name)))
 		b2.add_child(_chips(d.cost.map(func(c): return [c, UITheme.DANGER]), -1))

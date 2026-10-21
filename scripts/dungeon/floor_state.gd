@@ -86,7 +86,12 @@ static func capture(g: Node, prev: Dictionary) -> Dictionary:
 		var slot := _slot_of(int(peer))
 		if slot >= 0:
 			signed[str(slot)] = m._signed[peer]
-	snap.merchant = {"stock": m.stock, "contracts": m.contracts, "shop_open": m.shop_open, "signed": signed}
+	var pacted := {}
+	for peer2 in m._pacted:
+		var slot2 := _slot_of(int(peer2))
+		if slot2 >= 0:
+			pacted[str(slot2)] = m._pacted[peer2]
+	snap.merchant = {"stock": m.stock, "contracts": m.contracts, "shop_open": m.shop_open, "signed": signed, "pacts": m.pacts, "pacted": pacted}
 	# Heroes and their maps, by save slot.
 	var heroes: Dictionary = prev.get("heroes", {}).duplicate(true) if same else {}
 	var maps: Dictionary = prev.get("maps", {}).duplicate(true) if same else {}
@@ -181,7 +186,14 @@ static func restore_host(g: Node, snap: Dictionary, boss_pos: Vector2) -> void:
 			var peer := _peer_of(int(slot))
 			if peer > 0:
 				m._signed[peer] = Array(ms.signed[slot]).map(func(c): return int(c))
-		m._sync.rpc(m.stock, m.contracts, m.shop_open)
+		# #95 (older saves: the floor's offer as rolled again).
+		m.pacts = Array(ms.get("pacts", m.pacts))
+		m._pacted.clear()
+		for slot2 in ms.get("pacted", {}):
+			var peer2 := _peer_of(int(slot2))
+			if peer2 > 0:
+				m._pacted[peer2] = Array(ms.pacted[slot2])
+		m._sync.rpc(m.stock, m.contracts, m.shop_open, m.pacts)
 	g.floor_time = float(snap.get("time", 0.0))
 	g.events.host_restore(snap.get("events", {}))
 

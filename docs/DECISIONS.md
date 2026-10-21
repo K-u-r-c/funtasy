@@ -1373,3 +1373,10 @@ Tree shapes ("A > B": B grows from A; {x / y}: branches; (x): a fork side; [n]: 
 | Rule | Every Archibald floor offers 10 pieces of gear (was 3, Uncommon / Rare only): rarity by weight Uncommon 40, Rare 38, Epic 18, Relic 4; item level = the floor's + 0-2; the base drawn with weight 6 for the party's classes (drops use 3), so about 70% fit the party. Consumables: 5 Health and 5 Mana Potions, 2 Haste Potions, 3 food, 2 torch bundles (none when the party plays without torches). All in `merchants.json archibald`; seeded per floor and replicated as before (the same seed gives the same pieces). |
 | Prices | Unchanged rules (#24): an Epic at item level 12 costs about 560 gold and a Relic about 1100, against a hero's 500-1000 gold a floor on floors 4-9 - a real choice, now with something worth buying. |
 | Tests | `economy`: 150 seeded floors: 10 pieces at the floor's item level to +2, every consumable line, the rarity mix within 3% of the data with Epics and Relics, 71% for the party's class; the same seed gives the same pieces; prices follow the #24 rules. |
+
+### #95 Malphas: five stat exchanges and two potions
+
+| Topic | Decision |
+| --- | --- |
+| Rule | Every floor Malphas offers `contracts_per_floor` 5 contracts (was 2) and `pacts_per_floor` 2 of the 10 pact potions (was all ten), both seeded picks from the floor seed (`merchants.json malphas`). A potion not on offer is refused; each hero signs a contract once and buys each offered potion once a floor ("You already bought that potion"). The offer and who bought what are replicated with the stock and saved with the floor (#55; an older save rolls the floor's offer again). |
+| Tests | `economy`: 120 seeded floors with 5 different contracts and 2 different potions, every potion on offer somewhere, the same seed the same offer; a potion not offered is refused, a potion is bought once. `economy-lan`: the client sees the host's offer and its second request for the same potion is refused. |

@@ -10,7 +10,7 @@ extends Node
 ## RPCs (all on this node, the same path on every peer):
 ## - request_buy(index) / request_sell(backpack index) / request_tithe(accept: pay the blood
 ##   price at Malphas's door) / request_contract(index) / request_pact(id): owner -> host, reliable.
-## - _sync(stock, contracts, shop_open), _open_ui(kind), _ask_tithe(text), _notice(text):
+## - _sync(stock, contracts, shop_open, pacts), _open_ui(kind), _ask_tithe(text), _notice(text):
 ##   host -> peers, reliable.
 
 signal changed
@@ -18,8 +18,10 @@ signal changed
 var game: Node
 var stock: Array = []  ## every peer: [{item, price, left}]
 var contracts: Array = []  ## every peer: indices into merchants.malphas.contracts
+var pacts: Array = []  ## every peer (#95): the pact potions Malphas offers this floor
 var shop_open := false  ## Archibald's vault door took this floor's Gold Key: he trades
 var _signed: Dictionary = {}  ## host: peer -> [contract slots signed this floor]
+var _pacted: Dictionary = {}  ## host (#95): peer -> [pact ids bought this floor]
 var rng := RandomNumberGenerator.new()
 
 
@@ -31,6 +33,7 @@ var rng := RandomNumberGenerator.new()
 func host_new_floor(floor_seed: int, item_level: int) -> void:
 	rng.seed = floor_seed + 777
 	_signed.clear()
+	_pacted.clear()
 	shop_open = false
 	var a: Dictionary = GameData.merchants.get("archibald", {})
 	var st: Array = []
@@ -55,13 +58,21 @@ func host_new_floor(floor_seed: int, item_level: int) -> void:
 		var ci := ItemGenerator.generate_consumable(str(cid), 1, rng)
 		st.append({"item": ci, "price": buy_price(ci), "left": int(cons[cid])})
 	stock = st
-	var pool: Array = GameData.merchants.get("malphas", {}).get("contracts", [])
+	var mal: Dictionary = GameData.merchants.get("malphas", {})
+	var pool: Array = mal.get("contracts", [])
 	var idx: Array = range(pool.size())
 	var picked: Array = []
-	for i in mini(int(GameData.merchants.get("malphas", {}).get("contracts_per_floor", 2)), idx.size()):
+	for i in mini(int(mal.get("contracts_per_floor", 2)), idx.size()):
 		picked.append(idx.pop_at(rng.randi_range(0, idx.size() - 1)))
 	contracts = picked
-	_sync.rpc(stock, contracts, shop_open)
+	# #95: a seeded pair of pact potions (sorted ids, so every peer and save agrees).
+	var ids: Array = GameData.pact_consumables.keys()
+	ids.sort()
+	var offer: Array = []
+	for i in mini(int(mal.get("pacts_per_floor", ids.size())), ids.size()):
+		offer.append(ids.pop_at(rng.randi_range(0, ids.size() - 1)))
+	pacts = offer
+	_sync.rpc(stock, contracts, shop_open, pacts)
 
 
 static func item_value(item: Dictionary) -> int:
@@ -117,7 +128,7 @@ func host_door(p: Player, door: Node) -> void:
 			game.add_party_key(-1)
 			door.host_unseal()
 			shop_open = true
-			_sync.rpc(stock, contracts, shop_open)
+			_sync.rpc(stock, contracts, shop_open, pacts)
 			game.combat.fx.sound.rpc("key_unlock", door.interact_pos())
 			game.broadcast_message.rpc("%s opens Archibald's vault with the Gold Key", "#f0c850", [p.display_name])
 		"blood":
@@ -207,7 +218,7 @@ func request_buy(index: int) -> void:
 	p.host_add_gold(-int(e.price))
 	e.left = int(e.left) - 1
 	game.combat.fx.sound.rpc("coin", p.global_position)
-	_sync.rpc(stock, contracts, shop_open)
+	_sync.rpc(stock, contracts, shop_open, pacts)
 	_notice.rpc_id(peer, "Bought %s for %d gold", [item.get("name", "item"), int(e.price)])
 
 
@@ -278,7 +289,11 @@ func request_pact(pact_id: String) -> void:
 		return
 	var peer := multiplayer.get_remote_sender_id()
 	var p := _player_near(peer)
-	if p == null or not _paid() or not GameData.pact_consumables.has(pact_id):
+	if p == null or not _paid() or not GameData.pact_consumables.has(pact_id) or not pacts.has(pact_id):
+		return
+	var bought: Array = _pacted.get(peer, [])
+	if bought.has(pact_id):
+		_notice.rpc_id(peer, "You already bought that potion")
 		return
 	var item := ItemGenerator.generate_consumable("pact_" + pact_id, 1, rng)
 	if not p.inv.can_add(item):
@@ -286,6 +301,8 @@ func request_pact(pact_id: String) -> void:
 		return
 	var def: Dictionary = GameData.pact_consumables[pact_id]
 	p.host_give_item(item)
+	bought.append(pact_id)
+	_pacted[peer] = bought
 	for c in def.cost:
 		p.host_add_run_mod(str(c.stat), float(c.value), def.name)
 	game.combat.fx.sound.rpc("tithe", p.global_position)
@@ -298,9 +315,10 @@ func request_pact(pact_id: String) -> void:
 
 
 @rpc("authority", "call_local", "reliable")
-func _sync(new_stock: Array, new_contracts: Array, open: bool) -> void:
+func _sync(new_stock: Array, new_contracts: Array, open: bool, new_pacts: Array = []) -> void:
 	stock = new_stock
 	contracts = new_contracts
+	pacts = new_pacts
 	shop_open = open
 	changed.emit()
 

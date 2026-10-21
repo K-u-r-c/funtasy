@@ -75,7 +75,9 @@
 				"value": -10
 			}
 		],
-		"contracts_per_floor": 2,
+		"_offer": "#95: every floor Malphas offers contracts_per_floor stat exchanges and pacts_per_floor pact potions, both seeded picks; each hero signs a contract and buys a potion once a floor.",
+		"contracts_per_floor": 5,
+		"pacts_per_floor": 2,
 		"contracts": [
 			{
 				"give": {
