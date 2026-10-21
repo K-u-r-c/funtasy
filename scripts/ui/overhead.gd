@@ -37,6 +37,10 @@ func _draw() -> void:
 			continue
 		if e.is_elite():
 			_text(top + Vector2(0, -4), Loc.name(e.display_name), Color(0.95, 0.78, 0.3), 11)
+		elif not str(e.get("corrupt")).is_empty() and e.get("corrupt") != null:
+			# #74: a corrupted variant names itself and its ability.
+			var ab: Dictionary = GameData.corruption.get("abilities", {}).get(str(e.corrupt), {})
+			_text(top + Vector2(0, -4), "%s - %s" % [e.display_name, Loc.t(str(ab.get("name", "")))], Color("c9a4ff"), 11)
 		# #72: the prisoner's guard shows the cell key it carries.
 		if e.get("guard"):
 			if _key_tex:

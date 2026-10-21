@@ -152,6 +152,7 @@ screenshot review at 1920x1080 and 3440x1440.
 
 ## Eighth playtest issues (GitHub #70-#82)
 
+- [x] #74 Deep variants: corrupted monsters from floor 8 (10% + 1.2%/floor up to 30%, data) with one of five warned abilities (Blightwalker, Splitting, Warding, Shadowstep, Volatile), the "Corrupted" name, tint, aura shader and better loot; ascended bosses (a boss met before, or from floor 11) with ten warned extra mechanics, a halo and golden aura, tougher and richer; saved with the floor; balance probe (`deep`, `deep-lan`)
 - [x] #76 Five legendary tomes, one story: the Ownerless Book I-V (lore_105 + four new chapters on the dungeon's origin, its five houses and why it goes down, EN + PL), found in order on a run (chapter N only after N-1 was read, none twice), +1 talent / +5 stat points each once, the legendary beam and message, "Chapter II of V" in the reader with its own black-and-gold book, the cycle grouped first in the codex, a balance probe for the full cycle (`lore`)
 - [x] #78 NPC speech bubbles: Archibald, Malphas, Rolf and the four prisoners speak a line (10+ each, EN + PL, biome / party aware) the first time the local hero itself sees them on a floor, never through walls or doors, "again" lines on later floors, a prisoner's thanks when freed; typed-out glass bubble that follows the speaker and keeps off the hero (`npc-talk`, `npc-talk-lan`)
 - [x] #72 Special rooms and events, 1-3 a floor from floor 2 (seeded, data): the Arena (doors seal after a warning, three warned waves with a HUD counter, a rising trial chest), the Sealed Vault (a leaf opened by a lever elsewhere, linked on the map once seen), the Bargain Shrine (two floor-long bargains on choice cards with their price), the Cursed Chest (maybe a mimic with a subtle breath, a 1.3 s waking), the Prisoner (a caged adventurer, the cell key from a guard elite, freed as an ally or a reward); markers, tracker lines, tells, telegraphs, saved with the floor, balance probe (`events`, `events-lan`)
@@ -294,6 +295,7 @@ gameplay effects (#81) from shaders, particles and the free vfx workbench; re-ro
 | 2026-10-21 | #72 events: 8 Pixen images (bargain shrine, cursed chest, chest mimic, prison cage, vault door, trial chest, arena brazier, cell key icon), 3 Pixen edits (open cage, open vault door, open trial chest), 5 animate_image clips (mimic idle, bite, hop, death; the chest waking into the mimic) | 4362 | 4378 | 16 | 48 |
 | 2026-10-21 | #78 NPC bubbles: drawn in code, no generations | 4378 | 4378 | 0 | 48 |
 | 2026-10-21 | #76 the Ownerless Book: 1 Pixen 32x32 icon, 1 Pixen 96x96 open-book cover | 4378 | 4380 | 2 | 50 |
+| 2026-10-21 | #74 deep variants: the aura shader, halo and warnings drawn in code, no generations | 4380 | 4380 | 0 | 50 |
 
 ## Done (MVP)
 

@@ -75,5 +75,30 @@
 			5
 		],
 		"min_rarity": 3
+	},
+	"ascended": {
+		"name": "Carrion Dive",
+		"text": "Her crows dive on the weakest hero",
+		"message": "Isolde's crows circle the weakest of you!",
+		"mechanic": {
+			"id": "ascension",
+			"key": "carrion_dive",
+			"pattern": "players",
+			"target": "lowest",
+			"follow": true,
+			"radius": 56,
+			"warn": 2.2,
+			"every": 13,
+			"first": 6,
+			"damage": {
+				"base": 12,
+				"coef": 1.6
+			},
+			"status": "bleed",
+			"status_time": 6.0,
+			"color": "#c0303a",
+			"fx": "physical",
+			"sfx": "crow_dive"
+		}
 	}
 }

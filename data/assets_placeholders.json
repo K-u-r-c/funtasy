@@ -18,6 +18,7 @@
 	},
 	"sfx": {
 		"acid_hiss": "res://assets/audio/sfx/placeholder/gdd/acid_hiss.wav",
+		"antler_charge": "res://assets/audio/sfx/placeholder/gdd/antler_charge.wav",
 		"anvil": "res://assets/audio/sfx/placeholder/gdd/anvil.wav",
 		"arena_horn": "res://assets/audio/sfx/placeholder/gdd/arena_horn.wav",
 		"arena_seal": "res://assets/audio/sfx/placeholder/gdd/arena_seal.wav",
@@ -38,9 +39,11 @@
 		"channel": "res://assets/audio/sfx/placeholder/gdd/channel.wav",
 		"chant": "res://assets/audio/sfx/placeholder/gdd/chant.wav",
 		"coin": "res://assets/audio/sfx/placeholder/gdd/coin.wav",
+		"crow_dive": "res://assets/audio/sfx/placeholder/gdd/crow_dive.wav",
 		"curse_lift": "res://assets/audio/sfx/placeholder/gdd/curse_lift.wav",
 		"devour": "res://assets/audio/sfx/placeholder/gdd/devour.wav",
 		"drowner_burst": "res://assets/audio/sfx/placeholder/gdd/drowner_burst.wav",
+		"echo_burst": "res://assets/audio/sfx/placeholder/gdd/echo_burst.wav",
 		"engulf": "res://assets/audio/sfx/placeholder/gdd/engulf.wav",
 		"event_found": "res://assets/audio/sfx/placeholder/gdd/event_found.wav",
 		"fire_wall": "res://assets/audio/sfx/placeholder/gdd/fire_wall.wav",
@@ -64,6 +67,7 @@
 		"javelin": "res://assets/audio/sfx/placeholder/gdd/javelin.wav",
 		"key_unlock": "res://assets/audio/sfx/placeholder/gdd/key_unlock.wav",
 		"laser": "res://assets/audio/sfx/placeholder/gdd/laser.wav",
+		"lava_burst": "res://assets/audio/sfx/placeholder/gdd/lava_burst.wav",
 		"leap": "res://assets/audio/sfx/placeholder/gdd/leap.wav",
 		"leech_latch": "res://assets/audio/sfx/placeholder/gdd/leech_latch.wav",
 		"lever": "res://assets/audio/sfx/placeholder/gdd/lever.wav",
@@ -78,6 +82,7 @@
 		"mimic_wake": "res://assets/audio/sfx/placeholder/gdd/mimic_wake.wav",
 		"npc_speak": "res://assets/audio/sfx/placeholder/gdd/npc_speak.wav",
 		"page": "res://assets/audio/sfx/placeholder/gdd/page.wav",
+		"plague_burst": "res://assets/audio/sfx/placeholder/gdd/plague_burst.wav",
 		"plate_click": "res://assets/audio/sfx/placeholder/gdd/plate_click.wav",
 		"restless_bite": "res://assets/audio/sfx/placeholder/gdd/restless_bite.wav",
 		"restless_warn": "res://assets/audio/sfx/placeholder/gdd/restless_warn.wav",
@@ -85,6 +90,7 @@
 		"rift_open": "res://assets/audio/sfx/placeholder/gdd/rift_open.wav",
 		"root_stakes": "res://assets/audio/sfx/placeholder/gdd/root_stakes.wav",
 		"rune": "res://assets/audio/sfx/placeholder/gdd/rune.wav",
+		"rune_burst": "res://assets/audio/sfx/placeholder/gdd/rune_burst.wav",
 		"shell_shatter": "res://assets/audio/sfx/placeholder/gdd/shell_shatter.wav",
 		"shout": "res://assets/audio/sfx/placeholder/gdd/shout.wav",
 		"shriek": "res://assets/audio/sfx/placeholder/gdd/shriek.wav",
@@ -104,6 +110,7 @@
 		"transform": "res://assets/audio/sfx/placeholder/gdd/transform.wav",
 		"trap": "res://assets/audio/sfx/placeholder/gdd/trap.wav",
 		"vault_open": "res://assets/audio/sfx/placeholder/gdd/vault_open.wav",
+		"vermin_swarm": "res://assets/audio/sfx/placeholder/gdd/vermin_swarm.wav",
 		"wave": "res://assets/audio/sfx/placeholder/gdd/wave.wav"
 	}
 }

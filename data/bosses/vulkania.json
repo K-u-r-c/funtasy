@@ -70,5 +70,38 @@
 			5
 		],
 		"min_rarity": 3
+	},
+	"ascended": {
+		"name": "Magma Geysers",
+		"text": "Geysers of magma erupt across the arena one after another",
+		"message": "The floor boils! Magma geysers",
+		"mechanic": {
+			"id": "ascension",
+			"key": "magma_geysers",
+			"pattern": "geysers",
+			"count": 6,
+			"radius": 38,
+			"warn": 1.4,
+			"step": 0.35,
+			"every": 13,
+			"first": 6,
+			"damage": {
+				"base": 10,
+				"coef": 1.4
+			},
+			"zone": {
+				"radius": 34,
+				"duration": 3.0,
+				"tick": 0.5,
+				"damage": {
+					"base": 2,
+					"coef": 0.3
+				},
+				"fx": "fire"
+			},
+			"color": "#ff4a1a",
+			"fx": "fire",
+			"sfx": "lava_burst"
+		}
 	}
 }

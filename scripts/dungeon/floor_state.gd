@@ -30,6 +30,7 @@ static func capture(g: Node, prev: Dictionary) -> Dictionary:
 			continue
 		enemies.append({"def": e.def_id, "pos": _v(e.global_position), "hp": snappedf(e.health.hp, 0.1),
 			"boss": e.is_boss, "elite": e.elite, "key": e.key_carrier, "hunter": e.hunter, "guard": e.guard,
+			"corrupt": e.corrupt, "ascended": e.ascended,
 			"event_mimic": e.get_meta("event_mimic", false)})
 	snap.enemies = enemies
 	snap.boss_alive = g.boss_alive
@@ -143,6 +144,10 @@ static func restore_host(g: Node, snap: Dictionary, boss_pos: Vector2) -> void:
 			extra.key = true
 		if bool(ed.get("guard", false)):
 			extra.guard = true
+		if not str(ed.get("corrupt", "")).is_empty():
+			extra.corrupt = str(ed.corrupt)
+		if bool(ed.get("ascended", false)):
+			extra.ascended = true
 		# #71: a hunter keeps its name, strength and sure drop.
 		if not str(ed.get("hunter", "")).is_empty():
 			extra.hunter = str(ed.hunter)

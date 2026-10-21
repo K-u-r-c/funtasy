@@ -76,5 +76,28 @@
 			5
 		],
 		"min_rarity": 3
+	},
+	"ascended": {
+		"name": "Binding Index",
+		"text": "Everyone far from the Archivist is struck and silenced",
+		"message": "The Binding Index opens! Get close to Malazar",
+		"mechanic": {
+			"id": "ascension",
+			"key": "binding_index",
+			"pattern": "safe_circle",
+			"radius": 120,
+			"warn": 3.0,
+			"every": 18,
+			"first": 9,
+			"damage": {
+				"base": 14,
+				"coef": 1.8
+			},
+			"status": "silence",
+			"status_time": 2.5,
+			"color": "#6ee3f0",
+			"fx": "arcane",
+			"sfx": "rune_burst"
+		}
 	}
 }

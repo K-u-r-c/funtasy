@@ -132,6 +132,29 @@ func ring(pos: Vector2, r: float, color_html: String, fx_key: String, element: S
 	lt.tween_callback(l.queue_free)
 
 
+## Host -> all (reliable, #74): a threat's warning - Telegraph.ground (a ring filling over `lead` s
+## with its countdown and `label`, over the fog, a sound), logged as `key` on every peer. With
+## `follow` it rides on that actor (a branded hero).
+@rpc("authority", "call_local", "reliable")
+func warn(pos: Vector2, r: float, lead: float, key: String, label: String = "", color_html: String = "#ff4d3d", follow: NodePath = NodePath(""), sound: String = "telegraph") -> void:
+	if world == null:
+		return
+	var parent: Node = world
+	var at := pos
+	if not follow.is_empty() and has_node(follow):
+		parent = get_node(follow)
+		at = Vector2.ZERO
+	var t := Telegraph.ground(parent, at, r, lead, key, Loc.t(label) if not label.is_empty() and label != "-" else "", Color.from_string(color_html, UITheme.WARN), sound)
+	# "-": a quiet mark (no text) in a row of marks that shares one countdown.
+	t.quiet = label == "-"
+
+
+## Host -> all (reliable, #74): the threat behind `key` acted (its warning's lead is measured).
+@rpc("authority", "call_local", "reliable")
+func fired(key: String) -> void:
+	Telegraph.fired(key)
+
+
 ## Host -> all (unreliable): warning circle for delayed AoEs (meteor, slam, curse).
 @rpc("authority", "call_local", "unreliable")
 func telegraph(pos: Vector2, r: float, color_html: String, delay: float) -> void:

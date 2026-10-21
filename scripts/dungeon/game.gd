@@ -212,11 +212,18 @@ func start_floor(new_depth: int) -> void:
 				elites[gs] = {"elite": [mods[hash(floor_seed) % mods.size()]]}
 			elites[gs].guard = true
 		key_chest = "Chest_%d" % int(carrier.index) if carrier.get("kind", "") == "chest" else ""
+		var crng := RandomNumberGenerator.new()
+		crng.seed = floor_seed + 808
 		for gi in host_layout.spawns.size():
 			var group: Dictionary = host_layout.spawns[gi]
 			for mi in group.monsters.size():
 				var m: Dictionary = group.monsters[mi]
-				spawn_monster(str(m.id), m.pos, false, elites.get(Vector2i(gi, mi), {}))
+				var extra: Dictionary = elites.get(Vector2i(gi, mi), {}).duplicate()
+				# #74: from the corruption's first floor a share of the ordinary monsters is corrupted.
+				var ab := pick_corruption(str(m.id), new_depth, crng)
+				if not ab.is_empty() and not extra.has("elite"):
+					extra.corrupt = ab
+				spawn_monster(str(m.id), m.pos, false, extra)
 	else:
 		FloorState.restore_host(self, resume, host_layout.boss_pos)
 	floor_mechanics.clear()
@@ -226,7 +233,11 @@ func start_floor(new_depth: int) -> void:
 		fm.setup(self, md)
 		floor_mechanics.append(fm)
 	if resume.is_empty():
-		spawn_monster(boss_id, host_layout.boss_pos, true, {"key": true} if carrier.get("kind", "") == "boss" else {})
+		var bx: Dictionary = {"key": true} if carrier.get("kind", "") == "boss" else {}
+		# #74: a boss met before on this run, or any boss from the ascension's first floor, ascends.
+		if is_ascended(boss_id, new_depth):
+			bx.ascended = true
+		spawn_monster(boss_id, host_layout.boss_pos, true, bx)
 	_spawn_floor_hazards(host_layout)
 	mod_runner.host_new_floor(floor_seed)
 	_set_mod_offer.rpc([], {})
@@ -370,6 +381,13 @@ func spawn_monster(def_id: String, pos: Vector2, boss: bool, extra: Dictionary =
 	# #72: event monsters with their own weight (the mimic).
 	hp_mult *= float(extra.get("hp_x", 1.0))
 	dmg_mult *= float(extra.get("dmg_x", 1.0))
+	# #74: the deep variants.
+	if not str(extra.get("corrupt", "")).is_empty():
+		hp_mult *= float(GameData.corruption.get("hp_mult", 1.0))
+		dmg_mult *= float(GameData.corruption.get("damage_mult", 1.0))
+	if extra.get("ascended", false):
+		hp_mult *= float(GameData.corruption.get("ascended", {}).get("hp_mult", 1.0))
+		dmg_mult *= float(GameData.corruption.get("ascended", {}).get("damage_mult", 1.0))
 	_enemy_counter += 1
 	var data := {"name": "E%d" % _enemy_counter, "def_id": def_id, "boss": boss, "pos": pos,
 		"level": lvl, "hp_mult": hp_mult, "dmg_mult": dmg_mult}
@@ -528,7 +546,14 @@ func on_enemy_killed(e: Enemy) -> void:
 		fx.gfx.rpc("xp", {"pos": e.global_position, "to": earned})
 	if e.is_boss:
 		boss_alive = false
-		var drops := loot.roll_and_drop("boss", e.global_position, e.def.get("loot", {}))
+		var bl: Dictionary = e.def.get("loot", {}).duplicate()
+		# #74: an ascended boss pays better.
+		if e.ascended:
+			var ac: Dictionary = GameData.corruption.get("ascended", {})
+			var rb: Array = bl.get("drops", GameData.bal("loot.boss_drops"))
+			bl.drops = [int(rb[0]) + int(ac.get("extra_drops", 1)), int(rb[1]) + int(ac.get("extra_drops", 1))]
+			bl.min_rarity = mini(int(bl.get("min_rarity", GameData.bal("loot.boss_min_rarity"))) + int(ac.get("min_rarity_up", 1)), 5)
+		var drops := loot.roll_and_drop("boss", e.global_position, bl)
 		_note_enemy_legendary(drops)
 		# #75: every floor gives the party at least one named legendary from its enemies; if none
 		# has fallen by now, the boss drops one more (weighted to the party's classes as usual).
@@ -541,7 +566,14 @@ func on_enemy_killed(e: Enemy) -> void:
 		for p in players_root.get_children():
 			p.persist()
 	else:
-		_note_enemy_legendary(loot.roll_and_drop("monster", e.global_position))
+		# #74: a corrupted monster's better loot, over the floor's own.
+		var mov := {}
+		if not str(e.corrupt).is_empty():
+			var cl: Dictionary = GameData.corruption.get("loot", {})
+			mov = {"drop_mult": FloorMods.num(floor_def, "drop_mult") * float(cl.get("drop_mult", 1.0)),
+				"gold_mult": FloorMods.num(floor_def, "gold_mult") * float(cl.get("gold_mult", 1.0)),
+				"rarity_up_chance": maxf(FloorMods.num(floor_def, "rarity_up_chance", 0.0), float(cl.get("rarity_up_chance", 0.0)))}
+		_note_enemy_legendary(loot.roll_and_drop("monster", e.global_position, mov))
 		# #71 Hunted: a hunter always drops a fine item.
 		if not str(e.hunter).is_empty():
 			loot.roll_and_drop("hunter", e.global_position, {"min_rarity": int(FloorMods.num(floor_def, "loot_min_rarity", 4))})
@@ -898,6 +930,14 @@ func on_boss_engaged(_boss: Node) -> void:
 	if boss_engaged:
 		return
 	boss_engaged = true
+	# #74: the run has met this boss; the next meeting is an ascended one.
+	var met: Array = GameState.game.get("bosses_met", [])
+	if not met.has(boss_id):
+		met.append(boss_id)
+	GameState.game["bosses_met"] = met
+	if _boss and is_instance_valid(_boss) and _boss.get("ascended"):
+		var ad: Dictionary = _boss.def.get("ascended", {})
+		broadcast_message.rpc("%s has ascended: %s", "#ffcf5c", [str(_boss.def.name), str(ad.get("name", ""))])
 	_boss_music.rpc(true)
 
 
@@ -1065,6 +1105,46 @@ static func pick_events(floor_seed: int, at_depth: int) -> Array:
 		ids.remove_at(k)
 		ws.remove_at(k)
 	return out
+
+
+## #74 Host: the corrupted ability of an ordinary monster `id` on `at_depth` ("" = not corrupted):
+## the data share (growing with depth) rolled on `rng`, then an ability by weight. "force_corrupt"
+## meta on GameState pins one ability on every eligible monster (tests, tours).
+static func pick_corruption(id: String, at_depth: int, rng: RandomNumberGenerator) -> String:
+	var cfg: Dictionary = GameData.corruption
+	var def: Dictionary = GameData.monsters.get(id, {})
+	if def.is_empty() or str(def.get("role", "")) in cfg.get("exclude_roles", []) or float(def.get("base_stats", {}).get("hp", 0)) <= float(cfg.get("critter_hp_max", 20)):
+		return ""
+	var forced := str(GameState.get_meta("force_corrupt", ""))
+	if not forced.is_empty():
+		return forced
+	var share := corruption_share(at_depth)
+	if share <= 0.0 or rng.randf() >= share:
+		return ""
+	var ids: Array = cfg.get("abilities", {}).keys()
+	ids.sort()
+	var ws: Array = ids.map(func(a): return float(cfg.abilities[a].get("weight", 1)))
+	return str(ids[ItemGenerator._weighted_index(ws, rng)])
+
+
+static func corruption_share(at_depth: int) -> float:
+	var cfg: Dictionary = GameData.corruption
+	var first := int(cfg.get("first_depth", 8))
+	if at_depth < first:
+		return 0.0
+	return minf(float(cfg.get("share", 0.1)) + float(cfg.get("share_per_depth", 0.0)) * (at_depth - first), float(cfg.get("share_max", 0.3)))
+
+
+## #74 Host: does boss `id` fight ascended on `at_depth`? From the ascension's first floor, or when
+## the run has met it before ("force_ascended" meta pins it for tests).
+static func is_ascended(id: String, at_depth: int) -> bool:
+	if GameState.has_meta("force_ascended"):
+		return bool(GameState.get_meta("force_ascended"))
+	if not GameData.bosses.get(id, {}).has("ascended"):
+		return false
+	if at_depth >= int(GameData.corruption.get("ascended", {}).get("from_depth", 11)):
+		return true
+	return Array(GameState.game.get("bosses_met", [])).has(id)
 
 
 static func pick_boss(ft: Dictionary, floor_seed: int, avoid: String = "") -> String:

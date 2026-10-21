@@ -112,7 +112,11 @@ func _enter_phase(i: int) -> void:
 	var p: Dictionary = def.phases[i]
 	if multiplayer.is_server():
 		stop_mechanics()
-		for md in p.get("mechanics", []):
+		var mds: Array = p.get("mechanics", []).duplicate()
+		# #74: an ascended boss adds its ascended mechanic to every phase.
+		if ascended and def.has("ascended"):
+			mds.append(def.ascended.mechanic)
+		for md in mds:
 			var scr: Script = load(GameData.BOSS_MECHANIC_DIR + str(md.id) + ".gd")
 			var m: BossMechanic = scr.new()
 			mechanics.append(m)

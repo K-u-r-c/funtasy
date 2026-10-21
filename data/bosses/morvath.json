@@ -95,5 +95,29 @@
 			5
 		],
 		"min_rarity": 3
+	},
+	"ascended": {
+		"name": "Grave Rows",
+		"text": "Rows of bone spears burst from the floor, one row after another",
+		"message": "Grave Rows! Stand between the rows of marks",
+		"mechanic": {
+			"id": "ascension",
+			"key": "grave_rows",
+			"pattern": "rows",
+			"axis": "x",
+			"rows": 3,
+			"radius": 22,
+			"warn": 1.8,
+			"step": 0.5,
+			"every": 15,
+			"first": 7,
+			"damage": {
+				"base": 10,
+				"coef": 1.4
+			},
+			"color": "#e8dcc0",
+			"fx": "physical",
+			"sfx": "bone_collapse"
+		}
 	}
 }

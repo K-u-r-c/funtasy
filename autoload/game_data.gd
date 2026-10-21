@@ -31,6 +31,7 @@ var elite_modifiers: Dictionary = {}
 var floor_modifiers: Dictionary = {}  ## #71
 var floor_events: Dictionary = {}  ## #72: data/floor_events.json
 var npc_lines: Dictionary = {}  ## #78: data/npc_lines.json
+var corruption: Dictionary = {}  ## #74: data/corruption.json
 var boons: Dictionary = {}  ## #73: boon id -> def (data/boons/*.json)
 var boon_tags: Dictionary = {}  ## #73: tag id -> {name}
 var merchants: Dictionary = {}
@@ -78,6 +79,7 @@ func reload() -> void:
 	floor_modifiers = _load_json("floor_modifiers.json", {})
 	floor_events = _load_json("floor_events.json", {})
 	npc_lines = _load_json("npc_lines.json", {})
+	corruption = _load_json("corruption.json", {})
 	boon_tags.clear()
 	for t in _load_json("boon_tags.json", []):
 		boon_tags[t.id] = t

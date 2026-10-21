@@ -82,5 +82,25 @@
 			5
 		],
 		"min_rarity": 3
+	},
+	"ascended": {
+		"name": "The Rat King's Toll",
+		"text": "Burrows open beside the heroes and rats pour out",
+		"message": "Krazik calls his children! Watch the burrows",
+		"mechanic": {
+			"id": "ascension",
+			"key": "rat_toll",
+			"pattern": "summon",
+			"burrows": 3,
+			"monster": "plague_rat",
+			"count": 2,
+			"radius": 30,
+			"warn": 2.0,
+			"every": 17,
+			"first": 8,
+			"color": "#9a8a5a",
+			"fx": "physical",
+			"sfx": "vermin_swarm"
+		}
 	}
 }

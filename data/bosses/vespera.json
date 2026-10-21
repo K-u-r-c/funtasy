@@ -95,5 +95,36 @@
 			5
 		],
 		"min_rarity": 3
+	},
+	"ascended": {
+		"name": "Censer of Plague",
+		"text": "A plague pool blooms under every hero and lingers",
+		"message": "Vespera swings the censer of plague! Move off the marks",
+		"mechanic": {
+			"id": "ascension",
+			"key": "censer_plague",
+			"pattern": "players",
+			"radius": 46,
+			"warn": 1.7,
+			"every": 14,
+			"first": 6,
+			"damage": {
+				"base": 8,
+				"coef": 1.1
+			},
+			"zone": {
+				"radius": 42,
+				"duration": 5.0,
+				"tick": 0.5,
+				"damage": {
+					"base": 2,
+					"coef": 0.3
+				},
+				"fx": "nature"
+			},
+			"color": "#9acd32",
+			"fx": "nature",
+			"sfx": "plague_burst"
+		}
 	}
 }

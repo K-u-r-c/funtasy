@@ -82,5 +82,26 @@
 			5
 		],
 		"min_rarity": 3
+	},
+	"ascended": {
+		"name": "Forge Brand",
+		"text": "A hero is branded and erupts after a few seconds: keep away from them",
+		"message": "Ignis brands %s! Keep away from them",
+		"mechanic": {
+			"id": "ascension",
+			"key": "forge_brand",
+			"pattern": "brand",
+			"radius": 72,
+			"warn": 3.0,
+			"every": 14,
+			"first": 6,
+			"damage": {
+				"base": 13,
+				"coef": 1.7
+			},
+			"color": "#ff7a2a",
+			"fx": "fire",
+			"sfx": "explosion"
+		}
 	}
 }

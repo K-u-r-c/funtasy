@@ -14,6 +14,7 @@ var lead := 1.5
 var label := ""
 var color := Color("ff4d3d")
 var fill := true  ## false: the ring and the countdown only (it mustn't hide what is waking inside)
+var quiet := false  ## true: no countdown text (one mark of a row that shares a countdown)
 var _t := 0.0
 var _done := false
 
@@ -83,6 +84,8 @@ func _draw() -> void:
 	draw_arc(Vector2.ZERO, radius, 0.0, TAU, 48, Color(color, 0.85), 2.0)
 	draw_arc(Vector2.ZERO, radius * u, 0.0, TAU, 48, Color(color.lightened(0.3), 0.9), 1.5)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	if quiet:
+		return
 	var left := maxf(lead - _t, 0.0)
 	var f := UITheme.font()
 	var txt := ("%s  " % label if not label.is_empty() else "") + ("%.1f" % left)

@@ -35,6 +35,8 @@ var key_carrier := false  ## host: drops the floor's Gold Key (D11)
 var copy_peer := 0  ## replicated at spawn: draw this player's look instead of the monster art (D31)
 var look: Dictionary = {}  ## #72, from the spawn data: a hero look {gender, appearance} (the freed prisoner)
 var guard := false  ## #72, from the spawn data: carries the prisoner's cell key (a key over its head)
+var corrupt := ""  ## #74, from the spawn data: the corrupted variant's ability ("" = not corrupted)
+var ascended := false  ## #74, from the spawn data: an ascended boss
 var _state_sprite: Sprite2D = null
 var _melee_reach := 0.0
 var behaviors: Array = []  ## host: MonsterBehavior modules from data (scripts/enemies/behaviors/)
@@ -65,6 +67,8 @@ func setup(data: Dictionary) -> void:
 	key_carrier = bool(data.get("key", false))
 	look = data.get("look", {})
 	guard = bool(data.get("guard", false))
+	corrupt = str(data.get("corrupt", ""))
+	ascended = bool(data.get("ascended", false))
 	hunter = str(data.get("hunter", ""))
 	if not hunter.is_empty():
 		display_name = Loc.f("%s the Hunter", [hunter])
@@ -73,6 +77,10 @@ func setup(data: Dictionary) -> void:
 		display_name = "%s %s" % [" ".join(names), display_name]
 	if data.has("display"):
 		display_name = str(data.display)
+	if not corrupt.is_empty():
+		display_name = Loc.f("Corrupted %s", [Loc.t(str(def.name))])
+	if ascended:
+		display_name = Loc.f("Ascended %s", [Loc.t(str(def.name))])
 	radius = float(def.get("collision_radius", 8))
 	collision_layer = 4
 	collision_mask = 1 | 2 | 8 | 16 | 32 | 64 | 128
@@ -91,6 +99,11 @@ func _ready() -> void:
 		_copy_look.call_deferred()
 	elif not look.is_empty():
 		_wear_look.call_deferred()
+	# #74: the corrupted and the ascended wear their aura.
+	if not corrupt.is_empty() or ascended:
+		var aura := DeepAura.new()
+		aura.setup(self, ascended)
+		add_child(aura)
 	if is_elite():
 		# Elites glow in their first modifier's colour so they read from afar.
 		var l := PointLight2D.new()
@@ -110,6 +123,14 @@ func _ready() -> void:
 			var b: MonsterBehavior = scr.new()
 			b.setup(self, bd)
 			behaviors.append(b)
+		# #74: a corrupted variant's ability.
+		if not corrupt.is_empty():
+			var ad: Dictionary = GameData.corruption.get("abilities", {}).get(corrupt, {})
+			if not ad.is_empty():
+				var cb: MonsterBehavior = load(GameData.BEHAVIOR_DIR + str(ad.behavior) + ".gd").new()
+				cb.set("id", corrupt)
+				cb.setup(self, ad)
+				behaviors.append(cb)
 		_configure_ai()
 		recompute_stats()
 		health.hp = health.max_hp

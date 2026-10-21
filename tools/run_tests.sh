@@ -149,6 +149,7 @@ if [ "$WHAT" = all ] || [ "$WHAT" = quick ]; then
 	run forge --auto=solo --class=warrior --name=Smith --scenario=forge --forge=on --quit=150
 	run events --auto=solo --class=warrior --name=Ev --scenario=events --quit=200
 	run npc-talk --auto=solo --class=warrior --name=Talk --scenario=npc_talk --quit=120
+	run deep --auto=solo --class=warrior --name=Deep --scenario=deep --quit=300
 	run altars --auto=solo --class=warrior --name=Pious --scenario=altars --quit=60
 	run stacks --auto=solo --class=priest --name=Stacker --scenario=stacks --quit=60
 	run resume --auto=solo --class=warrior --name=Back --scenario=resume --quit=90
@@ -201,6 +202,7 @@ if [ "$WHAT" = all ] || [ "$WHAT" = lan ]; then
 	pair forge-lan "--class=warrior --name=HostFg --scenario=forge_lan --forge=on --quit=60" "--class=mage --name=ClientFg --quit=60"
 	pair events-lan "--class=warrior --name=HostEv --scenario=events_lan --quit=90" "--class=mage --name=ClientEv --quit=90"
 	pair npc-talk-lan "--class=warrior --name=HostTk --scenario=npc_talk_lan --quit=50" "--class=mage --name=ClientTk --quit=50"
+	pair deep-lan "--class=warrior --name=HostDp --scenario=deep_lan --quit=150" "--class=priest --name=ClientDp --quit=150"
 	group ghost-lan 2 "--class=warrior --name=HostGh --scenario=ghost_lan --quit=90" "--class=priest --quit=90"
 	group marker-lan 3 "--class=warrior --name=HostMk --scenario=marker_lan --quit=60" "--class=warrior --quit=60"
 	pair wipe "--class=ranger --name=HostWipe --scenario=wipe --quit=60" "--class=priest --name=ClientWipe --quit=60"

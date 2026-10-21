@@ -222,8 +222,8 @@ static func average_boons(class_id: String, at_depth: int) -> Array:
 	return owned
 
 
-func _measure(id: String, spot: Vector2, boss: bool) -> Dictionary:
-	var m: Enemy = g.spawn_monster(id, spot, boss)
+func _measure(id: String, spot: Vector2, boss: bool, extra: Dictionary = {}) -> Dictionary:
+	var m: Enemy = g.spawn_monster(id, spot, boss, extra)
 	await da._wait(0.2)
 	if not is_instance_valid(m):
 		return {}
@@ -711,3 +711,48 @@ func run_cycle(depths: Array = [6, 12, 20]) -> void:
 			bad.append(rows[-1])
 	print("[balance] cycle %s (%d chapters, +%d talent, +%d stat): %s" % [p.class_id, chapters, tp, sp, rows])
 	da.check(chapters == 5 and tp == 5 and sp == 25 and bad.is_empty(), "%s: the full legendary story (+%d talent, +%d stat points) helps without breaking the pacing (%s)" % [p.class_id, tp, sp, rows])
+
+
+
+## #74 The deep variants inside the pacing bands: on floors 9, 14 and 20 every monster of the floor's
+## pool as a corrupted variant (health x hp_mult, damage x damage_mult) and every boss of the biome
+## ascended (x its own) must still sit in the normal / boss ttk and ttd bands of balance.probe.
+func run_deep(depths: Array = [9, 14, 20]) -> void:
+	g = da._game()
+	p = da._local()
+	_rng.seed = 11
+	var curve := run_progression(20)
+	await da._wait(0.5)
+	for e in g.enemies_root.get_children():
+		e.queue_free()
+	await da._wait(0.3)
+	var probe: Dictionary = GameData.bal("probe", {})
+	var spot: Vector2 = g.nearest_floor(g.layout.start + Vector2(70, 0))
+	var bad: Array = []
+	var n := 0
+	for d in depths:
+		_gear_up(_curve_level(curve, int(d)), int(d))
+		g.depth = int(d)
+		var biome: String = g.floor_type_for(int(d))
+		var ids: Array = GameData.floor_types[biome].monsters.map(func(m): return str(m.id)).filter(func(id): return DungeonGenerator.spawnable(id, int(d)))
+		ids.sort()
+		for id in ids:
+			if g.pick_corruption(str(id), int(d), RandomNumberGenerator.new()) == "" and GameState.get_meta("force_corrupt", "") == "":
+				# Only monsters that can be corrupted (no critters, illusions or boss parts).
+				var def: Dictionary = GameData.monsters[id]
+				if str(def.get("role", "")) in GameData.corruption.get("exclude_roles", []) or float(def.base_stats.hp) <= float(GameData.corruption.get("critter_hp_max", 20)):
+					continue
+			var row := await _measure(str(id), spot, false, {"corrupt": "burst"})
+			if row.is_empty():
+				continue
+			n += 1
+			if row.ttk > float(probe.get("normal_ttk_max", 12.0)) or row.ttd < float(probe.get("normal_ttd_min", 4.0)):
+				bad.append("corrupted %s@%d ttk %.1f ttd %.1f" % [id, d, row.ttk, row.ttd])
+		for bid in GameData.floor_types[biome].get("bosses", []):
+			var brow := await _measure(str(bid), spot, true, {"ascended": true})
+			if brow.is_empty():
+				continue
+			n += 1
+			if brow.ttk > float(probe.get("boss_ttk_max", 240.0)) or brow.ttk < float(probe.get("boss_ttk_min", 25.0)) or brow.ttd < float(probe.get("boss_ttd_min", 3.0)):
+				bad.append("ascended %s@%d ttk %.1f ttd %.1f" % [bid, d, brow.ttk, brow.ttd])
+	da.check(n > 0 and bad.is_empty(), "%s: corrupted monsters and ascended bosses stay inside the pacing bands (%d measured; outside: %s)" % [p.class_id, n, bad])

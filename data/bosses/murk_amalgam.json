@@ -85,5 +85,28 @@
 			5
 		],
 		"min_rarity": 3
+	},
+	"ascended": {
+		"name": "Undertow",
+		"text": "The Amalgam drags every hero towards itself",
+		"message": "Undertow! Brace yourselves",
+		"mechanic": {
+			"id": "ascension",
+			"key": "undertow",
+			"pattern": "pull",
+			"radius": 300,
+			"strength": 260,
+			"slam_radius": 80,
+			"warn": 2.0,
+			"every": 15,
+			"first": 7,
+			"damage": {
+				"base": 9,
+				"coef": 1.3
+			},
+			"color": "#4a7a3a",
+			"fx": "nature",
+			"sfx": "wave"
+		}
 	}
 }

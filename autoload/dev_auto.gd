@@ -324,6 +324,10 @@ func _run() -> void:
 				await ModSuite.new(self).run()
 			"mods_lan":
 				await ModSuite.new(self).run_lan()
+			"deep":
+				await DeepSuite.new(self).run()
+			"deep_lan":
+				await DeepSuite.new(self).run_lan()
 			"npc_talk":
 				await NpcSuite.new(self).run()
 			"npc_talk_lan":
@@ -680,6 +684,8 @@ func client_cmd(cmd: String, arg: Variant) -> void:
 			await BoonSuite.new(self).client_cmd(cmd, arg)
 		_ when cmd.begins_with("md_"):
 			await ModSuite.new(self).client_cmd(cmd, arg)
+		_ when cmd.begins_with("deep_"):
+			await DeepSuite.new(self).client_cmd(cmd, arg)
 		_ when cmd.begins_with("npc_"):
 			await NpcSuite.new(self).client_cmd(cmd, arg)
 		_ when cmd.begins_with("ev_"):
@@ -1216,6 +1222,11 @@ func _floor2_props_check(g: Node, host_p: Player) -> void:
 
 ## Every living player interacts with the portal (that's how the party descends).
 func _descend_all(g: Node) -> void:
+	# #73: the boons are chosen by the boon suites; here the portal mustn't wait for them.
+	for pl in g.players_root.get_children():
+		pl.boon_floor = g.depth
+	g.boon_pending.clear()
+	g._sync_boon_wait.rpc([])
 	for pl in g.players_root.get_children():
 		if pl.life_state == Player.Life.ALIVE:
 			pl.host_teleport(g.portal.global_position + Vector2(randf_range(-10, 10), 4))

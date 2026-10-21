@@ -79,5 +79,27 @@
 			5
 		],
 		"min_rarity": 3
+	},
+	"ascended": {
+		"name": "Lost Moments",
+		"text": "The places you stood three seconds ago explode",
+		"message": "Your past steps return! Don't stand where you were",
+		"mechanic": {
+			"id": "ascension",
+			"key": "lost_moments",
+			"pattern": "echo",
+			"delay_back": 3.0,
+			"radius": 44,
+			"warn": 1.6,
+			"every": 12,
+			"first": 6,
+			"damage": {
+				"base": 10,
+				"coef": 1.4
+			},
+			"color": "#8a7aff",
+			"fx": "arcane",
+			"sfx": "echo_burst"
+		}
 	}
 }

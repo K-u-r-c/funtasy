@@ -109,6 +109,7 @@ Descending...,Schodzenie...
 Descending... next floor: %s,Schodzenie... następne piętro: %s
 %s the Hunter,%s Łowca
 A rift opens: %s is coming,Otwiera się szczelina: nadchodzi %s
+%s has ascended: %s,Wyniesienie! %s: %s
 The boss is defeated! A portal opens...,Boss pokonany! Otwiera się portal...
 Hold to revive %s,"Przytrzymaj, by wskrzesić: %s"
 Cancel - stay on this floor,Anuluj - zostań na tym piętrze
@@ -137,7 +138,14 @@ Descend to the next floor,Zejdź na następne piętro
 Open,Otwórz
 Take the torch,Weź pochodnię
 A cloud of grave miasma bursts from the urn!,Z urny wybucha chmura grobowego miazmatu!
+Corrupted %s,%s Skazy
+Ascended %s,%s (Wyniesienie)
 Rises again,Powstanie znowu
+Blight,Skaza
+Shadowstep,Krok Cienia
+Volatile,Wybuch
+Ward,Osłona
+Splitting,Rozszczepienie
 Knocked off,Strącony
 Reassembles,Składa się na nowo
 Shell shattered!,Pancerz pękł!
@@ -148,6 +156,10 @@ Antler Stampede!,Szarża poroży!
 Cernunnos crashes into the wall!,Cernunnos wbija się w ścianę!
 Anvil of Doom! Ingots fall from the rafters!,Kowadło Zagłady! Sztaby spadają z krokwi!
 Boulders smash the outer walkway!,Głazy miażdżą zewnętrzny pomost!
+Safe,Bezpiecznie
+Undertow,Odpływ
+Burrow,Nora
+Brand,Piętno
 %s and %s are bound by a Blood Thread - stay together!,%s i %s są związani Krwawą Nicią - trzymajcie się razem!
 The Blood Thread snaps!,Krwawa Nić pęka!
 Morvath draws the bones of the fallen into a shield!,Morvath zbiera kości poległych w tarczę!
@@ -914,6 +926,13 @@ Aura,Aura
 Execute,Egzekucja
 Control,Kontrola
 Loot,Łupy
+Blightwalker,Siewca Skazy
+Leaves pools of blight where it walks,"Zostawia kałuże skazy tam, gdzie przejdzie"
+Splits in two when it dies,Po śmierci rozpada się na dwoje
+Warding,Osłona
+Shields a nearby ally,Osłania pobliskiego sojusznika
+Steps behind its target,Pojawia się za plecami celu
+Explodes when it dies,Wybucha po śmierci
 True,Czyste
 Vampiric,Wampiryczny
 Frenzied,Szalejący
@@ -3407,34 +3426,63 @@ Elemental,Żywiołak
 Cernunnos the Blighted Stag-God,"Cernunnos, Zarażony Bóg-Jeleń"
 Blood Drinker,Pijący Krew
 Cernunnos drives his antlers into the loam!,Cernunnos wbija poroże w ziemię!
+Wild Hunt,Dziki Gon
+Spectral stags charge down the arena in lanes,Widmowe jelenie szarżują przez arenę pasami
+The Wild Hunt rides! Leave the marked lanes,Dziki Gon nadciąga! Zejdźcie z oznaczonych pasów
 Demon,Demon
 "Ignis, the Damned Forgemaster","Ignis, Przeklęty Mistrz Kuźni"
 Ignis glows white-hot!,Ignis rozżarza się do białości!
+Forge Brand,Piętno Kuźni
+A hero is branded and erupts after a few seconds: keep away from them,Jeden z bohaterów zostaje napiętnowany i po kilku sekundach wybucha: trzymajcie się od niego z daleka
+Ignis brands %s! Keep away from them,Ignis piętnuje: %s! Trzymajcie się z daleka
 Aberration,Aberracja
 Lady Isolde the Carrion Queen,"Lady Isolde, Królowa Ścierwa"
 Carrion Queen,Królowa Ścierwa
 The cocoon tears open - Isolde's true form feasts!,Kokon pęka - prawdziwa postać Isolde zaczyna ucztę!
+Carrion Dive,Atak Padlinożerców
+Her crows dive on the weakest hero,Jej wrony spadają na najsłabszego bohatera
+Isolde's crows circle the weakest of you!,Wrony Isoldy krążą nad najsłabszym z was!
 Beast,Bestia
 Krazik the Unclean,Krazik Nieczysty
 Unmounted,Bez wierzchowca
 Krazik's mount crashes into the flooded pit!,Wierzchowiec Krazika wpada do zalanego dołu!
+The Rat King's Toll,Danina Szczurzego Króla
+Burrows open beside the heroes and rats pour out,Obok bohaterów otwierają się nory i wysypują się z nich szczury
+Krazik calls his children! Watch the burrows,Krazik wzywa swoje dzieci! Uważajcie na nory
 Undead,Nieumarły
 Grand Archivist Malazar,Wielki Archiwista Malazar
 The Archivist opens the Tome Prison!,Archiwista otwiera Więzienie Księgi!
+Binding Index,Indeks Spętania
+Everyone far from the Archivist is struck and silenced,"Każdy, kto stoi daleko od Archiwisty, zostaje porażony i uciszony"
+The Binding Index opens! Get close to Malazar,Indeks Spętania się otwiera! Podejdźcie do Malazara
 The Memory Devourer,Pożeracz Wspomnień
 Death Paradox,Paradoks Śmierci
 Time fractures - the dead will not rest!,Czas pęka - umarli nie zaznają spoczynku!
+Lost Moments,Utracone Chwile
+The places you stood three seconds ago explode,"Miejsca, w których staliście trzy sekundy temu, wybuchają"
+Your past steps return! Don't stand where you were,"Wasze dawne kroki wracają! Nie stójcie tam, gdzie staliście"
 Morvath the Bone Sovereign,"Morvath, Kościany Władca"
 Morvath absorbs the bones of the fallen!,Morvath wchłania kości poległych!
 Bone Shield,Kościana Tarcza
+Grave Rows,Grobowe Rzędy
+"Rows of bone spears burst from the floor, one row after another","Rzędy kościanych włóczni wyrastają z posadzki, jeden po drugim"
+Grave Rows! Stand between the rows of marks,Grobowe Rzędy! Stańcie między rzędami znaków
 The Murk Amalgam,Mroczny Amalgamat
 The Amalgam tears itself in two!,Amalgamat rozdziera się na dwoje!
+The Amalgam drags every hero towards itself,Amalgamat wciąga każdego bohatera ku sobie
+Undertow! Brace yourselves,Odpływ! Trzymajcie się
 Prioress Vespera,Przeorysza Vespera
 Vespera unfolds leathery wings!,Vespera rozkłada skórzaste skrzydła!
 Ascension,Wniebowstąpienie
+Censer of Plague,Kadzielnica Zarazy
+A plague pool blooms under every hero and lingers,Pod każdym bohaterem rozlewa się kałuża zarazy i zostaje na dłużej
+Vespera swings the censer of plague! Move off the marks,Vespera kołysze kadzielnicą zarazy! Zejdźcie ze znaków
 Vulkania the Magma Wyrm,"Vulkania, Magmowy Smok"
 Boulder Storm,Burza Głazów
 Vulkania hurls volcanic boulders!,Vulkania ciska wulkanicznymi głazami!
+Magma Geysers,Gejzery Magmy
+Geysers of magma erupt across the arena one after another,Gejzery magmy wybuchają na arenie jeden po drugim
+The floor boils! Magma geysers,Posadzka wrze! Gejzery magmy
 Mage,Mag
 "Master of the elements. Fragile, but devastating from afar.","Mistrz żywiołów. Kruchy, lecz niszczycielski z daleka."
 Apprentice Wand,Różdżka Ucznia
@@ -4327,7 +4375,6 @@ Arcane Flow,Tajemny Przepływ
 +15% mana regeneration per rank.,+15% regeneracji many na rangę.
 Spell Piercing,Przebicie Czarów
 Your spells ignore 6% of magic resistance per rank.,Twoje czary ignorują 6% odporności na magię na rangę.
-Warding,Osłona
 +6% magic resistance per rank.,+6% odporności na magię na rangę.
 Arcane Power,Tajemna Moc
 +5% Intellect per rank.,+5% Intelektu na rangę.

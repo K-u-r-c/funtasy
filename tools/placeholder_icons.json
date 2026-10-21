@@ -1393,5 +1393,33 @@
 	"sfx.npc_speak": {
 		"like": "sfx.ui_move",
 		"prompt": "a soft murmur of a voice starting to speak in a stone room, very short, unobtrusive, 0.3 s, no words"
+	},
+	"sfx.plague_burst": {
+		"like": "sfx.explosion",
+		"prompt": "a censer of plague bursting: a wet hollow pop, a hiss of sickly gas spreading, 1 s"
+	},
+	"sfx.antler_charge": {
+		"like": "sfx.roar",
+		"prompt": "a herd of spectral stags thundering past: hooves on stone, a distant ghostly bellow, 1.5 s"
+	},
+	"sfx.crow_dive": {
+		"like": "sfx.dash",
+		"prompt": "a flock of carrion crows diving: wings beating hard, a chorus of harsh caws, 1 s"
+	},
+	"sfx.echo_burst": {
+		"like": "sfx.cast",
+		"prompt": "a moment from the past exploding: a reversed chime snapping into a glassy burst, 0.8 s"
+	},
+	"sfx.rune_burst": {
+		"like": "sfx.lightning",
+		"prompt": "arcane runes detonating around a library: a crackle of paper and a sharp magical thunderclap, 1 s"
+	},
+	"sfx.lava_burst": {
+		"like": "sfx.fire",
+		"prompt": "a geyser of magma erupting from the floor: a deep rumble and a roaring splash of molten rock, 1.2 s"
+	},
+	"sfx.vermin_swarm": {
+		"like": "sfx.enemy_hit",
+		"prompt": "rats pouring out of a burrow: scrabbling claws on stone and a rising squeal, 1.2 s"
 	}
 }

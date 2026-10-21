@@ -1,0 +1,37 @@
+{
+	"_comment": "#74 Deep variants. Corrupted monsters: from first_depth a share of the floor's monsters (share + share_per_depth x (depth - first_depth), at most share_max; a seeded roll per monster) are corrupted: one ability from the pool by weight, health x hp_mult, damage x damage_mult, the name prefix, the tint and the aura, and better loot (loot: drop_mult, gold_mult, rarity_up_chance over the floor's own). Never swarm critters, illusions, boss parts, event monsters or allies. Every ability warns `warn` s before it acts (a ring with a countdown over the fog, a sound). Times in s, distances in px.",
+	"first_depth": 8,
+	"share": 0.1,
+	"share_per_depth": 0.012,
+	"share_max": 0.3,
+	"exclude_roles": ["swarm", "illusion", "boss_part", "event", "ally"],
+	"critter_hp_max": 20,
+	"hp_mult": 1.25,
+	"damage_mult": 1.1,
+	"prefix": "Corrupted",
+	"tint": "#c9a4ff",
+	"aura": "#9a5cff",
+	"loot": {"drop_mult": 1.6, "gold_mult": 1.4, "rarity_up_chance": 0.35},
+	"abilities": {
+		"blight": {"name": "Blightwalker", "text": "Leaves pools of blight where it walks", "weight": 3, "behavior": "corrupt_blight", "color": "#8cff4a",
+			"every": 3.5, "warn": 0.9, "radius": 26, "duration": 5.0, "tick": 0.5, "damage": {"base": 2, "coef": 0.3}},
+		"split": {"name": "Splitting", "text": "Splits in two when it dies", "weight": 2, "behavior": "corrupt_split", "color": "#c06cff",
+			"warn": 1.0, "count": 2, "hp_x": 0.35, "radius": 30},
+		"shield": {"name": "Warding", "text": "Shields a nearby ally", "weight": 2, "behavior": "corrupt_shield", "color": "#7ad4ff",
+			"every": 9.0, "warn": 1.2, "range": 200, "absorb": 0.35},
+		"blink": {"name": "Shadowstep", "text": "Steps behind its target", "weight": 2, "behavior": "corrupt_blink", "color": "#b07cff",
+			"every": 8.0, "warn": 0.9, "range": 280, "behind": 38},
+		"burst": {"name": "Volatile", "text": "Explodes when it dies", "weight": 3, "behavior": "corrupt_burst", "color": "#ff6a2a",
+			"warn": 1.3, "radius": 64, "damage": {"base": 6, "coef": 1.5}}
+	},
+	"ascended": {
+		"_comment": "Ascended bosses: from from_depth, or the second time the run meets a boss, it fights ascended: its data's ascended mechanic is added to every phase, health x hp_mult, damage x damage_mult, the title, a halo and aura, and its drops gain extra_drops items and min_rarity_up rarity.",
+		"from_depth": 11,
+		"hp_mult": 1.2,
+		"damage_mult": 1.1,
+		"prefix": "Ascended",
+		"extra_drops": 1,
+		"min_rarity_up": 1,
+		"aura": "#ffcf5c"
+	}
+}

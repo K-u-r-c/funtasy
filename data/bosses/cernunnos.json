@@ -86,5 +86,30 @@
 			5
 		],
 		"min_rarity": 3
+	},
+	"ascended": {
+		"name": "Wild Hunt",
+		"text": "Spectral stags charge down the arena in lanes",
+		"message": "The Wild Hunt rides! Leave the marked lanes",
+		"mechanic": {
+			"id": "ascension",
+			"key": "wild_hunt",
+			"pattern": "rows",
+			"axis": "y",
+			"rows": 3,
+			"radius": 24,
+			"warn": 2.0,
+			"step": 0.35,
+			"every": 16,
+			"first": 8,
+			"damage": {
+				"base": 11,
+				"coef": 1.4
+			},
+			"knock": 160,
+			"color": "#a6d84a",
+			"fx": "nature",
+			"sfx": "antler_charge"
+		}
 	}
 }

@@ -1772,3 +1772,53 @@ func _cycle(_arg: String) -> void:
 	await da._wait(0.8)
 	await snap("cycle_codex")
 	hud.close_overlay()
+
+
+## #74: every corrupted ability while it warns, and every ascended boss's mechanic while it warns.
+func _deep(_arg: String) -> void:
+	var hud: Node = da.get_tree().get_first_node_in_group("hud")
+	await da._wait(3.5)
+	p.iframe_left = 9999.0
+	_clear_monsters(false)
+	var spot: Vector2 = g.nearest_floor(g.layout.start + Vector2(60, 0))
+	for ab in GameData.corruption.abilities:
+		_clear_monsters(false)
+		Combat.instance.clear_floor()
+		await da._wait(0.3)
+		p.host_teleport(g.nearest_floor(spot + Vector2(-60, 30)))
+		var m: Enemy = g.spawn_monster("ghoul", spot, false, {"corrupt": str(ab)})
+		if str(ab) == "shield":
+			var bud: Enemy = g.spawn_monster("ghoul", spot + Vector2(34, 0), false)
+			await da._wait(0.2)
+			bud.health.hp *= 0.5
+		await da._wait(0.4)
+		m.set_physics_process(false)
+		for b in m.behaviors:
+			if b is CorruptBehavior:
+				b.test_trigger(self)
+		m.set_physics_process(true)
+		await da._wait(float(GameData.corruption.abilities[ab].warn) * 0.5)
+		await snap("deep_corrupt_%s" % ab)
+		await da._wait(1.5)
+	var ids: Array = GameData.bosses.keys()
+	ids.sort()
+	var boss_pos: Vector2 = g.layout.boss_pos
+	for id in ids:
+		_clear_monsters(false)
+		for e in g.enemies_root.get_children():
+			e.queue_free()
+		Combat.instance.clear_floor()
+		await da._wait(0.4)
+		p.host_teleport(g.nearest_floor(boss_pos + Vector2(0, 80)))
+		var boss: Enemy = g.spawn_monster(str(id), boss_pos, true, {"ascended": true})
+		await da._wait(0.6)
+		boss.add_threat(p, 10.0)
+		for mm in boss.mechanics:
+			if str(mm.params.get("id", "")) == "ascension":
+				if str(mm.params.get("pattern", "")) == "echo":
+					mm._t += 4.0
+				mm.trigger()
+		await da._wait(0.8)
+		await snap("deep_ascended_%s" % id)
+		await da._wait(2.0)
+	_clear_monsters(false)
