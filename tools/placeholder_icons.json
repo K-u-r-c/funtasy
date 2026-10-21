@@ -140,6 +140,26 @@
 		"shape": "bar",
 		"size": 48
 	},
+	"sfx.loot_drop_common": {
+		"like": "sfx.ui_drop",
+		"prompt": "small item dropping onto a stone floor, soft leather and wood thud with a tiny clink, short, dry"
+	},
+	"sfx.loot_drop_rare": {
+		"like": "sfx.pickup",
+		"prompt": "magic item landing on stone: a clear metallic clink with a short cold shimmer, blue sparkle feel, short"
+	},
+	"sfx.loot_drop_epic": {
+		"like": "sfx.buff",
+		"prompt": "precious item landing on stone: deep metallic ring with a rising arcane shimmer and a soft choir breath, short"
+	},
+	"sfx.loot_drop_relic": {
+		"like": "sfx.buff",
+		"prompt": "relic landing: heavy golden clang, bright harmonic shimmer and a warm low swell, dark fantasy, short"
+	},
+	"sfx.loot_drop_legendary": {
+		"like": "sfx.level_up",
+		"prompt": "legendary item drop: a heavy golden impact, then a tall rising beam of choir and bells with a deep resonant hum, triumphant but dark, 2-3 s"
+	},
 	"sfx.coin": {
 		"like": "sfx.pickup",
 		"prompt": "short bright clink of a few gold coins dropping into a leather purse, dry, no reverb"

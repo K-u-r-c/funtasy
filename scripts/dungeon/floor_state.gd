@@ -73,6 +73,7 @@ static func capture(g: Node, prev: Dictionary) -> Dictionary:
 	snap.cells = d.changed_cells()
 	snap.keys = g.party_keys
 	snap.key_chest = g.key_chest
+	snap.legendary_from_enemies = g.legendary_from_enemies
 	var m: Merchants = g.merchants
 	var signed := {}
 	for peer in m._signed:
@@ -144,6 +145,7 @@ static func restore_host(g: Node, snap: Dictionary, boss_pos: Vector2) -> void:
 		g.loot.drop_item(it.item, vec(it.pos))
 	g.add_party_key(int(snap.get("keys", 0)) - g.party_keys)
 	g.key_chest = str(snap.get("key_chest", ""))
+	g.legendary_from_enemies = bool(snap.get("legendary_from_enemies", false))
 	var ms: Dictionary = snap.get("merchant", {})
 	var m: Merchants = g.merchants
 	if not ms.is_empty():

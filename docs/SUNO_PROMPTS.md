@@ -93,6 +93,11 @@ between the floor track and the boss track. Effects: short (0.2-1.5 s), dry, mon
 | `lever` | `assets/audio/sfx/lever.ogg` | engine | rusty iron lever pulled with a grinding clunk |
 | `lid_fall` | `assets/audio/sfx/lid_fall.ogg` | bosses/morvath.json | heavy stone sarcophagus lid crashing onto a stone floor, deep thud with debris |
 | `lightning` | `assets/audio/sfx/lightning.ogg` | skills/mage.json | sharp electric crack and sizzling thunder snap |
+| `loot_drop_common` | `assets/audio/sfx/loot_drop_common.ogg` | engine | small item dropping onto a stone floor, soft leather and wood thud with a tiny clink, short, dry |
+| `loot_drop_epic` | `assets/audio/sfx/loot_drop_epic.ogg` | engine | precious item landing on stone: deep metallic ring with a rising arcane shimmer and a soft choir breath, short |
+| `loot_drop_legendary` | `assets/audio/sfx/loot_drop_legendary.ogg` | engine | legendary item drop: a heavy golden impact, then a tall rising beam of choir and bells with a deep resonant hum, triumphant but dark, 2-3 s |
+| `loot_drop_rare` | `assets/audio/sfx/loot_drop_rare.ogg` | engine | magic item landing on stone: a clear metallic clink with a short cold shimmer, blue sparkle feel, short |
+| `loot_drop_relic` | `assets/audio/sfx/loot_drop_relic.ogg` | engine | relic landing: heavy golden clang, bright harmonic shimmer and a warm low swell, dark fantasy, short |
 | `merchant_chime` | `assets/audio/sfx/merchant_chime.ogg` | engine | warm shop bell chime with a faint arcane shimmer, dark fantasy |
 | `mimic_snap` | `assets/audio/sfx/mimic_snap.ogg` | skills/monsters.json | wooden chest lid snapping shut like jaws, teeth crunch |
 | `page` | `assets/audio/sfx/page.ogg` | engine | single parchment page turning, dry and crisp |
@@ -116,7 +121,7 @@ between the floor track and the boss track. Effects: short (0.2-1.5 s), dry, mon
 | `stealth` | `assets/audio/sfx/stealth.ogg` | skills/ranger.json | soft shadowy whoosh fading to silence, cloak rustle |
 | `stomp` | `assets/audio/sfx/stomp.ogg` | skills/monsters.json | giant armored foot stomping, ground shockwave, deep boom |
 | `swarm` | `assets/audio/sfx/swarm.ogg` | skills/monsters.json | buzzing swarm of plague flies rushing in, 1.5 seconds |
-| `swing` | `assets/audio/sfx/swing.ogg` | skills/monsters.json, skills/warrior.json | heavy weapon swing whoosh |
+| `swing` | `assets/audio/sfx/swing.ogg` | skills/monsters.json, skills/priest.json, skills/warrior.json | heavy weapon swing whoosh |
 | `tail_sweep` | `assets/audio/sfx/tail_sweep.ogg` | skills/monsters.json | massive scaled tail sweeping the ground, heavy whoosh and scrape |
 | `thorn_burst` | `assets/audio/sfx/thorn_burst.ogg` | skills/monsters.json | ring of thorns bursting outward from a dying body, woody crack |
 | `thorns` | `assets/audio/sfx/thorns.ogg` | engine | living thorn vines bursting out of the earth |

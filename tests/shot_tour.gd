@@ -1351,3 +1351,24 @@ func _ghost(_arg: String) -> void:
 	for i in 6:
 		await da._wait(0.25)
 		await snap("ghost_%s_dark_frame%d_%s" % [fid, i, Settings.language])
+
+
+## #75: a boss's hoard bursting out (frames of the arc, the trail, the landing puff) and the
+## legendary beam over the named legendary among it.
+func _drops(_arg: String) -> void:
+	for e in g.enemies_root.get_children():
+		e.queue_free()
+	p.iframe_left = 9999.0
+	var spot: Vector2 = g.nearest_floor(g.layout.start + Vector2(40, 10))
+	p.host_teleport(spot + Vector2(-70, 30))
+	await da._wait(0.8)
+	GameState.set_meta("test_force_legendary", true)
+	g.loot.roll_and_drop("boss", spot, {"drops": [4, 4]})
+	GameState.set_meta("test_force_legendary", false)
+	for i in 8:
+		await snap("drops_arc_%d_%s" % [i, Settings.language])
+		await da._wait(0.09)
+	await da._wait(0.6)
+	await snap("drops_landed_%s" % Settings.language)
+	await da._wait(1.2)
+	await snap("drops_beam_%s" % Settings.language)

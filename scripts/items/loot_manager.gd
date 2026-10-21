@@ -21,19 +21,37 @@ func spawn_function(data: Dictionary) -> Node:
 	return g
 
 
-func roll_and_drop(source: String, pos: Vector2, override: Dictionary = {}) -> void:
+## Host: rolls `source`'s loot and throws it out of `pos` (#75: each item flies from there to its
+## spot, one after another). Returns the items.
+func roll_and_drop(source: String, pos: Vector2, override: Dictionary = {}) -> Array:
 	if not multiplayer.is_server():
-		return
+		return []
 	var ov := override.duplicate()
 	ov.biome = str(game.floor_def.get("lore_origin", game.floor_def.get("id", "")))
 	var items := LootTable.roll(source, game.item_level(), game.depth, GameState.classes_in_party(), rng, ov)
+	throw_items(items, pos)
+	return items
+
+
+## Host: `items` burst out of `pos` and land around it (the drop scatter; never in a wall or a
+## doorway), each a little after the one before.
+func throw_items(items: Array, pos: Vector2, first_delay: float = 0.0) -> void:
 	var scatter := float(GameData.bal("loot.drop_scatter"))
+	var stagger := float(GameData.bal("loot.flight.stagger"))
+	var rise := Vector2(0, -float(GameData.bal("loot.flight.from_height")))
 	for i in items.size():
 		var off := Vector2.ZERO if items.size() == 1 else Vector2.from_angle(TAU * i / items.size()) * scatter
-		drop_item(items[i], pos + off)
+		# A single item still hops out a little, so it is seen to fall out.
+		if items.size() == 1:
+			off = Vector2.from_angle(rng.randf() * TAU) * scatter * 0.6
+		drop_item(items[i], pos + off, pos + rise, first_delay + stagger * i)
+		if not str(items[i].get("legendary", "")).is_empty():
+			game.announce_legendary(items[i], first_delay + stagger * i)
 
 
-func drop_item(item: Dictionary, pos: Vector2) -> void:
+## Host: puts `item` on the ground at `pos`. With `from` it flies there from that point first
+## (after `delay` s) and can't be picked up mid-air (#75).
+func drop_item(item: Dictionary, pos: Vector2, from: Vector2 = Vector2.INF, delay: float = 0.0) -> void:
 	if not multiplayer.is_server() or item.is_empty():
 		return
 	_counter += 1
@@ -44,7 +62,11 @@ func drop_item(item: Dictionary, pos: Vector2) -> void:
 	# Nor in a doorway, where the door would sit on top of it (#35).
 	if game.in_doorway(pos):
 		pos = game.floor_beside_door(pos)
-	spawner.spawn({"name": "Item_%d" % _counter, "pos": pos, "item": item})
+	var data := {"name": "Item_%d" % _counter, "pos": pos, "item": item}
+	if from != Vector2.INF:
+		data["from"] = from
+		data["delay"] = delay
+	spawner.spawn(data)
 
 
 ## Host: player asked to pick up a ground item.
@@ -55,6 +77,8 @@ func try_pickup(player: Player, g: GroundItem) -> void:
 		return
 	if not game.dungeon.reach_clear(player.global_position, g.global_position):
 		return  # #79: never through a wall
+	if not g.is_landed():
+		return  # #75: still in the air
 	if g.item.get("kind", "") == "gold_key":
 		game.add_party_key(1)
 		game.broadcast_message.rpc("%s found a Gold Key - Archibald will trade", "#f0c850", [player.display_name])

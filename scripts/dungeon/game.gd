@@ -31,6 +31,7 @@ var _rise_marks: Dictionary = {}  ## host (#49): remains that will rise: node na
 var _aura_left := 0.0
 var party_keys := 0  ## Gold Keys the party carries (D11), replicated by _sync_keys
 var key_chest := ""  ## host: the chest prop holding the floor's Gold Key when no elite carries it (#21)
+var legendary_from_enemies := false  ## host (#75): a named legendary has dropped from a monster, elite or boss on this floor
 var merchant_id := ""  ## every peer: this floor's merchant (archibald / malphas, #6)
 var _dyn_counter := 0
 var boss_id := ""  ## this floor's boss, picked from the floor type's list by the floor seed
@@ -155,6 +156,7 @@ func start_floor(new_depth: int) -> void:
 	# A Gold Key belongs to its floor (D11): an unused one doesn't carry over.
 	if party_keys > 0:
 		add_party_key(-party_keys)
+	legendary_from_enemies = false
 	_build_floor.rpc(new_depth, floor_seed, ft_id, FloorPlan.bosses_to(run_seed, new_depth)[-1], pick_merchant(floor_seed), mix)
 	# Host-only: the spawn list depends on party size, so it is generated with that multiplier.
 	var n := players_root.get_child_count() if players_root.get_child_count() > 0 else GameState.roster.size()
@@ -467,12 +469,44 @@ func on_enemy_killed(e: Enemy) -> void:
 			fx.number.rpc_id(peer, p.global_position + Vector2(0, -12), "+%d XP", "xp", [xp])
 	if e.is_boss:
 		boss_alive = false
-		loot.roll_and_drop("boss", e.global_position, e.def.get("loot", {}))
+		var drops := loot.roll_and_drop("boss", e.global_position, e.def.get("loot", {}))
+		_note_enemy_legendary(drops)
+		# #75: every floor gives the party at least one named legendary from its enemies; if none
+		# has fallen by now, the boss drops one more (weighted to the party's classes as usual).
+		if not legendary_from_enemies and not GameState.get_meta("test_no_guarantee", false):
+			var lg := LootTable.roll_legendary(GameState.classes_in_party(), item_level(), loot.rng)
+			if not lg.is_empty():
+				loot.throw_items([lg], e.global_position, float(GameData.bal("loot.flight.stagger")) * drops.size())
+				legendary_from_enemies = true
 		_boss_defeated.rpc(layout.portal_pos)
 		for p in players_root.get_children():
 			p.persist()
 	else:
-		loot.roll_and_drop("monster", e.global_position)
+		_note_enemy_legendary(loot.roll_and_drop("monster", e.global_position))
+		# Elites also roll their own legendary chance (legendary.drop_chance.elite).
+		if e.is_elite():
+			_note_enemy_legendary(loot.roll_and_drop("elite", e.global_position))
+
+
+## Host (#75): a named legendary among an enemy's drops counts for the floor's guarantee.
+func _note_enemy_legendary(items: Array) -> void:
+	for it in items:
+		if not str(it.get("legendary", "")).is_empty():
+			legendary_from_enemies = true
+
+
+## Host (#75): the party hears of a named legendary as it lands.
+func announce_legendary(item: Dictionary, delay: float) -> void:
+	var at := delay + float(GameData.bal("loot.flight.time")) + 0.2
+	get_tree().create_timer(at).timeout.connect(func():
+		if is_inside_tree():
+			_legendary_fell.rpc(item))
+
+
+## Host -> all (reliable, #75): the message in each peer's own language.
+@rpc("authority", "call_local", "reliable")
+func _legendary_fell(item: Dictionary) -> void:
+	EventBus.hud_message.emit(Loc.f("A legendary falls: %s", [Loc.item_name(item)]), Color("ff9a2e"))
 
 
 func host_interact(p: Player, node: Node) -> void:
@@ -1040,7 +1074,7 @@ func find_interactable(p: Player, pick: int = 0) -> Dictionary:
 				candidates.append([door.world_rect.get_center(), door, "door", door.interact_text()])
 		return _pick_interactable(p, candidates, pick)
 	for g in items_root.get_children():
-		if pos.distance_to(g.global_position) < float(GameData.bal("world.pickup_range")):
+		if g.is_landed() and pos.distance_to(g.global_position) < float(GameData.bal("world.pickup_range")):
 			candidates.append([g.global_position, g, "item", g.interact_text(p.level)])
 	for o in players_root.get_children():
 		if o != p and o.life_state == Player.Life.DOWNED and pos.distance_to(o.global_position) < float(GameData.bal("world.revive_range")):

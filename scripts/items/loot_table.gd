@@ -9,7 +9,7 @@ static func roll(source: String, item_level: int, depth: int, party_classes: Arr
 	var min_tier := 1
 	match source:
 		"monster":
-			count = 1 if rng.randf() < float(GameData.bal("loot.monster_drop_chance")) else 0
+			count = 1 if rng.randf() < float(GameData.bal("loot.monster_drop_chance")) or GameState.get_meta("test_force_drop", false) else 0
 		"prop":
 			count = 1
 		"chest":
@@ -40,6 +40,11 @@ static func roll(source: String, item_level: int, depth: int, party_classes: Arr
 				count = 0
 	# Legendaries (GDD 6): bosses, elites and chests can drop one, weighted to the party's classes.
 	var lchance := float((GameData.bal("legendary.drop_chance") as Dictionary).get(source, 0.0))
+	# Tests (#75): no chance legendaries, or a sure one from a boss.
+	if GameState.get_meta("test_no_legendary", false):
+		lchance = 0.0
+	elif source == "boss" and GameState.get_meta("test_force_legendary", false):
+		lchance = 1.0
 	if lchance > 0.0 and rng.randf() < lchance:
 		var lg := roll_legendary(party_classes, item_level, rng)
 		if not lg.is_empty():

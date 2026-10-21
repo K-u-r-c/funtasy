@@ -152,6 +152,7 @@ screenshot review at 1920x1080 and 3440x1440.
 
 ## Eighth playtest issues (GitHub #70-#82)
 
+- [x] #75 Loot flies out of its source (arc, spin, rarity trail, bounce, puff, light and sound on landing), no pick-up mid-air, a named legendary guaranteed from each floor's enemies (boss tops it up), legendary beam and message (`drops`, `drops-lan`)
 - [x] #70 Biome order shuffled per cycle from floor 6 (no repeats back to back), mixed floors from floor 6 (invader monsters and sometimes a hazard), boss alternates per biome, floor arrival banner with biome crests and badges (`biomes`, `teleport-lan`)
 - [x] #82 Ghosts roam the floor: walk, open doors, map grows, own blue light for their own sight, untouchable and unable to act, faint to the living, alive again next floor (`ghost-lan`, 3 instances; windowed screenshots)
 - [x] #80 Carried torches burn 5 minutes (warning at 10%); lobby setting Torches off: every hero carries a steady light of a torch's size, wall torches are decoration, no HUD torch line (`lighting-rules`, `darkness`)
@@ -351,7 +352,7 @@ gameplay effects (#81) from shaders, particles and the free vfx workbench; re-ro
 - [x] **Art for the Sewers, Foundry, Archives and Kurgan** (4 tilesets, 26 monsters + 3 recolour / reuse,
       8 bosses + Isolde's spider form and Krazik on foot, 46 props, 10 pact potion icons) after the user's
       checkpoint approval; sources in `tools/biome_art_sources.json`.
-- [ ] **Music and SFX** (user, Suno): 17 music and 93 SFX keys, file paths and prompts in
+- [ ] **Music and SFX** (user, Suno): 17 music and 98 SFX keys, file paths and prompts in
       `docs/SUNO_PROMPTS.md`; drop the files in and run `python3 tools/register_audio.py`.
 - [x] Worn art beyond plate / cloth: leather and mail families for both genders (#20).
 - [x] Balance pass: measured by the `balance-<class>` suites against data pacing bands (see DECISIONS

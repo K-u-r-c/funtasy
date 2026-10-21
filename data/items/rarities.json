@@ -1,7 +1,7 @@
 [
-	{"tier": 1, "name": "Common", "color": "#d6d6d6", "primary": [0, 0], "secondary": [0, 0], "base_mult": 1.0, "light_energy": 0.5},
-	{"tier": 2, "name": "Uncommon", "color": "#4fd64f", "primary": [1, 1], "secondary": [0, 0], "base_mult": 1.08, "light_energy": 0.7},
-	{"tier": 3, "name": "Rare", "color": "#4f8dff", "primary": [1, 2], "secondary": [1, 1], "base_mult": 1.16, "light_energy": 0.9},
-	{"tier": 4, "name": "Epic", "color": "#b45cff", "primary": [2, 3], "secondary": [1, 2], "base_mult": 1.28, "light_energy": 1.1},
-	{"tier": 5, "name": "Relic", "color": "#ff9a2e", "primary": [3, 3], "secondary": [2, 3], "base_mult": 1.45, "light_energy": 1.4}
+	{"tier": 1, "drop_sfx": "loot_drop_common", "name": "Common", "color": "#d6d6d6", "primary": [0, 0], "secondary": [0, 0], "base_mult": 1.0, "light_energy": 0.5},
+	{"tier": 2, "drop_sfx": "loot_drop_common", "name": "Uncommon", "color": "#4fd64f", "primary": [1, 1], "secondary": [0, 0], "base_mult": 1.08, "light_energy": 0.7},
+	{"tier": 3, "drop_sfx": "loot_drop_rare", "name": "Rare", "color": "#4f8dff", "primary": [1, 2], "secondary": [1, 1], "base_mult": 1.16, "light_energy": 0.9},
+	{"tier": 4, "drop_sfx": "loot_drop_epic", "name": "Epic", "color": "#b45cff", "primary": [2, 3], "secondary": [1, 2], "base_mult": 1.28, "light_energy": 1.1},
+	{"tier": 5, "drop_sfx": "loot_drop_relic", "name": "Relic", "color": "#ff9a2e", "primary": [3, 3], "secondary": [2, 3], "base_mult": 1.45, "light_energy": 1.4}
 ]

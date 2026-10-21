@@ -191,7 +191,10 @@
 			0.3
 		],
 		"rarity_deep_depth": 50,
-		"drop_scatter": 22, "upgrade_chance": 0.03, "upgrade_levels": [2, 3], "upgrade_rarity": 1
+		"drop_scatter": 22,
+		"_flight_comment": "#75: loot flies out of its source: time + time_per_px x distance, from from_height px above the source, arc_height px high, spins turns, one bounce; items in one drop follow each other by stagger s.",
+		"flight": {"time": 0.42, "time_per_px": 0.004, "from_height": 14, "arc_height": 30, "spins": 1.5, "bounce_px": 6, "bounce_time": 0.2, "stagger": 0.08},
+		"legendary_beam": {"time": 5.0, "height": 380, "width": 44, "color": "#ff8a1e"}, "upgrade_chance": 0.03, "upgrade_levels": [2, 3], "upgrade_rarity": 1
 	},
 	"gold": {
 		"_comment": "Gold piles (D12): amount ranges per source, x (1 + per_level x (item level - 1)). A pile is split among living party members.",

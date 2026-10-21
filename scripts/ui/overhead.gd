@@ -49,7 +49,7 @@ func _draw() -> void:
 		_ally_target_marker(game, game.local_player)
 	if lp:
 		for g in game.items_root.get_children():
-			if g.global_position.distance_to(lp.global_position) < 110.0:
+			if g.is_landed() and g.global_position.distance_to(lp.global_position) < 110.0:
 				var rar := GameData.rarity(int(g.item.get("rarity", 1)))
 				_text(g.global_position + Vector2(0, -30), Loc.item_name(g.item), Color.from_string(rar.color, Color.WHITE), 12)
 				if ItemGenerator.too_high_level(g.item, lp.level):
