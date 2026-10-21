@@ -40,8 +40,14 @@ func run() -> void:
 	var spot: Vector2 = g.nearest_floor(g.layout.start + Vector2(60, 0))
 	p.host_teleport(spot + Vector2(-50, 0))
 	await da._wait(0.4)
-	# 1. A monster's drop flies out of it and lands by the loot rules.
+	# 1. A monster's drop flies out of it and lands by the loot rules. A first kill warms the loot's
+	# art and sounds up: their first load is one long frame, long enough for a drop to land in it.
 	GameState.set_meta("test_force_drop", true)
+	await kill_for_loot("ghoul", spot)
+	await da._wait(1.5)
+	for it in g.items_root.get_children():
+		it.queue_free()
+	await da._wait(0.2)
 	var items := await kill_for_loot("ghoul", spot)
 	GameState.set_meta("test_force_drop", false)
 	da.check(not items.is_empty(), "the ghoul dropped something (%d items)" % items.size())
@@ -95,7 +101,9 @@ func run() -> void:
 	var drops := await kill_for_loot(boss_id, spot, true)
 	var named: Array = drops.filter(func(it): return not str(it.item.get("legendary", "")).is_empty())
 	da.check(named.size() == 1 and g.legendary_from_enemies, "a floor whose monsters dropped no legendary gets one from its boss (%d)" % named.size())
-	await da._wait(1.6)
+	# It is thrown after the boss's other drops, one after another: wait for it to land.
+	await da._wait_until(func(): return named.is_empty() or not is_instance_valid(named[0]) or named[0].is_landed(), 5.0)
+	await da._wait(0.3)
 	da.check(not named.is_empty() and named[0].is_landed() and named[0].beam_up(), "the legendary lands under its beam of light")
 	var snap: Dictionary = FloorState.capture(g, {})
 	da.check(bool(snap.get("legendary_from_enemies", false)), "the guarantee is saved with the floor")
