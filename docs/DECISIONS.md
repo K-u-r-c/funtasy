@@ -1304,3 +1304,10 @@ Tree shapes ("A > B": B grows from A; {x / y}: branches; (x): a fork side; [n]: 
 | --- | --- |
 | Rule | On the map screen (M) the floor's badges (the modifier, an invaded floor) sit in the window's header as small 24 px badges; nothing else describes them by default. The card (icon, name, what it does) appears only while a badge is hovered (its tooltip) or focused, floating under the header over the map (top level, never in the layout), and goes when the focus leaves. Nothing is focused when the map opens; any direction key / d-pad press focuses the first badge, so a gamepad reads it too. |
 | Tests | `mods`: the badge is in the header, no card in the layout, the tooltip card, a direction press focuses it and floats the card without moving the window or the map, the card goes with the focus. |
+
+### #88 The modifier vote closes on the next floor
+
+| Topic | Decision |
+| --- | --- |
+| Rule | The HUD closes the portal's vote window whenever a floor starts (`floor_started`, on the host and every client), so it never carries over to the new floor; the game's input comes back with it. |
+| Tests | `mods` (the host votes through the cards) and `mods-lan` (the client votes through its own cards): no vote window is open after the descent. |

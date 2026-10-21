@@ -64,6 +64,9 @@ func run() -> void:
 	da.check(hud.floor_banner.shown_lines.size() >= 1, "the floor banner names the modifier")
 	var snap: Dictionary = FloorState.capture(g, {})
 	da.check(str(snap.get("mod", "")) == pick, "the modifier is saved with the floor")
+	# #88: the vote window closed itself on the way down.
+	da.check(hud._overlay == null or not is_instance_valid(hud._overlay) or hud._overlay.get_script() != hud.ModVotePanel,
+			"the vote window closed when the party went down")
 	if hud._overlay:
 		hud.close_overlay()
 	await map_badge_checks(hud, pick)
@@ -365,11 +368,17 @@ func client_cmd(cmd: String, arg: Variant) -> void:
 	match cmd:
 		"md_offer":
 			da.check(g.mod_offer == arg and g.mod_offer.size() == 2, "client: the same two modifiers as the host (%s)" % [g.mod_offer])
-			g.request_mod_vote.rpc_id(1, str(g.mod_offer[0]))
+			# The client votes through the cards (#88: they must close on the next floor).
+			var hud: Node = da.get_tree().get_first_node_in_group("hud")
+			hud.open_mod_vote()
+			await da._wait(0.3)
+			hud._overlay._vote(str(g.mod_offer[0]))
 		"md_floor":
 			await da._wait(0.3)
 			var hud: Node = da.get_tree().get_first_node_in_group("hud")
 			da.check(str(g.floor_def.get("mod", "")) == str(arg) and hud._mod_label != null, "client: floor 4 has the party's pick (%s) and its badge" % arg)
+			da.check(hud._overlay == null or not is_instance_valid(hud._overlay) or hud._overlay.get_script() != hud.ModVotePanel,
+					"client: the vote window closed when the party went down")
 		"md_restless":
 			Telegraph.log.erase("restless_%d" % p.peer_id)
 			await da._wait(float(arg) * 0.8)

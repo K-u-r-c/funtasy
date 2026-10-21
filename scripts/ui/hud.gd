@@ -492,6 +492,9 @@ func _set_prompt(t: String, index: int = 0, count: int = 0) -> void:
 
 func _on_floor_started(d: int) -> void:
 	var game := get_tree().get_first_node_in_group("game")
+	# #88: the portal's vote belongs to the floor left behind.
+	if _overlay and is_instance_valid(_overlay) and _overlay.get_script() == ModVotePanel:
+		close_overlay()
 	var fname := str(game.floor_def.get("name", "")) if game else ""
 	_floor_label.text = Loc.f("Floor %d%s", [d, "  " + Loc.t(fname) if not fname.is_empty() else ""])
 	# #70: a mixed floor names its invader under the floor's name.
