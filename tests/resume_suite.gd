@@ -91,7 +91,8 @@ func check_same(before: Dictionary, after: Dictionary, chest: String, broken: St
 		var h1: Array = after.heroes.get(hero, [Vector2.INF, -1.0])
 		da.check(h1[0].distance_to(h0[0]) <= POS_TOL and absf(float(h1[1]) - float(h0[1])) <= 1.0,
 				"%s is back where it stood (%.0f px off) with its HP (%.0f -> %.0f)" % [hero, h1[0].distance_to(h0[0]), h0[1], h1[1]])
-	da.check(after.map == before.map and before.map > 0, "the host's discovered map comes back (%d cells -> %d)" % [before.map, after.map])
+	# The hero looks around again once it is back, so a few more cells may light up: none may be lost.
+	da.check(after.map >= before.map and after.map <= before.map + maxi(16, before.map / 20) and before.map > 0, "the host's discovered map comes back (%d cells -> %d)" % [before.map, after.map])
 
 
 static func _item_pos(rec: Dictionary, uid: String) -> Vector2:
