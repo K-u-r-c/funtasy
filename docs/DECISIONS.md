@@ -1297,3 +1297,10 @@ Tree shapes ("A > B": B grows from A; {x / y}: branches; (x): a fork side; [n]: 
 | Keyboard / gamepad | The Drop key opens the amount picker on a stack, and now also on a single potion that has another stack of its kind; with two or more stacks the picker shows Merge stacks, which gathers every stack of that item into as few as fit (`Inventory.merge_all`). |
 | Network | Owner -> host intents `request_merge(from, to)` and `request_merge_all(index)` (reliable); the host checks the pair and replicates the backpack. |
 | Tests | `stacks`: a potion can't go onto another kind, 2 + 2 dragged make 4, Merge stacks gathers 3 + 1, 8 + 5 make 10 and 3 stay. `stacks-lan`: the client's drag and picker merges reach the host; a forged mana-onto-health request is refused and 4 + 5 make 9. |
+
+### #87 The map shows a floor modifier as a small badge
+
+| Topic | Decision |
+| --- | --- |
+| Rule | On the map screen (M) the floor's badges (the modifier, an invaded floor) sit in the window's header as small 24 px badges; nothing else describes them by default. The card (icon, name, what it does) appears only while a badge is hovered (its tooltip) or focused, floating under the header over the map (top level, never in the layout), and goes when the focus leaves. Nothing is focused when the map opens; any direction key / d-pad press focuses the first badge, so a gamepad reads it too. |
+| Tests | `mods`: the badge is in the header, no card in the layout, the tooltip card, a direction press focuses it and floats the card without moving the window or the map, the card goes with the focus. |

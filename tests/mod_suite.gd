@@ -66,12 +66,51 @@ func run() -> void:
 	da.check(str(snap.get("mod", "")) == pick, "the modifier is saved with the floor")
 	if hud._overlay:
 		hud.close_overlay()
+	await map_badge_checks(hud, pick)
 	# 2. The effects and rewards.
 	await count_checks()
 	reward_checks()
 	await dimmed_checks()
 	await restless_checks(p)
 	await hunted_checks(p)
+
+
+## #87: on the map screen the modifier is a small badge in the header; its card shows only while
+## the badge is hovered (its tooltip) or focused, floating over the map without moving anything.
+func map_badge_checks(hud: Node, mod: String) -> void:
+	hud.open_overlay(hud.menu_panel("map"))
+	await da._wait(0.6)
+	var panel: Node = hud._overlay
+	var badges: Array = panel._badges
+	var b: Badge = badges.back() if not badges.is_empty() else null
+	var cards_in_layout := 0
+	for c in panel.content.find_children("*", "PanelContainer", true, false):
+		if c.get_parent() is VBoxContainer and c.get_child_count() > 0 and c.find_children("*", "TextureRect", true, false).size() > 0:
+			cards_in_layout += 1
+	da.check(b != null and b.get_parent() == panel.header and b.size.x <= 26.0 and panel._card == null and not b.has_focus(),
+			"the map shows the modifier as a small badge in its header, no card while nothing points at it")
+	da.check(cards_in_layout == 0, "no modifier card takes room in the map's layout")
+	var tip: Variant = b._make_custom_tooltip("") if b else null
+	da.check(b != null and b.title == Loc.t(str(FloorMods.def(mod).name)) and not b.tooltip_text.is_empty() and tip is Control,
+			"hovering the badge shows its card (name and what it does) as a tooltip")
+	if tip is Control:
+		tip.free()
+	var before: Rect2 = panel.window.get_global_rect()
+	var mm_before: Rect2 = panel.content.get_child(0).get_global_rect()
+	var ev := InputEventAction.new()
+	ev.action = "ui_right"
+	ev.pressed = true
+	panel._unhandled_input(ev)
+	await da._wait(0.2)
+	da.check(badges[0].has_focus() and panel._card != null and panel._card.top_level and panel._card.visible,
+			"a direction key / the d-pad focuses the badge and its card floats over the map")
+	await da.get_tree().process_frame
+	da.check(panel.window.get_global_rect() == before and panel.content.get_child(0).get_global_rect() == mm_before, "the floating card moves nothing")
+	badges[0].release_focus()
+	await da.get_tree().process_frame
+	da.check(panel._card == null, "the card goes when the badge loses focus")
+	hud.close_overlay()
+	await da._wait(0.2)
 
 
 ## Offers are seeded, two different ones, never the current modifier, never the last pair.

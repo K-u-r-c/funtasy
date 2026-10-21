@@ -3,6 +3,9 @@ extends UIModal
 
 const Minimap := preload("res://scripts/ui/minimap.gd")
 
+var _badges: Array = []  ## the floor's badges (#87)
+var _card: Control  ## the focused badge's floating card
+
 
 func _init() -> void:
 	title_text = Loc.t("Map")
@@ -15,25 +18,17 @@ func _build() -> void:
 	var depth := int(game.depth) if game and "depth" in game else 0
 	if depth > 0:
 		subtitle.text = Loc.f("Floor %d  -  %s", [depth, FloorPlan.title(game.floor_def)])
-	# #70 / #71: what makes this floor different, as focusable badges; the focused (or hovered)
-	# one's card shows beside them, so a gamepad reads them too.
-	var floor_badges := _floor_badges(game)
-	if not floor_badges.is_empty():
-		var row := HBoxContainer.new()
-		row.add_theme_constant_override("separation", 8)
-		content.add_child(row)
-		var card_holder := MarginContainer.new()
-		for b in floor_badges:
-			b.focus_mode = Control.FOCUS_ALL
-			var show_card := func():
-				for c in card_holder.get_children():
-					c.queue_free()
-				card_holder.add_child(Badge.card(b.icon_key, b.title, b.lines, b.rim))
-			b.focus_entered.connect(show_card)
-			b.mouse_entered.connect(show_card)
-			row.add_child(b)
-		row.add_child(card_holder)
-		floor_badges[0].grab_focus.call_deferred()
+	# #70 / #71: what makes this floor different, as small focusable badges in the header (#87):
+	# the card with the name and what it does floats over the map only while a badge is hovered
+	# (the badge's own tooltip) or focused (keyboard / gamepad: any direction focuses the first).
+	_badges = _floor_badges(game)
+	for b in _badges:
+		b.focus_mode = Control.FOCUS_ALL
+		b.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		b.focus_entered.connect(_float_card.bind(b))
+		b.focus_exited.connect(_float_card.bind(null))
+		header.add_child(b)
+		header.move_child(b, subtitle.get_index() + 1)
 	var mm: Control = Minimap.new()
 	mm.full_map = true
 	mm.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -68,6 +63,31 @@ func _build() -> void:
 		legend.add_child(mi)
 
 
+## #87: the focused badge's card, floating under the header over the map (never in the layout).
+func _float_card(b: Badge) -> void:
+	if is_instance_valid(_card):
+		_card.queue_free()
+	_card = null
+	if b == null or not is_instance_valid(b):
+		return
+	_card = Badge.card(b.icon_key, b.title, b.lines, b.rim)
+	_card.top_level = true
+	_card.z_index = 10
+	_card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_card)
+	_card.global_position = b.get_global_rect().position + Vector2(0, b.size.y + 6)
+
+
+func _unhandled_input(ev: InputEvent) -> void:
+	if _badges.is_empty() or get_viewport().gui_get_focus_owner() != null:
+		return
+	for a in ["ui_left", "ui_right", "ui_up", "ui_down"]:
+		if ev.is_action_pressed(a):
+			_badges[0].grab_focus()
+			get_viewport().set_input_as_handled()
+			return
+
+
 func _floor_badges(game: Node) -> Array:
 	var out: Array = []
 	if game == null:
@@ -75,9 +95,9 @@ func _floor_badges(game: Node) -> Array:
 	var mix := str(game.floor_def.get("mix", ""))
 	if not mix.is_empty():
 		var ov := Loc.t(str(GameData.floor_types[mix].get("overrun", "")))
-		out.append(Badge.new("mod_overrun", ov.substr(0, 1).to_upper() + ov.substr(1), [[Loc.t("Part of the monsters here come from another biome.")]], UITheme.BADGE_INVASION, 28))
+		out.append(Badge.new("mod_overrun", ov.substr(0, 1).to_upper() + ov.substr(1), [[Loc.t("Part of the monsters here come from another biome.")]], UITheme.BADGE_INVASION, 24))
 	var mod := str(game.floor_def.get("mod", ""))
 	if not mod.is_empty():
 		var md := FloorMods.def(mod)
-		out.append(Badge.new(str(md.icon), Loc.t(str(md.name)), FloorMods.card_lines(mod), FloorMods.color(mod), 28))
+		out.append(Badge.new(str(md.icon), Loc.t(str(md.name)), FloorMods.card_lines(mod), FloorMods.color(mod), 24))
 	return out
