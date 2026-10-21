@@ -76,6 +76,7 @@
 		"merchant_chime": "res://assets/audio/sfx/placeholder/gdd/merchant_chime.wav",
 		"mimic_snap": "res://assets/audio/sfx/placeholder/gdd/mimic_snap.wav",
 		"mimic_wake": "res://assets/audio/sfx/placeholder/gdd/mimic_wake.wav",
+		"npc_speak": "res://assets/audio/sfx/placeholder/gdd/npc_speak.wav",
 		"page": "res://assets/audio/sfx/placeholder/gdd/page.wav",
 		"plate_click": "res://assets/audio/sfx/placeholder/gdd/plate_click.wav",
 		"restless_bite": "res://assets/audio/sfx/placeholder/gdd/restless_bite.wav",

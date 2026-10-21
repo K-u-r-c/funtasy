@@ -1717,3 +1717,35 @@ func _mimic(_arg: String) -> void:
 		await snap("mimic_%d" % (i + 1))
 	GameState.remove_meta("force_events")
 	GameState.remove_meta("test_mimic")
+
+
+## #78: the speech bubbles of Archibald, Malphas, the smith and the prisoner.
+func _npc(_arg: String) -> void:
+	NpcTalk.met.clear()
+	for setup in [["archibald", "off", "none"], ["malphas", "on", "prisoner"]]:
+		GameState.set_meta("force_merchant", setup[0])
+		GameState.set_meta("force_forge", setup[1])
+		GameState.set_meta("force_events", setup[2])
+		g.start_floor(4)
+		await da._wait(5.0)
+		p = da._local()
+		p.iframe_left = 9999.0
+		_clear_monsters(false)
+		var door: Node = g.dungeon.leaf_door("merchant")
+		door.host_unseal()
+		var m: Node = g.dungeon.props["Merchant"]
+		p.host_teleport(m.global_position + Vector2(0, 80))
+		await da._wait(1.6)
+		await snap("npc_%s" % setup[0])
+		if setup[1] == "on":
+			g.dungeon.leaf_door("forge").host_set_open(true)
+			p.host_teleport(g.dungeon.props["Forge_npc"].global_position + Vector2(-30, 80))
+			await da._wait(1.6)
+			await snap("npc_blacksmith")
+		if setup[2] == "prisoner":
+			_clear_monsters(false)
+			p.host_teleport(g.nearest_floor(g.dungeon.props["Event_prisoner"].global_position + Vector2(20, 64)))
+			await da._wait(1.6)
+			await snap("npc_prisoner")
+	for k in ["force_merchant", "force_forge", "force_events"]:
+		GameState.remove_meta(k)

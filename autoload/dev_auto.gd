@@ -324,6 +324,10 @@ func _run() -> void:
 				await ModSuite.new(self).run()
 			"mods_lan":
 				await ModSuite.new(self).run_lan()
+			"npc_talk":
+				await NpcSuite.new(self).run()
+			"npc_talk_lan":
+				await NpcSuite.new(self).run_lan()
 			"events":
 				await EventSuite.new(self).run()
 			"events_lan":
@@ -676,6 +680,8 @@ func client_cmd(cmd: String, arg: Variant) -> void:
 			await BoonSuite.new(self).client_cmd(cmd, arg)
 		_ when cmd.begins_with("md_"):
 			await ModSuite.new(self).client_cmd(cmd, arg)
+		_ when cmd.begins_with("npc_"):
+			await NpcSuite.new(self).client_cmd(cmd, arg)
 		_ when cmd.begins_with("ev_"):
 			await EventSuite.new(self).client_cmd(cmd, arg)
 		_ when cmd.begins_with("fg_"):

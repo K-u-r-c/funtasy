@@ -1,0 +1,155 @@
+{
+	"_comment": "#78 What the NPCs say when a hero first sees them on a floor (NpcTalk). first: the lines for a hero meeting the NPC for the first time this run; again: shorter ones for a hero who met it on an earlier floor; freed: a prisoner's line when the cage opens. A line is a string or {text, biome, party}: biome = a floor type id, party = solo / group; lines that don't fit the floor or the party are skipped. {floor} = the floor number, {biome} = the floor's name, {hero} = the hero who sees them. Written to the lore books' rules (#69): plain, concrete, in the speaker's own voice.",
+	"bubble": {"type_speed": 40.0, "hold": 2.6, "per_char": 0.045, "fade": 0.45, "width": 230, "head_gap": 10},
+	"npcs": {
+		"archibald": {
+			"name": "Archibald the Gilded",
+			"first": [
+				"Wipe your boots. No, the other boot as well. Now: you have the Key, or you have a reason to be standing at my door.",
+				"Floor {floor}. My prices have not gone up since the last one, whatever you may have heard.",
+				"Good. Customers who can still walk. Gold on the counter, please, not in the hand.",
+				"I buy, I sell, and I do not haggle before noon. Down here it is always before noon.",
+				"Do not touch the merchandise in gloves like those. What have you been holding?",
+				"You look like people who will need a potion soon. I have potions. They are not cheap.",
+				"Mind the step. The last fellow who tripped on it is still paying for the vase.",
+				"Everything on these shelves belonged to someone braver than you. That is why it is for sale.",
+				"Name, please. For the receipt. I keep the ledger and the ledger keeps me.",
+				{"text": "The dead on this level never haggle. A refreshing change. Let us see if you can match them.", "biome": "crypt"},
+				{"text": "Yes, the smell. It comes in under the door. It does not come off the coin.", "biome": "sewers"},
+				{"text": "Do not lean on that wall, it is hot. Everything on this level is hot except the trade.", "biome": "foundry"},
+				{"text": "The archivists upstairs still owe me for a ledger. You are not archivists, I hope.", "biome": "archives"},
+				{"text": "Barrow gold is old gold. I weigh it twice. Do not take it personally.", "biome": "kurgan"},
+				{"text": "Alone? Then you will be carrying everything yourself. Choose light things.", "party": "solo"},
+				{"text": "No more than two at the counter, please. The rest of you may admire the stock from the doorway.", "party": "group"}
+			],
+			"again": [
+				"Back again. Good. The ledger had a gap where you were.",
+				"You have the look of someone who sold me something too cheaply.",
+				"Welcome back. Same prices. Different floor.",
+				"A returning customer. I will pretend to be surprised.",
+				"Boots, please."
+			]
+		},
+		"malphas": {
+			"name": "Malphas the Soul Broker",
+			"first": [
+				"Come in. The door is only rude to those who will not pay it.",
+				"All the way down to floor {floor}. That is a long way to carry so much of yourself.",
+				"Sit, if you like. Nobody likes. It is a courtesy all the same.",
+				"I do not want your gold. Gold is for people who expect to be paid back.",
+				"Every contract I offer is fair. I simply read the second page more carefully than you do.",
+				"Your health, your sight, your strength. All still there. Splendid. We have something to talk about.",
+				"I never lie. It saves a great deal of time, and the truth is usually enough.",
+				"Take your time choosing. I have plenty of it, and some of it used to be yours.",
+				{"text": "Your companions look worried. Tell them it is only business.", "party": "group"},
+				{"text": "On your own. Then the bargain is entirely between the two of us. I prefer that.", "party": "solo"},
+				{"text": "The dead on this level signed nothing. A whole floor wasted, if you ask me.", "biome": "crypt"},
+				{"text": "Mind the water. It is the only thing on this floor that takes without asking.", "biome": "sewers"},
+				{"text": "The Galt Works once bought fire from me. The price is still walking about down here, one arm short.", "biome": "foundry"},
+				{"text": "The archivists here read every clause before they signed. Reading is not the same as understanding.", "biome": "archives"},
+				{"text": "The barrow kings paid me in grave-goods. You will pay in something warmer.", "biome": "kurgan"}
+			],
+			"again": [
+				"Back so soon? Something from the last bargain stayed with you. Something always does.",
+				"Welcome back. Your seat is where you left it.",
+				"I wondered when.",
+				"Returning is the first clause of every contract."
+			]
+		},
+		"blacksmith": {
+			"name": "Rolf Hult",
+			"first": [
+				"Shut the door. Heat costs coal, and coal costs blood this far down.",
+				"Put it on the bench. No, the bench. The anvil is for iron, not your elbow.",
+				"I don't make anything new. I make old things last. It's the better trade.",
+				"Floor {floor}. Iron goes soft this deep if you don't keep at it. So do people.",
+				"The arm? Made it myself. The first one went in payment for something I never got to use.",
+				"Bring me good steel and gold enough, and you'll get it back better. That's the whole of it.",
+				"Don't thank me before you've seen the edge. Thank me after it holds.",
+				"Everything the dead leave behind wants work. I've the hammer for it.",
+				"Twenty years on the casting floor at the Galt Works. This is quieter. Mostly.",
+				"Rust I can fix. Curses, take upstairs to someone braver.",
+				{"text": "Smell that? Somebody's forge on this level is running cold. Not mine.", "biome": "foundry"},
+				{"text": "Damp gets into the steel here. Oil it, or you'll be carrying a red stick by the next floor.", "biome": "sewers"},
+				{"text": "Old blades in this crypt. Good steel, bad hands. Bring me what you find.", "biome": "crypt"},
+				{"text": "Barrow bronze. Soft as butter, pretty as a wedding. I'll work it if I must.", "biome": "kurgan"},
+				{"text": "Paper and dust. Keep my sparks away from your shelves, I learned that one the hard way.", "biome": "archives"},
+				{"text": "One at a time at the anvil. I've only the one good arm to swing.", "party": "group"}
+			],
+			"again": [
+				"Back. Show me what you've done to it.",
+				"You again. Good. An idle hammer rusts.",
+				"Brought me work? Put it down.",
+				"Coals are still hot."
+			]
+		},
+		"prisoner_brann": {
+			"name": "Brann Coldwater",
+			"first": [
+				"Oi. Down here. Before you ask: no, I'm not one of them. I just look it by now.",
+				"There's a guard with my key on his belt. Find him, and I'll fight for whoever opens this door.",
+				"They took my sword and my boots. The boots I'll miss.",
+				"I've been counting the drips. Four thousand and something. Get me out before I lose the number.",
+				"My company went on without me. Can't blame them. I'd have done the same, for the right price.",
+				"Open this and I'm with you till the stair. No charge. Call it professional courtesy.",
+				"Don't look in the bowl. Just don't.",
+				"Floor {floor}, is it? I lost count after they hit me.",
+				"Watch the one with the key. He swings low.",
+				"If you're not letting me out, at least stand where I can see you. The dark plays tricks."
+			],
+			"again": ["Still here. You noticed. Got that key yet?", "Same cage, same drips. Same offer."],
+			"freed": ["Right. Where's the nearest thing that needs hitting?", "Boots or no boots, I'm with you."]
+		},
+		"prisoner_ysolde": {
+			"name": "Ysolde Marr",
+			"first": [
+				"Quiet. They come back every so often. Their guard has the key, I watched him put it away.",
+				"I tracked something to this floor and it tracked me back. Get me out and I'll show you what.",
+				"Three days in here. I've learned their rounds. That's worth a key, I'd say.",
+				"My bow's in a pile somewhere with everyone else's. I can shoot with anything.",
+				"Don't rattle the bars. The guard likes that.",
+				"You came from the stair side? Then the worst is behind you. Or it's still ahead.",
+				"I'll keep up. I always keep up.",
+				"If they move me, I'll scratch three lines on the floor. Look for them.",
+				"Get the key off the big one and I'll owe you a kill. I pay my debts.",
+				"Light hurts after this long. Keep your torch low, please."
+			],
+			"again": ["You came back. Most don't.", "Still the big one with the key. Still waiting."],
+			"freed": ["Lead on. I'll take the ones behind us.", "I owe you a kill. I'll pay it twice."]
+		},
+		"prisoner_teodor": {
+			"name": "Teodor Vane",
+			"first": [
+				"Visitors with keys? No. Visitors who might get keys. That will do.",
+				"I came down to measure the wards on this level. The wards measured me first.",
+				"The cage is warded against spells. Mine, at least. Not against keys.",
+				"Their guard keeps the key at his hip. I've had a long time to observe.",
+				"I would pay you, but they took my purse and most of my dignity.",
+				"Please mind the chalk on the floor. I have been working.",
+				"Floor {floor}. I'd have guessed deeper. Everything here is deeper than it looks.",
+				"Free me and I'll be useful. I know four ways to set a man on fire, and two of them are polite.",
+				"I have a theory about these levels. Let me out and I'll bore you with it on the way down.",
+				"Don't trust the doors here. They remember who closed them."
+			],
+			"again": ["Ah. You again. My theory has improved.", "The chalk is still drying. The key is still on the guard."],
+			"freed": ["Splendid. Now, the polite ways first.", "After you. Strictly for scientific reasons."]
+		},
+		"prisoner_agnes": {
+			"name": "Sister Agnes",
+			"first": [
+				"Peace to you. Forgive me if I don't rise. They chained my ankle.",
+				"I came down for the ones who never came up. I found more than I could carry.",
+				"The guard carries the key. He isn't cruel, only hungry.",
+				"If you're hurt, come closer. I can still do that much through the bars.",
+				"I prayed for a door to open. I didn't say which one. And here you are.",
+				"Free me and I'll keep you standing. It's all I have left to give, and it's enough.",
+				"Don't spend your anger on them. Save it for the way out.",
+				"Floor {floor}. We are far from any chapel. That only makes the prayers shorter.",
+				"There were four of us. Ask me about the others when we are somewhere with light.",
+				"Your hands are shaking. Mine did too, at first. It passes."
+			],
+			"again": ["You came back. I hoped you would.", "Still here. Still praying. The key is still with him."],
+			"freed": ["Walk. I'll be right behind you, with whatever you need.", "Thank you. Now let me earn it."]
+		}
+	}
+}

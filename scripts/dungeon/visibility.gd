@@ -250,6 +250,25 @@ func _cell_lit(p: Vector2, lights: Array, margin: float) -> bool:
 	return false
 
 
+## #78: does the local hero itself see `pos` right now - in sight range, lit (or within its own
+## light), nothing that blocks sight in between? The monsters' rules, without shared vision.
+func sees(pos: Vector2) -> bool:
+	if viewer == null or not is_instance_valid(viewer):
+		return false
+	var from: Vector2 = viewer.global_position
+	var d := from.distance_to(pos)
+	var sight := max_sight
+	if viewer is Actor and viewer.status.has_flag("blinded"):
+		sight = float(GameData.bal("vision.blind_sight", 40.0))
+	if d > sight:
+		return false
+	var dark_ok: bool = viewer is Actor and viewer.stats.has_flag("darkvision")
+	if d > personal_radius and not dark_ok and not _cell_lit(pos, _lights_near(pos, 4.0), 6.0):
+		return false
+	var q := PhysicsRayQueryParameters2D.create(from + Vector2(0, -6), pos + Vector2(0, -6), Combat.LOS_MASK)
+	return get_world_2d().direct_space_state.intersect_ray(q).is_empty()
+
+
 func _update_enemies() -> void:
 	if game == null:
 		return

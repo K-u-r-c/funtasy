@@ -1389,5 +1389,9 @@
 	"sfx.cage_open": {
 		"like": "sfx.door",
 		"prompt": "a rusted iron cage door unlocked with a heavy key and swung open, squeaky hinges, chains falling, 1.2 s"
+	},
+	"sfx.npc_speak": {
+		"like": "sfx.ui_move",
+		"prompt": "a soft murmur of a voice starting to speak in a stone room, very short, unobtrusive, 0.3 s, no words"
 	}
 }

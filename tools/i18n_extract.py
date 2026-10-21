@@ -47,6 +47,7 @@ EXTRA_KEYS = ["%s %s"]
 TEXT_FIELDS = {"name", "title", "description", "text", "origin", "effect_text", "label", "overrun", "danger", "reward",
                "tracker", "tracker_seen", "tracker_key", "cost_text",
                "message", "affix", "suffix", "group"}
+LINE_FIELDS = {"first", "again", "freed"}
 # Id fields shown capitalized ("undead" -> "Undead", like GDScript's String.capitalize()).
 CAP_FIELDS = {"element", "school", "creature_type", "target_creature", "flags"}
 
@@ -147,6 +148,13 @@ def _walk(o, out, key=None):
                 out.extend(str(x) for x in v.values())
             elif k == "options" and isinstance(v, list):
                 out.extend(str(x) for x in v if isinstance(x, str))
+            elif k in LINE_FIELDS and isinstance(v, list):
+                # #78: an NPC's lines, plain strings or {text, ...}.
+                for x in v:
+                    if isinstance(x, str):
+                        out.append(x)
+                    else:
+                        _walk(x, out, k)
             elif k in CAP_FIELDS and isinstance(v, (str, list)):
                 out.extend(capitalize(str(x)) for x in (v if isinstance(v, list) else [v]))
             elif k in TEXT_FIELDS and isinstance(v, str):

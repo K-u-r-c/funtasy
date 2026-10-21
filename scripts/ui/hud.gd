@@ -84,6 +84,7 @@ var _floor_badges: VBoxContainer  ## #70 / #71: what makes this floor different,
 var _mod_label: Label  ## #71: the floor modifier's name
 var _hunt_row: HBoxContainer  ## #71 Hunted: the countdown to the next hunter
 var event_tracker: EventTracker  ## #72
+var npc_talk: NpcTalk  ## #78
 var _hunt_label: Label
 var _boon_row: HFlowContainer  ## #73: small icons of the hero's boons beside the portrait
 var _boon_sig := ""
@@ -118,6 +119,14 @@ func _ready() -> void:
 	EventBus.local_picked_up.connect(_fly_to_hud)
 	_screen_fx = ScreenFx.new()
 	add_child(_screen_fx)
+	# #78: the NPCs' speech bubbles (under the overlays opened later).
+	var bubbles := Control.new()
+	bubbles.name = "Bubbles"
+	bubbles.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	bubbles.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	add_child(bubbles)
+	npc_talk = NpcTalk.new()
+	bubbles.add_child(npc_talk)
 
 
 ## A new language (#32): the HUD is built again so every label picks up the new texts. The

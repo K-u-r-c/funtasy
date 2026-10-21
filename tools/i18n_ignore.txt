@@ -16,3 +16,6 @@ Event_vault_lever
 Event_shrine
 Event_cursed_chest
 Event_prisoner
+{floor}
+{biome}
+{hero}
