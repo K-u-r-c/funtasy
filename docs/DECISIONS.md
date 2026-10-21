@@ -1288,3 +1288,12 @@ Tree shapes ("A > B": B grows from A; {x / y}: branches; (x): a fork side; [n]: 
 | Rule | Every detail card is a `UITheme.scroll_card(width)`: a fixed-width glass panel whose content wraps and scrolls vertically (wheel, scrollbar, right stick via `UITheme.stick_scroll`); its scroll area never takes a minimum width from the text. Cards are emptied with `UITheme.clear` (remove, then free). Applied to the inventory (262 px), talents (236), Archibald (240), Malphas (270) and the forge (256); the character panel's boon card and the codex page title wrap; modal footer notices are cut at a word. |
 | Talents | A click (or keyboard / gamepad focus) selects a talent: gold corners, its card stays. Hovering another shows that card only while hovered; leaving it brings the selected one back, so the mouse can reach the card and scroll it. Learning: the new Learn rank button under the card (disabled when the selected talent can't take a rank), a double-click, or accept on the focused talent. |
 | Tests | `ui-stable` / `ui-stable-pl` (forge floor): the character, inventory, talents, skill book and codex screens and Archibald, Malphas and the forge are swept, every slot / row / talent / badge hovered and focused; the window and the layout around the cards keep their rects one frame after each change and once settled (the old code jumped on the inventory and the forge). The talent pin, the card scroll, the Learn button and the double-click. |
+
+### #86 Merging stacks
+
+| Topic | Decision |
+| --- | --- |
+| Rule | A consumable stack dragged onto another stack of the same item in the backpack joins it up to the item's `max_stack`; what doesn't fit stays in the dragged stack, and an emptied stack leaves the backpack (`Inventory.merge_stacks`). Different items, gear and full stacks don't accept the drop (the slot shows the refusal while dragging). |
+| Keyboard / gamepad | The Drop key opens the amount picker on a stack, and now also on a single potion that has another stack of its kind; with two or more stacks the picker shows Merge stacks, which gathers every stack of that item into as few as fit (`Inventory.merge_all`). |
+| Network | Owner -> host intents `request_merge(from, to)` and `request_merge_all(index)` (reliable); the host checks the pair and replicates the backpack. |
+| Tests | `stacks`: a potion can't go onto another kind, 2 + 2 dragged make 4, Merge stacks gathers 3 + 1, 8 + 5 make 10 and 3 stay. `stacks-lan`: the client's drag and picker merges reach the host; a forged mana-onto-health request is refused and 4 + 5 make 9. |

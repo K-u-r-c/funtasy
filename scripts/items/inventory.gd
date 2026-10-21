@@ -150,6 +150,62 @@ func split_stack(index: int, amount: int, rng: RandomNumberGenerator) -> String:
 	return ""
 
 
+## #86: can backpack[from] be stacked onto backpack[to]? The same consumable, and room there.
+func can_merge(from: int, to: int) -> bool:
+	if from == to or from < 0 or to < 0 or from >= backpack.size() or to >= backpack.size():
+		return false
+	var a: Dictionary = backpack[from]
+	var b: Dictionary = backpack[to]
+	if a.get("kind") != "consumable" or b.get("kind") != "consumable" or str(a.get("base", "")) != str(b.get("base", "")):
+		return false
+	return int(b.get("count", 1)) < int(GameData.consumables.get(str(b.base), {}).get("max_stack", 1))
+
+
+## #86: moves as many of the stack in backpack[from] onto backpack[to] as fit there (the item's
+## max_stack); an emptied stack leaves the backpack. Returns "" or an error (translation key).
+func merge_stacks(from: int, to: int) -> String:
+	if not can_merge(from, to):
+		return "Can't stack those"
+	var a: Dictionary = backpack[from]
+	var b: Dictionary = backpack[to]
+	var room := int(GameData.consumables.get(str(b.base), {}).get("max_stack", 1)) - int(b.get("count", 1))
+	var move := mini(room, int(a.get("count", 1)))
+	b.count = int(b.get("count", 1)) + move
+	a.count = int(a.get("count", 1)) - move
+	if int(a.count) <= 0:
+		backpack.remove_at(from)
+	return ""
+
+
+## #86: every stack of `base` gathered into as few as fit (the first ones fill up). Returns how
+## many stacks were folded into others.
+func merge_all(base: String) -> int:
+	var folded := 0
+	var i := 0
+	while i < backpack.size():
+		if backpack[i].get("kind") == "consumable" and str(backpack[i].get("base", "")) == base:
+			var j := i + 1
+			while j < backpack.size():
+				if can_merge(j, i):
+					var n := backpack.size()
+					merge_stacks(j, i)
+					if backpack.size() < n:
+						folded += 1
+						continue  # the next item moved into slot j
+				j += 1
+		i += 1
+	return folded
+
+
+## #86: how many separate stacks of `base` the backpack holds.
+func stacks_of(base: String) -> int:
+	var n := 0
+	for it in backpack:
+		if it.get("kind") == "consumable" and str(it.get("base", "")) == base:
+			n += 1
+	return n
+
+
 func take_equipped(slot: String) -> Dictionary:
 	var it: Dictionary = equipment.get(slot, {})
 	equipment.erase(slot)

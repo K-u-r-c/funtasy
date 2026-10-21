@@ -5,6 +5,9 @@ extends RefCounted
 ## 7 Health Potions the player drops 3 (3 on the ground, 4 in the bag, other uids), splits 2 off
 ## into a new slot (2 + 2), and a full backpack refuses a split with a message. The picker opens
 ## on Drop for a stack and not for a single item, and keeps its amount within 1..count.
+## #86 merging: the 2 + 2 are dragged together into 4 (a potion can't be dropped on another kind),
+## 1 is split off again and the picker's Merge stacks gathers them back; on the host 8 + 5 Health
+## Potions merge into a full 10 and 3 stay (the stack limit).
 
 var da: Node
 var g: Node
@@ -83,9 +86,55 @@ func owner_flow(who: String) -> void:
 	mine = potions(p)
 	da.check(mine.size() == 2 and int(mine[0].count) == 2 and int(mine[1].count) == 2 and mine[0].uid != mine[1].uid,
 			"%s: splitting 2 off leaves two stacks of 2 with their own uids" % who)
+	# #86: drag the second stack onto the first.
+	await _drag_merge(who)
 	var single: Node = await press_drop(_index_of(p, "potion_mana"))
 	await da._wait(0.6)
 	da.check(single == null and _index_of(p, "potion_mana") < 0, "%s: a single potion drops at once, without the picker" % who)
+
+
+## Owner, #86: drag one stack of 2 onto the other through the slots, then split 1 off and gather
+## them again with the picker's Merge stacks.
+func _drag_merge(who: String) -> void:
+	var panel: Node = da.get_tree().get_first_node_in_group("hud")._overlay
+	var idx: Array = []
+	for i in p.inv.backpack.size():
+		if str(p.inv.backpack[i].get("base", "")) == "potion_health":
+			idx.append(i)
+	var from: ItemSlot = panel._slots["b:%d" % idx[1]]
+	var to: ItemSlot = panel._slots["b:%d" % idx[0]]
+	var mana: ItemSlot = panel._slots["b:%d" % _index_of(p, "potion_mana")]
+	var data := {"type": ItemSlot.DRAG_TYPE, "from": from.slot_key, "item": from.item, "locked": false}
+	da.check(not mana._can_drop_data(Vector2.ZERO, data), "%s: a Health Potion can't be stacked onto a Mana Potion" % who)
+	da.check(to._can_drop_data(Vector2.ZERO, data), "%s: a stack can be dropped onto the same item's stack" % who)
+	to._drop_data(Vector2.ZERO, data)
+	await da._wait(0.8)
+	var mine := potions(p)
+	da.check(mine.size() == 1 and int(mine[0].count) == 4, "%s: dragging 2 onto 2 makes one stack of 4 (%s)" % [who, mine.map(func(it): return int(it.count))])
+	var sp: Node = await press_drop(_index_of(p, "potion_health"))
+	sp.set_amount(1)
+	sp._choose("split")
+	await da._wait(0.8)
+	sp = await press_drop(_index_of(p, "potion_health"))
+	da.check(sp != null and sp.merge_btn != null, "%s: with two stacks the picker offers Merge stacks" % who)
+	if sp and sp.merge_btn:
+		sp.merge_btn.pressed.emit()
+		await da._wait(0.8)
+	mine = potions(p)
+	da.check(mine.size() == 1 and int(mine[0].count) == 4, "%s: Merge stacks gathers 3 + 1 back into 4" % who)
+
+
+## Host, #86: 8 + 5 Health Potions merge up to the limit of 10; 3 stay in the dragged stack.
+func over_limit(pl: Player) -> void:
+	var rng := RandomNumberGenerator.new()
+	pl.inv.backpack.clear()
+	pl.inv.backpack.append(ItemGenerator.generate_consumable("potion_health", 8, rng))
+	pl.inv.backpack.append(ItemGenerator.generate_consumable("potion_health", 5, rng))
+	pl._inventory_changed()
+	pl.request_merge.rpc_id(1, 1, 0)
+	await da._wait(0.4)
+	var counts := potions(pl).map(func(it): return int(it.count))
+	da.check(counts == [10, 3], "8 + 5 potions merge into 10 (the stack limit) and 3 stay (%s)" % [counts])
 
 
 func run() -> void:
@@ -102,6 +151,7 @@ func run() -> void:
 			"3 potions lie on the ground as their own stack")
 	await full_bag_refuses(p)
 	da.get_tree().get_first_node_in_group("hud").close_overlay()
+	await over_limit(p)
 
 
 ## Host: a full backpack refuses the split, with a message to its owner.
@@ -136,10 +186,23 @@ func run_lan() -> void:
 	NetworkManager.to_clients("DevAuto", "client_cmd", ["st_flow", null])
 	await da._wait(6.0)
 	var mine := potions(c)
-	da.check(mine.size() == 2 and int(mine[0].count) == 2 and int(mine[1].count) == 2, "host: the client's bag holds two stacks of 2")
+	da.check(mine.size() == 1 and int(mine[0].count) == 4, "host: the client's bag holds the merged stack of 4")
 	var ground := ground_potions(g)
 	da.check(ground.size() == 1 and int(ground[0].item.count) == 3, "host: the client's 3 potions lie on the ground")
 	await full_bag_refuses(c)
+	# #86: a client's merge is checked on the host (two stacks of different items refuse).
+	c.inv.backpack.clear()
+	var rng := RandomNumberGenerator.new()
+	c.inv.backpack.append(ItemGenerator.generate_consumable("potion_health", 4, rng))
+	c.inv.backpack.append(ItemGenerator.generate_consumable("potion_mana", 2, rng))
+	c.inv.backpack.append(ItemGenerator.generate_consumable("potion_health", 5, rng))
+	c._inventory_changed()
+	await da._wait(0.5)
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["st_merge", null])
+	await da._wait(1.5)
+	var counts := c.inv.backpack.map(func(it): return [str(it.base), int(it.count)])
+	da.check(counts == [["potion_mana", 2], ["potion_health", 9]],
+			"host: the client's mana-onto-health merge is refused and its 4 + 5 Health Potions make one stack of 9 (%s)" % [counts])
 	NetworkManager.to_clients("DevAuto", "client_cmd", ["done", null])
 	await da._wait(1.0)
 
@@ -150,6 +213,12 @@ func client_cmd(cmd: String, _arg: Variant) -> void:
 	match cmd:
 		"st_flow":
 			await owner_flow("client")
+		"st_merge":
+			# A forged request first (mana onto health: refused on the host), then the real one.
+			p.request_merge.rpc_id(1, 1, 0)
+			await da._wait(0.4)
+			p.request_merge.rpc_id(1, 0, 2)
+			await da._wait(0.4)
 		"st_full":
 			_messages.clear()
 			EventBus.hud_message.connect(func(t: String, _c: Color): _messages.append(t))

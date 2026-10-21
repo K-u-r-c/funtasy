@@ -207,6 +207,7 @@ You already wear %s,Już nosisz: %s
 Not enough backpack space,Za mało miejsca w plecaku
 Nothing equipped,Nic nie założono
 Can't split that,Nie można tego podzielić
+Can't stack those,Tych przedmiotów nie da się połączyć
 Main Hand,Główna ręka
 Off Hand,Druga ręka
 Weapon,Broń
@@ -734,6 +735,7 @@ Damage before the target's armor.,Obrażenia przed uwzględnieniem pancerza celu
 Not on the bar,Nie na pasku
 Skill %d,Umiejętność %d
 Split stack,Podziel stos
+Merge stacks,Połącz stosy
 Cancel,Anuluj
 Less,Mniej
 More,Więcej

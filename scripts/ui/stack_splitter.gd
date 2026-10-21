@@ -3,19 +3,24 @@ extends Control
 ## #61: how many of a stack? A small picker over the inventory: a slider for the amount
 ## (left / right on the d-pad or keys, the mouse wheel, or the - / + buttons), then drop that many,
 ## split them off into their own backpack slot, or cancel (B / Esc). It starts at the whole
-## stack, so dropping everything stays one more press.
+## stack, so dropping everything stays one more press. #86: with another stack of the same item
+## in the backpack, Merge stacks gathers them all (the keyboard / gamepad way to stack; the
+## mouse can also drag one stack onto another).
 
-signal chosen(action: String, amount: int)  ## "drop" / "split"; nothing is emitted on cancel
+signal chosen(action: String, amount: int)  ## "drop" / "split" / "merge"; nothing on cancel
 
 var item: Dictionary
 var slider: HSlider
 var drop_btn: AnimButton
 var split_btn: AnimButton
+var merge_btn: AnimButton
+var mergeable := false
 var _amount_label: Label
 
 
-func _init(stack: Dictionary) -> void:
+func _init(stack: Dictionary, can_merge: bool = false) -> void:
 	item = stack
+	mergeable = can_merge
 	name = "StackSplitter"
 
 
@@ -46,7 +51,8 @@ func _ready() -> void:
 	row.add_child(minus)
 	slider = HSlider.new()
 	slider.min_value = 1
-	slider.max_value = count()
+	slider.max_value = maxi(count(), 1)
+	slider.editable = count() > 1
 	slider.step = 1
 	slider.value = count()
 	slider.custom_minimum_size = Vector2(200, 24)
@@ -78,13 +84,18 @@ func _ready() -> void:
 	buttons.add_child(drop_btn)
 	split_btn = _button(func(): _choose("split"))
 	buttons.add_child(split_btn)
+	if mergeable:
+		merge_btn = _button(func(): _choose("merge"))
+		merge_btn.text = Loc.t("Merge stacks")
+		buttons.add_child(merge_btn)
 	var cancel := _button(close)
 	cancel.text = Loc.t("Cancel")
 	buttons.add_child(cancel)
 	v.add_child(PromptBar.new([["ui_left", Loc.t("Less")], ["ui_right", Loc.t("More")], ["ui_accept", Loc.t("Drop")], ["ui_cancel", Loc.t("Cancel")]]))
 	slider.focus_neighbor_bottom = drop_btn.get_path()
-	for b in [drop_btn, split_btn, cancel]:
-		b.focus_neighbor_top = slider.get_path()
+	for b in [drop_btn, split_btn, merge_btn, cancel]:
+		if b:
+			b.focus_neighbor_top = slider.get_path()
 	_refresh()
 	slider.grab_focus.call_deferred()
 

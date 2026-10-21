@@ -220,8 +220,18 @@ func _rebuild() -> void:
 			var b2 := ItemSlot.new(SLOT_PX)
 			b2.slot_key = "b:%d" % i
 			var idx := i
-			b2.accepts = func(d: Dictionary) -> bool: return str(d.from).begins_with("e:")
-			b2.item_dropped.connect(func(d: Dictionary): player.request_unequip.rpc_id(1, str(d.from).get_slice(":", 1)))
+			# Gear dragged off the paper doll goes back; a stack dragged onto the same item's stack
+			# joins it (#86).
+			b2.accepts = func(d: Dictionary) -> bool:
+				var from := str(d.from)
+				return from.begins_with("e:") or from.begins_with("b:") and player.inv.can_merge(int(from.get_slice(":", 1)), idx)
+			b2.item_dropped.connect(func(d: Dictionary):
+				var from := str(d.from)
+				if from.begins_with("b:"):
+					AudioManager.play_sfx("ui_press", 0.05)
+					player.request_merge.rpc_id(1, int(from.get_slice(":", 1)), idx)
+				else:
+					player.request_unequip.rpc_id(1, from.get_slice(":", 1)))
 			b2.pressed.connect(func(): _accept_backpack(idx))
 			_wire(b2)
 			_slots[b2.slot_key] = b2
@@ -337,14 +347,19 @@ func _drop_ground(_at: Vector2, data: Variant) -> void:
 	player.request_drop.rpc_id(1, from.begins_with("b:"), from.get_slice(":", 1))
 
 
-## #61: a stack of more than one asks how many (StackSplitter); false for a single item.
+## #61: a stack of more than one asks how many (StackSplitter); false for a single item. #86: so
+## does a potion with another stack of it to merge with (the picker's Merge stacks button).
 func _open_splitter(i: int, from: Control) -> bool:
-	if i < 0 or i >= player.inv.backpack.size() or int(player.inv.backpack[i].get("count", 1)) <= 1:
+	if i < 0 or i >= player.inv.backpack.size():
+		return false
+	var it: Dictionary = player.inv.backpack[i]
+	var mergeable: bool = it.get("kind") == "consumable" and player.inv.stacks_of(str(it.get("base", ""))) > 1
+	if int(it.get("count", 1)) <= 1 and not mergeable:
 		return false
 	if get_node_or_null("StackSplitter"):
 		return true
-	var uid := str(player.inv.backpack[i].get("uid", ""))
-	var sp := StackSplitter.new(player.inv.backpack[i])
+	var uid := str(it.get("uid", ""))
+	var sp := StackSplitter.new(it, mergeable)
 	sp.chosen.connect(func(action: String, n: int):
 		# The backpack may have changed meanwhile: find the stack again by its uid.
 		var idx := -1
@@ -356,6 +371,8 @@ func _open_splitter(i: int, from: Control) -> bool:
 		if action == "drop":
 			AudioManager.play_sfx("ui_drop", 0.05)
 			player.request_drop_some.rpc_id(1, idx, n)
+		elif action == "merge":
+			player.request_merge_all.rpc_id(1, idx)
 		else:
 			player.request_split.rpc_id(1, idx, n))
 	sp.tree_exited.connect(func():

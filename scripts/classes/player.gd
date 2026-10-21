@@ -1201,6 +1201,24 @@ func request_split(index: int, amount: int) -> void:
 		_report(inv.split_stack(index, amount, game.loot.rng), "pickup")
 
 
+## Owner -> host (reliable, #86): stack backpack[from] onto the same item's stack in backpack[to]
+## (as many as fit; the rest stays where it was).
+@rpc("any_peer", "call_local", "reliable")
+func request_merge(from: int, to: int) -> void:
+	if not _from_owner():
+		return
+	_report(inv.merge_stacks(from, to), "pickup")
+
+
+## Owner -> host (reliable, #86): gather every stack of the item in backpack[index] together.
+@rpc("any_peer", "call_local", "reliable")
+func request_merge_all(index: int) -> void:
+	if not _from_owner() or index < 0 or index >= inv.backpack.size():
+		return
+	if inv.merge_all(str(inv.backpack[index].get("base", ""))) > 0:
+		_report("", "pickup")
+
+
 @rpc("any_peer", "call_local", "reliable")
 func request_learn_talent(node_id: String) -> void:
 	if not _from_owner():
