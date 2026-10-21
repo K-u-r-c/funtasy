@@ -1389,3 +1389,12 @@ Tree shapes ("A > B": B grows from A; {x / y}: branches; (x): a fork side; [n]: 
 | Malphas | Each hero's own signed contracts and bought potions (`Merchants._sync_mine`, host -> that hero; reset each floor, restored with the floor) are greyed, stamped SIGNED / BOUGHT in gold, can't be pressed and go to the end of their section; a new stamp fades in with a flash. The window keeps the focused row across rebuilds. |
 | Stamp | `UITheme.stamp` / `stamp_in`: an upper-case word in a framed dark pill at the row's right end; no scaling (pixel art), only fades and flashes (`modulate`, so the row's grey stays). |
 | Tests | `economy`: a line bought through the window is greyed, stamped, unpressable and last, and its stamp played; a signed contract is stamped and last; a bought potion is stamped at once. `economy-lan`: the host's open window shows the client's purchase the same way; the client's own window shows the line sold; the client learns what it bought. |
+
+### #96 Boon cards can be rerolled
+
+| Topic | Decision |
+| --- | --- |
+| Rule | Under each of the three boon cards a Reroll button draws that card again, once per card on each floor's offer (up to three rerolls). The new card has the same kind (stat / item / synergy) when the pool has one, is never one of the other cards or a boon the hero owns (unless it stacks), and is weighted like the offer (rarity, the hero's tags); it is seeded by the run, the floor, the hero's slot and the card (`Boons.reroll`). Used: the button reads Rerolled, disabled, with the reason in its tooltip. The other cards stay. Choosing a boon or skipping ends the rerolls. |
+| Network | Owner -> host `request_boon_reroll(index)` (reliable): the host checks the offer is pending and the card unused, changes it and tells that hero (`_boon_rerolled`); a reopened offer carries which cards were rerolled. A new floor's offer has its rerolls back. |
+| Controls | Down from a card reaches its Reroll button, left / right moves between the buttons, down again to Skip; the mouse clicks it. |
+| Tests | `boons-*`: 60 seeded offers per class, every card rerolled: a different boon of the same kind, never another card or an owned one, seeded. `boons-lan`: the client's reroll through its window changes only that card, in place, once (a second request is refused on the host); the pick takes the new card; the next floor's offer has its rerolls back. |

@@ -80,6 +80,32 @@ static func offer(class_id: String, owned: Array, seed_v: int) -> Array:
 	return out
 
 
+## Host (#96): a new boon for card `index` of the offer `current`: the same kind when the pool
+## has one, never one of the other cards (or the card itself) or a boon the hero owns (unless it
+## stacks), weighted like the offer. "" when nothing else is left.
+static func reroll(class_id: String, owned: Array, current: Array, index: int, seed_v: int) -> String:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed_v
+	var have := tags_of(owned)
+	var kind := str(def(str(current[index])).get("kind", ""))
+	var pool := pool_for(class_id).filter(func(id): return not current.has(id) and (not owned.has(id) or bool(def(str(id)).get("stackable", false))))
+	var cands: Array = pool.filter(func(id): return str(def(str(id)).get("kind", "")) == kind)
+	if cands.is_empty():
+		cands = pool
+	if cands.is_empty():
+		return ""
+	var rar_w: Array = cfg("rarity_weights")
+	var tag_w := float(cfg("tag_weight"))
+	var weights: Array = []
+	for id in cands:
+		var d := def(str(id))
+		var shared := 0
+		for tg in d.get("tags", []):
+			shared += mini(int(have.get(tg, 0)), 3)
+		weights.append(float(rar_w[clampi(int(d.get("rarity", 1)) - 1, 0, rar_w.size() - 1)]) * (1.0 + tag_w * shared))
+	return str(cands[ItemGenerator._weighted_index(weights, rng)])
+
+
 ## The stat side of the boons in `owned` for Stats.compute_player: {mods, skill_mods, flags}.
 static func stat_parts(owned: Array) -> Dictionary:
 	var mods: Array = []

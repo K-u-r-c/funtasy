@@ -162,6 +162,7 @@ screenshot review at 1920x1080 and 3440x1440.
 - [x] #90 The forge list only selects (hover previews); the Forge button upgrades the selected piece; accept on a row moves to the button (`forge`)
 - [x] #91 The forge window never moves during or after an upgrade; no upgrade message; a warm light sweeps the card (pixel-stepped shader) with rising motes (`forge`)
 - [x] #92 Forging costs 1.5x (base 15); a legendary kept current takes 63-93% of a hero's floor gold (`forge`)
+- [x] #96 Boons: a Reroll button under each card draws that card again once per floor (same kind, never a duplicate, seeded, host-checked) (`boons-*`, `boons-lan`)
 - [x] #97 The forge list keeps its scroll and focus: rows refresh in place, a rebuild restores the scroll (`forge`)
 - [x] #93 Archibald sells 10 pieces a floor (Uncommon to Relic by weight, item level +0-2, mostly for the party's classes) and more potions (`economy`)
 - [x] #94 Merchants mark what is bought: greyed, stamped (Sold / Signed / Bought), unpressable, last; the purchase stamps its row and flies the item to the backpack (`economy`, `economy-lan`)

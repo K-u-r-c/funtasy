@@ -39,6 +39,8 @@ var mod_runner: ModRunner
 var boon_pending: Dictionary = {}  ## host (#73): peer -> the three boon ids it still chooses from
 var boon_waiting: Array = []  ## #73 every peer: heroes still choosing their boon (the portal waits)
 var my_boon_offer: Array = []  ## #73 local: this hero's three boons to choose from
+var boon_rerolled: Dictionary = {}  ## host (#96): peer -> the offer's cards already rerolled
+var my_boon_rerolled: Array = []  ## #96 local: which of my cards were rerolled (bools)
 var map_pings: Array = []  ## local: [{pos, color, until}] pulsing marks on the minimap / map
 var legendary_from_enemies := false  ## host (#75): a named legendary has dropped from a monster, elite or boss on this floor
 var merchant_id := ""  ## every peer: this floor's merchant (archibald / malphas, #6)
@@ -677,7 +679,7 @@ func host_interact(p: Player, node: Node) -> void:
 			return
 		# #73: a hero still choosing its boon gets the boon cards first.
 		if boon_pending.has(p.peer_id):
-			_boon_offer.rpc_id(p.peer_id, boon_pending[p.peer_id])
+			_boon_offer.rpc_id(p.peer_id, boon_pending[p.peer_id], boon_rerolled.get(p.peer_id, [false, false, false]))
 			return
 		# #71: with modifiers on offer, the portal opens the vote; a card is the vote and "ready".
 		if not mod_offer.is_empty() and not portal_ready.has(p.peer_id):
@@ -806,14 +808,16 @@ func host_offer_boons() -> void:
 		if ids.is_empty():
 			continue
 		boon_pending[p.peer_id] = ids
-		_boon_offer.rpc_id(p.peer_id, ids)
+		boon_rerolled[p.peer_id] = [false, false, false]
+		_boon_offer.rpc_id(p.peer_id, ids, [false, false, false])
 	_sync_boon_wait.rpc(boon_pending.keys())
 
 
 ## Host -> one hero (reliable, #73): its three boons; the choice screen opens.
 @rpc("authority", "call_local", "reliable")
-func _boon_offer(ids: Array) -> void:
+func _boon_offer(ids: Array, rerolled: Array = [false, false, false]) -> void:
 	my_boon_offer = ids
+	my_boon_rerolled = rerolled
 	var hud := get_tree().get_first_node_in_group("hud")
 	if hud and hud.has_method("offer_boons"):
 		hud.offer_boons()
@@ -824,6 +828,47 @@ func _boon_offer(ids: Array) -> void:
 func _sync_boon_wait(peers: Array) -> void:
 	boon_waiting = peers
 	EventBus.boon_wait_changed.emit()
+
+
+## Owner -> host (reliable, #96): card `index` of the hero's offer is drawn again, once per card
+## on this floor's offer; the new card is seeded (run, floor, slot, card).
+@rpc("any_peer", "call_local", "reliable")
+func request_boon_reroll(index: int) -> void:
+	if not multiplayer.is_server():
+		return
+	var peer := multiplayer.get_remote_sender_id()
+	if peer == 0:
+		peer = 1
+	var p := player_by_peer(peer)
+	if p == null or not boon_pending.has(peer):
+		return
+	var ids: Array = boon_pending[peer]
+	var used: Array = boon_rerolled.get(peer, [false, false, false])
+	if index < 0 or index >= ids.size() or bool(used[index]):
+		return
+	var slot := int(GameState.roster.get(peer, {}).get("slot", peer))
+	var nid := Boons.reroll(p.class_id, p.boons, ids, index, hash([run_seed, depth, slot, 96, index]))
+	if nid.is_empty():
+		return
+	ids[index] = nid
+	used[index] = true
+	boon_rerolled[peer] = used
+	_boon_rerolled.rpc_id(peer, index, nid)
+
+
+## Host -> one hero (reliable, #96): card `index` of its offer is now boon `id`.
+@rpc("authority", "call_local", "reliable")
+func _boon_rerolled(index: int, id: String) -> void:
+	if index < 0 or index >= my_boon_offer.size():
+		return
+	my_boon_offer[index] = id
+	if my_boon_rerolled.size() > index:
+		my_boon_rerolled[index] = true
+	EventBus.boon_wait_changed.emit()
+	var hud := get_tree().get_first_node_in_group("hud")
+	var panel: Node = hud.get("_overlay") if hud else null
+	if panel and is_instance_valid(panel) and panel.has_method("rerolled"):
+		panel.rerolled(index, id)
 
 
 ## Owner -> host (reliable, #73): the hero takes boon `index` of its offer (-1 skips).

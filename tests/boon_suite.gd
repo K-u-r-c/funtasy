@@ -41,6 +41,7 @@ func run_boons(class_id: String) -> void:
 		await check_boon(str(id))
 	if da.only.is_empty():
 		offer_checks(class_id)
+		reroll_checks(class_id)
 		save_check(class_id)
 
 
@@ -166,6 +167,24 @@ func offer_checks(class_id: String) -> void:
 	da.check(with > without * 1.3, "%s: owning %s boons brings more %s boons (%d vs %d of 1200 cards)" % [class_id, best_tag, best_tag, with, without])
 
 
+## #96: a reroll draws a different boon for that card only: never one of the other cards or an
+## owned one, the same kind when the pool has it, seeded.
+func reroll_checks(class_id: String) -> void:
+	var bad := []
+	var owned: Array = Boons.pool_for(class_id).slice(0, 4)
+	for s in 60:
+		var o := Boons.offer(class_id, owned, 700 + s)
+		for i in o.size():
+			var n := Boons.reroll(class_id, owned, o, i, 50 + s * 3 + i)
+			if n.is_empty() or o.has(n) or owned.has(n) and not bool(Boons.def(n).get("stackable", false)):
+				bad.append("seed %d card %d: %s" % [s, i, n])
+			elif str(Boons.def(n).kind) != str(Boons.def(str(o[i])).kind):
+				bad.append("seed %d card %d kind %s -> %s" % [s, i, Boons.def(str(o[i])).kind, Boons.def(n).kind])
+			if Boons.reroll(class_id, owned, o, i, 50 + s * 3 + i) != n:
+				bad.append("not seeded")
+	da.check(bad.is_empty(), "%s rerolls: a different boon of the same kind, never another card or an owned one, seeded%s" % [class_id, "" if bad.is_empty() else ": %s" % [bad.slice(0, 3)]])
+
+
 func save_check(class_id: String) -> void:
 	var picks: Array = Boons.pool_for(class_id).slice(0, 3)
 	p.boons = picks.duplicate()
@@ -194,6 +213,13 @@ func run_lan() -> void:
 			"host: both heroes have their own three boons")
 	NetworkManager.to_clients("DevAuto", "client_cmd", ["bn_offer", g.boon_pending[c.peer_id]])
 	await da._wait(0.5)
+	# #96: the client rerolls its second card through its window (after the cards open), twice.
+	var before: Array = g.boon_pending[c.peer_id].duplicate()
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["bn_reroll", 1])
+	await da._wait(float(GameData.bal("boons.choose_delay")) + 2.0)
+	var after: Array = g.boon_pending[c.peer_id]
+	da.check(after[0] == before[0] and after[2] == before[2] and after[1] != before[1] and not before.has(after[1]) and g.boon_rerolled[c.peer_id] == [false, true, false],
+			"host: the client's reroll changed only its second card, once (%s -> %s)" % [before[1], after[1]])
 	for pl in [p, c]:
 		pl.host_teleport(g.portal.global_position)
 		g.portal_ready[pl.peer_id] = true
@@ -207,12 +233,18 @@ func run_lan() -> void:
 	da.check(p.boons.size() == 1 and g._descend_timer < 0.0, "host: my pick is in, the portal still waits for the client")
 	NetworkManager.to_clients("DevAuto", "client_cmd", ["bn_pick", 0])
 	await da._wait(1.0)
-	da.check(c.boons.size() == 1 and str(c.boons[0]) == str(g.boon_pending.get(c.peer_id, [c.boons[0]])[0]), "host: the client's pick applied (%s)" % [c.boons])
+	da.check(c.boons.size() == 1 and str(c.boons[0]) == str(after[0]), "host: the client's pick applied (%s)" % [c.boons])
 	g._try_descend()
 	await da._wait(2.5)
 	da.check(g.depth == 2, "host: everyone chose, the party descends")
 	NetworkManager.to_clients("DevAuto", "client_cmd", ["bn_kept", null])
 	await da._wait(1.0)
+	# The next floor's offer can be rerolled again.
+	g._boss_defeated.rpc(g.layout.portal_pos)
+	await da._wait(0.6)
+	da.check(g.boon_rerolled.get(c.peer_id, []) == [false, false, false] and g.boon_pending.has(c.peer_id), "host: the next floor's offer has its rerolls back")
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["bn_fresh", null])
+	await da._wait(float(GameData.bal("boons.choose_delay")) + 1.5)
 
 
 func client_cmd(cmd: String, arg: Variant) -> void:
@@ -230,5 +262,22 @@ func client_cmd(cmd: String, arg: Variant) -> void:
 				hud2._overlay._choose(int(arg))
 			else:
 				g.request_boon.rpc_id(1, int(arg))
+		"bn_reroll":
+			var hud3: Node = da.get_tree().get_first_node_in_group("hud")
+			await da._wait_until(func(): return hud3._overlay != null and hud3._overlay.get("_rerolls") is Array, float(GameData.bal("boons.choose_delay")) + 1.5)
+			var panel: Node = hud3._overlay
+			var card_before: Node = panel._cards[int(arg)]
+			da.check(not panel._rerolls[int(arg)].disabled and panel._rerolls[int(arg)].text == Loc.t("Reroll"), "client: each card has its Reroll button")
+			panel._rerolls[int(arg)].pressed.emit()
+			await da._wait(0.6)
+			da.check(panel._cards[int(arg)] != card_before and panel._ids[int(arg)] == g.my_boon_offer[int(arg)] and panel._rerolls[int(arg)].disabled and panel._rerolls[int(arg)].text == Loc.t("Rerolled"),
+					"client: the card was drawn again in place and its Reroll is used up")
+			g.request_boon_reroll.rpc_id(1, int(arg))  # a second try: the host refuses it
+			await da._wait(0.4)
+		"bn_fresh":
+			await da._wait(float(GameData.bal("boons.choose_delay")) + 1.0)
+			var hud4: Node = da.get_tree().get_first_node_in_group("hud")
+			var ok: bool = hud4._overlay != null and hud4._overlay.get("_rerolls") is Array and hud4._overlay._rerolls.all(func(b): return not b.disabled)
+			da.check(ok, "client: on the next floor's cards every Reroll is ready again")
 		"bn_kept":
 			da.check(me.boons.size() == 1, "client: my boon is mine on the next floor (%s)" % [me.boons])
