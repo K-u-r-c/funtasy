@@ -29,7 +29,7 @@ static func capture(g: Node, prev: Dictionary) -> Dictionary:
 		if e.has_meta("summoned") or e.lifetime > 0.0:
 			continue
 		enemies.append({"def": e.def_id, "pos": _v(e.global_position), "hp": snappedf(e.health.hp, 0.1),
-			"boss": e.is_boss, "elite": e.elite, "key": e.key_carrier})
+			"boss": e.is_boss, "elite": e.elite, "key": e.key_carrier, "hunter": e.hunter})
 	snap.enemies = enemies
 	snap.boss_alive = g.boss_alive
 	var items: Array = []
@@ -74,6 +74,7 @@ static func capture(g: Node, prev: Dictionary) -> Dictionary:
 	snap.keys = g.party_keys
 	snap.key_chest = g.key_chest
 	snap.legendary_from_enemies = g.legendary_from_enemies
+	snap.mod = str(g.floor_def.get("mod", ""))
 	var m: Merchants = g.merchants
 	var signed := {}
 	for peer in m._signed:
@@ -136,6 +137,12 @@ static func restore_host(g: Node, snap: Dictionary, boss_pos: Vector2) -> void:
 			extra.elite = ed.elite
 		if bool(ed.get("key", false)):
 			extra.key = true
+		# #71: a hunter keeps its name, strength and sure drop.
+		if not str(ed.get("hunter", "")).is_empty():
+			extra.hunter = str(ed.hunter)
+			var md := FloorMods.def("hunted")
+			extra.hunter_hp = float(md.get("hp_mult", 2.0)) + float(md.get("hp_mult_per_extra", 0.35)) * (maxi(g.players_root.get_child_count(), 1) - 1)
+			extra.hunter_dmg = float(md.get("damage_mult", 1.2))
 		# The boss waits at home, out of the fight, as it did before anyone came in.
 		var e: Node = g.spawn_monster(str(ed.def), boss_pos if boss else vec(ed.pos), boss, extra)
 		if e:

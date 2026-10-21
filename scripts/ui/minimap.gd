@@ -78,6 +78,15 @@ func _draw() -> void:
 		var pulse := 0.5 + 0.5 * sin(_t * 4.0)
 		draw_circle(pp, px * 2.5 + pulse * 1.5, Color(0.7, 0.4, 1.0, 0.35))
 		draw_circle(pp, px * 2.0, Color(0.7, 0.4, 1.0))
+	# #71 / #72 pings: a threat about to appear (a hunter's rift...), pulsing until it passes.
+	for ping in game.map_pings:
+		if float(ping.until) < float(game.floor_time):
+			continue
+		var gp := (origin + Vector2(ping.pos) / d.tile * px).round()
+		var k := 0.5 + 0.5 * sin(_t * 8.0)
+		draw_circle(gp, px * 3.0 + 3.0 * k, Color(ping.color, 0.3))
+		draw_arc(gp, px * 3.0 + 6.0 * k, 0.0, TAU, 20, Color(ping.color, 0.9), 1.5)
+		draw_circle(gp, maxf(px, 2.0), ping.color)
 	for p in game.players_root.get_children():
 		var pc := (origin + Vector2(p.global_position) / d.tile * px).round()
 		var col2 := Color.from_string(str(p.class_def.get("color", "#ffffff")), Color.WHITE)

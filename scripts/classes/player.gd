@@ -28,6 +28,7 @@ var skills: Array = []:  ## the loadout: slot 0 = primary attack, 1..5 = skills 
 # Replicated by the host (StateSync).
 var life_state: int = Life.ALIVE
 var torch_sync := 0  ## whole seconds left on the carried torch (host-driven, 0 = none)
+var restless := 0.0  ## #71 Restless: seconds standing still (host-driven, 0 = moving / calm)
 var held_by := NodePath():  ## a boss holding this hero (the Amalgam's engulf, #12); replicated
 	set(v):
 		held_by = v
@@ -135,7 +136,7 @@ func setup(data: Dictionary) -> void:
 	NetSync.make(self, "StateSync", [
 		"Health:hp", "Health:max_hp", "Health:absorb", "Resource:value", "Resource:max_value", "Resource:kind",
 		"Status:shown", "Stats:final", ".:life_state", ".:downed_left", ".:revive_progress", ".:level",
-		".:xp", ".:talent_points", ".:talents", ".:appearance", ".:torch_sync",
+		".:xp", ".:talent_points", ".:talents", ".:appearance", ".:torch_sync", ".:restless",
 		".:stat_points", ".:allocated", ".:run_mods", ".:gold", ".:skills", ".:legacy_kit", ".:held_by",
 		".:held_anim",
 	], [], 0.1)
@@ -154,6 +155,7 @@ func _ready() -> void:
 	_build_carried_torch()
 	_build_ghost_fx()
 	add_child(HeroMarker.new(self))
+	add_child(RestlessMeter.new(self))
 	if is_local():
 		EventBus.local_player_spawned.emit(self)
 

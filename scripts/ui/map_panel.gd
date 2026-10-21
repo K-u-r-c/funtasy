@@ -15,6 +15,25 @@ func _build() -> void:
 	var depth := int(game.depth) if game and "depth" in game else 0
 	if depth > 0:
 		subtitle.text = Loc.f("Floor %d  -  %s", [depth, FloorPlan.title(game.floor_def)])
+	# #70 / #71: what makes this floor different, as focusable badges; the focused (or hovered)
+	# one's card shows beside them, so a gamepad reads them too.
+	var floor_badges := _floor_badges(game)
+	if not floor_badges.is_empty():
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 8)
+		content.add_child(row)
+		var card_holder := MarginContainer.new()
+		for b in floor_badges:
+			b.focus_mode = Control.FOCUS_ALL
+			var show_card := func():
+				for c in card_holder.get_children():
+					c.queue_free()
+				card_holder.add_child(Badge.card(b.icon_key, b.title, b.lines, b.rim))
+			b.focus_entered.connect(show_card)
+			b.mouse_entered.connect(show_card)
+			row.add_child(b)
+		row.add_child(card_holder)
+		floor_badges[0].grab_focus.call_deferred()
 	var mm: Control = Minimap.new()
 	mm.full_map = true
 	mm.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -47,3 +66,18 @@ func _build() -> void:
 		mi.add_child(t)
 		mi.add_child(UITheme.label(m[1], UITheme.TEXT_DIM, UITheme.FONT_SMALL))
 		legend.add_child(mi)
+
+
+func _floor_badges(game: Node) -> Array:
+	var out: Array = []
+	if game == null:
+		return out
+	var mix := str(game.floor_def.get("mix", ""))
+	if not mix.is_empty():
+		var ov := Loc.t(str(GameData.floor_types[mix].get("overrun", "")))
+		out.append(Badge.new("mod_overrun", ov.substr(0, 1).to_upper() + ov.substr(1), [[Loc.t("Part of the monsters here come from another biome.")]], UITheme.BADGE_INVASION, 28))
+	var mod := str(game.floor_def.get("mod", ""))
+	if not mod.is_empty():
+		var md := FloorMods.def(mod)
+		out.append(Badge.new(str(md.icon), Loc.t(str(md.name)), FloorMods.card_lines(mod), FloorMods.color(mod), 28))
+	return out

@@ -70,11 +70,16 @@ Close the bookshelf,Zamknij regał
 Close door,Zamknij drzwi
 Open door,Otwórz drzwi
 Merchant,Kupiec
+Danger,Zagrożenie
+Reward,Nagroda
 %s falls - an elite altar rises,%s pada - powstaje ołtarz elity
 +%d XP,+%d PD
 A legendary falls: %s,Wypada legenda: %s
 Rusted shut - find a lever,Zardzewiałe - znajdź dźwignię
 Descending...,Schodzenie...
+Descending... next floor: %s,Schodzenie... następne piętro: %s
+%s the Hunter,%s Łowca
+A rift opens: %s is coming,Otwiera się szczelina: nadchodzi %s
 The boss is defeated! A portal opens...,Boss pokonany! Otwiera się portal...
 Hold to revive %s,"Przytrzymaj, by wskrzesić: %s"
 Cancel - stay on this floor,Anuluj - zostań na tym piętrze
@@ -99,6 +104,7 @@ You already signed that contract,Ten kontrakt jest już podpisany
 Contract with Malphas,Kontrakt z Malphasem
 Signed: %s for %s,Podpisano: %s za %s
 %s is yours. Malphas keeps %s,%s należy do ciebie. Malphas zatrzymuje %s
+Hroth,Hroth
 Descend to the next floor,Zejdź na następne piętro
 Open,Otwórz
 Take the torch,Weź pochodnię
@@ -260,6 +266,8 @@ Defeat %s,Pokonaj: %s
 Find and defeat the floor boss,Znajdź i pokonaj bossa piętra
 No light - take a torch from a wall,Brak światła - weź pochodnię ze ściany
 Torch %d:%02d,Pochodnia %d:%02d
+Hunter in %d:%02d,Łowca za %d:%02d
+The hunter is here,Łowca już tu jest
 You are a ghost until the next floor.,Jesteś duchem do następnego piętra.
 You are down! A teammate can revive you (%ds),Jesteś powalony! Towarzysz może cię wskrzesić (%ds)
 %s  - Phase 2,%s  - faza 2
@@ -401,6 +409,11 @@ Archibald,Archibald
 Malphas,Malphas
 Boss,Boss
 Sealed,Zapieczętowane
+Choose the next floor,Wybierz następne piętro
+Vote,Głosuj
+"Floor %d - more danger, more reward","Piętro %d - więcej grozy, więcej łupów"
+The portal is opening...,Portal się otwiera...
+%d of %d heroes have chosen,Wybrało już %d z %d bohaterów
 DOWNED %d,POWALONY %d
 Make the pact,Zawrzyj pakt
 Every price is paid in flesh - for the rest of the run,Każdą cenę płaci się ciałem - do końca wyprawy
@@ -831,6 +844,21 @@ Stoneskin,Kamiennoskóry
 Molten,Magmowy
 Venomous,Jadowity
 Thunderous,Grzmiący
+Swarm,Rój
+Far more monsters in every room.,W każdej komnacie dużo więcej potworów.
+"More loot, gold and experience.","Więcej łupów, złota i doświadczenia."
+Elite floor,Piętro elity
+"Many more elite packs, and their altars.",Znacznie więcej grup elity i ich ołtarzy.
+Better drops from everything.,Lepsze łupy ze wszystkiego.
+Dimmed,Przyćmienie
+Torches and your own light reach less far.,Pochodnie i twoje własne światło sięgają bliżej.
+More gold and more lore.,Więcej złota i więcej ksiąg.
+Restless,Niepokój
+Stand still for long and the floor burns you.,"Postoisz za długo w miejscu, a posadzka zacznie cię palić."
+Better loot.,Lepsze łupy.
+Hunted,Nagonka
+An elite hunter comes for you every minute or so.,Mniej więcej co minutę przychodzi po was łowca z elity.
+Every hunter drops a fine item.,Każdy łowca zostawia porządny przedmiot.
 Friendly fire,Ogień sojuszniczy
 "Projectiles, AoE, explosions and traps also hurt allies.","Pociski, obszary, wybuchy i pułapki ranią też sojuszników."
 Difficulty,Poziom trudności
@@ -2582,6 +2610,7 @@ Guided Path,Wskazana Ścieżka
 Bleak Pain,Posępny Ból
 Covenant Barrier,Bariera Przymierza
 Penitence,Skrucha
+You stood still too long: you take more damage and burn until you move.,"Za długo stoisz w miejscu: dostajesz większe obrażenia i płoniesz, dopóki się nie ruszysz."
 Elemental,Żywiołak
 Cernunnos the Blighted Stag-God,"Cernunnos, Zarażony Bóg-Jeleń"
 Blood Drinker,Pijący Krew

@@ -31,6 +31,12 @@ var _rise_marks: Dictionary = {}  ## host (#49): remains that will rise: node na
 var _aura_left := 0.0
 var party_keys := 0  ## Gold Keys the party carries (D11), replicated by _sync_keys
 var key_chest := ""  ## host: the chest prop holding the floor's Gold Key when no elite carries it (#21)
+var next_mod := ""  ## host (#71): the modifier the party voted for the next floor
+var mod_offer: Array = []  ## #71: the two modifiers offered at this floor's portal (every peer)
+var mod_votes: Dictionary = {}  ## #71: peer -> voted modifier id (every peer)
+var hunt_next_at := -1.0  ## #71 Hunted: floor_time of the next hunter (every peer, -1 = none)
+var mod_runner: ModRunner
+var map_pings: Array = []  ## local: [{pos, color, until}] pulsing marks on the minimap / map
 var legendary_from_enemies := false  ## host (#75): a named legendary has dropped from a monster, elite or boss on this floor
 var merchant_id := ""  ## every peer: this floor's merchant (archibald / malphas, #6)
 var _dyn_counter := 0
@@ -71,6 +77,10 @@ func _ready() -> void:
 	merchants.name = "Merchants"
 	merchants.game = self
 	add_child(merchants)
+	mod_runner = ModRunner.new()
+	mod_runner.name = "ModRunner"
+	mod_runner.setup(self)
+	add_child(mod_runner)
 	combat.game = self
 	combat.fx = fx
 	fx.world = fx_root
@@ -141,6 +151,11 @@ func start_floor(new_depth: int) -> void:
 	var mix := FloorPlan.mix_at(run_seed, new_depth)
 	# #55: the first floor of a continued game, if it is the floor the game was saved on.
 	var resume: Dictionary = _resume if int(_resume.get("depth", -1)) == new_depth and int(_resume.get("seed", 0)) == floor_seed else {}
+	# #71: the party's vote at the last portal (or the saved floor's modifier).
+	var mod := next_mod if resume.is_empty() else str(resume.get("mod", ""))
+	if not str(GameState.get_meta("force_mod", "")).is_empty():
+		mod = str(GameState.get_meta("force_mod", ""))
+	next_mod = ""
 	_resume = {}
 	reported_maps.clear()
 	combat.clear_floor()
@@ -157,10 +172,11 @@ func start_floor(new_depth: int) -> void:
 	if party_keys > 0:
 		add_party_key(-party_keys)
 	legendary_from_enemies = false
-	_build_floor.rpc(new_depth, floor_seed, ft_id, FloorPlan.bosses_to(run_seed, new_depth)[-1], pick_merchant(floor_seed), mix)
+	_build_floor.rpc(new_depth, floor_seed, ft_id, FloorPlan.bosses_to(run_seed, new_depth)[-1], pick_merchant(floor_seed), mix, mod)
 	# Host-only: the spawn list depends on party size, so it is generated with that multiplier.
 	var n := players_root.get_child_count() if players_root.get_child_count() > 0 else GameState.roster.size()
 	var count_mult := 1.0 + float(GameData.bal("scaling.count_per_extra_player")) * (maxi(n, 1) - 1)
+	count_mult *= FloorMods.num(floor_def, "count_mult")  # #71 Swarm
 	var host_layout := DungeonGenerator.new().generate(floor_seed, floor_def, count_mult, new_depth, merchant_id)
 	_place_players(resume)
 	merchants.host_new_floor(floor_seed, item_level())
@@ -187,9 +203,13 @@ func start_floor(new_depth: int) -> void:
 	if resume.is_empty():
 		spawn_monster(boss_id, host_layout.boss_pos, true, {"key": true} if carrier.get("kind", "") == "boss" else {})
 	_spawn_floor_hazards(host_layout)
+	mod_runner.host_new_floor(floor_seed)
+	_set_mod_offer.rpc([], {})
 	if not resume.is_empty():
 		_restore_floor_view.rpc(FloorState.view_of(resume, layout.portal_pos, self))
 		_sync_clock.rpc(floor_time)
+		if portal:
+			host_offer_mods()
 		for peer in GameState.roster:
 			var cells := FloorState.map_bytes(resume, int(GameState.roster[peer].get("slot", -1)))
 			if cells.size() != dungeon.discovered.size():
@@ -263,7 +283,7 @@ func _pick_elites(host_layout: Dictionary, floor_seed: int, key_floor: bool = tr
 			groups.append(gi)
 	var out := {}
 	var packs: Array = GameData.bal("elite.packs")
-	var n := mini(rng.randi_range(int(packs[0]), int(packs[1])), groups.size())
+	var n := mini(roundi(rng.randi_range(int(packs[0]), int(packs[1])) * FloorMods.num(floor_def, "elite_mult")), groups.size())
 	var mods: Array = GameData.elite_modifiers.keys()
 	mods.sort()
 	for i in n:
@@ -316,6 +336,9 @@ func spawn_monster(def_id: String, pos: Vector2, boss: bool, extra: Dictionary =
 	if not extra.get("elite", []).is_empty():
 		hp_mult *= float(GameData.bal("elite.hp_mult"))
 		dmg_mult *= float(GameData.bal("elite.damage_mult"))
+	# #71 Hunted: a hunter is an elite with more health and bite.
+	hp_mult *= float(extra.get("hunter_hp", 1.0))
+	dmg_mult *= float(extra.get("hunter_dmg", 1.0))
 	_enemy_counter += 1
 	var data := {"name": "E%d" % _enemy_counter, "def_id": def_id, "boss": boss, "pos": pos,
 		"level": lvl, "hp_mult": hp_mult, "dmg_mult": dmg_mult}
@@ -452,7 +475,7 @@ func on_enemy_killed(e: Enemy) -> void:
 	# Shared XP: everyone who directly or indirectly contributed inside the time window.
 	var now := Time.get_ticks_msec() / 1000.0
 	var window := float(GameData.bal("progression.contribution_window"))
-	var xp := kill_xp(e.def, e.level, e.is_elite(), maxi(players_root.get_child_count(), 1))
+	var xp := roundi(kill_xp(e.def, e.level, e.is_elite(), maxi(players_root.get_child_count(), 1)) * FloorMods.num(floor_def, "xp_mult"))
 	if e.is_elite():
 		_dyn_counter += 1
 		dungeon.spawn_prop.rpc("Altar_%d" % _dyn_counter, "elite_altar", altar_spot(e.global_position))
@@ -482,6 +505,9 @@ func on_enemy_killed(e: Enemy) -> void:
 			p.persist()
 	else:
 		_note_enemy_legendary(loot.roll_and_drop("monster", e.global_position))
+		# #71 Hunted: a hunter always drops a fine item.
+		if not str(e.hunter).is_empty():
+			loot.roll_and_drop("hunter", e.global_position, {"min_rarity": int(FloorMods.num(floor_def, "loot_min_rarity", 4))})
 		# Elites also throw their gold pile and roll their own legendary chance
 		# (legendary.drop_chance.elite).
 		if e.is_elite():
@@ -567,7 +593,13 @@ func host_interact(p: Player, node: Node) -> void:
 		# Once the countdown runs the choice is locked, so extra presses can't toggle it.
 		if _descend_timer >= 0.0:
 			return
+		# #71: with modifiers on offer, the portal opens the vote; a card is the vote and "ready".
+		if not mod_offer.is_empty() and not portal_ready.has(p.peer_id):
+			_open_mod_vote.rpc_id(p.peer_id)
+			return
 		if portal_ready.has(p.peer_id):
+			mod_votes.erase(p.peer_id)
+			_set_mod_offer.rpc(mod_offer, mod_votes)
 			portal_ready.erase(p.peer_id)
 		else:
 			portal_ready[p.peer_id] = true
@@ -593,6 +625,7 @@ func _physics_process(delta: float) -> void:
 	if _clock_sync_left <= 0.0:
 		_clock_sync_left = 5.0
 		_sync_clock.rpc(floor_time)
+	mod_runner.host_tick(delta)
 	var actors := combat.all_actors()
 	for s in dungeon.spikes:
 		s.host_damage(actors)
@@ -657,9 +690,87 @@ func _try_descend() -> void:
 			portal_ready.erase(id)
 	var alive := _alive_count()
 	_portal_status.rpc(portal_ready.keys(), alive)
-	if alive > 0 and portal_ready.size() >= alive:
+	if alive > 0 and portal_ready.size() >= alive and _portal_gates_open():
 		_descend_timer = 1.5
-		broadcast_message.rpc("Descending...", "#c08cff")
+		# #71: the party's choice for the next floor (majority, ties by a seeded pick).
+		next_mod = FloorMods.resolve(mod_offer, mod_votes, run_seed, depth + 1)
+		if next_mod.is_empty():
+			broadcast_message.rpc("Descending...", "#c08cff")
+		else:
+			broadcast_message.rpc("Descending... next floor: %s", "#c08cff", [str(FloorMods.def(next_mod).name)])
+		_set_mod_offer.rpc(mod_offer, mod_votes, true)
+
+
+## Host: everything else the portal waits for (#73 adds the boons) besides every living hero.
+func _portal_gates_open() -> bool:
+	return true
+
+
+## Owner -> host (reliable, #71): `id` is this hero's vote at the portal ("" takes it back).
+@rpc("any_peer", "call_local", "reliable")
+func request_mod_vote(id: String) -> void:
+	if not multiplayer.is_server() or _descend_timer >= 0.0 or portal == null:
+		return
+	var peer := multiplayer.get_remote_sender_id()
+	if peer == 0:
+		peer = 1
+	var pl := player_by_peer(peer)
+	if pl == null or pl.life_state != Player.Life.ALIVE:
+		return
+	if id.is_empty():
+		mod_votes.erase(peer)
+		portal_ready.erase(peer)
+	elif mod_offer.has(id):
+		mod_votes[peer] = id
+		portal_ready[peer] = true
+	_set_mod_offer.rpc(mod_offer, mod_votes)
+	_try_descend()
+
+
+## Host -> all (reliable, #71): the offer and the votes so far (`locked` once the party descends).
+@rpc("authority", "call_local", "reliable")
+func _set_mod_offer(offer: Array, votes: Dictionary, locked: bool = false) -> void:
+	mod_offer = offer
+	mod_votes = votes
+	EventBus.mod_vote_changed.emit(locked)
+
+
+## Host -> one hero (reliable, #71): it stepped into the portal; show it the cards.
+@rpc("authority", "call_local", "reliable")
+func _open_mod_vote() -> void:
+	var hud := get_tree().get_first_node_in_group("hud")
+	if hud and hud.has_method("open_mod_vote"):
+		hud.open_mod_vote()
+
+
+## Host -> all (reliable, #71 Hunted): when the next hunter comes (floor_time, -1 = none).
+@rpc("authority", "call_local", "reliable")
+func set_hunt_next(at: float) -> void:
+	hunt_next_at = at
+
+
+## Host -> all (reliable, #71 Hunted): the rift opens `warn` s before the hunter steps out.
+@rpc("authority", "call_local", "reliable")
+func open_hunt_rift(pos: Vector2, hunter_name: String, warn: float) -> void:
+	var rift := HuntRift.new()
+	rift.setup(pos, Loc.f("%s the Hunter", [hunter_name]), warn)
+	entities.add_child(rift)
+	add_map_ping(pos, UITheme.WARN, warn + 2.0)
+	EventBus.hud_message.emit(Loc.f("A rift opens: %s is coming", [Loc.f("%s the Hunter", [hunter_name])]), UITheme.WARN)
+
+
+## Host -> all (reliable, #71 Hunted): the hunter stepped out of its rift.
+@rpc("authority", "call_local", "reliable")
+func hunter_arrived(pos: Vector2) -> void:
+	Telegraph.fired("hunter")
+	for r in entities.get_children():
+		if r is HuntRift and r.position.distance_to(pos) < 4.0:
+			r.arrive()
+
+
+## Local: a pulsing mark on the minimap and the map for `seconds`.
+func add_map_ping(pos: Vector2, color: Color, seconds: float) -> void:
+	map_pings.append({"pos": pos, "color": color, "until": floor_time + seconds})
 
 
 func on_boss_engaged(_boss: Node) -> void:
@@ -718,11 +829,13 @@ func _on_peer_disconnected(id: int) -> void:
 
 
 @rpc("authority", "call_local", "reliable")
-func _build_floor(new_depth: int, floor_seed: int, ft_id: String, floor_boss: String, floor_merchant: String, mix: String = "") -> void:
+func _build_floor(new_depth: int, floor_seed: int, ft_id: String, floor_boss: String, floor_merchant: String, mix: String = "", mod: String = "") -> void:
 	depth = new_depth
 	floor_time = 0.0
-	# #70: a mixed floor is built from its biome's definition with part of the invader's pool.
-	floor_def = FloorPlan.floor_def(ft_id, mix, floor_seed)
+	# #70: a mixed floor is built from its biome's definition with part of the invader's pool;
+	# #71: the floor modifier's numbers are folded in too.
+	floor_def = FloorPlan.floor_def(ft_id, mix, floor_seed, mod)
+	map_pings.clear()
 	boss_id = floor_boss
 	merchant_id = floor_merchant
 	layout = DungeonGenerator.new().generate(floor_seed, floor_def, 1.0, new_depth, floor_merchant)
@@ -803,6 +916,13 @@ func _boss_defeated(portal_pos: Vector2) -> void:
 	EventBus.boss_defeated.emit(null)
 	EventBus.hud_message.emit(Loc.t("The boss is defeated! A portal opens..."), Color(0.75, 0.55, 1.0))
 	place_portal(portal_pos)
+	if multiplayer.is_server():
+		host_offer_mods()
+
+
+## Host (#71): the portal's two modifiers for the next floor, sent to every peer.
+func host_offer_mods() -> void:
+	_set_mod_offer.rpc(FloorMods.offer(run_seed, depth + 1, str(floor_def.get("mod", ""))), {})
 
 
 func place_portal(portal_pos: Vector2) -> void:

@@ -9,7 +9,8 @@ static func roll(source: String, item_level: int, depth: int, party_classes: Arr
 	var min_tier := 1
 	match source:
 		"monster":
-			count = 1 if rng.randf() < float(GameData.bal("loot.monster_drop_chance")) or GameState.get_meta("test_force_drop", false) else 0
+			var chance := float(GameData.bal("loot.monster_drop_chance")) * float(override.get("drop_mult", 1.0))
+			count = 1 if rng.randf() < chance or GameState.get_meta("test_force_drop", false) else 0
 		"prop":
 			count = 1
 		"chest":
@@ -23,15 +24,24 @@ static func roll(source: String, item_level: int, depth: int, party_classes: Arr
 			count = 0
 		"boss":
 			var rb: Array = override.get("drops", GameData.bal("loot.boss_drops"))
-			count = rng.randi_range(int(rb[0]), int(rb[1]))
+			count = roundi(rng.randi_range(int(rb[0]), int(rb[1])) * float(override.get("drop_mult", 1.0)))
 			min_tier = int(override.get("min_rarity", GameData.bal("loot.boss_min_rarity")))
+		"hunter":
+			# #71: a Hunted floor's hunter always drops a fine item.
+			count = 1
+			min_tier = int(override.get("min_rarity", 4))
 	var out: Array = []
 	var g := gold_pile(source, item_level, rng)
 	if not g.is_empty():
+		var gm := float(override.get("gold_mult", 1.0))
+		if gm != 1.0:
+			g = make_gold(roundi(int(g.amount) * gm), rng)
 		out.append(g)
 	# Lore books (D20): bookshelves always, altars and secret containers sometimes.
 	var book_chance := {"bookshelf": 1.0, "altar": float(GameData.bal("lore.altar_book_chance")),
-		"secret": float(GameData.bal("lore.secret_book_chance"))}.get(source, 0.0) as float
+		"secret": float(GameData.bal("lore.secret_book_chance")),
+		"monster": float(override.get("monster_book_chance", 0.0))}.get(source, 0.0) as float
+	book_chance = minf(book_chance * float(override.get("book_mult", 1.0)), 1.0)
 	if book_chance > 0.0 and rng.randf() < book_chance:
 		var b := roll_book(str(override.get("biome", "")), rng)
 		if not b.is_empty():
@@ -51,13 +61,16 @@ static func roll(source: String, item_level: int, depth: int, party_classes: Arr
 			out.append(lg)
 	for i in count:
 		var r2 := rng.randf()
-		if source != "boss" and r2 < float(GameData.bal("loot.consumable_chance")):
+		if not source in ["boss", "hunter"] and r2 < float(GameData.bal("loot.consumable_chance")):
 			out.append(_consumable(rng))
-		elif source != "boss" and r2 < float(GameData.bal("loot.consumable_chance")) + float(GameData.bal("loot.backpack_chance")):
+		elif not source in ["boss", "hunter"] and r2 < float(GameData.bal("loot.consumable_chance")) + float(GameData.bal("loot.backpack_chance")):
 			out.append(ItemGenerator.generate_backpack(depth, rng))
 		else:
 			var base_id := pick_base(party_classes, rng)
 			var tier := ItemGenerator.roll_rarity(rng, depth, min_tier)
+			# #71: a floor modifier's better loot lifts a share of items one rarity tier (to Epic at most).
+			if tier < 4 and rng.randf() < float(override.get("rarity_up_chance", 0.0)):
+				tier += 1
 			var up := upgrade_roll(item_level, tier, rng)
 			out.append(ItemGenerator.generate_equipment(base_id, int(up[0]), int(up[1]), rng))
 	return out

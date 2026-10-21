@@ -29,6 +29,7 @@ var arena_returns := 0  ## host: times the arena guard put this boss back (tests
 var _aggro_since := -1.0  ## host: when this monster first noticed a hero (seconds)
 var lifetime := -1.0  ## host: summoned minions and decoys expire
 var elite: Array = []  ## elite modifier ids (D10), from the spawn data on every peer
+var hunter := ""  ## #71 Hunted: the hunter's name ("" = an ordinary monster)
 var key_carrier := false  ## host: drops the floor's Gold Key (D11)
 var copy_peer := 0  ## replicated at spawn: draw this player's look instead of the monster art (D31)
 var _state_sprite: Sprite2D = null
@@ -59,7 +60,10 @@ func setup(data: Dictionary) -> void:
 	copy_peer = int(data.get("copy_peer", 0))
 	elite = data.get("elite", [])
 	key_carrier = bool(data.get("key", false))
-	if not elite.is_empty():
+	hunter = str(data.get("hunter", ""))
+	if not hunter.is_empty():
+		display_name = Loc.f("%s the Hunter", [hunter])
+	elif not elite.is_empty():
 		var names: Array = elite.map(func(m): return str(GameData.elite_modifiers.get(m, {}).get("name", m)))
 		display_name = "%s %s" % [" ".join(names), display_name]
 	radius = float(def.get("collision_radius", 8))

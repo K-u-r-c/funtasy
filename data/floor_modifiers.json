@@ -1,0 +1,42 @@
+{
+	"_comment": "#71 floor modifiers. From floor `from_floor` every floor has one, picked by the party's vote at the previous floor's portal between two offered ones. `danger` / `reward` are the card lines. Numbers: count_mult (monsters per room), elite_mult (elite packs), light_mult (torches, carried torches, the hero's own light; spells keep theirs), xp_mult, drop_mult (monster drop chance and boss drop count), gold_mult, book_mult (lore book chance), rarity_up_chance (share of dropped items lifted one rarity tier, to Epic at most). Restless: standing inside still_radius px for still_time s starts restless stacks (warn_at s first turns the meter red with a sound); each tick adds one stack (status restless_curse) and burns burn_pct of max health, moving clears them. Hunted: a hunter every interval s (first after first s), warned warn s before by a rift; at most max_alive at once; strength scales per extra hero.",
+	"from_floor": 4,
+	"modifiers": {
+		"swarm": {
+			"name": "Swarm", "icon": "mod_swarm", "color": "#d9a441",
+			"danger": "Far more monsters in every room.",
+			"reward": "More loot, gold and experience.",
+			"count_mult": 1.2, "xp_mult": 1.15, "drop_mult": 1.3, "gold_mult": 1.2
+		},
+		"elite": {
+			"name": "Elite floor", "icon": "mod_elite", "color": "#b45cff",
+			"danger": "Many more elite packs, and their altars.",
+			"reward": "Better drops from everything.",
+			"elite_mult": 3.3, "rarity_up_chance": 0.45, "drop_mult": 1.15, "gold_mult": 1.2
+		},
+		"dimmed": {
+			"name": "Dimmed", "icon": "mod_dimmed", "color": "#8a9bd0",
+			"danger": "Torches and your own light reach less far.",
+			"reward": "More gold and more lore.",
+			"light_mult": 0.7, "gold_mult": 1.6, "book_mult": 2.0, "monster_book_chance": 0.04, "xp_mult": 1.1
+		},
+		"restless": {
+			"name": "Restless", "icon": "mod_restless", "color": "#ff7a3d",
+			"danger": "Stand still for long and the floor burns you.",
+			"reward": "Better loot.",
+			"still_radius": 30, "still_time": 2.2, "warn_at": 1.2, "tick": 1.0, "burn_pct": 0.02, "max_stacks": 5,
+			"needs_monster_cells": 9,
+			"rarity_up_chance": 0.4, "drop_mult": 1.3, "gold_mult": 1.25
+		},
+		"hunted": {
+			"name": "Hunted", "icon": "mod_hunted", "color": "#ff4d3d",
+			"danger": "An elite hunter comes for you every minute or so.",
+			"reward": "Every hunter drops a fine item.",
+			"interval": 70, "first": 45, "warn": 4.5, "max_alive": 2, "elite_mods": [2, 3],
+			"hp_mult": 1.5, "hp_mult_per_extra": 0.3, "damage_mult": 1.1,
+			"spawn_cells": [6, 10], "loot_min_rarity": 4,
+			"names": ["Hroth", "Skarn", "Vell", "Dask", "Orrin", "Morrow", "Grath", "Cask"],
+			"xp_mult": 1.1
+		}
+	}
+}

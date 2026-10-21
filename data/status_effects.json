@@ -208,5 +208,6 @@
 	"guided": {"icon": "icons.lg_guides_radiant_leggings", "name": "Guided Path", "kind": "stat", "stats": {"move_speed_mult": 1.25}, "color": "#e0e0ff"},
 	"bleak_pain": {"icon": "icons.lg_grip_bleak_shepherd", "name": "Bleak Pain", "kind": "stat", "stats": {"damage_mult": 0.8}, "color": "#7030a0", "debuff": true, "cleanse": "magic"},
 	"covenant_barrier": {"icon": "icons.lg_bulwark_of_the_covenant", "name": "Covenant Barrier", "kind": "stat", "flags": ["reflect_projectiles"], "color": "#fff0a0"},
-	"penitence": {"icon": "icons.lg_black_iron_penitent_cross", "name": "Penitence", "kind": "stat", "stack_stats": {"heal_cost_mult": 0.9}, "max_stacks": 5, "color": "#7a7a80"}
+	"penitence": {"icon": "icons.lg_black_iron_penitent_cross", "name": "Penitence", "kind": "stat", "stack_stats": {"heal_cost_mult": 0.9}, "max_stacks": 5, "color": "#7a7a80"},
+	"restless_curse": {"icon": "icons.mod_restless", "name": "Restless", "kind": "stat", "stack_stats": {"damage_taken_mult": 1.06}, "max_stacks": 5, "color": "#ff7a3d", "debuff": true, "description": "You stood still too long: you take more damage and burn until you move."}
 }

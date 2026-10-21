@@ -28,6 +28,11 @@ func roll_and_drop(source: String, pos: Vector2, override: Dictionary = {}) -> A
 		return []
 	var ov := override.duplicate()
 	ov.biome = str(game.floor_def.get("lore_origin", game.floor_def.get("id", "")))
+	# #71: the floor modifier's rewards (an explicit override wins).
+	var mods := FloorMods.loot_override(game.floor_def)
+	for k in mods:
+		if not ov.has(k):
+			ov[k] = mods[k]
 	var items := LootTable.roll(source, game.item_level(), game.depth, GameState.classes_in_party(), rng, ov)
 	throw_items(items, pos)
 	return items

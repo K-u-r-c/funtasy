@@ -74,6 +74,9 @@ func reset_floor() -> void:
 	var vm := float(game.floor_def.get("vision_mult", 1.0)) if game else 1.0
 	fov_radius = int(round(float(GameData.bal("vision.fov_radius")) * vm))
 	max_sight = float(GameData.bal("vision.max_sight")) * vm
+	# #71 Dimmed: the hero's own small light reaches less far too.
+	personal_radius = float(GameData.bal("lighting.personal_light_radius")) * float(game.floor_def.get("personal_light_mult", 1.0)) if game else personal_radius
+	LightLayers.register(vision_light, personal_radius)
 	var s := dungeon.size
 	_fog_img = Image.create(s.x, s.y, false, Image.FORMAT_RGBA8)
 	_fog_img.fill(Color(0, 0, 0, FOG_UNSEEN))

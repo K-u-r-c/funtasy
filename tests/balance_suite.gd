@@ -275,3 +275,216 @@ func _avg_hit(att: Actor, sk: Dictionary, target: Actor) -> float:
 		if target is Player:
 			target.iframe_left = iframes
 	return total / n
+
+
+# --- Floor cost probe (#71: floor modifiers; reused by #72-#77) --------------------------------
+
+
+var _mon_cache: Dictionary = {}  ## "id@depth" -> {ttk, ttd, hp_hero} for the geared hero
+
+
+## The cost and reward of clearing a whole floor of `fd` at `depth` for a party of `n` heroes like
+## the probe hero, averaged over `seeds` layouts: every pack fought at once in its room (the party
+## kills them weakest first with n x the hero's primary attack, each monster hits for as long as it
+## lives, spread over the party), elites and the boss included, with the game's own spawn scaling.
+## Monster health is counted in seconds of one hero's primary attack (the probe's ttk).
+## Returns {time (s of fighting), damage (per hero, in hero health), deaths (rooms where a hero's
+## share exceeds its health), gold, loot (gold-valued items), xp}. `extra` models what the layout
+## can't show: restless (the share of fight time a hero stands still), hunters (count per floor).
+func floor_cost(depth: int, n: int, fd: Dictionary, seeds: int = 6, extra: Dictionary = {}, hero_depth: int = -1) -> Dictionary:
+	var probe: Dictionary = GameData.bal("probe", {})
+	# The hero as the progression curve has it on `hero_depth` (default: this floor).
+	var hd := depth if hero_depth < 0 else hero_depth
+	var lvl := _curve_level(_curve, hd)
+	# The same gear for every call on this hero floor, so only the floor changes the numbers.
+	_rng.seed = 11 + lvl * 31 + hd
+	_gear_up(lvl, hd)
+	g.depth = depth
+	var mlvl: int = g.monster_level_at(depth, float(lvl))
+	var hp_ratio: float = g.spawn_mults(depth, mlvl, false, n).x / g.spawn_mults(depth, mlvl, false, 1).x
+	var dmg_ratio: float = g.spawn_mults(depth, mlvl, false, n).y / g.spawn_mults(depth, mlvl, false, 1).y
+	var boss_hp_ratio: float = g.spawn_mults(depth, mlvl, true, n).x / g.spawn_mults(depth, mlvl, true, 1).x
+	var count_mult := (1.0 + float(GameData.bal("scaling.count_per_extra_player")) * (n - 1)) * FloorMods.num(fd, "count_mult")
+	var out := {"time": 0.0, "damage": 0.0, "deaths": 0.0, "gold": 0.0, "loot": 0.0, "xp": 0.0}
+	var ov := FloorMods.loot_override(fd)
+	var rarity_gold: Array = probe.get("rarity_gold", [4, 12, 40, 110, 300])
+	for s in seeds:
+		var fseed := 7000 + s * 977  # the same layouts on every depth: only the depth differs
+		var lay: Dictionary = DungeonGenerator.new().generate(fseed, fd, count_mult, depth)
+		var elite_n := roundi(2.0 * FloorMods.num(fd, "elite_mult"))
+		var elites_left := elite_n
+		var fights: Array = []
+		for grp in lay.spawns:
+			var pack: Array = []
+			for m in grp.monsters:
+				var st: Dictionary = await _mon_stats(str(m.id), depth)
+				if st.is_empty():
+					continue
+				var elite := elites_left > 0 and pack.is_empty()
+				if elite:
+					elites_left -= 1
+				var hp: float = float(st.hp) * hp_ratio * (float(GameData.bal("elite.hp_mult")) if elite else 1.0)
+				var dps: float = float(st.dps) * dmg_ratio * (float(GameData.bal("elite.damage_mult")) if elite else 1.0)
+				pack.append([hp, dps, str(m.id), elite])
+			if not pack.is_empty():
+				fights.append(pack)
+		# Hunters: elites of the pool with the hunter's extra health, one fight each.
+		for h in int(extra.get("hunters", 0)):
+			var hid := str(fd.monsters[0].id)
+			var hst: Dictionary = await _mon_stats(hid, depth)
+			var hm := FloorMods.def("hunted")
+			var hhp: float = float(hst.hp) * hp_ratio * float(GameData.bal("elite.hp_mult")) * (float(hm.hp_mult) + float(hm.hp_mult_per_extra) * (n - 1))
+			fights.append([[hhp, float(hst.dps) * dmg_ratio * float(GameData.bal("elite.damage_mult")) * float(hm.damage_mult), hid, true]])
+		var boss_id := str(fd.get("bosses", [""])[0])
+		var bst: Dictionary = await _mon_stats(boss_id, depth, true)
+		if not bst.is_empty():
+			fights.append([[float(bst.hp) * boss_hp_ratio, float(bst.dps) * dmg_ratio, boss_id, false]])
+		# Health is in seconds of one probe hero's primary attack, so the party kills n x as fast.
+		var party_dps := float(n)
+		var still := float(extra.get("restless_still", 0.0))
+		for pack in fights:
+			pack.sort_custom(func(a, b): return a[0] < b[0])
+			var t := 0.0
+			var room_dmg := 0.0
+			for mon in pack:
+				t += float(mon[0]) / maxf(party_dps, 0.01)
+				room_dmg += float(mon[1]) * t
+			# Restless: the share of the fight a hero stands still past the limit adds burns and
+			# makes every hit land harder (the curse's stacks).
+			if still > 0.0:
+				var rm := FloorMods.def("restless")
+				var stacks := minf(float(rm.max_stacks), 1.0 + t * still)
+				room_dmg *= 1.0 + still * (pow(1.06, stacks) - 1.0)
+				room_dmg += float(n) * still * t / float(rm.tick) * float(rm.burn_pct) * p.health.max_hp
+			room_dmg *= float(extra.get("damage_factor", 1.0))
+			out.time += t / seeds
+			var share := room_dmg / float(n) / p.health.max_hp
+			out.damage += share / seeds
+			if share > 1.0:
+				out.deaths += 1.0 / seeds
+			for mon in pack:
+				out.xp += float(g.kill_xp(GameData.bosses.get(mon[2], GameData.monsters.get(mon[2], {})), mlvl, mon[3], n)) * FloorMods.num(fd, "xp_mult") / seeds
+		# Loot and gold: the average of many rolls per kill.
+		var kills := 0
+		for pack in fights:
+			kills += pack.size()
+		var lv := _loot_value(depth, ov, rarity_gold)
+		out.gold += float(lv.gold) * kills / seeds
+		out.loot += float(lv.items) * kills / seeds
+	return out
+
+
+var _curve: Array = []
+
+
+## One kill's average gold and gold-valued items on `depth` with the floor's loot override.
+func _loot_value(depth: int, ov: Dictionary, rarity_gold: Array) -> Dictionary:
+	var key := "%d %s" % [depth, ov]
+	if _mon_cache.has(key):
+		return _mon_cache[key]
+	var rng := RandomNumberGenerator.new()
+	rng.seed = depth * 13
+	var gold := 0.0
+	var items := 0.0
+	var n := 1500
+	for i in n:
+		for it in LootTable.roll("monster", g.item_level_at(g.monster_level_at(depth, float(depth))), depth, ["warrior"], rng, ov):
+			if str(it.get("kind", "")) == "gold":
+				gold += int(it.amount)
+			elif it.has("rarity"):
+				items += float(rarity_gold[clampi(int(it.rarity) - 1, 0, rarity_gold.size() - 1)])
+	var out := {"gold": gold / n, "items": items / n}
+	_mon_cache[key] = out
+	return out
+
+
+## A monster's health and damage per second against the probe hero (real damage code), cached.
+func _mon_stats(id: String, depth: int, boss: bool = false) -> Dictionary:
+	var key := "%s@%d L%d" % [id, depth, p.level]
+	if _mon_cache.has(key):
+		return _mon_cache[key]
+	if not (GameData.bosses if boss else GameData.monsters).has(id):
+		return {}
+	var spot: Vector2 = g.nearest_floor(g.layout.start + Vector2(70, 0))
+	var row := await _measure(id, spot, boss)
+	if row.is_empty():
+		return {}
+	var out := {"hp": float(row.ttk), "dps": p.health.max_hp / maxf(float(row.ttd), 0.01)}
+	_mon_cache[key] = out
+	return out
+
+
+## #71: every floor modifier makes a floor about as hard as one floor deeper (time to clear and
+## damage taken, within probe.mod_band of the next floor's), for 1 and 4 heroes, and its reward
+## (gold, loot, XP) grows at least as much as its cost. Restless is judged with how long this
+## class stands still (probe.restless_still_<melee|ranged>), Hunted with the hunters a clear brings.
+func run_mods(depths: Array = [5, 9, 14]) -> void:
+	g = da._game()
+	p = da._local()
+	for e in g.enemies_root.get_children():
+		e.queue_free()
+	await da._wait(0.3)
+	_curve = run_progression(20)
+	# The damage rolls use the global generator: seeded, every run measures the same numbers.
+	seed(71)
+	var probe: Dictionary = GameData.bal("probe", {})
+	var band: Array = probe.get("mod_cost_band", [1.03, 1.45])
+	var bad: Array = []
+	var rows: Array = []
+	var steps: Array = []
+	var melee: bool = p.class_id in ["warrior", "priest"]
+	print("[balance] mods class depth n mod | time dmg deaths | plain(d) plain(d+1) | reward gold loot xp")
+	for d in depths:
+		for n in [1, 4]:
+			var biome: String = g.floor_type_for(int(d))
+			var fd: Dictionary = GameData.floor_types[biome]
+			var base := await floor_cost(int(d), n, fd)
+			# One floor deeper for the same party: the same biome's floor d+1 for heroes still at
+			# floor d's level (what a modifier should cost).
+			var deeper := await floor_cost(int(d) + 1, n, fd, 6, {}, int(d))
+			var step: float = _effort(deeper) / maxf(_effort(base), 0.01)
+			for id in FloorMods.defs():
+				var mfd := FloorMods.apply(fd, str(id))
+				var extra := {}
+				match str(id):
+					"restless":
+						extra.restless_still = float(probe.get("restless_still_melee" if melee else "restless_still_ranged", 0.2))
+					"hunted":
+						var hm := FloorMods.def("hunted")
+						var clear := float(base.time) + float(probe.get("travel_s_per_floor", 120.0))
+						extra.hunters = int(floor(maxf(clear - float(hm.first), 0.0) / float(hm.interval))) + 1
+					"dimmed":
+						extra.damage_factor = float(probe.get("dimmed_damage_factor", 1.1))
+				var c := await floor_cost(int(d), n, mfd, 6, extra)
+				var cost: float = _effort(c) / maxf(_effort(base), 0.01)
+				var bonus := 0.0
+				# A hunter's sure fine item comes on top of the loot model.
+				if str(id) == "hunted":
+					bonus = float(extra.hunters) * float(probe.get("rarity_gold", [4, 12, 40, 110, 300])[3])
+				var reward: float = (float(c.gold) / maxf(float(base.gold), 0.01) + (float(c.loot) + bonus) / maxf(float(base.loot), 0.01) + float(c.xp) / maxf(float(base.xp), 0.01)) / 3.0
+				print("[balance] mods %s %d %d %s | %.0fs %.2f %.1f | step x%.2f | reward x%.2f cost x%.2f | %.0f %.0f %.0f" % [p.class_id, d, n, id,
+					c.time, c.damage, c.deaths, step, reward, cost, c.gold, c.loot, c.xp])
+				rows.append([str(id), int(d), n, cost, reward])
+				if reward - 1.0 < (cost - 1.0) * float(probe.get("mod_reward_min", 0.8)):
+					bad.append("%s@%d x%d reward x%.2f < cost x%.2f" % [id, d, n, reward, cost])
+			steps.append(step)
+	# One floor deeper costs this much on average (over the probe depths and party sizes; it
+	# measured x1.08-x1.21 across the classes and runs, so probe.mod_cost_band is set around it).
+	var mean_step := 0.0
+	for st in steps:
+		mean_step += float(st) / steps.size()
+	var lo := float(band[0])
+	var hi := float(band[1])
+	print("[balance] mods %s: one floor deeper costs x%.2f on average; band x%.2f-x%.2f" % [p.class_id, mean_step, lo, hi])
+	da.check(mean_step >= lo and mean_step <= hi, "%s: one floor deeper costs x%.2f, inside the modifier band" % [p.class_id, mean_step])
+	for r in rows:
+		if float(r[3]) < lo or float(r[3]) > hi:
+			bad.append("%s@%d x%d cost x%.2f (band x%.2f-x%.2f)" % [r[0], r[1], r[2], r[3], lo, hi])
+	da.check(bad.is_empty(), "%s: every floor modifier costs about one floor deeper and pays for it (outside: %s)" % [p.class_id, bad])
+
+
+## One number for how hard a floor is: fighting time and damage taken, equally weighted.
+static func _effort(c: Dictionary) -> float:
+	return 0.5 * float(c.time) + 0.5 * float(c.damage) * 60.0
+
+

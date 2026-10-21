@@ -1372,3 +1372,76 @@ func _drops(_arg: String) -> void:
 	await snap("drops_landed_%s" % Settings.language)
 	await da._wait(1.2)
 	await snap("drops_beam_%s" % Settings.language)
+
+
+## #71: the portal's vote cards, the Restless meter (building, warning, burning), a Hunted rift
+## counting down and the hunter's arrival, the HUD badges and the map panel's badge card.
+func _mods(_arg: String) -> void:
+	var lang: String = Settings.language
+	p.iframe_left = 9999.0
+	var hud: Node = da.get_tree().get_first_node_in_group("hud")
+	GameState.set_meta("force_mod", "")
+	g.start_floor(3)
+	await da._wait(1.5)
+	for e in g.enemies_root.get_children():
+		e.queue_free()
+	g._boss_defeated.rpc(g.layout.portal_pos)
+	await da._wait(5.0)
+	p.host_teleport(g.portal.global_position + Vector2(0, 20))
+	await da._wait(0.5)
+	g.host_interact(p, g.portal)
+	await da._wait(0.8)
+	await snap("mods_vote_%s" % lang)
+	var cards: Array = hud._overlay._cards.values()
+	cards[1].grab_focus()
+	await da._wait(0.4)
+	g.request_mod_vote(str(hud._overlay._cards.keys()[1]))
+	await da._wait(0.5)
+	await snap("mods_vote_picked_%s" % lang)
+	hud.close_overlay()
+	g.request_mod_vote("")
+	# Restless.
+	GameState.set_meta("force_mod", "restless")
+	g.start_floor(5)
+	GameState.set_meta("force_mod", "")
+	await da._wait(5.0)
+	for e in g.enemies_root.get_children():
+		e.queue_free()
+	var spot: Vector2 = g.nearest_floor(g.layout.start)
+	p.host_teleport(spot)
+	var m: Node = g.spawn_monster("ghoul", spot + Vector2(110, 10), false)
+	await da._wait(0.2)
+	m.set_physics_process(false)
+	m.aggro = true
+	await da._wait(0.8)
+	await snap("mods_restless_building_%s" % lang)
+	await da._wait(0.8)
+	await snap("mods_restless_warning_%s" % lang)
+	await da._wait(1.4)
+	await snap("mods_restless_burning_%s" % lang)
+	m.queue_free()
+	# Hunted.
+	GameState.set_meta("force_mod", "hunted")
+	g.start_floor(6)
+	GameState.set_meta("force_mod", "")
+	await da._wait(5.0)
+	for e in g.enemies_root.get_children():
+		if not e.is_boss:
+			e.queue_free()
+	var md := FloorMods.def("hunted")
+	g.mod_runner._hunt_at = g.floor_time + float(md.warn) + 0.2
+	await da._wait(1.4)
+	await snap("mods_hunted_rift_%s" % lang)
+	await da._wait(float(md.warn) - 1.6)
+	await snap("mods_hunted_rift_late_%s" % lang)
+	await da._wait(0.6)
+	await snap("mods_hunted_arrival_%s" % lang)
+	await da._wait(1.0)
+	for e in g.enemies_root.get_children():
+		if not str(e.hunter).is_empty():
+			e.set_physics_process(false)
+	await snap("mods_hunted_hunter_%s" % lang)
+	hud.open_overlay(hud.menu_panel("map"))
+	await da._wait(0.6)
+	await snap("mods_map_badge_%s" % lang)
+	hud.close_overlay()

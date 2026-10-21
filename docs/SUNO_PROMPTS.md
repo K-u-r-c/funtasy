@@ -83,6 +83,7 @@ between the floor track and the boss track. Effects: short (0.2-1.5 s), dry, mon
 | `hex` | `assets/audio/sfx/hex.ogg` | skills/monsters.json | witch hex, whispered curse with a dissonant sting |
 | `hit` | `assets/audio/sfx/hit.ogg` | skills/mage.json, skills/monsters.json, skills/priest.json, skills/warrior.json | hero taking a hit, dull impact with a short grunt |
 | `hook_chain` | `assets/audio/sfx/hook_chain.ogg` | skills/monsters.json | iron chain hook flung through the air and snapping taut |
+| `hunter_arrive` | `assets/audio/sfx/hunter_arrive.ogg` | engine | a hunter monster bursting out of a rift: heavy whoosh, impact thud and a short snarling roar |
 | `ink_slosh` | `assets/audio/sfx/ink_slosh.ogg` | skills/monsters.json | thick ink tendril lashing and splattering wetly |
 | `javelin` | `assets/audio/sfx/javelin.ogg` | skills/monsters.json | barbed javelin thrown hard, whistling then thudding |
 | `key_unlock` | `assets/audio/sfx/key_unlock.ogg` | engine | heavy ornate gold key turning in an old lock, metallic clunk then a soft magical chime |
@@ -105,8 +106,11 @@ between the floor track and the boss track. Effects: short (0.2-1.5 s), dry, mon
 | `plate_click` | `assets/audio/sfx/plate_click.ogg` | engine | stone pressure plate sinking with a mechanical click |
 | `portal` | `assets/audio/sfx/portal.ogg` | engine | magical portal opening, deep swirling hum with a rising shimmer |
 | `potion` | `assets/audio/sfx/potion.ogg` | items/consumables.json | drinking a potion: cork pop, two gulps, glass clink |
+| `restless_bite` | `assets/audio/sfx/restless_bite.ogg` | engine | short searing hiss of heat licking up from the floor, dry and painful, quiet |
+| `restless_warn` | `assets/audio/sfx/restless_warn.ogg` | engine | uneasy crackle of embers stirring under stone with a low warning pulse, short, signals: move now |
 | `revive` | `assets/audio/sfx/revive.ogg` | engine | holy resurrection, bright choir swell and a heartbeat |
 | `rift` | `assets/audio/sfx/rift.ogg` | engine | low humming void rift pulling in air |
+| `rift_open` | `assets/audio/sfx/rift_open.ogg` | engine | a red rift tearing open in the air: low rumble, ripping cloth-like tear, rising unsettling drone, 3 s, dark fantasy |
 | `roar` | `assets/audio/sfx/roar.ogg` | skills/monsters.json, skills/warrior.json | huge monster roar, deep and echoing in a stone hall |
 | `root_stakes` | `assets/audio/sfx/root_stakes.ogg` | skills/monsters.json | line of wooden stakes erupting from the earth, cracking roots |
 | `rune` | `assets/audio/sfx/rune.ogg` | engine | a silence rune flaring with a muffled chime |
@@ -123,6 +127,7 @@ between the floor track and the boss track. Effects: short (0.2-1.5 s), dry, mon
 | `swarm` | `assets/audio/sfx/swarm.ogg` | skills/monsters.json | buzzing swarm of plague flies rushing in, 1.5 seconds |
 | `swing` | `assets/audio/sfx/swing.ogg` | skills/monsters.json, skills/priest.json, skills/warrior.json | heavy weapon swing whoosh |
 | `tail_sweep` | `assets/audio/sfx/tail_sweep.ogg` | skills/monsters.json | massive scaled tail sweeping the ground, heavy whoosh and scrape |
+| `telegraph` | `assets/audio/sfx/telegraph.ogg` | engine | short ominous rising warning tone, low drum tap and a thin metallic whine, signals danger about to strike, 1 s |
 | `thorn_burst` | `assets/audio/sfx/thorn_burst.ogg` | skills/monsters.json | ring of thorns bursting outward from a dying body, woody crack |
 | `thorns` | `assets/audio/sfx/thorns.ogg` | engine | living thorn vines bursting out of the earth |
 | `tithe` | `assets/audio/sfx/tithe.ogg` | engine | deep demonic whisper and a wet heartbeat thump, ominous, short |

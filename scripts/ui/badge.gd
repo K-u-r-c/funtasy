@@ -77,6 +77,8 @@ static func card(icon: String, name_: String, card_lines: Array, colour: Color) 
 	t.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	h.add_child(t)
 	for ln in card_lines:
+		if ln.size() > 2:
+			v.add_child(UITheme.label(str(ln[2][0]).to_upper(), ln[2][1], UITheme.FONT_SMALL))
 		var l := UITheme.label(str(ln[0]), ln[1] if ln.size() > 1 else UITheme.TEXT, UITheme.FONT_SMALL)
 		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		l.custom_minimum_size = Vector2(240, 0)

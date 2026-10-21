@@ -63,6 +63,8 @@ func _ready() -> void:
 			set_args[v.get_slice(":", 0)] = str_to_var(v.get_slice(":", 1))
 		elif a.begins_with("--tour="):
 			tour = v
+		elif a.begins_with("--mod="):
+			GameState.set_meta("force_mod", v)  # #71: every floor gets this modifier
 		elif a.begins_with("--mix="):
 			GameState.set_meta("force_mix", v)  # #70: every floor mixed by this biome
 		elif a.begins_with("--boss="):
@@ -261,6 +263,9 @@ func _run() -> void:
 			"balance":
 				await BalanceSuite.new(self).run_fresh()
 				await BalanceSuite.new(self).run()
+				await BalanceSuite.new(self).run_mods()
+			"balance_mods":
+				await BalanceSuite.new(self).run_mods()
 			"biomes":
 				await BiomeSuite.new(self).run(biome)
 			"economy":
@@ -303,6 +308,10 @@ func _run() -> void:
 				await MarkerSuite.new(self).run_lan()
 			"ghost_lan":
 				await GhostSuite.new(self).run_lan()
+			"mods":
+				await ModSuite.new(self).run()
+			"mods_lan":
+				await ModSuite.new(self).run_lan()
 			"drops":
 				await DropSuite.new(self).run()
 			"drops_lan":
@@ -641,6 +650,8 @@ func client_cmd(cmd: String, arg: Variant) -> void:
 			await MarkerSuite.new(self).client_cmd(cmd, arg)
 		_ when cmd.begins_with("gh_"):
 			await GhostSuite.new(self).client_cmd(cmd, arg)
+		_ when cmd.begins_with("md_"):
+			await ModSuite.new(self).client_cmd(cmd, arg)
 		_ when cmd.begins_with("dr_"):
 			await DropSuite.new(self).client_cmd(cmd, arg)
 		_ when cmd.begins_with("tp_"):

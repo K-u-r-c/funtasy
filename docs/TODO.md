@@ -152,6 +152,7 @@ screenshot review at 1920x1080 and 3440x1440.
 
 ## Eighth playtest issues (GitHub #70-#82)
 
+- [x] #71 Floor modifiers from floor 4 (Swarm, Elite floor, Dimmed, Restless, Hunted): seeded offer of two at the portal, party vote on large cards, host pick, HUD / banner / map badges, Restless meter and Hunted rift telegraphs, floor cost balance probe (`mods`, `mods-lan`, `balance-*`)
 - [x] #75 Loot flies out of its source (arc, spin, rarity trail, bounce, puff, light and sound on landing), no pick-up mid-air, a named legendary guaranteed from each floor's enemies (boss tops it up), legendary beam and message (`drops`, `drops-lan`)
 - [x] #70 Biome order shuffled per cycle from floor 6 (no repeats back to back), mixed floors from floor 6 (invader monsters and sometimes a hazard), boss alternates per biome, floor arrival banner with biome crests and badges (`biomes`, `teleport-lan`)
 - [x] #82 Ghosts roam the floor: walk, open doors, map grows, own blue light for their own sight, untouchable and unable to act, faint to the living, alive again next floor (`ghost-lan`, 3 instances; windowed screenshots)

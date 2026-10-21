@@ -21,6 +21,7 @@ const ConfirmDialog := preload("res://scripts/ui/confirm_dialog.gd")
 const CodexPanel := preload("res://scripts/ui/codex_panel.gd")
 const LoreReader := preload("res://scripts/ui/lore_reader.gd")
 const PauseMenu := preload("res://scripts/ui/pause_menu.gd")
+const ModVotePanel := preload("res://scripts/ui/mod_vote_panel.gd")
 const RadialMenu := preload("res://scripts/ui/radial_menu.gd")
 const Minimap := preload("res://scripts/ui/minimap.gd")
 const COOLDOWN_SHADER := preload("res://assets/shaders/cooldown_radial.gdshader")
@@ -74,7 +75,10 @@ var _goal_icon: TextureRect
 var _last_message := ""
 var level_banner: LevelBanner  ## #48
 var floor_banner: FloorBanner  ## #70: the arrival on a floor
-var _floor_badges: HBoxContainer  ## #70 / #71: what makes this floor different, as badges
+var _floor_badges: VBoxContainer  ## #70 / #71: what makes this floor different, a badge per line
+var _mod_label: Label  ## #71: the floor modifier's name
+var _hunt_row: HBoxContainer  ## #71 Hunted: the countdown to the next hunter
+var _hunt_label: Label
 var _last_message_at := 0
 ## Layout test hook: fills every HUD block with worst-case content (boss bar, banner, three
 ## teammates, many status effects) so tests can check nothing overlaps on any screen shape.
@@ -208,14 +212,9 @@ func _build_top_right() -> void:
 	v.add_child(mm)
 	_floor_label = UITheme.label("", UITheme.GOLD, UITheme.FONT_BODY)
 	v.add_child(_floor_label)
-	_floor_badges = HBoxContainer.new()
-	_floor_badges.add_theme_constant_override("separation", 4)
+	_floor_badges = VBoxContainer.new()
+	_floor_badges.add_theme_constant_override("separation", 2)
 	v.add_child(_floor_badges)
-	_mix_label = UITheme.label("", UITheme.BADGE_INVASION.lightened(0.2), UITheme.FONT_SMALL)
-	_mix_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_mix_label.custom_minimum_size = Vector2(130, 0)
-	_mix_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	_mix_label.visible = false
 	# Each tracker line leads with its icon (#29): the goal (skull / stairs), the portal, the torch.
 	var grow := HBoxContainer.new()
 	grow.add_theme_constant_override("separation", 4)
@@ -451,28 +450,63 @@ func _on_floor_started(d: int) -> void:
 	_floor_label.text = Loc.f("Floor %d%s", [d, "  " + Loc.t(fname) if not fname.is_empty() else ""])
 	# #70: a mixed floor names its invader under the floor's name.
 	var mix := str(game.floor_def.get("mix", "")) if game else ""
-	_mix_label.visible = not mix.is_empty()
+	var mod := str(game.floor_def.get("mod", "")) if game else ""
 	for c in _floor_badges.get_children():
-		if c != _mix_label:
-			c.queue_free()
-	if _mix_label.get_parent() == null:
-		_floor_badges.add_child(_mix_label)
+		c.queue_free()
+	# A fresh label each floor (a label left out of the tree would leak at exit).
+	_mix_label = UITheme.label("", UITheme.BADGE_INVASION.lightened(0.2), UITheme.FONT_SMALL)
+	_mix_label.visible = not mix.is_empty()
+	_hunt_row = null
+	_mod_label = null
+	var inv_line := _badge_line(Badge.new("mod_overrun", "", [[Loc.t("Part of the monsters here come from another biome.")]], UITheme.BADGE_INVASION, 22), _mix_label)
+	inv_line.visible = not mix.is_empty()
+	_floor_badges.add_child(inv_line)
 	if not mix.is_empty():
 		var ov := Loc.t(str(GameData.floor_types[mix].get("overrun", "")))
 		_mix_label.text = ov.substr(0, 1).to_upper() + ov.substr(1)
-		var b := Badge.new("mod_overrun", _mix_label.text, [[Loc.t("Part of the monsters here come from another biome.")]], UITheme.BADGE_INVASION, 22)
-		_floor_badges.add_child(b)
-		_floor_badges.move_child(b, 0)
-	_floor_badges.visible = not mix.is_empty()
+		inv_line.get_child(0).title = _mix_label.text
+		inv_line.get_child(0).tooltip_text = _mix_label.text
+	if not mod.is_empty():
+		var md := FloorMods.def(mod)
+		_mod_label = UITheme.label(Loc.t(str(md.get("name", mod))), FloorMods.color(mod).lightened(0.25), UITheme.FONT_SMALL)
+		_floor_badges.add_child(_badge_line(Badge.new(str(md.icon), Loc.t(str(md.name)), FloorMods.card_lines(mod), FloorMods.color(mod), 22), _mod_label))
+		if mod == "hunted":
+			_hunt_label = UITheme.label("", UITheme.WARN_SOFT, UITheme.FONT_SMALL)
+			_hunt_row = _badge_line(UITheme.icon("mod_hunted", 16), _hunt_label)
+			_floor_badges.add_child(_hunt_row)
+	_floor_badges.visible = not mix.is_empty() or not mod.is_empty()
 	_portal_label.text = ""
 	_portal_label.visible = false
 
 
-## #70: the arrival banner, once per floor (not when the HUD is rebuilt).
+## #70: the arrival banner, once per floor (not when the HUD is rebuilt); #71 adds the modifier.
 func _announce_floor(d: int) -> void:
 	var game := get_tree().get_first_node_in_group("game")
 	if game and floor_banner and d > 0:
-		floor_banner.show_floor(game.floor_def, d)
+		var extra: Array = []
+		var mod := str(game.floor_def.get("mod", ""))
+		if not mod.is_empty():
+			var md := FloorMods.def(mod)
+			extra.append([str(md.icon), "%s - %s" % [Loc.t(str(md.name)), Loc.t(str(md.danger))], FloorMods.color(mod)])
+		floor_banner.show_floor(game.floor_def, d, extra)
+
+
+## A tracker line: a badge (or icon) and its text.
+func _badge_line(b: Control, l: Label) -> HBoxContainer:
+	var h := HBoxContainer.new()
+	h.add_theme_constant_override("separation", 5)
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	l.custom_minimum_size = Vector2(128, 0)
+	l.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	b.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	h.add_child(b)
+	h.add_child(l)
+	return h
+
+
+## #71: the portal's vote (opened when this hero steps into the portal).
+func open_mod_vote() -> void:
+	open_overlay(ModVotePanel.new())
 
 
 func _rebuild_skill_icons() -> void:
@@ -572,6 +606,7 @@ func _update_status() -> void:
 
 
 func _update_tracker() -> void:
+	_update_hunt()
 	var game := get_tree().get_first_node_in_group("game")
 	var goal := ""
 	_goal_icon.texture = UITheme.icon_tex("hud_stairs" if game and game.portal else "hud_boss")
@@ -595,6 +630,23 @@ func _update_tracker() -> void:
 	_torch_label.text = Loc.f("Torch %d:%02d", [t / 60, t % 60])
 	var warn := int(Player.torch_warning())
 	_torch_label.add_theme_color_override("font_color", Color(1.0, 0.35, 0.25) if t <= warn else Color(1.0, 0.7, 0.35))
+
+
+## #71 Hunted: "Hunter in 0:42"; amber, then red and pulsing in the last seconds.
+func _update_hunt() -> void:
+	if _hunt_row == null or not is_instance_valid(_hunt_row):
+		return
+	var game := get_tree().get_first_node_in_group("game")
+	var at: float = game.hunt_next_at if game else -1.0
+	_hunt_row.visible = at >= 0.0
+	if at < 0.0:
+		return
+	var left := maxf(at - float(game.floor_time), 0.0)
+	var warn := float(FloorMods.num(game.floor_def, "warn", 4.5))
+	_hunt_label.text = Loc.f("Hunter in %d:%02d", [int(left) / 60, int(left) % 60]) if left > 0.0 else Loc.t("The hunter is here")
+	var hot := left <= warn + 6.0
+	_hunt_label.add_theme_color_override("font_color", UITheme.WARN if hot else UITheme.WARN_SOFT)
+	_hunt_row.modulate.a = 0.6 + 0.4 * absf(sin(Time.get_ticks_msec() / 160.0)) if hot else 1.0
 
 
 func _update_center() -> void:

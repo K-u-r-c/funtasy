@@ -80,8 +80,10 @@ static func mix_at(run_seed: int, depth: int) -> String:
 
 ## The floor definition a floor is built from: its biome's, or for a mixed floor a copy with part
 ## of the invader's monster pool and maybe one of its hazards (`seed` picks the hazard).
-static func floor_def(biome: String, mix: String, floor_seed: int) -> Dictionary:
+static func floor_def(biome: String, mix: String, floor_seed: int, mod: String = "") -> Dictionary:
 	var base: Dictionary = GameData.floor_types[biome]
+	if not mod.is_empty():
+		return FloorMods.apply(floor_def(biome, mix, floor_seed), mod)
 	if mix.is_empty() or not GameData.floor_types.has(mix):
 		return base
 	var inv: Dictionary = GameData.floor_types[mix]

@@ -28,6 +28,7 @@ var floor_types: Dictionary = {}
 var item_bases: Dictionary = {}
 var damage_types: Dictionary = {}  ## data/damage_types.json (types, school_default, creature_types)
 var elite_modifiers: Dictionary = {}
+var floor_modifiers: Dictionary = {}  ## #71
 var merchants: Dictionary = {}
 var pact_consumables: Dictionary = {}
 var item_looks: Dictionary = {}  ## data/items/looks.json: worn families, variants (#20)
@@ -70,6 +71,7 @@ func reload() -> void:
 	damage_types = _load_json("damage_types.json", {})
 	obstacles = _load_json("obstacles.json", {})
 	elite_modifiers = _load_json("elite_modifiers.json", {})
+	floor_modifiers = _load_json("floor_modifiers.json", {})
 	merchants = _load_json("merchants.json", {})
 	doors = _load_json("doors.json", {})
 	fx = _load_json("fx.json", {})

@@ -160,6 +160,26 @@
 		"like": "sfx.level_up",
 		"prompt": "legendary item drop: a heavy golden impact, then a tall rising beam of choir and bells with a deep resonant hum, triumphant but dark, 2-3 s"
 	},
+	"sfx.telegraph": {
+		"like": "sfx.ui_error",
+		"prompt": "short ominous rising warning tone, low drum tap and a thin metallic whine, signals danger about to strike, 1 s"
+	},
+	"sfx.restless_warn": {
+		"like": "sfx.ui_error",
+		"prompt": "uneasy crackle of embers stirring under stone with a low warning pulse, short, signals: move now"
+	},
+	"sfx.restless_bite": {
+		"like": "sfx.fire",
+		"prompt": "short searing hiss of heat licking up from the floor, dry and painful, quiet"
+	},
+	"sfx.rift_open": {
+		"like": "sfx.portal",
+		"prompt": "a red rift tearing open in the air: low rumble, ripping cloth-like tear, rising unsettling drone, 3 s, dark fantasy"
+	},
+	"sfx.hunter_arrive": {
+		"like": "sfx.roar",
+		"prompt": "a hunter monster bursting out of a rift: heavy whoosh, impact thud and a short snarling roar"
+	},
 	"sfx.coin": {
 		"like": "sfx.pickup",
 		"prompt": "short bright clink of a few gold coins dropping into a leather purse, dry, no reverb"
