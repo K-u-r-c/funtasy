@@ -316,6 +316,8 @@
 		"mace": "res://assets/sprites/pixellab/items/mace.png",
 		"warhammer": "res://assets/sprites/pixellab/items/warhammer.png",
 		"cell_key": "res://assets/sprites/pixellab/items/cell_key.png",
+		"book_ownerless": "res://assets/sprites/pixellab/items/book_ownerless.png",
+		"book_ownerless_cover": "res://assets/sprites/pixellab/items/book_ownerless_cover.png",
 		"shield": "res://assets/sprites/pixellab/items/shield.png",
 		"bow": "res://assets/sprites/pixellab/items/bow.png",
 		"crossbow": "res://assets/sprites/pixellab/items/crossbow.png",

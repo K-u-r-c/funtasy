@@ -127,6 +127,11 @@ func _ready() -> void:
 	add_child(bubbles)
 	npc_talk = NpcTalk.new()
 	bubbles.add_child(npc_talk)
+	# The banner and the bubbles never cover an open window.
+	EventBus.ui_overlay_changed.connect(func(open: bool):
+		bubbles.visible = not open
+		if open:
+			floor_banner.visible = false)
 
 
 ## A new language (#32): the HUD is built again so every label picks up the new texts. The

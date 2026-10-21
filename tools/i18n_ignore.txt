@@ -19,3 +19,10 @@ Event_prisoner
 {floor}
 {biome}
 {hero}
+II
+III
+IV
+VI
+VII
+VIII
+IX

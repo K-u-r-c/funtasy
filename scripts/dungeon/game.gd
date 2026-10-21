@@ -569,6 +569,11 @@ func announce_legendary(item: Dictionary, delay: float) -> void:
 ## Host -> all (reliable, #75): the message in each peer's own language.
 @rpc("authority", "call_local", "reliable")
 func _legendary_fell(item: Dictionary) -> void:
+	var book: Dictionary = GameData.lore_books.get(str(item.get("book", "")), {})
+	if book.has("chapter"):
+		# #76: a chapter of the legendary story.
+		EventBus.hud_message.emit(Loc.f("A legendary tome falls: %s (%s)", [Loc.t(str(book.title)), LoreCycle.chapter_text(book)]), Color("ff9a2e"))
+		return
 	EventBus.hud_message.emit(Loc.f("A legendary falls: %s", [Loc.item_name(item)]), Color("ff9a2e"))
 
 

@@ -1230,13 +1230,15 @@ func request_read_book(index: int) -> void:
 			note = "tome"
 			inv.take_backpack(index)
 		"legendary":
-			var tp := int(eff.get("talent_points", 0))
-			var sp := int(eff.get("stat_points", 0))
+			# #76: each chapter rewards once a run (a second copy is only read).
+			var first := LoreCycle.note_read(str(book.id)) if book.has("chapter") else true
+			var tp := int(eff.get("talent_points", 0)) if first else 0
+			var sp := int(eff.get("stat_points", 0)) if first else 0
 			bonus_talent_points += tp
 			bonus_stat_points += sp
 			talent_points += tp
 			stat_points += sp
-			note = "legendary"
+			note = "legendary" if first else "legendary_again"
 			inv.take_backpack(index)
 	_inventory_changed()
 	persist()
@@ -1257,6 +1259,8 @@ func _open_book(book_id: String, kind: String) -> void:
 		"legendary":
 			var eff: Dictionary = book.get("effect", {})
 			note = Loc.f("+%d talent point and +%d stat points", [int(eff.get("talent_points", 0)), int(eff.get("stat_points", 0))])
+		"legendary_again":
+			note = Loc.t("This chapter was already read on this run: it gives nothing more")
 	var hud := get_tree().get_first_node_in_group("hud")
 	if hud and hud.has_method("open_book"):
 		hud.open_book(book_id, note)

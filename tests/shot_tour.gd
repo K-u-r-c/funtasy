@@ -1749,3 +1749,26 @@ func _npc(_arg: String) -> void:
 			await snap("npc_prisoner")
 	for k in ["force_merchant", "force_forge", "force_events"]:
 		GameState.remove_meta(k)
+
+
+## #76: a chapter of the Ownerless Book falling with its beam, open in the reader, and the codex
+## with the story's chapters grouped on top.
+func _cycle(_arg: String) -> void:
+	var hud: Node = da.get_tree().get_first_node_in_group("hud")
+	p.iframe_left = 9999.0
+	_clear_monsters(false)
+	var ids := LoreCycle.chapters()
+	for i in 2:
+		Codex.mark_read(ids[i])
+	var rng := RandomNumberGenerator.new()
+	g.loot.drop_item(LootTable.make_book(ids[1], rng), g.nearest_floor(p.global_position + Vector2(50, 10)), p.global_position, 0.0)
+	await da._wait(1.6)
+	await snap("cycle_fall")
+	hud.open_book(ids[1], "")
+	await da._wait(0.8)
+	await snap("cycle_reader")
+	hud.close_overlay()
+	hud.open_overlay(load("res://scripts/ui/codex_panel.gd").new())
+	await da._wait(0.8)
+	await snap("cycle_codex")
+	hud.close_overlay()

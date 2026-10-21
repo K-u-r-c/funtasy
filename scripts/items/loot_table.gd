@@ -150,10 +150,14 @@ static func make_gold(amount: int, rng: RandomNumberGenerator) -> Dictionary:
 ## D20: category first (80 / 18 / 2), then a book of that category from the biome (+ Ancient
 ## Lore anywhere; the legendary tome has no biome). Books the host hasn't read weigh more.
 static func roll_book(biome: String, rng: RandomNumberGenerator) -> Dictionary:
-	var cw: Dictionary = GameData.bal("lore.category_weights")
-	var cats: Array = cw.keys()
-	var ws: Array = cats.map(func(c): return float(cw[c]))
-	var cat: String = cats[ItemGenerator._weighted_index(ws, rng)]
+	var cat := book_category(rng)
+	# #76: the legendary tomes come in their story's order; with no chapter due, a tome instead.
+	if cat == "legendary":
+		var ch := LoreCycle.next_droppable()
+		if not ch.is_empty():
+			LoreCycle.note_dropped(ch)
+			return make_book(ch, rng)
+		cat = "tome"
 	var pool: Array = []
 	var weights: Array = []
 	for id in GameData.lore_order:
@@ -169,8 +173,18 @@ static func roll_book(biome: String, rng: RandomNumberGenerator) -> Dictionary:
 	return make_book(str(pool[ItemGenerator._weighted_index(weights, rng)]), rng)
 
 
+## The category of a book drop (balance lore.category_weights).
+static func book_category(rng: RandomNumberGenerator) -> String:
+	var cw: Dictionary = GameData.bal("lore.category_weights")
+	var cats: Array = cw.keys()
+	var ws: Array = cats.map(func(c): return float(cw[c]))
+	return str(cats[ItemGenerator._weighted_index(ws, rng)])
+
+
 static func make_book(id: String, rng: RandomNumberGenerator) -> Dictionary:
 	var b: Dictionary = GameData.lore_books[id]
+	# #76: the legendary story's chapters have their own black-and-gold book.
+	var icon := "items.book_ownerless" if b.has("chapter") else "items.book_" + str(b.classification)
 	return {"kind": "book", "base": "book", "book": id, "name": b.title, "classification": b.classification,
-		"icon": "items.book_" + str(b.classification), "rarity": int(GameData.bal("lore.rarity")[b.classification]),
+		"icon": icon, "rarity": int(GameData.bal("lore.rarity")[b.classification]),
 		"uid": ItemGenerator.new_uid(rng)}

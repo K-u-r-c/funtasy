@@ -22,6 +22,74 @@ func run() -> void:
 	await reading()
 	await back_to_panel()
 	await bookshelf()
+	await cycle()
+	await BalanceSuite.new(da).run_cycle()
+
+
+## #76: the five chapters of the Ownerless Book: imported with their effect and their English and
+## Polish texts, found in order (chapter N only after N-1 was read on this run), each read once
+## for +1 talent and +5 stat points, falling with the legendary beam, named "Chapter II of V" in
+## the reader, grouped in order at the top of the codex.
+func cycle() -> void:
+	var ids := LoreCycle.chapters()
+	var ok := ids.size() == 5
+	for i in ids.size():
+		var b: Dictionary = GameData.lore_books[ids[i]]
+		ok = ok and int(b.chapter) == i + 1 and int(b.chapters) == 5 and int(b.effect.get("talent_points", 0)) == 1 and int(b.effect.get("stat_points", 0)) == 5
+		TranslationServer.set_locale("pl")
+		var plt := TranslationServer.translate(str(b.text))
+		var pltitle := TranslationServer.translate(str(b.title))
+		TranslationServer.set_locale("en")
+		ok = ok and plt != str(b.text) and pltitle != str(b.title) and str(b.text).length() > 300
+	da.check(ok, "five chapters, I-V, each +1 talent / +5 stat points, every text in English and Polish (%s)" % [ids])
+	GameState.game.erase("cycle")
+	var order := []
+	var gained := []
+	var rng := RandomNumberGenerator.new()
+	for i in 5:
+		var next := LoreCycle.next_droppable()
+		order.append(next)
+		LoreCycle.note_dropped(next)
+		var blocked := LoreCycle.next_droppable().is_empty()
+		p.host_give_item(LootTable.make_book(next, rng))
+		await da._wait(0.2)
+		var tp := p.talent_points
+		var sp := p.stat_points
+		p.request_read_book.rpc_id(1, _index_of(next))
+		await da._wait(0.4)
+		gained.append([p.talent_points - tp, p.stat_points - sp, blocked])
+		var hud: Node = da.get_tree().get_first_node_in_group("hud")
+		if i == 1 and hud._overlay:
+			da.check(str(hud._overlay.subtitle.text).contains(LoreCycle.chapter_text(GameData.lore_books[next])), "the reader names it: %s" % hud._overlay.subtitle.text)
+		hud.close_overlay()
+	da.check(order == ids and gained.all(func(x): return x[0] == 1 and x[1] == 5 and x[2]), "the chapters come in order, the next only once the last was read, each +1 / +5 (%s)" % [gained])
+	da.check(LoreCycle.next_droppable().is_empty(), "with the story read, no more legendary tomes drop on this run")
+	p.host_give_item(LootTable.make_book(ids[2], rng))
+	await da._wait(0.2)
+	var tp2 := p.talent_points
+	p.request_read_book.rpc_id(1, _index_of(ids[2]))
+	await da._wait(0.4)
+	da.check(p.talent_points == tp2, "a second copy of a chapter gives nothing more")
+	da.get_tree().get_first_node_in_group("hud").close_overlay()
+	# The fall: the beam of a legendary.
+	g.loot.drop_item(LootTable.make_book(ids[3], rng), g.nearest_floor(p.global_position + Vector2(40, 0)), p.global_position, 0.0)
+	await da._wait(1.4)
+	var gi: Array = g.items_root.get_children().filter(func(x): return str(x.item.get("book", "")) == ids[3])
+	da.check(not gi.is_empty() and gi[0].is_named_legendary() and gi[0].beam_up(), "a chapter falls with the legendary beam")
+	# The codex: the cycle first, in order.
+	var cp: UIModal = load("res://scripts/ui/codex_panel.gd").new()
+	cp.player = p
+	da.get_tree().get_first_node_in_group("hud").add_child(cp)
+	await da._wait(0.3)
+	var rows: Array = []
+	for c in cp._list.get_children():
+		if c is Button:
+			rows.append(c.text)
+		if rows.size() == 5:
+			break
+	da.check(rows.size() == 5 and rows[0].begins_with(LoreCycle.chapter_text(GameData.lore_books[ids[0]])) and rows[4].begins_with(LoreCycle.chapter_text(GameData.lore_books[ids[4]])),
+		"the codex groups the story's chapters in order (%s)" % [rows])
+	cp.queue_free()
 
 
 func library() -> void:
@@ -29,9 +97,10 @@ func library() -> void:
 	for id in GameData.lore_order:
 		var c := str(GameData.lore_books[id].classification)
 		counts[c] = int(counts.get(c, 0)) + 1
-	# #69: 105 books + 100 new ones (17 lore and 3 tomes per biome).
-	da.check(GameData.lore_order.size() == 205 and counts == {"standard": 158, "tome": 46, "legendary": 1},
-		"205 books imported: %s" % [counts])
+	# #69: 105 books + 100 new ones (17 lore and 3 tomes per biome); #76: four more chapters of the
+	# legendary story.
+	da.check(GameData.lore_order.size() == 209 and counts == {"standard": 158, "tome": 46, "legendary": 5},
+		"209 books imported: %s" % [counts])
 	var unparsed := GameData.lore_order.filter(func(id):
 		var b: Dictionary = GameData.lore_books[id]
 		return b.classification != "standard" and b.effect.is_empty())
@@ -43,14 +112,25 @@ func drops() -> void:
 	rng.seed = 5
 	var counts := {"standard": 0, "tome": 0, "legendary": 0}
 	var wrong_biome := 0
+	var cats := {"standard": 0, "tome": 0, "legendary": 0}
+	for i in 3000:
+		cats[LootTable.book_category(rng)] += 1
+	da.check(absf(cats.standard / 3000.0 - 0.8) < 0.04 and absf(cats.tome / 3000.0 - 0.18) < 0.04 and absf(cats.legendary / 3000.0 - 0.02) < 0.01,
+		"book categories roll 80 / 18 / 2 (%s)" % [cats])
+	var saved_cycle: Variant = GameState.game.get("cycle")
+	GameState.game.erase("cycle")
 	for i in 3000:
 		var b := LootTable.roll_book("crypt", rng)
 		var def: Dictionary = GameData.lore_books[b.book]
 		counts[def.classification] += 1
 		if not def.biome in ["crypt", "ancient", "transcendent"]:
 			wrong_biome += 1
-	da.check(absf(counts.standard / 3000.0 - 0.8) < 0.04 and absf(counts.tome / 3000.0 - 0.18) < 0.04 and counts.legendary > 20,
-		"book categories roll 80 / 18 / 2 (%s)" % [counts])
+	# #76: unread, only chapter I can come out, and only once; the other legendary rolls give tomes.
+	da.check(counts.legendary == 1 and LoreCycle.record().dropped == ["lore_105"], "the legendary story's chapter I drops once, the next waits for it to be read (%s)" % [counts])
+	if saved_cycle != null:
+		GameState.game.cycle = saved_cycle
+	else:
+		GameState.game.erase("cycle")
 	da.check(wrong_biome == 0, "Crypt floors only drop Crypt and Ancient Lore books")
 
 

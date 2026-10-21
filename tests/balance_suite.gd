@@ -665,3 +665,49 @@ func _event_reward(source: String, il: int, depth: int, rarity_gold: Array) -> f
 			elif it.has("rarity"):
 				total += float(rarity_gold[clampi(int(it.rarity) - 1, 0, rarity_gold.size() - 1)])
 	return total / runs
+
+
+## #76 The legendary story read in full (+5 talent points, +25 stat points into the main stat) on a
+## hero of the probe's curve, against a floor's monsters: the cycle is worth having but never
+## breaks the pacing bands - every monster of the probe depths still takes at least
+## probe.cycle_ttk_min of its usual time to kill, and the hero survives at most cycle_ttd_max x.
+func run_cycle(depths: Array = [6, 12, 20]) -> void:
+	g = da._game()
+	p = da._local()
+	for e in g.enemies_root.get_children():
+		e.queue_free()
+	await da._wait(0.3)
+	var curve := run_progression(20)
+	seed(76)
+	var probe: Dictionary = GameData.bal("probe", {})
+	var spot: Vector2 = g.nearest_floor(g.layout.start + Vector2(70, 0))
+	var chapters := LoreCycle.chapters().size()
+	var tp := 0
+	var sp := 0
+	for id in LoreCycle.chapters():
+		tp += int(GameData.lore_books[id].effect.get("talent_points", 0))
+		sp += int(GameData.lore_books[id].effect.get("stat_points", 0))
+	var bad: Array = []
+	var rows: Array = []
+	for d in depths:
+		_rng.seed = 11 + int(d)
+		_gear_up(_curve_level(curve, int(d)), int(d))
+		g.depth = int(d)
+		var biome: String = g.floor_type_for(int(d))
+		var ids: Array = GameData.floor_types[biome].monsters.map(func(m): return str(m.id)).filter(func(id): return DungeonGenerator.spawnable(id, int(d)) and not GameData.monsters[id].get("role", "") in ["illusion", "boss_part"])
+		ids.sort()
+		var id: String = ids[0]
+		var base := await _measure(id, spot, false)
+		_rng.seed = 11 + int(d)
+		_gear_up(_curve_level(curve, int(d)), int(d))
+		p.allocated[MAIN_STAT[p.class_id]] = int(p.allocated.get(MAIN_STAT[p.class_id], 0)) + sp
+		p.recompute_stats()
+		p.health.hp = p.health.max_hp
+		var full := await _measure(id, spot, false)
+		var k := float(full.ttk) / maxf(float(base.ttk), 0.01)
+		var t := float(full.ttd) / maxf(float(base.ttd), 0.01)
+		rows.append("%d %s ttk x%.2f ttd x%.2f" % [d, id, k, t])
+		if k < float(probe.get("cycle_ttk_min", 0.75)) or t > float(probe.get("cycle_ttd_max", 1.35)):
+			bad.append(rows[-1])
+	print("[balance] cycle %s (%d chapters, +%d talent, +%d stat): %s" % [p.class_id, chapters, tp, sp, rows])
+	da.check(chapters == 5 and tp == 5 and sp == 25 and bad.is_empty(), "%s: the full legendary story (+%d talent, +%d stat points) helps without breaking the pacing (%s)" % [p.class_id, tp, sp, rows])

@@ -48,7 +48,8 @@ func is_landed() -> bool:
 
 
 func is_named_legendary() -> bool:
-	return not str(item.get("legendary", "")).is_empty()
+	# #76: a legendary tome falls like a named legendary.
+	return not str(item.get("legendary", "")).is_empty() or (str(item.get("kind", "")) == "book" and str(item.get("classification", "")) == "legendary")
 
 
 ## Is the legendary beam up (tests)?

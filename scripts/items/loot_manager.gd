@@ -50,7 +50,7 @@ func throw_items(items: Array, pos: Vector2, first_delay: float = 0.0) -> void:
 		if items.size() == 1:
 			off = Vector2.from_angle(rng.randf() * TAU) * scatter * 0.6
 		drop_item(items[i], pos + off, pos + rise, first_delay + stagger * i)
-		if not str(items[i].get("legendary", "")).is_empty():
+		if not str(items[i].get("legendary", "")).is_empty() or str(items[i].get("classification", "")) == "legendary":
 			game.announce_legendary(items[i], first_delay + stagger * i)
 
 

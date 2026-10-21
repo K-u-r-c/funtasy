@@ -8,7 +8,7 @@ Reproducible: the output is sorted by book number and only depends on the markdo
 Every book becomes:
   {"id": "lore_001", "number": 1, "title", "origin", "biome", "classification": "standard" |
    "tome" | "legendary", "effect": {"mods": [{"stat", "value"}]} | {"talent_points", "stat_points"} | {},
-   "effect_text", "text"}
+   "effect_text", "text"} (+ "cycle", "chapter", "chapters" for a chapter of a cycle, #76)
 The script fails loudly when a field or an effect string can't be parsed.
 """
 import json
@@ -44,6 +44,9 @@ STATS = {
     "leech": ("leech", 0.01),
     "dodge": ("dodge", 0.01),
 }
+
+
+ROMAN = {"I": 1, "II": 2, "III": 3, "IV": 4, "V": 5, "VI": 6, "VII": 7, "VIII": 8, "IX": 9, "X": 10}
 
 
 def field(text, name, path):
@@ -108,11 +111,19 @@ def main():
         eff_text = field(text, "Permanent Effect", path)
         if origin not in ORIGINS or cls not in CLASSES:
             raise SystemExit("%s: unknown origin/classification '%s' / '%s'" % (path, origin, cls))
-        books.append({
+        book = {
             "id": bid, "number": int(bid.split("_")[1]), "title": title, "origin": origin,
             "biome": ORIGINS[origin], "classification": CLASSES[cls],
             "effect": parse_effect(eff_text, path), "effect_text": eff_text, "text": story(text, path),
-        })
+        }
+        # #76: a chapter of a cycle ("**Cycle:** The Ownerless Book", "**Chapter:** II of V").
+        cyc = re.search(r"\*\*Cycle:\*\*\s*(.+?)\s*$", text, re.M)
+        chap = re.search(r"\*\*Chapter:\*\*\s*([IVX]+) of ([IVX]+)\s*$", text, re.M)
+        if cyc and chap:
+            book["cycle"] = cyc.group(1).strip()
+            book["chapter"] = ROMAN[chap.group(1)]
+            book["chapters"] = ROMAN[chap.group(2)]
+        books.append(book)
     books.sort(key=lambda b: b["number"])
     counts = {}
     for b in books:

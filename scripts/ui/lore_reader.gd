@@ -25,8 +25,12 @@ func _build() -> void:
 	header.add_child(UITheme.icon(kind_icon, 32))
 	header.move_child(header.get_child(header.get_child_count() - 1), 0)
 	subtitle.text = "%s  -  %s" % [Loc.t(str(b.get("origin", ""))), {"standard": Loc.t("Lore"), "tome": Loc.t("Tome of Enlightenment"), "legendary": Loc.t("Legendary tome")}.get(str(b.get("classification", "")), "")]
+	# #76: a chapter of the legendary story names its place in the cycle.
+	if b.has("chapter"):
+		subtitle.text = "%s  -  %s" % [Loc.t(str(b.get("cycle", ""))), LoreCycle.chapter_text(b)]
 	var page := PanelContainer.new()
-	page.add_theme_stylebox_override("panel", UITheme.glass(PARCHMENT, Color("8a6a3a"), 2, 6))
+	var legendary := str(b.get("classification", "")) == "legendary"
+	page.add_theme_stylebox_override("panel", UITheme.glass(PARCHMENT, UITheme.GOLD if legendary else Color("8a6a3a"), 2, 6))
 	page.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	content.add_child(page)
 	_scroll = ScrollContainer.new()
@@ -37,6 +41,22 @@ func _build() -> void:
 	v.add_theme_constant_override("separation", 10)
 	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_scroll.add_child(v)
+	# #76: the legendary story's chapters open under the Ownerless Book itself, its pages glowing.
+	if b.has("chapter") and GameData.asset_exists("items.book_ownerless_cover"):
+		var cover := TextureRect.new()
+		cover.texture = GameData.texture("items.book_ownerless_cover")
+		cover.custom_minimum_size = Vector2(192, 192)
+		cover.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		cover.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		cover.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		cover.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		v.add_child(cover)
+		var tw := cover.create_tween().set_loops()
+		tw.tween_property(cover, "self_modulate", Color(1.35, 1.25, 1.0), 1.4).set_trans(Tween.TRANS_SINE)
+		tw.tween_property(cover, "self_modulate", Color.WHITE, 1.4).set_trans(Tween.TRANS_SINE)
+		var chap := UITheme.label(LoreCycle.chapter_text(b), UITheme.GOLD, UITheme.FONT_BODY)
+		chap.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		v.add_child(chap)
 	var text := UITheme.label(Loc.t(str(b.get("text", ""))), INK, UITheme.FONT_BODY)
 	text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	text.custom_minimum_size = Vector2(520, 0)

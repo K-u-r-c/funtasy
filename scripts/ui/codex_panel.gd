@@ -64,8 +64,22 @@ func _build() -> void:
 	ps.add_child(_page)
 	var origin := ""
 	var first: Button = null
+	# #76: the legendary story first, its chapters in order under the cycle's name.
+	var cyc: Array = LoreCycle.chapters()
+	if not cyc.is_empty():
+		_list.add_child(UITheme.section(Loc.t(str(GameData.lore_books[cyc[0]].cycle)), "nav_codex"))
+	for cid in cyc:
+		var cb: Dictionary = GameData.lore_books[cid]
+		var ck := Codex.is_read(cid)
+		var cbtn := _book_button(cid, ("%s  %s" % [LoreCycle.chapter_text(cb), Loc.t(str(cb.title))]) if ck else "%s  ???" % LoreCycle.chapter_text(cb), ck)
+		if ck:
+			cbtn.add_theme_color_override("font_color", UITheme.GOLD)
+		if first == null:
+			first = cbtn
 	for id in GameData.lore_order:
 		var b: Dictionary = GameData.lore_books[id]
+		if b.has("chapter"):
+			continue
 		if str(b.origin) != origin:
 			origin = str(b.origin)
 			_list.add_child(UITheme.section(Loc.t(origin), "nav_codex"))
@@ -95,6 +109,24 @@ func _build() -> void:
 		first = back
 	if first:
 		first.grab_focus.call_deferred()
+
+
+## One codex row (a chapter of the cycle): focus and hover show the page, accept reads it.
+func _book_button(bid: String, text: String, known: bool) -> Button:
+	var btn := Button.new()
+	btn.text = text
+	btn.icon = UITheme.icon_tex("menu_save" if known else "sil_lock")
+	btn.add_theme_constant_override("icon_max_width", 16)
+	btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	btn.add_theme_font_size_override("font_size", UITheme.FONT_SMALL)
+	btn.disabled = not known
+	btn.focus_mode = Control.FOCUS_ALL
+	btn.focus_entered.connect(_show.bind(bid))
+	btn.mouse_entered.connect(_show.bind(bid))
+	btn.pressed.connect(_read.bind(bid))
+	_list.add_child(btn)
+	_buttons[bid] = btn
+	return btn
 
 
 func save_state() -> Dictionary:
@@ -132,7 +164,10 @@ func _show(id: String) -> void:
 		return
 	var b: Dictionary = GameData.lore_books[id]
 	_page_title.text = Loc.t(str(b.title))
-	_page.text = "%s\n\n%s" % [Loc.t(str(b.origin)), Loc.t(str(b.text))]
+	var where := Loc.t(str(b.origin))
+	if b.has("chapter"):
+		where = "%s - %s" % [Loc.t(str(b.cycle)), LoreCycle.chapter_text(b)]
+	_page.text = "%s\n\n%s" % [where, Loc.t(str(b.text))]
 
 
 func _unhandled_input(ev: InputEvent) -> void:

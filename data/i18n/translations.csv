@@ -22,6 +22,7 @@ You learned: %s,Poznano: %s
  (Permanent), (na stałe)
  for this run, do końca wyprawy
 +%d talent point and +%d stat points,+%d punkt talentu i +%d punktów cech
+This chapter was already read on this run: it gives nothing more,Ten rozdział przeczytano już w tym biegu: nic więcej nie daje
 Can't change skills in combat,Nie można zmieniać umiejętności w walce
 No stat points left,Brak punktów cech
 You already have a backpack this big,Masz już tak duży plecak
@@ -101,6 +102,7 @@ Not enough gold (%d needed),Za mało złota (potrzeba %d)
 %s forged to item level %d for %d gold,"Przekuto: %s - poziom przedmiotu %d, zapłata: %d sztuk złota"
 %s falls - an elite altar rises,%s pada - powstaje ołtarz elity
 +%d XP,+%d PD
+A legendary tome falls: %s (%s),Spada legendarna księga: %s (%s)
 A legendary falls: %s,Wypada legenda: %s
 Rusted shut - find a lever,Zardzewiałe - znajdź dźwignię
 Descending...,Schodzenie...
@@ -221,6 +223,7 @@ Echo,Echo
 %s found a Gold Key - Archibald will trade,%s znajduje Złoty Klucz - Archibald będzie handlował
 +%d gold,+%d złota
 %d Gold,%d szt. złota
+Chapter %s of %s,Rozdział %s z %s
 Charging %d%%,Ładowanie %d%%
 Choose a boon,Wybierz dar
 Choose,Wybierz
@@ -2448,6 +2451,40 @@ Trzecie suche lato. Studnie w Hollin Ford to samo błoto. Deszcz od Handlarza pa
 Isolde nie chce wyjść z jedwabiu. Kiedy staję w drzwiach tkalni, śpiewa moje imię, a ja nie umiem rozpoznać, czy chce, żebym wszedł, czy żebym trzymał się z daleka.
 Cernunnos jej nie wziął. Wziął deszcz i jelenie, a teraz bierze samą ziemię. Co tydzień gąszcz stoi o rząd drzew bliżej i zaciska się wokół pól od skraju.
 Jutro wyjeżdżam z wielkim rogiem. Vos prosił, żebym nie jechał. Kazałem mu trzymać psiarnię zamkniętą i dopilnować, żeby moja żona była nakarmiona."""
+The First Stair,Pierwsze Schody
+"""Copied from the first blank leaf of the Ownerless Book by Hesper Vole, clerk to the wardens, by candle, before morning took it. The hand is not mine. It answers the question the last rule forbids.
+Nobody built the dungeon. It was dug. A town stood here once, on a hill of good chalk, and under the hill there was a well that never reached water. The town lowered a boy on a rope to see why. He came up with a handful of warm dust and said there was a stair. They sent men down it with lamps. The men came back older than they went and would not say by how much.
+The town walled the well and built a church over the wall. That is the Crypt. The first who went down were buried at the top of the stair, so that anything coming up would have to pass them. They have been passing it ever since.
+The writing stops there. The candle was half gone. I did not hear the pen.""","""Przepisane z pierwszej czystej karty Księgi Bez Właściciela przez Hesper Vole, pisarkę strażników, przy świecy, zanim zabrał je ranek. To nie moje pismo. Odpowiada na pytanie, którego zabrania ostatnia zasada.
+Nikt nie zbudował lochów. Wykopano je. Stało tu kiedyś miasteczko, na wzgórzu z dobrej kredy, a pod wzgórzem była studnia, która nigdy nie dosięgła wody. Mieszkańcy spuścili w nią na linie chłopca, żeby sprawdził dlaczego. Wrócił z garścią ciepłego pyłu i powiedział, że na dole są schody. Posłali nimi mężczyzn z lampami. Wrócili starsi, niż zeszli, i nie chcieli powiedzieć, o ile.
+Miasteczko obmurowało studnię, a na murze postawiło kościół. To jest Krypta. Pierwszych, którzy zeszli, pochowano u szczytu schodów, żeby wszystko, co wyjdzie z dołu, musiało ich minąć. Mija ich od tamtej pory.
+Tu pismo się urywa. Świeca wypaliła się do połowy. Nie słyszałam pióra."""
+The Five Houses,Pięć Domów
+"""Copied by Oswin Drace, journeyman of the Galt Works, from the Ownerless Book, the same night, under Hesper Vole's copy.
+Below the dead the town put its waste, because the stair took anything. Drains were cut into the second landing and the town's filth went down for a hundred years. The Sewers are only that. What lives there now learned to eat what it was given.
+Below the drains the Galt Works found heat that cost no coal and built furnaces on the third landing. Below the furnaces the Works' clerks moved their shelves down to where paper would never burn. Below the clerks there was already something: barrows older than the town, with kings in them who had come down the same stair before there was a hill.
+So it is not five places. It is one town, each trade going a little deeper than the one before, and at the bottom of the town, the people who did it first.
+I have checked the Works' ledgers against this. The dates agree.""","""Przepisał Oswin Drace, czeladnik Odlewni Galt, z Księgi Bez Właściciela tej samej nocy, pod odpisem Hesper Vole.
+Pod umarłymi miasteczko składało swoje odpadki, bo schody przyjmowały wszystko. Na drugim podeście wykuto ścieki i przez sto lat spływały nimi nieczystości całego miasteczka. Kanały to tylko tyle. To, co w nich dziś żyje, nauczyło się jeść to, co dostawało.
+Pod ściekami Odlewnia Galt znalazła żar, który nie kosztował węgla, i postawiła piece na trzecim podeście. Pod piecami pisarze Odlewni przenieśli swoje regały tam, gdzie papier nigdy by nie spłonął. A pod pisarzami coś już było: kurhany starsze od miasteczka, a w nich królowie, którzy zeszli tymi samymi schodami, zanim powstało wzgórze.
+To więc nie pięć miejsc. To jedno miasteczko, w którym każdy fach schodził trochę głębiej od poprzedniego, a na samym dnie leżą ci, którzy zrobili to pierwsi.
+Sprawdziłem to w księgach rachunkowych Odlewni. Daty się zgadzają."""
+Why It Goes Down,Dlaczego Wiedzie w Dół
+"""Copied by Mother Ilse of the Low Church from the Ownerless Book. The leaf was still wet when I turned to it.
+Every company that reaches the barrows asks the same thing: where does it end? It does not. The stair goes on because it is fed. A party that goes deeper than any before it finds one more landing, because the stair is made of the wish to go further, and that wish is the one thing every delver carries down. You have walked floors that did not exist on the day you came in.
+That is why the merchants keep a room on every landing and are never surprised to see you. That is why a key fits one door and turns to lead on the next stair. That is why the dead stand where the living last stood.
+I asked the book, in the margin, whether we should stop going down. By morning the question was gone. Under it was written: you can't.""","""Przepisała Matka Ilse z Dolnego Kościoła z Księgi Bez Właściciela. Karta była jeszcze mokra, kiedy ją odwróciłam.
+Każda kompania, która dotrze do kurhanów, pyta o to samo: gdzie to się kończy? Nigdzie. Schody biegną dalej, bo są karmione. Drużyna, która zejdzie głębiej niż ktokolwiek przed nią, znajduje jeszcze jeden podest, bo schody są zrobione z pragnienia, by zejść dalej, a to pragnienie każdy, kto schodzi, niesie ze sobą. Chodziliście po piętrach, których nie było w dniu, w którym tu weszliście.
+Dlatego kupcy mają izbę na każdym podeście i nigdy nie dziwią się na wasz widok. Dlatego klucz pasuje do jednych drzwi, a na następnych schodach zamienia się w ołów. Dlatego umarli stoją tam, gdzie ostatnio stali żywi.
+Zapytałam księgę, na marginesie, czy powinniśmy przestać schodzić. Do rana pytanie zniknęło. Pod nim było napisane: nie możecie."""
+The Last Leaf,Ostatnia Karta
+"""The last copy, by an owner who did not sign.
+I have the book now. I know what the others found, because I wrote the rest of it and they copied it, and the copying was what the book was waiting for.
+The dungeon was not built. It is being written. Each owner writes a little about themselves on the first blank leaf, and in the morning they are a little different, and so is the stair. A copyist asked for steady hands, and somewhere below a room became one where nothing ever spills. A sergeant asked to be harder to kill, and a floor filled with things that are harder still. We wrote the dungeon one wish at a time and called it a curse.
+There are no blank leaves after this one. Write about yourself. Write a little. Then leave the book somewhere below the place you found it, and go back up if you can.""","""Ostatni odpis, od właściciela, który się nie podpisał.
+Teraz księga jest u mnie. Wiem, co znaleźli inni, bo resztę dopisała moja ręka, a oni ją przepisali, i właśnie na to przepisywanie księga czekała.
+Lochów nikt nie zbudował. One są pisane. Każdy właściciel pisze trochę o sobie na pierwszej czystej karcie, a rano jest odrobinę inny, i schody też. Kopistka poprosiła o pewne dłonie i gdzieś w dole pewna izba stała się taką, w której nic nigdy się nie rozlewa. Sierżant poprosił, by trudniej go było zabić, i całe piętro wypełniło się czymś jeszcze trudniejszym do zabicia. Pisaliśmy lochy po jednym życzeniu i nazywaliśmy to klątwą.
+Po tej karcie nie ma już czystych kart. Pisz o sobie. Pisz niewiele. Potem zostaw księgę gdzieś niżej, niż na nią trafiono, i wracaj na górę, jeśli zdołasz."""
 Ironhand of the Galt Works,Żelazna Ręka z Odlewni Galt
 "Wipe your boots. No, the other boot as well. Now: you have the Key, or you have a reason to be standing at my door.","Wytrzyjcie buty. Nie, ten drugi też. A teraz: macie Klucz albo dobry powód, by stać pod moimi drzwiami."
 "Floor {floor}. My prices have not gone up since the last one, whatever you may have heard.","Piętro {floor}. Moje ceny nie wzrosły od poprzedniego, cokolwiek wam mówiono."
