@@ -36,3 +36,4 @@ signal ui_overlay_changed(open: bool)
 ## The interface language changed (#32): screens rebuild their texts.
 signal locale_changed
 signal mod_vote_changed(locked: bool)  ## #71: the portal's modifier offer or votes changed
+signal boon_wait_changed  ## #73: who is still choosing a boon changed

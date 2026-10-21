@@ -152,6 +152,7 @@ screenshot review at 1920x1080 and 3440x1440.
 
 ## Eighth playtest issues (GitHub #70-#82)
 
+- [x] #73 Boons: 54 per class + 44 shared (260, each with its own PixelLab icon), three per hero after every boss (stat / item / synergy, tag-weighted), cards with a pick flight and flare, portrait and Character panel badges, portal waits, saved with the hero, average boon set in the balance probes (`boons-*`, `boons-lan`, `balance-*`)
 - [x] #71 Floor modifiers from floor 4 (Swarm, Elite floor, Dimmed, Restless, Hunted): seeded offer of two at the portal, party vote on large cards, host pick, HUD / banner / map badges, Restless meter and Hunted rift telegraphs, floor cost balance probe (`mods`, `mods-lan`, `balance-*`)
 - [x] #75 Loot flies out of its source (arc, spin, rarity trail, bounce, puff, light and sound on landing), no pick-up mid-air, a named legendary guaranteed from each floor's enemies (boss tops it up), legendary beam and message (`drops`, `drops-lan`)
 - [x] #70 Biome order shuffled per cycle from floor 6 (no repeats back to back), mixed floors from floor 6 (invader monsters and sometimes a hazard), boss alternates per biome, floor arrival banner with biome crests and badges (`biomes`, `teleport-lan`)
@@ -282,6 +283,7 @@ gameplay effects (#81) from shaders, particles and the free vfx workbench; re-ro
 | --- | --- | --- | --- | --- | --- |
 | 2026-10-21 | (goal start) | 4330 | 4330 | 0 | 0 |
 | 2026-10-21 | Floor icons: 1 Pixen 128x128 sheet of 16 (5 biome crests, the overrun rift, 5 floor modifiers for #71, 5 events for #72), cut by `tools/cut_icon_sheet.py` | 4330 | 4331 | 1 | 1 |
+| 2026-10-21 | #73 boon icons: 16 Pixen 128x128 sheets of 16 and one 64x64 sheet of 4 (260 boons), sheet 14 redrawn once without tile frames, cut by `tools/cut_icon_sheet.py` | 4331 | 4349 | 18 | 19 |
 
 ## Done (MVP)
 

@@ -146,6 +146,10 @@ Reality returns - the Archivist is weakened!,Rzeczywistość wraca - Archiwista 
 %s vents the green fog!,%s uwalnia zieloną mgłę!
 A vermin swarm darkens the air!,Rój robactwa zaćmiewa powietrze!
 Tidal Flush! Climb a raised platform!,Wielkie Płukanie! Wejdź na podniesioną platformę!
+Boon,Dar
+Power,Moc
+Gift,Dar
+Synergy,Synergia
 Pick up %s,Podnieś: %s
  (requires level %d), (wymaga poziomu %d)
 Head,Głowa
@@ -191,6 +195,11 @@ Echo,Echo
 +%d gold,+%d złota
 %d Gold,%d szt. złota
 Charging %d%%,Ładowanie %d%%
+Choose a boon,Wybierz dar
+Choose,Wybierz
+Later,Później
+It stays with you for the rest of the run,Zostanie z tobą do końca wyprawy
+Skip the boon,Pomiń dar
 Health,Zdrowie
 Maximum health. Raised by Stamina.,Maksymalne zdrowie. Zwiększa je Wytrzymałość.
 Strength,Siła
@@ -232,6 +241,8 @@ Gold,Złoto
 Attributes,Cechy
 Free stat points,Wolne punkty cech
 Run blessings and curses,Błogosławieństwa i klątwy wyprawy
+Boons (%d),Dary (%d)
+No boons yet: one after every boss,Jeszcze bez darów: jeden po każdym bossie
 Skills,Umiejętności
 "Off-class weapon: -%d%% damage, slower cooldowns","Broń innej klasy: -%d%% obrażeń, dłuższe odnowienia"
 Mana regen,Regeneracja many
@@ -248,8 +259,8 @@ Read books to fill the codex. It is kept across every run.,"Czytaj księgi, by z
 "Not read yet. Books drop from bookshelves, secret containers and elite altars.","Jeszcze nieprzeczytana. Księgi wypadają z regałów, ukrytych schowków i elitarnych ołtarzy."
 Accept,Akceptuj
 Refuse,Odmów
-Choose,Wybierz
 Floor %d,Piętro %d
+A boon awaits: step into the portal,Czeka na ciebie dar: wejdź do portalu
 Roam the floor - only doors still answer you,Przemierzaj piętro - odpowiadają ci już tylko drzwi
 Lv 1,Poz. 1
 Talent point,Punkt talentu
@@ -527,7 +538,6 @@ Per tick: ,Na tik:
 ", self",", na siebie"
 On hit,Przy trafieniu
 Scaling,Skalowanie
-Power,Moc
 Critical,Krytyk
 "%d%% chance, +%d%% damage","%d%% szansy, +%d%% obrażeń"
 %d%% of damage,%d%% obrażeń
@@ -828,15 +838,27 @@ Exclusive fullscreen,Wyłączny pełny ekran
 Master,Główna
 English,English
 Polski,Polski
-Physical,Fizyczne
 Fire,Ogień
 Frost,Mróz
-Earth,Ziemia
 Lightning,Błyskawica
+Poison,Trucizna
+Bleed,Krwawienie
 Holy,Świętość
 Shadow,Cień
 Nature,Natura
 Arcane,Arkana
+Earth,Ziemia
+Physical,Fizyczne
+Summon,Przywołanie
+Tanking,Obrona
+Melee,Wręcz
+Ranged,Dystansowe
+Spell,Czar
+Movement,Ruch
+Aura,Aura
+Execute,Egzekucja
+Control,Kontrola
+Loot,Łupy
 True,Czyste
 Vampiric,Wampiryczny
 Frenzied,Szalejący
@@ -872,7 +894,6 @@ On: take torches from the walls to light the dark. Off: every hero carries a ste
 Shared vision,Wspólne widzenie
 Enemies seen by any teammate are visible to everyone.,Wrogowie widziani przez dowolnego towarzysza są widoczni dla wszystkich.
 Move up,Ruch w górę
-Movement,Ruch
 Move down,Ruch w dół
 Move left,Ruch w lewo
 Move right,Ruch w prawo
@@ -2401,7 +2422,6 @@ Bone Cairn,Kościany Kopiec
 Stone Dolmen,Kamienny Dolmen
 Dread Totem,Totem Grozy
 Barrow Coffer,Kufer z Kurhanu
-Poison,Trucizna
 Burning,Płonięcie
 Bleeding,Krwawienie
 Shadow Rot,Zgnilizna Cienia
@@ -2521,7 +2541,6 @@ Ice Barrier,Lodowa Bariera
 Deep Freeze,Głębokie Zamrożenie
 Granite Armor,Granitowy Pancerz
 Static Charge,Ładunek Statyczny
-Spell,Czar
 Dark Bargain,Mroczny Targ
 Mana Shield,Tarcza Many
 Time Warp,Zakrzywienie Czasu
@@ -2612,6 +2631,520 @@ Bleak Pain,Posępny Ból
 Covenant Barrier,Bariera Przymierza
 Penitence,Skrucha
 You stood still too long: you take more damage and burn until you move.,"Za długo stoisz w miejscu: dostajesz większe obrażenia i płoniesz, dopóki się nie ruszysz."
+Kindled Mind,Rozpalony Umysł
++5% fire damage.,+5% obrażeń od ognia.
+Rime-Touched Hands,Dłonie Szronu
++5% frost damage.,+5% obrażeń od mrozu.
+Storm in the Blood,Burza we Krwi
++5% lightning damage.,+5% obrażeń od błyskawic.
+Grave Whispers,Szepty z Grobu
++5% shadow damage.,+5% obrażeń od cienia.
+Bedrock Will,Skalna Wola
++5% earth damage and +5% armor.,+5% obrażeń od ziemi i +5% pancerza.
+Scholar's Focus,Skupienie Uczonego
++5% Intellect.,+5% Intelektu.
+Deep Well,Głęboka Studnia
++6% maximum Mana.,+6% maksymalnej many.
+Warded Robes,Zaklęte Szaty
+-4% damage taken and +4% maximum health.,-4% otrzymywanych obrażeń i +4% maks. zdrowia.
+Dawnfire,Ogień Świtu
++5% holy damage; Luminance heals 15% more.,+5% obrażeń od świętości; Jasność leczy o 15% więcej.
+Permafrost Study,Studium Wiecznej Zmarzliny
+Deep Freeze's cooldown is 20% shorter and Frost Nova costs 20% less Mana.,"Odnowienie Głębokiego Zamrożenia jest o 20% krótsze, a Mroźna Nowa kosztuje o 20% mniej many."
+Rimed Sight,Oszronione Oko
++3% critical strike chance; Frostbolt deals 15% more damage.,+3% szansy na trafienie krytyczne; Lodowy Pocisk zadaje o 15% więcej obrażeń.
+Pyre's Hunger,Głód Stosu
+Fireball deals 20% more damage; Flame Wave's cooldown is 15% shorter.,Kula Ognia zadaje o 20% więcej obrażeń; odnowienie Fali Płomieni jest o 15% krótsze.
+Winter's Reach,Zasięg Zimy
+Blizzard and Frost Nova have a 20% larger radius.,Zamieć i Mroźna Nowa mają o 20% większy promień.
+Forked Sky,Rozwidlone Niebo
+Chain Lightning jumps to 1 more enemy.,Łańcuch Błyskawic przeskakuje na 1 wroga więcej.
+Void Hunger,Głód Pustki
+Drain Soul deals 20% more damage and costs 20% less Mana.,Wyssanie Duszy zadaje o 20% więcej obrażeń i kosztuje o 20% mniej many.
+Granite Oath,Granitowa Przysięga
+Granite Armor lasts 30% longer; Tremor's cooldown is 15% shorter.,Granitowy Pancerz trwa o 30% dłużej; odnowienie Drżenia Ziemi jest o 15% krótsze.
+Hastened Runes,Przyspieszone Runy
+All cooldowns are 8% shorter.,Wszystkie odnowienia są o 8% krótsze.
+Glass Heart,Szklane Serce
+"+9% spell damage and +15% critical damage, but you take 5% more damage.","+9% obrażeń od czarów i +15% obrażeń krytycznych, ale otrzymujesz o 5% więcej obrażeń."
+Rite of the Falling Star,Obrzęd Spadającej Gwiazdy
+Meteor Strike's cooldown is 20% shorter and its radius 25% larger.,"Odnowienie Uderzenia Meteoru jest o 20% krótsze, a jego promień o 25% większy."
+Archmage's Mantle,Płaszcz Arcymaga
++12% spell damage and +4% haste.,+12% obrażeń od czarów i +4% pośpiechu.
+Mana Draughts,Napary Many
+"Three Mana Potions, at once.","Trzy Mikstury Many, od razu."
+Field Remedies,Polowe Lekarstwa
+"Three Health Potions, at once.","Trzy Mikstury Zdrowia, od razu."
+Cloister Robe,Klasztorna Szata
+"A Rare robe, one level above the floor.","Rzadka szata, o jeden poziom wyżej niż piętro."
+Quickening Vials,Fiolki Przyspieszenia
+"Two Haste Potions, at once.","Dwie Mikstury Pośpiechu, od razu."
+Rimecaller Staff,Kostur Przywoływacza Szronu
+A unique staff with bonus Intellect; freezing an enemy restores 4 Mana (once per second).,Unikatowy kostur z premią do Intelektu: zamrożenie wroga przywraca 4 many (raz na sekundę).
+Stormglass Ring,Pierścień Burzowego Szkła
+A unique ring with bonus Intellect; casting a lightning spell gives +20% movement speed for 3 s (once every 8 s).,Unikatowy pierścień z premią do Intelektu: rzucenie czaru błyskawicy daje +20% szybkości ruchu na 3 s (raz na 8 s).
+Ember Wand,Różdżka Żaru
+A unique wand with bonus Intellect; your fire hits scorch armor (-15% armor for 4 s).,Unikatowa różdżka z premią do Intelektu: twoje ogniste trafienia przepalają pancerz (-15% pancerza na 4 s).
+Heart of Rime,Serce Szronu
+A unique trinket with bonus Intellect and Stamina; melee attackers are Chilled for 4 s.,Unikatowy talizman z premią do Intelektu i Wytrzymałości: atakujący cię wręcz zostają Wychłodzeni na 4 s.
+Sealed Reliquary,Zapieczętowany Relikwiarz
+"An Epic piece of mage gear, two levels above the floor.","Epicki element ekwipunku maga, o dwa poziomy wyżej niż piętro."
+The Forbidden Shelf,Zakazana Półka
+"A mage legendary item, at once.","Legendarny przedmiot maga, od razu."
+Searing Splash,Palący Rozprysk
+Your fire hits on a burning enemy splash 30% of their damage to enemies within 70 px.,Twoje ogniste trafienia w płonącego wroga rozpryskują 30% obrażeń na wrogów w promieniu 70 px.
+Scorching Blasts,Przypalające Wybuchy
+Your explosions scorch armor: -15% armor for 5 s on every enemy caught.,Twoje wybuchy przepalają pancerz: -15% pancerza na 5 s dla każdego trafionego wroga.
+Kindling,Rozpałka
+Hitting a burning enemy restores 2 Mana (once every 0.5 s).,"Trafienie płonącego wroga przywraca 2 many (raz na 0,5 s)."
+Ash Harvest,Żniwo Popiołu
+Combustion resets Fireball's cooldown and restores 10 Mana.,Samozapłon odnawia Kulę Ognia i przywraca 10 many.
+Molten Fervour,Roztopiony Zapał
+A critical fire hit gives +30% fire damage for 4 s (once every 10 s).,Krytyczne ogniste trafienie daje +30% obrażeń od ognia na 4 s (raz na 10 s).
+Lingering Embers,Tlący się Żar
+Your damage over time can strike critically.,Twoje obrażenia w czasie mogą trafiać krytycznie.
+Dot Can Crit,Obrażenia w czasie mogą być krytyczne
+Shatter,Roztrzaskanie
+Hitting a frozen enemy shatters the ice around it: frost damage within 60 px (once every 0.5 s).,"Trafienie zamrożonego wroga roztrzaskuje lód wokół niego: obrażenia od mrozu w promieniu 60 px (raz na 0,5 s)."
+Rime Fangs,Kły Szronu
+Chilling an enemy also gives it Frostbite: frost damage every second for 4 s.,Wychłodzenie wroga nakłada też Odmrożenie: obrażenia od mrozu co sekundę przez 4 s.
+Winter's Ward,Osłona Zimy
+Frost Nova also gives you an Ice Barrier that absorbs 15% of your maximum health for 8 s.,"Mroźna Nowa daje ci też Lodową Barierę, która przez 8 s pochłania obrażenia do 15% twojego maks. zdrowia."
+Snap Freeze,Nagły Ziąb
+Each enemy you freeze takes 1 s off Blizzard's cooldown.,Każdy zamrożony przez ciebie wróg skraca odnowienie Zamieci o 1 s.
+Hoarfrost Grip,Uścisk Szronu
+A critical hit on a Chilled enemy freezes it for 1.5 s (once every 6 s).,"Krytyczne trafienie w wychłodzonego wroga zamraża go na 1,5 s (raz na 6 s)."
+Binding Frost,Wiążący Mróz
+"Chilled, slowed, rooted or frozen enemies take 20% more damage from everyone.","Wychłodzeni, spowolnieni, unieruchomieni lub zamrożeni wrogowie otrzymują o 20% więcej obrażeń od wszystkich."
+Astral Shackles,Astralne Kajdany
+Ice Tomb,Lodowy Grobowiec
+A fatal blow encases you in ice for 3 s instead and heals 25% of your maximum health (once every 240 s).,"Śmiertelny cios, zamiast cię zabić, zamyka cię w lodzie na 3 s i leczy cię o 25% maks. zdrowia (raz na 240 s)."
+Shattering Cold,Kruszący Chłód
+"An enemy killed by frost bursts, dealing frost damage within 70 px.","Wróg zabity mrozem wybucha, zadając obrażenia od mrozu w promieniu 70 px."
+Conductive Air,Przewodzące Powietrze
+Your lightning hits put Static Charge on the enemy for 3 s (once every 3 s).,Twoje trafienia błyskawicą nakładają na wroga Ładunek Statyczny na 3 s (raz na 3 s).
+Thunder's Echo,Echo Gromu
+A critical lightning hit arcs to 2 more enemies for 40% of its damage (once every 0.5 s).,"Krytyczne trafienie błyskawicą przeskakuje na 2 kolejnych wrogów, zadając im 40% swoich obrażeń (raz na 0,5 s)."
+Stormcaller,Wzywający Burzę
+Casting a lightning spell gives +15% critical strike chance and +15% haste for 3 s (once every 15 s).,Rzucenie czaru błyskawicy daje +15% szansy na trafienie krytyczne i +15% pośpiechu na 3 s (raz na 15 s).
+Splitting Stone,Pękający Kamień
+Earth Spike sunders its target: -30% armor for 6 s.,Ziemny Kolec rozłupuje cel: -30% pancerza na 6 s.
+Stone Bulwark,Kamienny Bastion
+Tremor makes you take 30% less damage for 4 s.,"Drżenie Ziemi sprawia, że przez 4 s otrzymujesz o 30% mniej obrażeń."
+Soul Tithe,Dziesięcina Dusz
+Killing an enemy with shadow damage restores 8 Mana.,Zabicie wroga obrażeniami od cienia przywraca 8 many.
+Creeping Rot,Pełzająca Zgnilizna
+Shadow Bolt also inflicts Shadow Rot: shadow damage every second for 5 s.,Pocisk Cienia nakłada też Zgniliznę Cienia: obrażenia od cienia co sekundę przez 5 s.
+Hungering Dark,Łaknąca Ciemność
+Hitting an enemy with Shadow Rot heals you for 3% of your maximum health (once per second).,Trafienie wroga dotkniętego Zgnilizną Cienia leczy cię o 3% maks. zdrowia (raz na sekundę).
+Mirror Step,Lustrzany Krok
+Blink makes you reflect projectiles for 2 s.,"Mignięcie sprawia, że przez 2 s odbijasz pociski."
+Dawn's Mercy,Łaska Świtu
+Blinding Radiance heals you for 8% of your maximum health.,Oślepiający Blask leczy cię o 8% maks. zdrowia.
+Consecrated Hands,Uświęcone Dłonie
++5% holy damage.,+5% obrażeń od świętości.
+Shepherd's Patience,Cierpliwość Pasterza
++5% healing done.,+5% zadawanego leczenia.
+Deep Wellspring,Głębokie Źródło
+Quiet Vigil,Ciche Czuwanie
++6% Mana regeneration.,+6% regeneracji many.
+Penitent's Hide,Skóra Pokutnika
++6% armor.,+6% pancerza.
+Umbral Litany,Litania Mroku
+Pilgrim's Vigor,Krzepa Pielgrzyma
++5% maximum health.,+5% maksymalnego zdrowia.
+Ready Ward,Gotowa Osłona
+Power Word: Shield absorbs 15% more and recharges 10% faster.,Słowo Mocy: Tarcza pochłania o 15% więcej i odnawia się o 10% szybciej.
+Mace of the Faithful,Buława Wiernych
++6% melee damage; Holy Strike deals 15% more damage.,+6% obrażeń w zwarciu; Święty Cios zadaje o 15% więcej obrażeń.
+Lasting Grace,Trwała Łaska
+Renew lasts 25% longer and heals 15% more.,Odnowa trwa o 25% dłużej i leczy o 15% więcej.
+Wider Sanctum,Szersze Sanktuarium
+Consecration covers 20% more ground and deals 15% more damage.,Konsekracja obejmuje o 20% większy obszar i zadaje o 15% więcej obrażeń.
+Slow Torment,Powolna Męka
+Shadow Word: Pain lasts 30% longer and deals 15% more damage.,Słowo Cienia: Ból trwa o 30% dłużej i zadaje o 15% więcej obrażeń.
+Zealot's Resolve,Hart Zeloty
++15% threat and 4% less damage taken.,+15% zagrożenia i o 4% mniej otrzymywanych obrażeń.
+Keen Judgement,Bystry Osąd
++3% critical strike chance and +10% critical damage.,+3% szansy na trafienie krytyczne i +10% obrażeń krytycznych.
+Sacred Haste,Święty Pośpiech
++5% haste; Flash Heal costs 15% less Mana.,+5% pośpiechu; Błyskawiczne Leczenie kosztuje o 15% mniej many.
+Bulwark of Faith,Przedmurze Wiary
++5% block chance and +8% armor.,+5% szansy na blok i +8% pancerza.
+Litany of Swiftness,Litania Chyżości
+Your skills recharge 7% faster.,Twoje umiejętności odnawiają się o 7% szybciej.
+Wrath of the Pulpit,Gniew Ambony
++8% holy damage; Holy Fire deals 20% more damage.,+8% obrażeń od świętości; Święty Ogień zadaje o 20% więcej obrażeń.
+Hymn of Night,Hymn Nocy
++8% shadow damage; Mind Blast recharges 20% faster.,+8% obrażeń od cienia; Wstrząs Umysłu odnawia się o 20% szybciej.
+Saintly Vessel,Święte Naczynie
++12% healing done and +10% maximum Mana.,+12% zadawanego leczenia i +10% maksymalnej many.
+Phials of Grace,Fiolki Łaski
+Votive Draughts,Wotywne Napary
+Pilgrim's Tinctures,Nalewki Pielgrzyma
+Hallowed Wand,Uświęcona Różdżka
+"A Rare holy wand, at once.","Rzadka święta różdżka, od razu."
+Temple Armory,Zbrojownia Świątyni
+"An Epic shield, at once.","Epicka tarcza, od razu."
+Reliquary Vestments,Szaty z Relikwiarza
+"An Epic robe, one item level above the floor, at once.","Epicka szata, o jeden poziom przedmiotu wyżej niż piętro, od razu."
+Censer of Embers,Kadzielnica Żaru
+A unique trinket: +6 Intellect; Holy Fire also slows the target by 40% for 3 s.,Unikatowy talizman: +6 Intelektu; Święty Ogień spowalnia też cel o 40% na 3 s.
+Penitent's Buckler,Puklerz Pokutnika
+A unique shield: +6 Stamina; blocking makes you take 30% less damage for 2 s (once per 8 s).,Unikatowa tarcza: +6 Wytrzymałości; po bloku przez 2 s otrzymujesz o 30% mniej obrażeń (raz na 8 s).
+Saint's Relic,Relikwia Świętego
+"A legendary item for your class, at once.","Legendarny przedmiot dla twojej klasy, od razu."
+Wand of Last Rites,Różdżka Ostatnich Obrzędów
+A unique holy wand: +5 Strength and +4 Intellect; your melee hits heal the most injured ally (once per 0.5 s).,"Unikatowa święta różdżka: +5 Siły i +4 Intelektu; twoje ciosy w zwarciu leczą najbardziej rannego sojusznika (raz na 0,5 s)."
+Searing Smite,Palące Porażenie
+Smite sets the target ablaze with Holy Fire for 4 s.,Porażenie podpala cel Świętym Ogniem na 4 s.
+Cleansing Flame,Oczyszczający Płomień
+Hitting an enemy burning with Holy Fire heals you for 1.5% of your maximum health (once per 0.5 s).,"Trafienie wroga płonącego Świętym Ogniem leczy cię o 1,5% maksymalnego zdrowia (raz na 0,5 s)."
+Pyre of the Damned,Stos Potępionych
+"An enemy slain by holy damage bursts in holy fire, hurting enemies within 80 px.","Wróg zabity obrażeniami od świętości wybucha świętym ogniem, raniąc wrogów w promieniu 80 px."
+Sermon of Embers,Kazanie Żaru
+Holy Fire's burn also spreads to one more enemy within 90 px.,Podpalenie Świętego Ognia przenosi się też na jeszcze jednego wroga w promieniu 90 px.
+Whispered Agony,Szeptana Agonia
+Mind Blast also afflicts the target with Shadow Word: Pain.,Wstrząs Umysłu nakłada też na cel Słowo Cienia: Ból.
+Feeding Shadows,Żarłoczne Cienie
+Your shadow damage heals you for 15% of the damage dealt (once per 0.3 s).,"Twoje obrażenia od cienia leczą cię o 15% zadanych obrażeń (raz na 0,3 s)."
+Spreading Rot,Szerząca się Zgnilizna
+Shadow Word: Pain also afflicts one more enemy within 90 px of the target.,Słowo Cienia: Ból dotyka też jeszcze jednego wroga w promieniu 90 px od celu.
+Death's Tithe,Dziesięcina Śmierci
+Slaying an enemy with shadow damage restores 8 Mana.,Zabicie wroga obrażeniami od cienia przywraca 8 many.
+Black Communion,Czarna Komunia
+Your shadow critical strikes heal the most injured ally for 30% of the damage dealt.,Twoje krytyczne trafienia cieniem leczą najbardziej rannego sojusznika o 30% zadanych obrażeń.
+Shield Hymn,Hymn Tarczy
+Casting Power Word: Shield makes you and allies within 150 px take 30% less damage for 3 s.,"Gdy rzucasz Słowo Mocy: Tarcza, ty i sojusznicy w promieniu 150 px otrzymujecie przez 3 s o 30% mniej obrażeń."
+Blinding Bulwark,Oślepiająca Zapora
+Blocking an attack blinds the attacker for 2 s (once per 4 s).,Zablokowanie ataku oślepia napastnika na 2 s (raz na 4 s).
+Sanctified Riposte,Uświęcona Riposta
+Blocking an attack fires a free Smite at the attacker (once per 1.5 s).,"Zablokowanie ataku rzuca w napastnika darmowe Porażenie (raz na 1,5 s)."
+Vow of the Sentinel,Ślub Strażnika
+Falling below 30% health grants you Divine Aegis for 4 s (once per 60 s).,Spadek poniżej 30% zdrowia daje ci Boską Egidę na 4 s (raz na 60 s).
+Grace Returned,Zwrócona Łaska
+Healing an ally restores 6 Mana (once per 2 s).,Uleczenie sojusznika przywraca 6 many (raz na 2 s).
+Shared Grace,Wspólna Łaska
+Prayer of Healing also places Renew on everyone it heals for 6 s.,"Modlitwa Uzdrowienia nakłada też na 6 s Odnowę na każdego, kogo uleczy."
+Mending Echo,Echo Uzdrowienia
+Flash Heal also places Renew on its target.,Błyskawiczne Leczenie nakłada też na cel Odnowę.
+Hand of Mercy,Ręka Miłosierdzia
+Melee hits on an enemy under Judgement heal the most injured ally (once per 0.5 s).,"Ciosy w zwarciu we wroga objętego Osądem leczą najbardziej rannego sojusznika (raz na 0,5 s)."
+Zealous Insight,Gorliwe Natchnienie
+"Critical strikes grant Focus (+15% critical strike chance and haste) for 3 s, once per 10 s.","Trafienia krytyczne dają Skupienie (+15% szansy na trafienie krytyczne i +15% pośpiechu) na 3 s, raz na 10 s."
+Burning Sanctum,Płonące Sanktuarium
+"While you stand in your Consecration, your melee hits set enemies ablaze with Holy Fire for 3 s.","Gdy stoisz w swojej Konsekracji, twoje ciosy w zwarciu podpalają wrogów Świętym Ogniem na 3 s."
+Halo of Embers,Aureola Żaru
+"Every 2 s, holy light sears enemies within 70 px of you.",Co 2 s święte światło pali wrogów w promieniu 70 px od ciebie.
+Stern Rebuke,Surowe Upomnienie
+Rebuke also blinds the target for 2 s.,Upomnienie oślepia też cel na 2 s.
+Judge's Verdict,Wyrok Sędziego
+Chastise also brands the target with Judgement for 6 s.,Skarcenie naznacza też cel Osądem na 6 s.
+Nova Burst,Rozbłysk Nowej
+Holy Nova also erupts in a holy explosion that hits enemies within 140 px.,"Święta Nowa wywołuje też święty wybuch, który rani wrogów w promieniu 140 px."
+Blinding Blast,Oślepiający Wybuch
+Enemies within 70 px of your explosions are blinded for 2 s.,Wrogowie w promieniu 70 px od twoich wybuchów zostają oślepieni na 2 s.
+Hawk's Gaze,Spojrzenie Jastrzębia
++3% critical strike chance and +3% ranged damage.,+3% szansy na trafienie krytyczne i +3% obrażeń dystansowych.
+Barbed Heads,Groty z Zadziorami
++10% critical damage; Power Shot and Piercing Bolt deal 15% more damage.,+10% obrażeń krytycznych; Potężny Strzał i Przebijający Bełt zadają o 15% więcej obrażeń.
+Marksman's Eye,Oko Strzelca
++5% critical strike chance and +20% critical damage.,+5% szansy na trafienie krytyczne i +20% obrażeń krytycznych.
+Fletcher's Craft,Kunszt Łuczarza
++5% ranged damage.,+5% obrażeń dystansowych.
+Quick Draw,Szybki Naciąg
++3% haste and +3% movement speed.,+3% pośpiechu i +3% szybkości ruchu.
+Adder's Bile,Gadzia Żółć
++4% nature damage; Viper Arrow deals 20% more damage.,+4% obrażeń od natury; Strzała Żmii zadaje o 20% więcej obrażeń.
+Patient Venom,Cierpliwy Jad
+Viper Arrow and Venomous Vapors poison 30% longer.,Trucizna Strzały Żmii i Jadowitych Oparów trwa o 30% dłużej.
+Wide Snares,Szerokie Sidła
++15% trap radius.,+15% promienia pułapek.
+Black Powder,Czarny Proch
+Explosive Trap deals 25% more damage in a 15% wider blast.,"Pułapka Wybuchowa zadaje o 25% więcej obrażeń, a jej wybuch jest o 15% szerszy."
+Quick Springs,Lekkie Sprężyny
+"Snare Trap, Explosive Trap and Caltrops recharge 20% faster.","Pułapka Sidłowa, Pułapka Wybuchowa i Kolczatki odnawiają się o 20% szybciej."
+Fleet Foot,Chyży Krok
++4% movement speed; Disengage costs 25% less Mana.,+4% szybkości ruchu; Odskok kosztuje o 25% mniej many.
+Wary Stance,Czujna Postawa
++3% dodge chance and 5% less damage from ranged attacks.,+3% szansy na unik i o 5% mniej obrażeń od ataków dystansowych.
+Quick Retreat,Szybki Odwrót
+Disengage recharges 20% faster.,Odskok odnawia się o 20% szybciej.
+Deep Reserves,Głębokie Zasoby
++8% maximum Mana and +6% Mana regeneration.,+8% maks. many i +6% regeneracji many.
+Wider Volley,Szersza Salwa
+Multishot fires 1 more arrow.,Salwa wystrzeliwuje 1 strzałę więcej.
+Darkened Sky,Zaćmione Niebo
+Rain of Arrows covers a 25% larger area and lasts 25% longer.,Deszcz Strzał pokrywa o 25% większy obszar i trwa o 25% dłużej.
+Open Veins,Otwarte Żyły
+Arterial Shot deals 25% more damage and its bleeding lasts 30% longer.,"Strzał w Tętnicę zadaje o 25% więcej obrażeń, a jego krwawienie trwa o 30% dłużej."
+Trophy Hunter,Łowca Trofeów
++8% damage against bosses; Hunter's Mark recharges 25% faster.,+8% obrażeń przeciw bossom; Znak Łowcy odnawia się o 25% szybciej.
+Blood Fletching,Krwawe Lotki
++2% leech and +5% physical damage.,+2% wysysania i +5% obrażeń fizycznych.
+Second Snare,Drugie Sidła
+You can keep 1 more trap armed at once.,Możesz mieć naraz o 1 uzbrojoną pułapkę więcej.
+Masterwork Bow,Mistrzowski Łuk
+"An Epic bow for you, at once.",Otrzymujesz od razu epicki łuk.
+Heavy Arbalest,Ciężka Arbaleta
+"An Epic crossbow 2 levels above the floor, at once.","Otrzymujesz od razu epicką kuszę, o 2 poziomy przedmiotu wyżej niż piętro."
+Spare Quiver,Zapasowy Kołczan
+"A Rare quiver, at once.",Otrzymujesz od razu rzadki kołczan.
+Herbalist's Satchel,Torba Zielarza
+3 Mana Potions.,3 Mikstury Many.
+Trail Boots,Buty Tropiciela
+"Rare boots, at once.",Otrzymujesz od razu rzadkie buty.
+Poacher's Hood,Kaptur Kłusownika
+"An Epic hood (+Agility, +Stamina): an enemy caught in your trap hides you in mist for 2 s (once every 6 s).","Epicki kaptur (+Zręczność, +Wytrzymałość): gdy wróg wpadnie w twoją pułapkę, mgła skrywa cię na 2 s (raz na 6 s)."
+Wolf-Fang Necklace,Naszyjnik z Wilczych Kłów
+An Epic necklace (+Agility): Hunter's Mark also gives you +10% critical strike chance for 8 s.,Epicki naszyjnik (+Zręczność): Znak Łowcy daje ci też +10% szansy na trafienie krytyczne na 8 s.
+Black Stag Bow,Łuk Czarnego Jelenia
+An Epic bow (+Agility): Power Shot brands every enemy it hits with Hunter's Mark for 8 s.,Epicki łuk (+Zręczność): Potężny Strzał piętnuje każdego trafionego wroga Znakiem Łowcy na 8 s.
+Widow's Sling,Proca Wdowy
+An Epic sling (+Agility): Aimed Shot has a 20% chance to poison the target for 4 s.,Epicka proca (+Zręczność): Celny Strzał ma 20% szansy na zatrucie celu na 4 s.
+Trapper's Band,Pierścień Trapera
+"An Epic ring (+Agility, +Stamina): an enemy caught in your trap restores 10 Mana.","Epicki pierścień (+Zręczność, +Wytrzymałość): schwytanie wroga w twoją pułapkę przywraca ci 10 many."
+Seeking Venom,Tropiący Jad
+A poisoned enemy that dies looses a free Viper Arrow at the nearest foe.,Zatruty wróg po śmierci wypuszcza darmową Strzałę Żmii w najbliższego przeciwnika.
+Venom Wellspring,Źródło Jadu
+"Your nature damage restores 4 Mana, at most once per second.","Twoje obrażenia od natury przywracają 4 many, najwyżej raz na sekundę."
+Corrosive Venom,Żrący Jad
+Your poisons also eat away -3% armor and magic resistance per stack for 6 s (stacks 6x).,Każdy ładunek twoich trucizn nakłada też na cel -3% pancerza i odporności na magię na 6 s (kumuluje się 6x).
+Blighted Ground,Skażona Ziemia
+A poisoned enemy that dies leaves a 70 px toxic cloud for 3 s that poisons and hurts foes inside.,"Zatruty wróg po śmierci zostawia toksyczną chmurę (70 px) na 3 s, która truje i rani wrogów w środku."
+Splintering Heads,Pękające Groty
+Critical hits burst into splinters: 30% of the damage to every other enemy within 80 px.,Trafienia krytyczne rozpryskują drzazgi: 30% obrażeń dla każdego innego wroga w promieniu 80 px.
+Hunter's Rhythm,Rytm Łowcy
+Critical hits shorten the cooldowns of Multishot and Power Shot by 1 s (at most twice per second).,Trafienia krytyczne skracają odnowienie Salwy i Potężnego Strzału o 1 s (najwyżej dwa razy na sekundę).
+Ripping Barbs,Rwące Zadziory
+Arterial Shot also opens 2 stacks of Bleeding for 5 s.,Strzał w Tętnicę nakłada też 2 ładunki Krwawienia na 5 s.
+Red Trail,Czerwony Trop
+"Aimed Shot or Multishot hitting a bleeding enemy restores 3 Mana, at most once per second.","Celny Strzał lub Salwa trafiające krwawiącego wroga przywracają 3 many, najwyżej raz na sekundę."
+Crippling Wounds,Okaleczające Rany
+Enemies you make bleed are crippled: -40% movement speed for 3 s.,"Wrogowie, u których wywołujesz krwawienie, zostają okaleczeni: -40% szybkości ruchu na 3 s."
+Scattering Volley,Salwa w Biegu
+Dodge-rolling fires a free Multishot at the nearest enemy.,Przewrót wystrzeliwuje darmową Salwę w najbliższego wroga.
+Shadow Step,Krok w Cień
+Dodge-rolling grants +20% dodge chance for 2 s.,Przewrót daje +20% szansy na unik na 2 s.
+Scattered Spikes,Rozsiane Kolce
+"Disengage scatters spikes where you leapt from (80 px, 4 s): they slow and hurt enemies.","Odskok rozsypuje kolce w miejscu wybicia (80 px, 4 s): spowalniają i ranią wrogów."
+Hit and Run,Uderz i Uciekaj
+Each kill grants +25% movement speed for 3 s.,Każde zabójstwo daje +25% szybkości ruchu na 3 s.
+Stalker's Calm,Spokój Tropiciela
+Standing still for 2 s grants +15% critical strike chance and +15% haste until you move.,"Bezruch przez 2 s daje +15% szansy na trafienie krytyczne i +15% pośpiechu, dopóki się nie ruszysz."
+Fresh Bait,Świeża Przynęta
+"Each kill shortens the cooldowns of Snare Trap, Explosive Trap and Caltrops by 2 s.","Każde zabójstwo skraca odnowienie Pułapki Sidłowej, Pułapki Wybuchowej i Kolczatek o 2 s."
+Concussion Charge,Ładunek Ogłuszający
+Your explosions knock enemies within 80 px down for 1 s (once every 2 s).,Twoje wybuchy powalają wrogów w promieniu 80 px na 1 s (raz na 2 s).
+Volatile Flask,Wybuchowa Flaszka
+Acid Flask also bursts into a 60 px fire explosion that sets enemies burning for 3 s.,"Flaszka Kwasu wybucha też ogniem (60 px), podpalając wrogów na 3 s."
+Tripwire Charge,Wybuchowe Sidła
+Snare Trap also explodes: fire damage to every enemy within 80 px.,Pułapka Sidłowa także wybucha: obrażenia od ognia dla wszystkich wrogów w promieniu 80 px.
+Trapper's Instinct,Instynkt Trapera
+"An enemy caught in your trap grants you Haste for 4 s (+30% haste, +15% movement speed).","Wróg schwytany w twoją pułapkę daje ci Pośpiech na 4 s (+30% pośpiechu, +15% szybkości ruchu)."
+Weakening Snares,Osłabiające Sidła
+Enemies caught in your traps are weakened: -15% damage dealt for 5 s.,Wrogowie schwytani w twoje pułapki zostają osłabieni: -15% zadawanych obrażeń na 5 s.
+Serpent's Venom,Jad Węża
+Serpent's Grip also poisons the target with 2 stacks.,Uścisk Węża zatruwa też cel 2 ładunkami trucizny.
+Mark of Ruin,Znak Zguby
+Hunter's Mark also eats into the target's armor: -10% armor for 6 s.,Znak Łowcy przeżera też pancerz celu: -10% pancerza na 6 s.
+Survivor's Cunning,Spryt Ocalałego
+Falling below 30% health wraps you in smoke: +50% dodge chance for 3 s (once every 30 s).,Spadek poniżej 30% zdrowia spowija cię dymem: +50% szansy na unik na 3 s (raz na 30 s).
+Arrow Storm,Nawałnica Strzał
+Rapid Fire also resets the cooldowns of Multishot and Trickshot.,Szybki Ostrzał natychmiast odnawia też Salwę i Strzał Rykoszetem.
+Iron Skin,Żelazna Skóra
++10% armor and +4% maximum health.,+10% pancerza i +4% maks. zdrowia.
+Veteran's Cache,Skrytka Weterana
+"An Epic piece of gear for your class, at once.","Epicki element ekwipunku dla twojej klasy, od razu."
+Volatile Venom,Wybuchowy Jad
+"A poisoned enemy bursts when it dies, hurting everything close.","Zatruty wróg wybucha przy śmierci, raniąc wszystko w pobliżu."
+Cinder Trail,Szlak Żaru
+Your explosions leave the ground burning for 3 s.,Twoje wybuchy podpalają ziemię na 3 s.
+Thick Hide,Gruba Skóra
++6% maximum health.,+6% maks. zdrowia.
+Keen Eye,Bystre Oko
++3% critical strike chance.,+3% szansy na trafienie krytyczne.
+Light Feet,Lekkie Stopy
++3% dodge chance.,+3% szansy na unik.
+Fleet Step,Rączy Krok
++6% movement speed.,+6% szybkości ruchu.
+Quickened Blood,Wartka Krew
++4% haste.,+4% pośpiechu.
+Steady Nerves,Stalowe Nerwy
+You take 4% less damage.,Otrzymujesz o 4% mniej obrażeń.
+Mender's Grace,Łaska Uzdrowiciela
++5% healing done and +5% healing received.,+5% zadawanego leczenia i +5% otrzymywanego leczenia.
+Whetted Steel,Naostrzona Stal
++5% physical damage.,+5% obrażeń fizycznych.
+Brimstone Blood,Siarczana Krew
++6% fire damage.,+6% obrażeń od ognia.
+Viper's Blood,Krew Żmii
+"+6% nature damage, poisons included.","+6% obrażeń od natury, także od trucizn."
+Cruel Edge,Okrutne Ostrze
++15% critical strike damage.,+15% obrażeń krytycznych.
+Vampire's Thirst,Pragnienie Wampira
++2% leech.,+2% wysysania.
+Giant's Bane,Zguba Olbrzymów
++8% damage to bosses.,+8% obrażeń zadawanych bossom.
+Clear Mind,Jasny Umysł
+Your skill cooldowns are 8% shorter.,Czasy odnowienia twoich umiejętności są o 8% krótsze.
+Wyrmblood,Smocza Krew
+"+10% maximum health, 5% less damage taken and +2% leech.","+10% maks. zdrowia, o 5% mniej otrzymywanych obrażeń i +2% wysysania."
+Apothecary's Satchel,Torba Aptekarza
+"3 Health Potions, at once.","3 Mikstury Zdrowia, od razu."
+Field Rations,Racje Polowe
+"4 portions of food, at once.","4 porcje jedzenia, od razu."
+Tinker's Tonics,Toniki Druciarza
+"3 Haste Potions, at once.","3 Mikstury Pośpiechu, od razu."
+Twin Spoils,Podwójny Łup
+"Two Rare pieces of gear for your class, at once.","Dwa rzadkie elementy ekwipunku dla twojej klasy, od razu."
+Wanderer's Signet,Sygnet Wędrowca
+A unique ring with Stamina: every dodge roll gives +20% movement speed for 2 s.,Unikatowy pierścień z premią do Wytrzymałości: każdy przewrót daje +20% szybkości ruchu na 2 s.
+Forgemaster's Bounty,Dar Mistrza Kuźni
+"Two Epic pieces of gear for your class, 1 item level higher, at once.","Dwa epickie elementy ekwipunku dla twojej klasy, o 1 poziom przedmiotu wyżej, od razu."
+Fallen Hero's Relic,Relikwia Poległego Bohatera
+Fever Blast,Morowy Wybuch
+Your explosions poison everything they hit for 5 s.,"Twoje wybuchy zatruwają wszystko, w co trafią, na 5 s."
+Grave Contagion,Grobowa Zaraza
+A poisoned enemy that dies passes its poison to every enemy within 90 px.,"Zatruty wróg, który ginie, przekazuje truciznę wszystkim wrogom w promieniu 90 px."
+Flashpoint,Punkt Zapłonu
+Hitting a burning enemy sets off a small fire explosion around it (once per 2 s).,Trafienie płonącego wroga wywołuje wokół niego mały ognisty wybuch (raz na 2 s).
+Iron Shrapnel,Żelazne Odłamki
+Your explosions make everything they hit bleed for 4 s.,"Wszystko, w co trafią twoje wybuchy, krwawi przez 4 s."
+Weeping Wounds,Płaczące Rany
+Critical hits make the target bleed for 4 s.,Po trafieniu krytycznym cel krwawi przez 4 s.
+Blood Scent,Woń Krwi
+Hitting a bleeding enemy heals you for 2% of your maximum health (once per 1.5 s).,"Trafienie krwawiącego wroga leczy cię o 2% maks. zdrowia (raz na 1,5 s)."
+Sanguine Edge,Krwawe Ostrze
+Critical hits heal you for 2% of your maximum health (once per second).,Trafienia krytyczne leczą cię o 2% maks. zdrowia (raz na sekundę).
+Cold Focus,Zimne Skupienie
+A critical hit gives Focus: +15% critical strike chance and +15% haste for 4 s (once per 12 s).,Trafienie krytyczne daje Skupienie: +15% szansy na trafienie krytyczne i +15% pośpiechu na 4 s (raz na 12 s).
+Counter Cut,Cięcie Odwetu
+Dodging an attack strikes the attacker back for physical damage.,"Gdy unikniesz ataku, uderzasz napastnika, zadając obrażenia fizyczne."
+Slipstream,Śliski Krok
+Dodging an attack readies your dodge roll at once (once per 5 s).,"Gdy unikniesz ataku, przewrót jest od razu gotowy (raz na 5 s)."
+Carrion Feast,Uczta Padlinożercy
+Each kill heals you for 3% of your maximum health.,Każde zabójstwo leczy cię o 3% maks. zdrowia.
+Soul Siphon,Syfon Dusz
+Each kill restores 12% of your maximum Mana or Fury.,Każde zabójstwo przywraca 12% maksymalnej many lub Furii.
+Battle Rhythm,Rytm Rzezi
+"Each kill gives +5% haste for 6 s, stacking up to 5 times.",Każde zabójstwo daje +5% pośpiechu na 6 s (kumuluje się do 5 razy).
+Bone Ward,Kościana Osłona
+Each kill shields you for 5% of your maximum health for 6 s (once per 3 s).,Każde zabójstwo osłania cię tarczą równą 5% maks. zdrowia na 6 s (raz na 3 s).
+Warding Cast,Ochronny Czar
+Attacking or using a skill shields you for 8% of your maximum health for 5 s (once per 8 s).,Atak lub użycie umiejętności osłania cię tarczą równą 8% maks. zdrowia na 5 s (raz na 8 s).
+Last Bulwark,Ostatni Bastion
+Falling below 30% health shields you for 20% of your maximum health for 6 s (once per 60 s).,Spadek zdrowia poniżej 30% osłania cię tarczą równą 20% maks. zdrowia na 6 s (raz na 60 s).
+Mending Rest,Kojący Spoczynek
+"After standing still for 2 s, you heal 1% of your maximum health every second.",Po 2 s bezruchu leczysz się o 1% maks. zdrowia co sekundę.
+Cheat the Grave,Oszukać Śmierć
+"Once every 2 minutes, a killing blow leaves you at 1 health and invulnerable for 2 s.",Raz na 2 minuty śmiertelny cios zostawia cię z 1 punktem zdrowia i daje ci 2 s nietykalności.
+Ox Hide,Wołowa Skóra
+Thick Blood,Gęsta Krew
+Seething Wrath,Kipiący Gniew
++6% Fury generation.,+6% generowania Furii.
+Measured Wrath,Wyważony Gniew
+Cleave and Whirlwind cost 15% less Fury.,Rozpłatanie i Wir kosztują o 15% mniej Furii.
+Honed Edge,Wyostrzona Klinga
++4% critical strike chance.,+4% szansy na trafienie krytyczne.
+Shield Drill,Tarczowa Musztra
++4% block chance.,+4% szansy na blok.
+Battle Tempo,Rytm Bitwy
++5% haste.,+5% pośpiechu.
+Cleaving Weight,Ciężar Rozpłatania
+Cleave deals 15% more damage.,Rozpłatanie zadaje o 15% więcej obrażeń.
+Booming Challenge,Gromkie Wyzwanie
+"+15% threat, and Taunting Shout's cooldown is 15% shorter.","+15% zagrożenia, a czas odnowienia Prowokującego Okrzyku jest o 15% krótszy."
+Lasting Rage,Trwały Szał
+Berserker Rage lasts 20% longer.,Szał Berserkera trwa o 20% dłużej.
+Drilled Veteran,Wyćwiczony Weteran
+Your cooldowns are 4% shorter.,Twoje czasy odnowienia są o 4% krótsze.
+Butcher's Eye,Oko Rzeźnika
++15% critical damage.,+15% obrażeń krytycznych.
+Braced Stance,Pewna Postawa
++3% block chance and +5% armor.,+3% szansy na blok i +5% pancerza.
+Hardened Scars,Zahartowane Blizny
+You take 5% less damage.,Otrzymujesz o 5% mniej obrażeń.
+Red Thirst,Czerwone Pragnienie
++2% leech and +3% melee damage.,+2% wysysania i +3% obrażeń w zwarciu.
+Headsman's Practice,Wprawa Kata
+Execute deals 20% more damage.,Egzekucja zadaje o 20% więcej obrażeń.
+Ruthless Mastery,Bezlitosne Mistrzostwo
++9% melee damage and +3% critical strike chance.,+9% obrażeń w zwarciu i +3% szansy na trafienie krytyczne.
+Titan's Frame,Postura Tytana
++8% maximum health and +8% armor.,+8% maksymalnego zdrowia i +8% pancerza.
+Giant Slayer,Pogromca Olbrzymów
++10% damage against bosses.,+10% obrażeń zadawanych bossom.
+Mountain's Strength,Siła Góry
++10% Strength and +5% physical damage.,+10% Siły i +5% obrażeń fizycznych.
+Armory Spoils,Łupy ze Zbrojowni
+"A Rare breastplate, two item levels above the floor.","Rzadki napierśnik, o dwa poziomy przedmiotu wyżej niż piętro."
+Camp Surgeon's Kit,Torba Felczera
+"Three health potions, at once.","Trzy Mikstury Zdrowia, od razu."
+Battle Draughts,Bitewne Napary
+"Four haste potions, at once.","Cztery Mikstury Pośpiechu, od razu."
+Tower of Oak,Dębowa Baszta
+Iron Temper Ring,Pierścień Żelaznego Hartu
+A unique ring with Stamina: knockbacks and pulls can't move you.,Unikatowy pierścień z premią do Wytrzymałości: odrzucenia i przyciągnięcia nie mogą cię przesunąć.
+Forge-Hot Greatblade,Rozżarzony Miecz
+"An Epic greatsword, one item level above the floor.","Epicki wielki miecz, o jeden poziom przedmiotu wyżej niż piętro."
+Gorehook Axe,Topór Krwawego Haka
+A unique axe with Strength: melee hits on a bleeding enemy deal 20% extra damage.,Unikatowy topór z premią do Siły: trafienia w zwarciu w krwawiącego wroga zadają 20% dodatkowych obrażeń.
+Ember Bulwark,Tarcza Żaru
+"A unique shield with Stamina: blocking scorches enemies within 60 px with fire, at most once every 2 s.","Unikatowa tarcza z premią do Wytrzymałości: blok parzy ogniem wrogów w promieniu 60 px, najwyżej raz na 2 s."
+Groundsplitter Maul,Młot Łamiący Ziemię
+A unique warhammer with Strength: critical melee hits send 40% of their damage into enemies around the target.,Unikatowy młot bojowy z premią do Siły: krytyczne trafienia w zwarciu przenoszą 40% swoich obrażeń na wrogów wokół celu.
+Warlord's Hoard,Skarbiec Wodza
+"Two Epic pieces of gear for your class, at once.","Dwa epickie przedmioty dla twojej klasy, od razu."
+Weeping Cuts,Sączące się Cięcia
+Your critical melee hits make the target bleed for 5 s.,Twoje krytyczne trafienia w zwarciu wywołują u celu krwawienie na 5 s.
+Carrion Hunger,Głód Padlinożercy
+Melee hits on a bleeding enemy heal you for 1% of your maximum health.,Trafienia w zwarciu w krwawiącego wroga leczą cię o 1% maks. zdrowia.
+Spreading Wounds,Szerzące się Rany
+Melee hits on a bleeding enemy make up to 2 enemies close to it bleed for 4 s.,Trafienia w zwarciu w krwawiącego wroga wywołują na 4 s krwawienie u najwyżej 2 wrogów w jego pobliżu.
+Gaping Wound,Ziejąca Rana
+"Critical hits on a bleeding enemy leave it Sundered (-30% armor) for 4 s, at most once every 2 s.","Trafienia krytyczne w krwawiącego wroga sprawiają, że przez 4 s jest Rozłupany (-30% pancerza), najwyżej raz na 2 s."
+Bloodletter,Upust Krwi
+Enemies you make bleed are slowed by 40% for 3 s.,"Wrogowie, u których wywołujesz krwawienie, zostają spowolnieni o 40% na 3 s."
+Spoils of Rage,Łupy Szału
+Each kill gives you 20 Fury.,Każde zabójstwo daje ci 20 Furii.
+Anvil's Answer,Odpowiedź Kowadła
+Each blocked attack gives you 12 Fury.,Każdy zablokowany atak daje ci 12 Furii.
+Endless Grudge,Wieczna Uraza
+Your Fury no longer decays out of combat.,Twoja Furia nie zanika już poza walką.
+No Fury Decay,Furia nie zanika
+Blasting Fury,Wybuchowa Furia
+Each of your explosions gives you 15 Fury.,Każdy twój wybuch daje ci 15 Furii.
+Boiling Blood,Wrząca Krew
+While you have 80 Fury or more you gain Focus: +15% critical strike chance and haste.,"Gdy masz co najmniej 80 Furii, zyskujesz Skupienie: +15% szansy na trafienie krytyczne i +15% pośpiechu."
+Rolling Wrath,Toczący się Gniew
+Each dodge roll gives you 8 Fury.,Każdy przewrót daje ci 8 Furii.
+Deathless Rage,Nieśmiertelny Szał
+"Once every 120 s a killing blow leaves you alive, heals you for 20% of your maximum health and grants Berserker Rage for 6 s.","Raz na 120 s przeżywasz śmiertelny cios, odzyskujesz 20% maks. zdrowia i wpadasz w Szał Berserkera na 6 s."
+Spiked Rim,Kolczasty Rant
+Blocking an attack strikes the attacker back for physical damage.,Zablokowanie ataku odpłaca napastnikowi obrażeniami fizycznymi.
+Blackpowder Rim,Prochowy Rant
+"Blocking sets off a blast that hurts enemies within 70 px, at most once per second.","Blok odpala wybuch raniący wrogów w promieniu 70 px, najwyżej raz na sekundę."
+Shattering Blows,Druzgocące Ciosy
+"Enemies you slay in melee burst, hurting everything within 70 px.","Wrogowie zabici przez ciebie w zwarciu wybuchają, raniąc wszystko w promieniu 70 px."
+Concussive Blasts,Ogłuszające Wybuchy
+"Your explosions knock enemies down for 1 s, at most once every 2 s.","Twoje wybuchy powalają wrogów na 1 s, najwyżej raz na 2 s."
+Bone Breaker,Łamacz Kości
+"Critical melee hits knock the target down for 1 s, at most once every 4 s.","Krytyczne trafienia w zwarciu powalają cel na 1 s, najwyżej raz na 4 s."
+Warden's Challenge,Wyzwanie Strażnika
+Taunting Shout leaves enemies within 180 px Weakened (-15% damage) for 5 s.,"Prowokujący Okrzyk sprawia, że wrogowie w promieniu 180 px są przez 5 s Osłabieni (-15% obrażeń)."
+Cracked Earth,Spękana Ziemia
+"Landing from Deadly Charge or Heroic Leap cracks the ground for 3 s, slowing enemies on it.","Lądowanie po Śmiercionośnej Szarży lub Heroicznym Skoku rozłupuje ziemię na 3 s, spowalniając stojących na niej wrogów."
+Stand Your Ground,Nie Ustępuj Pola
+After standing still for 2 s you are Fortified (30% less damage taken) until you move.,"Po 2 s bez ruchu otrzymujesz o 30% mniej obrażeń (Umocniony), dopóki się nie ruszysz."
+Victor's Feast,Uczta Zwycięzcy
+Each kill heals you for 4% of your maximum health.,Każde zabójstwo leczy cię o 4% maks. zdrowia.
+Rallying Banner,Sztandar Zbiórki
+Battle Cry also heals the party within 250 px for 8% of their maximum health.,Okrzyk Bojowy leczy też sojuszników w promieniu 250 px o 8% ich maks. zdrowia.
+Killing Momentum,Rozpęd Rzezi
+"Each kill takes 2 s off the cooldowns of Execute, Mortal Strike and Bloodthirst.","Każde zabójstwo skraca o 2 s czas odnowienia Egzekucji, Śmiertelnego Ciosu i Żądzy Krwi."
+Colossus Awakened,Przebudzenie Kolosa
+Avatar begins with a quake that knocks down enemies within 120 px for 1.5 s.,"Awatar zaczyna się od wstrząsu, który powala wrogów w promieniu 120 px na 1,5 s."
 Elemental,Żywiołak
 Cernunnos the Blighted Stag-God,"Cernunnos, Zarażony Bóg-Jeleń"
 Blood Drinker,Pijący Krew
@@ -2701,7 +3234,6 @@ Basalt plate glowing with internal embers.,Bazaltowa płyta żarząca się wewn�
 Mail of the Infernal Berserker,Kolczuga Piekielnego Berserkera
 Blackened mail dripping soot.,Poczerniała kolczuga ociekająca sadzą.
 Fury never decays out of combat. Gain +5% damage per missing 10% HP.,Furia nigdy nie zanika poza walką. +5% obrażeń za każde brakujące 10% zdrowia.
-No Fury Decay,Furia nie zanika
 Berserker Wrath,Gniew Berserkera
 Warmaster's Battlegarb,Strój Bojowy Mistrza Wojny
 Gilded plate with a crimson mantle.,Pozłacana płyta ze szkarłatnym płaszczem.
@@ -2733,7 +3265,6 @@ Titan Grip,Uchwyt Tytana
 Bonecrusher Gauntlets,Rękawice Łamacza Kości
 Spiked gauntlets with monster-fang knuckles.,Kolczaste rękawice z kłykciami z kłów potworów.
 Melee attacks have a 15% chance to reset the cooldown of Shield Slam or Cleave.,Ataki wręcz mają 15% szansy na odnowienie Uderzenia Tarczą lub Rozpłatania.
-Melee,Wręcz
 Chains of the Defiant,Łańcuchy Buntownika
 Vambraces with broken dangling iron chains.,Karwasze ze zwisającymi zerwanymi żelaznymi łańcuchami.
 Taking a critical hit instantly grants 30 Fury and cleanses movement slows.,Otrzymanie trafienia krytycznego natychmiast daje 30 Furii i usuwa spowolnienia ruchu.
@@ -2760,7 +3291,6 @@ Blocking an attack guarantees your next melee attack is a critical hit.,"Zabloko
 Ring of the Ruptured Heart,Pierścień Pękniętego Serca
 A dark gold band setting a pulsing anatomical ruby.,Obręcz z ciemnego złota z pulsującym anatomicznym rubinem.
 Bleed ticks can critically strike using your character's Critical Chance.,Tiki Krwawienia mogą trafiać krytycznie z użyciem szansy na kryt. twojej postaci.
-Dot Can Crit,Obrażenia w czasie mogą być krytyczne
 Band of the Steadfast Ward,Obręcz Niezłomnej Straży
 A carved dwarven runestone ring.,Rzeźbiony krasnoludzki pierścień z kamienia runicznego.
 "When an ally within 150 px takes >30% damage in a single hit, gain 50 Fury and grant them a shield.","Gdy sojusznik w promieniu 150 px otrzyma ponad 30% obrażeń jednym trafieniem, zyskujesz 50 Furii i dajesz mu tarczę."
@@ -2835,7 +3365,6 @@ Power Shot charges 50% faster and silences all enemies it pierces for 2 seconds.
 Bone Harvest Arbalest,Arbalet Kościanego Żniwa
 A heavy steel crossbow with a skull cocking winch.,Ciężka stalowa kusza z korbą naciągową w kształcie czaszki.
 "Quarrels shatter inside targets, launching 3 bone shrapnel shards at adjacent enemies.","Bełty rozpadają się w celach, ciskając 3 kościane odłamki w sąsiednich wrogów."
-Ranged,Dystansowe
 Bramblethorn Recurve,Refleksyjny Łuk z Jeżyn
 A living recurve bow of weeping bramble root.,Żywy refleksyjny łuk z korzenia płaczącej jeżyny.
 Basic attacks have a 20% chance to root targets for 1.5s.,"Podstawowe ataki mają 20% szansy na unieruchomienie celu na 1,5 s."
@@ -2944,7 +3473,6 @@ Burning enemies have their attack speed reduced by 20%.,Płonący wrogowie ataku
 Band of Astral Shackles,Obręcz Astralnych Kajdan
 A seamless violet crystal ring.,Bezszwowy pierścień z fioletowego kryształu.
 "Chilled, slowed, or rooted foes take +20% damage from all sources.","Wychłodzeni, spowolnieni lub unieruchomieni wrogowie otrzymują +20% obrażeń ze wszystkich źródeł."
-Astral Shackles,Astralne Kajdany
 Heart of the North Star,Serce Gwiazdy Polarnej
 An eight-pointed stellar sapphire pendant.,Ośmioramienny gwiezdny wisior z szafiru.
 Blizzard slowly drifts toward enemy clusters instead of remaining static.,"Zamieć powoli dryfuje ku skupiskom wrogów, zamiast stać w miejscu."
@@ -3427,7 +3955,6 @@ Deadly Charge,Śmiercionośna Szarża
 "Charge along the aim, knocking enemies aside; the impact stuns for 1 s. +20 Fury.","Szarża w kierunku celowania, roztrącająca wrogów; uderzenie ogłusza na 1 s. +20 Furii."
 Rally the party within 250 px: +15% physical damage and +10% movement speed for 10 s.,Zagrzewa drużynę w promieniu 250 px: +15% obrażeń fizycznych i +10% szybkości ruchu na 10 s.
 "Spin for 2.5 s, hitting everything within 80 px every 0.3 s. Slows can't touch you while spinning.","Wirujesz przez 2,5 s, trafiając wszystko w promieniu 80 px co 0,3 s. Podczas wirowania spowolnienia cię nie imają."
-Execute,Egzekucja
 "Only on targets below 25% health. Consumes all Fury: massive damage, +2% per Fury above 30.","Tylko na cele poniżej 25% zdrowia. Zużywa całą Furię: potężne obrażenia, +2% za każdy punkt Furii powyżej 30."
 Parry the next melee attack within 1.2 s and counter with a critical strike.,"Paruje następny atak wręcz w ciągu 1,2 s i kontruje trafieniem krytycznym."
 "Take 60% less damage for 6 s, at -20% movement speed.","Otrzymujesz 60% mniej obrażeń przez 6 s, przy -20% szybkości ruchu."
@@ -3501,7 +4028,6 @@ Void Mastery,Mistrzostwo Pustki
 +6% shadow and holy damage per rank.,+6% obrażeń od cienia i świętości na rangę.
 Temporal Singularity,Osobliwość Czasu
 "Master keystone. A fatal blow rewinds you 5 s, to where you were and the health you had (180 s cooldown).","Mistrzowski kluczowy. Śmiertelny cios cofa cię o 5 s, do miejsca, w którym byłeś, i zdrowia, które miałeś (odnowienie 180 s)."
-Kindling,Rozpałka
 +4% fire damage per rank.,+4% obrażeń od ognia na rangę.
 Overload,Przeciążenie
 +4% lightning damage per rank.,+4% obrażeń od błyskawic na rangę.
@@ -3511,7 +4037,6 @@ Static Mind,Statyczny Umysł
 +4% haste per rank.,+4% pośpiechu na rangę.
 Inferno,Pożoga
 +10% critical damage per rank.,+10% obrażeń krytycznych na rangę.
-Flashpoint,Punkt Zapłonu
 Flame Wave and Living Bomb radius +10% per rank.,Promień Fali Płomieni i Żywej Bomby +10% na rangę.
 Storm Lord,Władca Burzy
 +6% spell damage per rank.,+6% obrażeń czarów na rangę.
@@ -3528,7 +4053,6 @@ Long Winter,Długa Zima
 Blizzard and Frost Nova last 12% longer per rank.,Zamieć i Mroźna Nowa trwają o 12% dłużej na rangę.
 Avalanche,Lawina
 +8% damage to bosses per rank.,+8% obrażeń przeciw bossom na rangę.
-Deep Well,Głęboka Studnia
 +6% maximum mana per rank.,+6% maks. many na rangę.
 Void-Touched,Dotknięty Pustką
 +4% shadow damage per rank.,+4% obrażeń od cienia na rangę.
@@ -3677,7 +4201,6 @@ Serrated Heads,Ząbkowane Groty
 +5% physical damage per rank.,+5% obrażeń fizycznych na rangę.
 Plaguebearer,Roznosiciel Zarazy
 "Viper Arrow, Acid Flask and Venomous Vapors deal +10% damage per rank.","Strzała Żmii, Flaszka Kwasu i Jadowite Opary zadają +10% obrażeń na rangę."
-Light Feet,Lekkie Stopy
 +3% movement speed per rank.,+3% szybkości ruchu na rangę.
 Nimble,Zwinny
 +3% Agility per rank.,+3% Zręczności na rangę.

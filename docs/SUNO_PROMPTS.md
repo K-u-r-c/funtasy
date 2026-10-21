@@ -48,6 +48,7 @@ between the floor track and the boss track. Effects: short (0.2-1.5 s), dry, mon
 | `bone_reassemble` | `assets/audio/sfx/bone_reassemble.ogg` | engine | bones scraping and clicking back together, eerie, short |
 | `book_burst` | `assets/audio/sfx/book_burst.ogg` | engine | an enchanted book bursting in a flurry of pages and arcane sparks |
 | `book_open` | `assets/audio/sfx/book_open.ogg` | engine | old heavy leather tome opening, creaking spine and rustling parchment pages |
+| `boon_pick` | `assets/audio/sfx/boon_pick.ogg` | engine | a boon settling into a hero: a warm rising choir breath, a soft bell and a shimmer of sparks spiralling up, 1.5 s, dark fantasy |
 | `break` | `assets/audio/sfx/break.ogg` | props.json | wooden crate or barrel smashing into splinters, short, dry |
 | `buff` | `assets/audio/sfx/buff.ogg` | skills/monsters.json, skills/priest.json | rising magical shimmer with a soft warm chord, short positive buff |
 | `burrow` | `assets/audio/sfx/burrow.ogg` | skills/monsters.json | creature digging fast through gravel and loose flagstones, short |

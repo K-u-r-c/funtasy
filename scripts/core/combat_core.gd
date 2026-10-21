@@ -616,6 +616,10 @@ func proc_conditions(actor: Actor, cond: Dictionary, data: Dictionary) -> bool:
 			"school":
 				if str(data.get("school", "")) != str(v):
 					return false
+			"fx":
+				# #73: an area of this look (on_aoe: "explosion"...).
+				if str(data.get("fx", "")) != str(v):
+					return false
 			"damage_type":
 				if not (Array(v) if v is Array else [v]).has(str(data.get("damage_type", ""))):
 					return false
@@ -744,5 +748,9 @@ func run_proc(actor: Actor, pr: Dictionary, data: Dictionary) -> void:
 	var target: Variant = data.get("target")
 	var tpos: Vector2 = target.global_position if is_instance_valid(target) and target is Actor else actor.global_position
 	var origin := tpos if str(pr.get("at", "self")) == "target" else actor.global_position
+	# #73 on_aoe: "at": "point" acts where the area landed.
+	if str(pr.get("at", "self")) == "point" and data.get("point") is Vector2:
+		origin = data.point
+		tpos = data.point
 	for eff in pr.get("do", []):
 		call("run_effect", eff, ctx, origin, tpos)

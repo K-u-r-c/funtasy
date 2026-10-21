@@ -36,6 +36,9 @@ var mod_offer: Array = []  ## #71: the two modifiers offered at this floor's por
 var mod_votes: Dictionary = {}  ## #71: peer -> voted modifier id (every peer)
 var hunt_next_at := -1.0  ## #71 Hunted: floor_time of the next hunter (every peer, -1 = none)
 var mod_runner: ModRunner
+var boon_pending: Dictionary = {}  ## host (#73): peer -> the three boon ids it still chooses from
+var boon_waiting: Array = []  ## #73 every peer: heroes still choosing their boon (the portal waits)
+var my_boon_offer: Array = []  ## #73 local: this hero's three boons to choose from
 var map_pings: Array = []  ## local: [{pos, color, until}] pulsing marks on the minimap / map
 var legendary_from_enemies := false  ## host (#75): a named legendary has dropped from a monster, elite or boss on this floor
 var merchant_id := ""  ## every peer: this floor's merchant (archibald / malphas, #6)
@@ -205,11 +208,14 @@ func start_floor(new_depth: int) -> void:
 	_spawn_floor_hazards(host_layout)
 	mod_runner.host_new_floor(floor_seed)
 	_set_mod_offer.rpc([], {})
+	boon_pending.clear()
+	_sync_boon_wait.rpc([])
 	if not resume.is_empty():
 		_restore_floor_view.rpc(FloorState.view_of(resume, layout.portal_pos, self))
 		_sync_clock.rpc(floor_time)
 		if portal:
 			host_offer_mods()
+			host_offer_boons()
 		for peer in GameState.roster:
 			var cells := FloorState.map_bytes(resume, int(GameState.roster[peer].get("slot", -1)))
 			if cells.size() != dungeon.discovered.size():
@@ -593,6 +599,10 @@ func host_interact(p: Player, node: Node) -> void:
 		# Once the countdown runs the choice is locked, so extra presses can't toggle it.
 		if _descend_timer >= 0.0:
 			return
+		# #73: a hero still choosing its boon gets the boon cards first.
+		if boon_pending.has(p.peer_id):
+			_boon_offer.rpc_id(p.peer_id, boon_pending[p.peer_id])
+			return
 		# #71: with modifiers on offer, the portal opens the vote; a card is the vote and "ready".
 		if not mod_offer.is_empty() and not portal_ready.has(p.peer_id):
 			_open_mod_vote.rpc_id(p.peer_id)
@@ -701,9 +711,80 @@ func _try_descend() -> void:
 		_set_mod_offer.rpc(mod_offer, mod_votes, true)
 
 
-## Host: everything else the portal waits for (#73 adds the boons) besides every living hero.
+## Host: everything else the portal waits for besides every living hero: #73 every hero's boon.
 func _portal_gates_open() -> bool:
-	return true
+	for peer in boon_pending.keys():
+		if player_by_peer(int(peer)) == null:
+			boon_pending.erase(peer)
+	return boon_pending.is_empty()
+
+
+## Host (#73): after the boss, every hero who hasn't chosen this floor's boon gets three of its
+## own (seeded by the run, the floor and the hero's slot).
+func host_offer_boons() -> void:
+	for p in players_root.get_children():
+		if p.boon_floor >= depth:
+			continue
+		var slot := int(GameState.roster.get(p.peer_id, {}).get("slot", p.peer_id))
+		var ids := Boons.offer(p.class_id, p.boons, hash([run_seed, depth, slot, 73]))
+		if ids.is_empty():
+			continue
+		boon_pending[p.peer_id] = ids
+		_boon_offer.rpc_id(p.peer_id, ids)
+	_sync_boon_wait.rpc(boon_pending.keys())
+
+
+## Host -> one hero (reliable, #73): its three boons; the choice screen opens.
+@rpc("authority", "call_local", "reliable")
+func _boon_offer(ids: Array) -> void:
+	my_boon_offer = ids
+	var hud := get_tree().get_first_node_in_group("hud")
+	if hud and hud.has_method("offer_boons"):
+		hud.offer_boons()
+
+
+## Host -> all (reliable, #73): who is still choosing.
+@rpc("authority", "call_local", "reliable")
+func _sync_boon_wait(peers: Array) -> void:
+	boon_waiting = peers
+	EventBus.boon_wait_changed.emit()
+
+
+## Owner -> host (reliable, #73): the hero takes boon `index` of its offer (-1 skips).
+@rpc("any_peer", "call_local", "reliable")
+func request_boon(index: int) -> void:
+	if not multiplayer.is_server():
+		return
+	var peer := multiplayer.get_remote_sender_id()
+	if peer == 0:
+		peer = 1
+	var p := player_by_peer(peer)
+	if p == null or not boon_pending.has(peer):
+		return
+	var ids: Array = boon_pending[peer]
+	boon_pending.erase(peer)
+	p.boon_floor = depth
+	if index >= 0 and index < ids.size():
+		p.host_add_boon(str(ids[index]), item_level(), loot.rng)
+		_boon_taken.rpc(peer, str(ids[index]))
+	else:
+		p.persist()
+	_sync_boon_wait.rpc(boon_pending.keys())
+	_try_descend()
+
+
+## Host -> all (reliable, #73): `peer`'s hero took boon `id`: it flares on the hero once.
+@rpc("authority", "call_local", "reliable")
+func _boon_taken(peer: int, id: String) -> void:
+	var p := player_by_peer(peer)
+	if p == null:
+		return
+	var col := Boons.color(id)
+	fx.ring(p.global_position, 46.0, col.to_html(false), "")
+	fx.boon_flare(p.global_position, col)
+	AudioManager.play_sfx_at("boon_pick", p.global_position)
+	if p.is_local():
+		my_boon_offer = []
 
 
 ## Owner -> host (reliable, #71): `id` is this hero's vote at the portal ("" takes it back).
@@ -918,6 +999,7 @@ func _boss_defeated(portal_pos: Vector2) -> void:
 	place_portal(portal_pos)
 	if multiplayer.is_server():
 		host_offer_mods()
+		host_offer_boons()
 
 
 ## Host (#71): the portal's two modifiers for the next floor, sent to every peer.

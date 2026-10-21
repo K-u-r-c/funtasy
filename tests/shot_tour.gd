@@ -1445,3 +1445,34 @@ func _mods(_arg: String) -> void:
 	await da._wait(0.6)
 	await snap("mods_map_badge_%s" % lang)
 	hud.close_overlay()
+
+
+## #73: the boon choice after a boss, the pick's flight to the portrait and the flare on the
+## hero, the boon icons beside the portrait and the Character panel's boons.
+func _boons(_arg: String) -> void:
+	var lang: String = Settings.language
+	p.iframe_left = 9999.0
+	var hud: Node = da.get_tree().get_first_node_in_group("hud")
+	for e in g.enemies_root.get_children():
+		e.queue_free()
+	# A few boons already, so the portrait row and the panel have something to show.
+	p.boons = BalanceSuite.average_boons(p.class_id, 9)
+	p.recompute_stats()
+	g._boss_defeated.rpc(g.layout.portal_pos)
+	await da._wait(float(GameData.bal("boons.choose_delay")) + 1.2)
+	await snap("boons_choice_%s" % lang)
+	if hud._overlay and hud._overlay.get("_cards") is Array:
+		hud._overlay._cards[1].grab_focus()
+		await da._wait(0.3)
+		await snap("boons_choice_focus_%s" % lang)
+		hud._overlay._choose(1)
+		await da._wait(0.45)
+		await snap("boons_pick_flight_%s" % lang)
+		await da._wait(0.5)
+		await snap("boons_pick_flare_%s" % lang)
+	await da._wait(1.0)
+	await snap("boons_hud_%s" % lang)
+	hud.open_overlay(hud.menu_panel("character"))
+	await da._wait(0.6)
+	await snap("boons_character_%s" % lang)
+	hud.close_overlay()

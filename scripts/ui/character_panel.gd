@@ -149,6 +149,28 @@ func _build() -> void:
 	_mods_label.custom_minimum_size = Vector2(300, 0)
 	_mods_label.mouse_filter = Control.MOUSE_FILTER_PASS
 	stats_col.add_child(_mods_label)
+	# #73: the run's boons, a focusable badge each; the focused / hovered one's card below.
+	stats_col.add_child(UITheme.section(Loc.f("Boons (%d)", [player.boons.size()]), "nav_talents"))
+	var brow := HFlowContainer.new()
+	brow.add_theme_constant_override("h_separation", 4)
+	brow.add_theme_constant_override("v_separation", 4)
+	brow.custom_minimum_size = Vector2(300, 0)
+	stats_col.add_child(brow)
+	var bcard := MarginContainer.new()
+	stats_col.add_child(bcard)
+	if player.boons.is_empty():
+		brow.add_child(UITheme.label(Loc.t("No boons yet: one after every boss"), UITheme.TEXT_DIM, UITheme.FONT_SMALL))
+	for bid in player.boons:
+		var bd := Boons.def(str(bid))
+		var b := Badge.new(str(bd.get("icon", "")).trim_prefix("icons."), Loc.t(str(bd.get("name", bid))), Boons.card_lines(str(bid)), Boons.color(str(bid)), 26)
+		b.focus_mode = Control.FOCUS_ALL
+		var show_card := func():
+			for c in bcard.get_children():
+				c.queue_free()
+			bcard.add_child(Badge.card(b.icon_key, b.title, b.lines, b.rim))
+		b.focus_entered.connect(show_card)
+		b.mouse_entered.connect(show_card)
+		brow.add_child(b)
 
 	# Skills
 	var skills_col := VBoxContainer.new()

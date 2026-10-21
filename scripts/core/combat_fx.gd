@@ -585,3 +585,54 @@ func _update_tethers() -> void:
 		t.line.clear_points()
 		t.line.add_point(a.global_position + HEIGHT)
 		t.line.add_point(b.global_position + HEIGHT)
+
+
+## #73 (local): a boon settles into a hero: a column of sparks in its rarity colour spirals up
+## around the hero with a soft flash of light.
+func boon_flare(pos: Vector2, col: Color) -> void:
+	if world == null:
+		return
+	var n := Node2D.new()
+	n.position = pos
+	n.z_index = 5
+	world.add_child(n)
+	var p := CPUParticles2D.new()
+	p.texture = GameData.texture("fx.spark")
+	p.amount = 36
+	p.lifetime = 1.1
+	p.one_shot = true
+	p.explosiveness = 0.35
+	p.emission_shape = CPUParticles2D.EMISSION_SHAPE_RING
+	p.emission_ring_radius = 16.0
+	p.emission_ring_inner_radius = 12.0
+	p.direction = Vector2(0, -1)
+	p.spread = 12.0
+	p.gravity = Vector2(0, -70)
+	p.initial_velocity_min = 20.0
+	p.initial_velocity_max = 50.0
+	p.orbit_velocity_min = 0.4
+	p.orbit_velocity_max = 0.7
+	p.scale_amount_min = 0.4
+	p.scale_amount_max = 0.9
+	var ramp := Gradient.new()
+	ramp.set_color(0, Color(col.r * 2.0, col.g * 2.0, col.b * 2.0))
+	ramp.set_color(1, Color(col, 0.0))
+	p.color_ramp = ramp
+	var add := CanvasItemMaterial.new()
+	add.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+	add.light_mode = CanvasItemMaterial.LIGHT_MODE_UNSHADED
+	p.material = add
+	n.add_child(p)
+	p.emitting = true
+	var l := PointLight2D.new()
+	LightLayers.setup_light(l)
+	l.texture = GameData.texture("fx.light")
+	l.color = col
+	l.texture_scale = 0.9
+	l.energy = 1.6
+	l.position = Vector2(0, -14)
+	n.add_child(l)
+	var tw := n.create_tween()
+	tw.tween_property(l, "energy", 0.0, 1.0)
+	tw.tween_interval(0.4)
+	tw.tween_callback(n.queue_free)

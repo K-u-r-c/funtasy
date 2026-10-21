@@ -51,6 +51,15 @@
 			"archives": {}
 		}
 	},
+	"boons": {
+		"_comment": "#73: after every boss each hero is offered three boons (data/boons/*.json), one of each kind when it can. Weight: rarity_weights[rarity - 1] x (1 + tag_weight x tags shared with the hero's boons); with fresh_chance the third card favours tags the hero hasn't got. unique_per_level: a unique boon item's own stats grow by this share per item level. choose_delay: s after the boss before the cards open. hud_icons: boon icons shown beside the portrait.",
+		"rarity_weights": [6, 4, 2, 1],
+		"tag_weight": 0.6,
+		"fresh_chance": 0.3,
+		"unique_per_level": 0.04,
+		"choose_delay": 2.5,
+		"hud_icons": 16
+	},
 	"ghost": {
 		"_comment": "#82: a ghost roams the floor until the next one. Light radius = lighting.carried_torch_radius x light_radius_mult; it counts only for the ghost's own sight. Alphas: the ghost's own view / the living's view.",
 		"speed_mult": 1.0,
@@ -450,8 +459,8 @@
 		"boss_ttk_min": 12.0,
 		"boss_ttk_max": 240.0,
 		"boss_ttd_min": 3.0, "fresh_ttk_max": 8.0, "fresh_ttd_min": 16.0, "fresh_boss_ttk_max": 150.0, "fresh_boss_ttd_min": 6.0, "levels_per_floor": [2.4, 3.75], "xp_probe_floors": 5, "xp_probe_seeds": 4,
-		"_mods_comment": "#71 floor cost probe (BalanceSuite.floor_cost / run_mods): a modded floor's effort (fight time and damage) relative to the plain floor must sit inside mod_cost_band, around what one floor deeper costs the same party (measured x1.08-x1.21), and its reward (gold + gold-valued items + xp/4) must reach mod_reward_min x its cost. Assumptions the layout can't show: the share of fight time a hero stands still on Restless, the darkness's extra damage on Dimmed, the travel time that brings Hunted's hunters.",
-		"mod_cost_band": [1.03, 1.45], "mod_reward_min": 0.8, "rarity_gold": [4, 12, 40, 110, 300],
+		"_mods_comment": "#71 floor cost probe (BalanceSuite.floor_cost / run_mods): a modded floor's effort (fight time and damage) relative to the plain floor must sit inside mod_cost_band, around what one floor deeper costs the same party (measured x1.02-x1.21), and its reward (gold + gold-valued items + xp/4) must reach mod_reward_min x its cost. Assumptions the layout can't show: the share of fight time a hero stands still on Restless, the darkness's extra damage on Dimmed, the travel time that brings Hunted's hunters.",
+		"mod_cost_band": [1.0, 1.5], "mod_reward_min": 0.8, "rarity_gold": [4, 12, 40, 110, 300],
 		"restless_still_melee": 0.25, "restless_still_ranged": 0.2, "dimmed_damage_factor": 1.2, "travel_s_per_floor": 150
 	}
 }

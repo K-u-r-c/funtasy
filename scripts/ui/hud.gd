@@ -22,6 +22,7 @@ const CodexPanel := preload("res://scripts/ui/codex_panel.gd")
 const LoreReader := preload("res://scripts/ui/lore_reader.gd")
 const PauseMenu := preload("res://scripts/ui/pause_menu.gd")
 const ModVotePanel := preload("res://scripts/ui/mod_vote_panel.gd")
+const BoonPanel := preload("res://scripts/ui/boon_panel.gd")
 const RadialMenu := preload("res://scripts/ui/radial_menu.gd")
 const Minimap := preload("res://scripts/ui/minimap.gd")
 const COOLDOWN_SHADER := preload("res://assets/shaders/cooldown_radial.gdshader")
@@ -79,6 +80,9 @@ var _floor_badges: VBoxContainer  ## #70 / #71: what makes this floor different,
 var _mod_label: Label  ## #71: the floor modifier's name
 var _hunt_row: HBoxContainer  ## #71 Hunted: the countdown to the next hunter
 var _hunt_label: Label
+var _boon_row: HFlowContainer  ## #73: small icons of the hero's boons beside the portrait
+var _boon_sig := ""
+var _boon_hint: Label  ## #73: "A boon awaits" while this hero hasn't chosen
 var _last_message_at := 0
 ## Layout test hook: fills every HUD block with worst-case content (boss bar, banner, three
 ## teammates, many status effects) so tests can check nothing overlaps on any screen shape.
@@ -190,6 +194,11 @@ func _build_top_left() -> void:
 	_res_bar = StatBar.new(Color("3b6fe0"), Vector2(156, 11))
 	_res_icon = UITheme.icon("stat_mana", 16)
 	bars.add_child(_bar_row("", _res_bar, _res_icon))
+	_boon_row = HFlowContainer.new()
+	_boon_row.add_theme_constant_override("h_separation", 2)
+	_boon_row.add_theme_constant_override("v_separation", 2)
+	_boon_row.custom_minimum_size = Vector2(0, 0)  # as wide as the portrait frame above it
+	col.add_child(_boon_row)
 	_status_box = HBoxContainer.new()
 	_status_box.add_theme_constant_override("separation", 3)
 	_status_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -228,6 +237,11 @@ func _build_top_right() -> void:
 	_portal_label = UITheme.label("", Color(0.8, 0.6, 1.0), UITheme.FONT_SMALL)
 	_portal_label.visible = false
 	v.add_child(_portal_label)
+	_boon_hint = UITheme.label(Loc.t("A boon awaits: step into the portal"), UITheme.GOLD, UITheme.FONT_SMALL)
+	_boon_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_boon_hint.custom_minimum_size = Vector2(156, 0)
+	_boon_hint.visible = false
+	v.add_child(_boon_hint)
 	var trow := HBoxContainer.new()
 	trow.add_theme_constant_override("separation", 4)
 	v.add_child(trow)
@@ -509,6 +523,45 @@ func open_mod_vote() -> void:
 	open_overlay(ModVotePanel.new())
 
 
+## #73: this hero's boon offer arrived: the cards open after a breath (or at once from the
+## portal), unless another window is open (the tracker then says a boon awaits).
+func offer_boons() -> void:
+	var game := get_tree().get_first_node_in_group("game")
+	if game == null or game.my_boon_offer.is_empty():
+		return
+	var near_portal: bool = game.portal != null and player and player.global_position.distance_to(game.portal.global_position) < 80.0
+	if not near_portal:
+		await get_tree().create_timer(float(GameData.bal("boons.choose_delay"))).timeout
+	if has_overlay() or game.my_boon_offer.is_empty():
+		return
+	open_overlay(BoonPanel.new())
+
+
+## Screen centre of the portrait (where a chosen boon's card flies to).
+func portrait_center() -> Vector2:
+	return _portrait.get_global_rect().get_center() if _portrait else Vector2(60, 60)
+
+
+## #73: the boon icons beside the portrait (rebuilt when they change), the "boon awaits" hint.
+func _update_boons() -> void:
+	var game := get_tree().get_first_node_in_group("game")
+	_boon_hint.visible = game != null and not game.my_boon_offer.is_empty()
+	var sig := str(player.boons)
+	if sig == _boon_sig:
+		return
+	_boon_sig = sig
+	for c in _boon_row.get_children():
+		c.queue_free()
+	var cap := int(GameData.bal("boons.hud_icons"))
+	for i in player.boons.size():
+		if i >= cap:
+			_boon_row.add_child(UITheme.label("+%d" % (player.boons.size() - cap), UITheme.TEXT_DIM, UITheme.FONT_SMALL))
+			break
+		var bid := str(player.boons[player.boons.size() - 1 - i])
+		var bd := Boons.def(bid)
+		_boon_row.add_child(Badge.new(str(bd.get("icon", "")).trim_prefix("icons."), Loc.t(str(bd.get("name", bid))), Boons.card_lines(bid), Boons.color(bid), 18))
+
+
 func _rebuild_skill_icons() -> void:
 	if player == null or not is_instance_valid(player):
 		return
@@ -585,6 +638,7 @@ func _process(_delta: float) -> void:
 		_update_status()
 		_update_center()
 		_update_tracker()
+		_update_boons()
 	_update_party()
 	_update_boss()
 

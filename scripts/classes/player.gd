@@ -45,6 +45,8 @@ var talent_points := 0
 var stat_points := 0  ## unspent free stat points (balance progression.stat_points_per_level, D5 / #27)
 var allocated: Dictionary = {}  ## stat -> points spent on it
 var run_mods: Array = []  ## run-permanent modifiers [{stat, value, source}] (D17)
+var boons: Array = []  ## #73: the boon ids this hero picked this run (replicated, saved)
+var boon_floor := 0  ## #73 host: the last floor whose boss boon this hero has chosen (or skipped)
 var gold := 0
 var bonus_stat_points := 0  ## from the legendary tome
 var bonus_talent_points := 0
@@ -137,7 +139,7 @@ func setup(data: Dictionary) -> void:
 		"Health:hp", "Health:max_hp", "Health:absorb", "Resource:value", "Resource:max_value", "Resource:kind",
 		"Status:shown", "Stats:final", ".:life_state", ".:downed_left", ".:revive_progress", ".:level",
 		".:xp", ".:talent_points", ".:talents", ".:appearance", ".:torch_sync", ".:restless",
-		".:stat_points", ".:allocated", ".:run_mods", ".:gold", ".:skills", ".:legacy_kit", ".:held_by",
+		".:stat_points", ".:allocated", ".:run_mods", ".:boons", ".:gold", ".:skills", ".:legacy_kit", ".:held_by",
 		".:held_anim",
 	], [], 0.1)
 	# The owner streams its dash state with its position (#17): the host and other clients don't
@@ -205,6 +207,8 @@ func _host_init() -> void:
 	talents = t2
 	allocated = ch.get("allocated", {}).duplicate()
 	run_mods = ch.get("run_mods", []).duplicate(true)
+	boons = ch.get("boons", []).duplicate()
+	boon_floor = int(ch.get("boon_floor", 0))
 	gold = int(ch.get("gold", 0))
 	bonus_stat_points = int(ch.get("bonus_stat_points", 0))
 	bonus_talent_points = int(ch.get("bonus_talent_points", 0))
@@ -253,7 +257,11 @@ func stat_extra() -> Dictionary:
 		if sk.get("passive", false):
 			for m in sk.get("mods", []):
 				(smods if m.has("skill") else mods).append(m)
-	return {"allocated": allocated, "run_mods": run_mods, "mods": mods, "skill_mods": smods}
+	# #73: the boons' stats, skill modifiers and flags.
+	var bp := Boons.stat_parts(boons)
+	mods.append_array(bp.mods)
+	smods.append_array(bp.skill_mods)
+	return {"allocated": allocated, "run_mods": run_mods, "mods": mods, "skill_mods": smods, "flags": bp.flags}
 
 
 # --- Talents v2 (D1): 3 branches x tiers 0-5; skill nodes unlock skills -------------------
@@ -440,7 +448,26 @@ func _compile_procs() -> Array:
 		var item: Dictionary = inv.equipment[slot]
 		for i in item.get("procs", []).size():
 			out.append(item.procs[i].merged({"_key": "i:%s:%d" % [slot, i], "source": str(item.get("base", ""))}, true))
+	out.append_array(Boons.procs_of(boons))
 	return out
+
+
+## Host (#73): `id` joins this hero's boons for the rest of the run; an item boon hands over its
+## items at once (dropped at the hero's feet when the backpack is full).
+func host_add_boon(id: String, item_level: int, rng: RandomNumberGenerator) -> void:
+	var d := Boons.def(id)
+	if d.is_empty():
+		return
+	var b := boons.duplicate()
+	b.append(id)
+	boons = b
+	for it in Boons.give_items(d, self, item_level, rng):
+		if not host_give_item(it).is_empty():
+			var game := get_tree().get_first_node_in_group("game")
+			if game:
+				game.loot.drop_item(it, global_position + Vector2(0, 14))
+	on_stats_dirty()
+	persist()
 
 
 func creature_type() -> String:
@@ -451,7 +478,7 @@ func to_character() -> Dictionary:
 	var d := inv.to_dict()
 	var out := {"name": display_name, "class_id": class_id, "gender": gender, "level": level, "xp": xp, "talents": talents.duplicate(), "loadout": skills.duplicate(),
 		"equipment": d.equipment, "backpack": d.backpack, "backpack_capacity": d.capacity, "quick": d.quick,
-		"allocated": allocated.duplicate(), "run_mods": run_mods.duplicate(true), "gold": gold,
+		"allocated": allocated.duplicate(), "run_mods": run_mods.duplicate(true), "boons": boons.duplicate(), "boon_floor": boon_floor, "gold": gold,
 		"bonus_stat_points": bonus_stat_points, "bonus_talent_points": bonus_talent_points}
 	if not legacy_kit:
 		out.kit = GameState.KIT_VERSION

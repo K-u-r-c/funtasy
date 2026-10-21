@@ -492,6 +492,13 @@ static func fx_element(eff: Dictionary, ctx: Dictionary) -> String:
 
 func apply_aoe(eff: Dictionary, ctx: Dictionary, center: Vector2) -> void:
 	var r := float(eff.radius) * float(ctx.radius_mult)
+	# #73: a hero's area lands (boon synergies: explosions leave burning ground...).
+	# An area a boon's on_aoe proc made doesn't fire it again (no chain without end).
+	var caster: Variant = ctx.get("caster")
+	var from_aoe: bool = ctx.get("from_proc", false) and ctx.get("event") is Dictionary and ctx.event.has("point")
+	if is_instance_valid(caster) and caster is Player and not from_aoe:
+		fire(caster, "on_aoe", {"point": center, "ctx": ctx, "school": str(ctx.get("school", "")),
+			"damage_type": str(ctx.get("damage_type", "")), "skill": str(ctx.get("skill", "")), "radius": r, "fx": str(eff.get("fx", ""))})
 	var targets_kind: String = eff.get("targets", "enemies")
 	if eff.has("damage") or targets_kind == "enemies":
 		var hits := 0

@@ -308,6 +308,10 @@ func _run() -> void:
 				await MarkerSuite.new(self).run_lan()
 			"ghost_lan":
 				await GhostSuite.new(self).run_lan()
+			"boons":
+				await BoonSuite.new(self).run_boons(class_id)
+			"boons_lan":
+				await BoonSuite.new(self).run_lan()
 			"mods":
 				await ModSuite.new(self).run()
 			"mods_lan":
@@ -650,6 +654,8 @@ func client_cmd(cmd: String, arg: Variant) -> void:
 			await MarkerSuite.new(self).client_cmd(cmd, arg)
 		_ when cmd.begins_with("gh_"):
 			await GhostSuite.new(self).client_cmd(cmd, arg)
+		_ when cmd.begins_with("bn_"):
+			await BoonSuite.new(self).client_cmd(cmd, arg)
 		_ when cmd.begins_with("md_"):
 			await ModSuite.new(self).client_cmd(cmd, arg)
 		_ when cmd.begins_with("dr_"):
