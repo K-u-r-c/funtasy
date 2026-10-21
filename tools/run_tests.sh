@@ -108,7 +108,7 @@ if [ "$WHAT" = all ] || [ "$WHAT" = quick ]; then
 	for c in warrior ranger mage priest; do
 		run legendaries-$c --auto=solo --class=$c --name=Leg --scenario=legendaries --quit=360
 	done
-	run biomes --auto=solo --class=warrior --name=Bio --scenario=biomes --quit=120
+	run biomes --auto=solo --class=warrior --name=Bio --scenario=biomes --quit=200
 	run biomes-sewers --auto=solo --class=ranger --name=Bio --scenario=biomes --biome=sewers --quit=120
 	run biomes-foundry --auto=solo --class=priest --name=Bio --scenario=biomes --biome=foundry --quit=120
 	run biomes-archives --auto=solo --class=mage --name=Bio --scenario=biomes --biome=archives --quit=120

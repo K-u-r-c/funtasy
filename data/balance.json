@@ -29,6 +29,28 @@
 		"max_sight": 600,
 		"fov_radius": 16
 	},
+	"biomes": {
+		"_comment": "#70: floors 1..fixed_floors keep the fixed biome order; later cycles of five are seeded shuffles (no biome twice in a row). From mixed_from_floor, mixed_share of floors are mixed: monster_share of the spawn weight comes from an invader picked from pairs[biome], and with hazard_chance one of the invader's hazards joins.",
+		"fixed_floors": 5,
+		"mixed_from_floor": 6,
+		"mixed_share": 0.3,
+		"monster_share": 0.35,
+		"hazard_chance": 0.5,
+		"pairs": {
+			"crypt": ["sewers", "archives", "kurgan", "foundry"],
+			"sewers": ["crypt", "foundry", "kurgan", "archives"],
+			"foundry": ["sewers", "crypt", "archives", "kurgan"],
+			"archives": ["crypt", "kurgan", "foundry", "sewers"],
+			"kurgan": ["crypt", "archives", "sewers", "foundry"]
+		},
+		"hazards": {
+			"crypt": {"plates_per_room": [0, 1]},
+			"foundry": {"lava_room_chance": 0.2},
+			"kurgan": {"floor_mechanics": [{"id": "sprouting_thorns", "every": 10, "lifetime": 6, "test_wait": 2}]},
+			"sewers": {},
+			"archives": {}
+		}
+	},
 	"ghost": {
 		"_comment": "#82: a ghost roams the floor until the next one. Light radius = lighting.carried_torch_radius x light_radius_mult; it counts only for the ghost's own sight. Alphas: the ghost's own view / the living's view.",
 		"speed_mult": 1.0,

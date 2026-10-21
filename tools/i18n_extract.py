@@ -44,7 +44,7 @@ DATA_SKIP = {"assets.json", "assets_placeholders.json", "balance.json", "doors.j
 # Keys built in code that the literal filter cannot tell from non-text ("%s %s" is the item
 # kind line: rarity + slot, which Polish separates to avoid adjective agreement).
 EXTRA_KEYS = ["%s %s"]
-TEXT_FIELDS = {"name", "title", "description", "text", "origin", "effect_text", "label",
+TEXT_FIELDS = {"name", "title", "description", "text", "origin", "effect_text", "label", "overrun",
                "message", "affix", "suffix", "group"}
 # Id fields shown capitalized ("undead" -> "Undead", like GDScript's String.capitalize()).
 CAP_FIELDS = {"element", "school", "creature_type", "target_creature", "flags"}

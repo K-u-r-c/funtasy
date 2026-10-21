@@ -63,6 +63,8 @@ func _ready() -> void:
 			set_args[v.get_slice(":", 0)] = str_to_var(v.get_slice(":", 1))
 		elif a.begins_with("--tour="):
 			tour = v
+		elif a.begins_with("--mix="):
+			GameState.set_meta("force_mix", v)  # #70: every floor mixed by this biome
 		elif a.begins_with("--boss="):
 			GameState.set_meta("force_boss", v)
 		elif a.begins_with("--window="):

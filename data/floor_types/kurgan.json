@@ -2,6 +2,7 @@
 	"id": "kurgan",
 	"order": 5,
 	"name": "The Blighted Kurgan",
+	"overrun": "overrun from the Blighted Kurgan",
 	"tiles": "tiles.kurgan",
 	"music": "kurgan",
 	"bosses": [

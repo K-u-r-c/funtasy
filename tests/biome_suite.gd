@@ -27,7 +27,110 @@ func run(biome: String = "") -> void:
 			leaf_rules(str(id), 150 if not biome.is_empty() else 100)
 			depth_growth(str(id))
 			party_counts(str(id))
+	if biome.is_empty():
+		plan_checks()
+		await mixed_live_floor()
 	await check_live_floor()
+
+
+## #70: the run's biome order, mixed floors and boss picks over many run seeds (pure functions of
+## the run seed and depth, so every peer and a continued game agree).
+func plan_checks() -> void:
+	var forced: Variant = GameState.get_meta("force_biome", "")
+	GameState.set_meta("force_biome", "")
+	var fixed := FloorPlan.fixed_order()
+	var n := fixed.size()
+	var bad_fixed := 0
+	var repeats := []
+	var holes := []
+	var mixed := 0
+	var mixed_slots := 0
+	var early_mix := 0
+	var self_mix := 0
+	var boss_repeat := []
+	var seeds := 24
+	for s in seeds:
+		var rs := 1000 + s * 7717
+		var seq: Array = []
+		for d in range(1, 56):
+			seq.append(FloorPlan.biome_at(rs, d))
+		for d in range(1, 6):
+			if seq[d - 1] != fixed[d - 1]:
+				bad_fixed += 1
+		for d in range(2, 56):
+			if seq[d - 1] == seq[d - 2]:
+				repeats.append("seed %d floor %d %s" % [rs, d, seq[d - 1]])
+		for c in range(5, 55, n):
+			var cyc := {}
+			for k in n:
+				cyc[seq[c + k]] = true
+			if cyc.size() != n:
+				holes.append("seed %d floors %d-%d" % [rs, c + 1, c + n])
+		for d in range(1, 56):
+			var m := FloorPlan.mix_at(rs, d)
+			if d < int(GameData.bal("biomes.mixed_from_floor")):
+				early_mix += 0 if m.is_empty() else 1
+				continue
+			mixed_slots += 1
+			if not m.is_empty():
+				mixed += 1
+				self_mix += 1 if m == seq[d - 1] else 0
+		var bosses := FloorPlan.bosses_to(rs, 40)
+		var last := {}
+		for d in range(1, 41):
+			var b: String = seq[d - 1]
+			if last.has(b) and last[b] == bosses[d - 1] and GameData.floor_types[b].bosses.size() > 1:
+				boss_repeat.append("seed %d floor %d" % [rs, d])
+			last[b] = bosses[d - 1]
+	da.check(bad_fixed == 0, "floors 1-5 keep the fixed order (%s) for every run seed" % ", ".join(fixed))
+	da.check(repeats.is_empty(), "floors 1-55 over %d run seeds never repeat a biome back to back%s" % [seeds, "" if repeats.is_empty() else ": %s" % [repeats.slice(0, 4)]])
+	da.check(holes.is_empty(), "every cycle of five from floor 6 holds all five biomes%s" % ("" if holes.is_empty() else ": %s" % [holes.slice(0, 4)]))
+	var share := float(mixed) / maxf(mixed_slots, 1)
+	var want := float(GameData.bal("biomes.mixed_share"))
+	da.check(early_mix == 0 and self_mix == 0 and absf(share - want) < 0.06,
+			"mixed floors only from floor 6, never by their own biome, at the data share (%.2f, data %.2f)" % [share, want])
+	da.check(boss_repeat.is_empty(), "a boss never repeats the one met last time in its biome%s" % ("" if boss_repeat.is_empty() else ": %s" % [boss_repeat.slice(0, 4)]))
+	# A mixed floor's spawns bring monsters of both biomes, at about the data share.
+	var own := 0
+	var inv := 0
+	var hazards := 0
+	for s in 12:
+		var fd := FloorPlan.floor_def("crypt", "sewers", 555 + s)
+		hazards += 1 if fd.get("mix_hazard", false) else 0
+		var lay: Dictionary = DungeonGenerator.new().generate(555 + s, fd, 1.0, 8)
+		var inv_ids: Array = GameData.floor_types.sewers.monsters.map(func(m): return str(m.id))
+		for grp in lay.spawns:
+			for m in grp.monsters:
+				if inv_ids.has(str(m.id)):
+					inv += 1
+				else:
+					own += 1
+	var ms := float(inv) / maxf(own + inv, 1)
+	da.check(own > 0 and inv > 0 and absf(ms - float(GameData.bal("biomes.monster_share"))) < 0.12,
+			"a mixed floor spawns monsters of both biomes (%d own, %d invaders: %.2f, data %.2f)" % [own, inv, ms, float(GameData.bal("biomes.monster_share"))])
+	var fdk := FloorPlan.floor_def("archives", "kurgan", 9)
+	da.check(FloorPlan.title(fdk).contains(Loc.t("overrun from the Blighted Kurgan")) and FloorPlan.title(fdk).begins_with(Loc.t("The Shrouded Archives")),
+			"a mixed floor's title names its invader ('%s')" % FloorPlan.title(fdk))
+	GameState.set_meta("force_biome", forced)
+
+
+## #70: a live mixed floor: invaders among its monsters, its title in the banner and the HUD.
+func mixed_live_floor() -> void:
+	GameState.set_meta("force_mix", "kurgan")
+	g.start_floor(g.depth + 1)
+	await da._wait(1.5)
+	var inv_ids: Array = GameData.floor_types.kurgan.monsters.map(func(m): return str(m.id))
+	var seen_inv := 0
+	for e in g.enemies_root.get_children():
+		if not e.is_boss and inv_ids.has(str(e.def_id)):
+			seen_inv += 1
+	var hud: Node = da.get_tree().get_first_node_in_group("hud")
+	da.check(str(g.floor_def.get("mix", "")) == "kurgan" and seen_inv > 0 and hud._mix_label.visible and not hud._mix_label.text.is_empty(),
+			"a live mixed floor (%s by kurgan): %d invading monsters, the HUD says '%s'" % [g.floor_type_for(g.depth), seen_inv, hud._mix_label.text])
+	GameState.set_meta("force_mix", "")
+	g.start_floor(g.depth + 1)
+	await da._wait(1.0)
+	da.check(not hud._mix_label.visible, "an ordinary floor shows no invader line")
 
 
 ## #68: a party of four meets about x1.5 the monsters per room of a lone hero (the count

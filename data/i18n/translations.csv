@@ -74,7 +74,6 @@ Merchant,Kupiec
 +%d XP,+%d PD
 Rusted shut - find a lever,Zardzewiałe - znajdź dźwignię
 Descending...,Schodzenie...
-%s - Floor %d,%s - piętro %d
 The boss is defeated! A portal opens...,Boss pokonany! Otwiera się portal...
 Hold to revive %s,"Przytrzymaj, by wskrzesić: %s"
 Cancel - stay on this floor,Anuluj - zostań na tym piętrze
@@ -242,6 +241,7 @@ Read books to fill the codex. It is kept across every run.,"Czytaj księgi, by z
 Accept,Akceptuj
 Refuse,Odmów
 Choose,Wybierz
+Floor %d,Piętro %d
 Roam the floor - only doors still answer you,Przemierzaj piętro - odpowiadają ci już tylko drzwi
 Lv 1,Poz. 1
 Talent point,Punkt talentu
@@ -250,6 +250,7 @@ Stat points,Punkty cech
 Stat points to spend,Punkty cech do wydania
 Gold Key: Archibald trades for it,Złoty Klucz: Archibald za niego handluje
 Floor %d%s,Piętro %d%s
+Part of the monsters here come from another biome.,Część potworów przybyła tu z innego biomu.
 Empty slot - learn skills in the Talents tab,Puste miejsce - poznaj umiejętności w zakładce Talenty
 Quick slot %s (hold to choose),"Szybkie miejsce %s (przytrzymaj, by wybrać)"
 Lv %d,Poz. %d
@@ -2624,7 +2625,12 @@ Short Bow,Krótki Łuk
 Warrior,Wojownik
 Melee fighter fuelled by Fury. Holds the line as a tank or cleaves through crowds.,"Wojownik walczący wręcz, napędzany Furią. Trzyma linię jako obrońca albo przebija się przez tłumy."
 Worn Sword,Zużyty Miecz
+overrun from the Shrouded Archives,najazd ze Spowitych Archiwów
 Forgotten Crypt,Zapomniana Krypta
+overrun from the Forgotten Crypt,najazd z Zapomnianej Krypty
+overrun from the Infernal Foundry,najazd z Piekielnej Odlewni
+overrun from the Blighted Kurgan,najazd z Zarażonego Kurhanu
+overrun from the Sewers of Heresy,najazd z Kanałów Herezji
 Critical Chance,Szansa na kryt.
 Move Speed,Szybkość ruchu
 Block Chance,Szansa na blok

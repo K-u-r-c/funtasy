@@ -137,6 +137,7 @@ func start_floor(new_depth: int) -> void:
 		p.remove_meta("crosier_used")
 	var ft_id := floor_type_for(new_depth)
 	var floor_seed := hash(run_seed + new_depth * 7919)
+	var mix := FloorPlan.mix_at(run_seed, new_depth)
 	# #55: the first floor of a continued game, if it is the floor the game was saved on.
 	var resume: Dictionary = _resume if int(_resume.get("depth", -1)) == new_depth and int(_resume.get("seed", 0)) == floor_seed else {}
 	_resume = {}
@@ -154,7 +155,7 @@ func start_floor(new_depth: int) -> void:
 	# A Gold Key belongs to its floor (D11): an unused one doesn't carry over.
 	if party_keys > 0:
 		add_party_key(-party_keys)
-	_build_floor.rpc(new_depth, floor_seed, ft_id, pick_boss(GameData.floor_types[ft_id], floor_seed), pick_merchant(floor_seed))
+	_build_floor.rpc(new_depth, floor_seed, ft_id, FloorPlan.bosses_to(run_seed, new_depth)[-1], pick_merchant(floor_seed), mix)
 	# Host-only: the spawn list depends on party size, so it is generated with that multiplier.
 	var n := players_root.get_child_count() if players_root.get_child_count() > 0 else GameState.roster.size()
 	var count_mult := 1.0 + float(GameData.bal("scaling.count_per_extra_player")) * (maxi(n, 1) - 1)
@@ -683,10 +684,11 @@ func _on_peer_disconnected(id: int) -> void:
 
 
 @rpc("authority", "call_local", "reliable")
-func _build_floor(new_depth: int, floor_seed: int, ft_id: String, floor_boss: String, floor_merchant: String) -> void:
+func _build_floor(new_depth: int, floor_seed: int, ft_id: String, floor_boss: String, floor_merchant: String, mix: String = "") -> void:
 	depth = new_depth
 	floor_time = 0.0
-	floor_def = GameData.floor_types[ft_id]
+	# #70: a mixed floor is built from its biome's definition with part of the invader's pool.
+	floor_def = FloorPlan.floor_def(ft_id, mix, floor_seed)
 	boss_id = floor_boss
 	merchant_id = floor_merchant
 	layout = DungeonGenerator.new().generate(floor_seed, floor_def, 1.0, new_depth, floor_merchant)
@@ -711,8 +713,8 @@ func _build_floor(new_depth: int, floor_seed: int, ft_id: String, floor_boss: St
 	boss_engaged = false
 	_wiped = false
 	AudioManager.play_music(str(floor_def.music))
+	# The HUD's floor banner announces it (#70).
 	EventBus.floor_started.emit(new_depth)
-	EventBus.hud_message.emit(Loc.f("%s - Floor %d", [floor_def.name, new_depth]), Color(0.95, 0.75, 0.4))
 
 
 ## Host -> all (reliable): owners stop streaming their position before the run is torn down,
@@ -732,15 +734,9 @@ func _sync_clock(t: float) -> void:
 
 ## D21: depth cycles through the floor types by their "order" (Crypt, Sewers, Foundry, Archives,
 ## Kurgan). Tests and tours can pin the first floor's type ("force_biome" meta on GameState).
-static func floor_type_for(new_depth: int) -> String:
-	var ft_ids: Array = GameData.floor_types.keys()
-	ft_ids.sort_custom(func(a, b): return int(GameData.floor_types[a].get("order", 99)) < int(GameData.floor_types[b].get("order", 99)) \
-		or (int(GameData.floor_types[a].get("order", 99)) == int(GameData.floor_types[b].get("order", 99)) and str(a) < str(b)))
-	var forced := str(GameState.get_meta("force_biome", ""))
-	if forced != "" and ft_ids.has(forced):
-		var i := ft_ids.find(forced)
-		return ft_ids[(i + new_depth - 1) % ft_ids.size()]
-	return ft_ids[(new_depth - 1) % ft_ids.size()]
+## The biome of floor `new_depth` in this run (#70: fixed for the first cycle, then shuffled).
+func floor_type_for(new_depth: int) -> String:
+	return FloorPlan.biome_at(run_seed, new_depth)
 
 
 ## Host: the floor's boss, a seeded pick from the floor type's list ("force_boss" meta on
@@ -754,14 +750,8 @@ static func pick_merchant(floor_seed: int) -> String:
 	return DungeonGenerator.pick_merchant(floor_seed)
 
 
-static func pick_boss(ft: Dictionary, floor_seed: int) -> String:
-	var pool: Array = ft.get("bosses", [ft.get("boss", "")])
-	var forced := str(GameState.get_meta("force_boss", ""))
-	if forced != "" and pool.has(forced):
-		return forced
-	var rng := RandomNumberGenerator.new()
-	rng.seed = floor_seed + 211
-	return str(pool[rng.randi() % pool.size()])
+static func pick_boss(ft: Dictionary, floor_seed: int, avoid: String = "") -> String:
+	return FloorPlan.pick_boss(ft, floor_seed, avoid)
 
 
 @rpc("authority", "call_local", "reliable")

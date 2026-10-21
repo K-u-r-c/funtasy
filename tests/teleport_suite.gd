@@ -86,6 +86,14 @@ func run_lan() -> void:
 	da.check(g.layout.size != Vector2i(g.floor_def.grid[0], g.floor_def.grid[1]),
 			"host: floor 2 is a little bigger than floor 1's grid (%s)" % g.layout.size)
 	NetworkManager.to_clients("DevAuto", "client_cmd", ["tp_layout", [g.layout.size, g.layout.rooms.size(), g.layout.start]])
+	await da._wait(1.5)
+	# #70: a mixed floor is the same floor on every peer.
+	GameState.set_meta("force_mix", "foundry" if g.floor_type_for(3) != "foundry" else "crypt")
+	g.start_floor(3)
+	await da._wait(2.0)
+	GameState.set_meta("force_mix", "")
+	da.check(not str(g.floor_def.get("mix", "")).is_empty(), "host: floor 3 is mixed (%s by %s)" % [g.floor_type_for(3), g.floor_def.get("mix", "")])
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["tp_mixed", [str(g.floor_def.get("mix", "")), g.layout.size, g.layout.rooms.size(), g.floor_def.monsters.size()]])
 	# The clients judge on their own and finish when the host closes the session.
 	await da._wait(2.0)
 
@@ -107,6 +115,10 @@ func client_cmd(cmd: String, arg: Variant) -> void:
 			da.check(out.has("done"), "client: floor 2 started")
 			if out.has("done"):
 				judge("client %d" % da.multiplayer.get_unique_id(), out)
+		"tp_mixed":
+			var mx: Array = arg
+			da.check(str(g.floor_def.get("mix", "")) == mx[0] and g.layout.size == mx[1] and g.layout.rooms.size() == mx[2] and g.floor_def.monsters.size() == mx[3],
+					"client: the same mixed floor as the host (%s by %s, %d rooms, %d monster kinds)" % [g.floor_type_for(g.depth), g.floor_def.get("mix", ""), g.layout.rooms.size(), g.floor_def.monsters.size()])
 		"tp_layout":
 			var lay: Array = arg
 			da.check(g.layout.size == lay[0] and g.layout.rooms.size() == lay[1] and g.layout.start == lay[2],

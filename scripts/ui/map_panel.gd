@@ -14,7 +14,7 @@ func _build() -> void:
 	var game := get_tree().get_first_node_in_group("game")
 	var depth := int(game.depth) if game and "depth" in game else 0
 	if depth > 0:
-		subtitle.text = Loc.f("Floor %d  -  %s", [depth, str(game.floor_def.get("name", ""))])
+		subtitle.text = Loc.f("Floor %d  -  %s", [depth, FloorPlan.title(game.floor_def)])
 	var mm: Control = Minimap.new()
 	mm.full_map = true
 	mm.size_flags_vertical = Control.SIZE_EXPAND_FILL

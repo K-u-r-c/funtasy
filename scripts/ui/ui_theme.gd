@@ -31,6 +31,10 @@ const TEXT := Color("f0ece1")
 const TEXT_DIM := Color("8e93a6")
 const DANGER := Color("f25050")
 const GOOD := Color("6fe08a")
+## The floor systems' shared colours (#70-#74): badges, cards, warnings and markers.
+const BADGE_INVASION := Color("d9744a")  ## a mixed floor's invader (ember)
+const WARN := Color("ff4d3d")  ## a threat about to strike (telegraphs, countdowns)
+const WARN_SOFT := Color("ffb347")  ## a threat building up
 
 const FONT_SMALL := 12
 const FONT_BODY := 16

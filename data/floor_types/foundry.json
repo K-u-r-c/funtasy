@@ -2,6 +2,7 @@
 	"id": "foundry",
 	"order": 3,
 	"name": "Infernal Foundry",
+	"overrun": "overrun from the Infernal Foundry",
 	"tiles": "tiles.foundry",
 	"music": "foundry",
 	"bosses": [

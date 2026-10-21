@@ -55,6 +55,7 @@ var _prompt_more: HBoxContainer
 var _prompt_count: Label
 var _prompt: Label
 var _floor_label: Label
+var _mix_label: Label  ## #70: "Overrun from ..." on a mixed floor
 var _goal_label: Label
 var _portal_label: Label
 var _center_panel: PanelContainer
@@ -72,6 +73,8 @@ var _res_icon: TextureRect
 var _goal_icon: TextureRect
 var _last_message := ""
 var level_banner: LevelBanner  ## #48
+var floor_banner: FloorBanner  ## #70: the arrival on a floor
+var _floor_badges: HBoxContainer  ## #70 / #71: what makes this floor different, as badges
 var _last_message_at := 0
 ## Layout test hook: fills every HUD block with worst-case content (boss bar, banner, three
 ## teammates, many status effects) so tests can check nothing overlaps on any screen shape.
@@ -85,6 +88,7 @@ func _ready() -> void:
 	EventBus.hud_message.connect(show_message)
 	EventBus.interact_prompt.connect(_set_prompt)
 	EventBus.floor_started.connect(_on_floor_started)
+	EventBus.floor_started.connect(_announce_floor)
 	EventBus.bindings_changed.connect(_rebuild_skill_icons)
 	EventBus.input_device_changed.connect(func(_g): _rebuild_skill_icons())
 	EventBus.local_loadout_changed.connect(_rebuild_skill_icons)
@@ -92,6 +96,8 @@ func _ready() -> void:
 	EventBus.locale_changed.connect(_relocalize)
 	level_banner = LevelBanner.new()
 	add_child(level_banner)
+	floor_banner = FloorBanner.new()
+	add_child(floor_banner)
 	EventBus.local_level_up.connect(level_banner.show_level)
 
 
@@ -202,6 +208,14 @@ func _build_top_right() -> void:
 	v.add_child(mm)
 	_floor_label = UITheme.label("", UITheme.GOLD, UITheme.FONT_BODY)
 	v.add_child(_floor_label)
+	_floor_badges = HBoxContainer.new()
+	_floor_badges.add_theme_constant_override("separation", 4)
+	v.add_child(_floor_badges)
+	_mix_label = UITheme.label("", UITheme.BADGE_INVASION.lightened(0.2), UITheme.FONT_SMALL)
+	_mix_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_mix_label.custom_minimum_size = Vector2(130, 0)
+	_mix_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_mix_label.visible = false
 	# Each tracker line leads with its icon (#29): the goal (skull / stairs), the portal, the torch.
 	var grow := HBoxContainer.new()
 	grow.add_theme_constant_override("separation", 4)
@@ -435,8 +449,30 @@ func _on_floor_started(d: int) -> void:
 	var game := get_tree().get_first_node_in_group("game")
 	var fname := str(game.floor_def.get("name", "")) if game else ""
 	_floor_label.text = Loc.f("Floor %d%s", [d, "  " + Loc.t(fname) if not fname.is_empty() else ""])
+	# #70: a mixed floor names its invader under the floor's name.
+	var mix := str(game.floor_def.get("mix", "")) if game else ""
+	_mix_label.visible = not mix.is_empty()
+	for c in _floor_badges.get_children():
+		if c != _mix_label:
+			c.queue_free()
+	if _mix_label.get_parent() == null:
+		_floor_badges.add_child(_mix_label)
+	if not mix.is_empty():
+		var ov := Loc.t(str(GameData.floor_types[mix].get("overrun", "")))
+		_mix_label.text = ov.substr(0, 1).to_upper() + ov.substr(1)
+		var b := Badge.new("mod_overrun", _mix_label.text, [[Loc.t("Part of the monsters here come from another biome.")]], UITheme.BADGE_INVASION, 22)
+		_floor_badges.add_child(b)
+		_floor_badges.move_child(b, 0)
+	_floor_badges.visible = not mix.is_empty()
 	_portal_label.text = ""
 	_portal_label.visible = false
+
+
+## #70: the arrival banner, once per floor (not when the HUD is rebuilt).
+func _announce_floor(d: int) -> void:
+	var game := get_tree().get_first_node_in_group("game")
+	if game and floor_banner and d > 0:
+		floor_banner.show_floor(game.floor_def, d)
 
 
 func _rebuild_skill_icons() -> void:

@@ -152,6 +152,7 @@ screenshot review at 1920x1080 and 3440x1440.
 
 ## Eighth playtest issues (GitHub #70-#82)
 
+- [x] #70 Biome order shuffled per cycle from floor 6 (no repeats back to back), mixed floors from floor 6 (invader monsters and sometimes a hazard), boss alternates per biome, floor arrival banner with biome crests and badges (`biomes`, `teleport-lan`)
 - [x] #82 Ghosts roam the floor: walk, open doors, map grows, own blue light for their own sight, untouchable and unable to act, faint to the living, alive again next floor (`ghost-lan`, 3 instances; windowed screenshots)
 - [x] #80 Carried torches burn 5 minutes (warning at 10%); lobby setting Torches off: every hero carries a steady light of a torch's size, wall torches are decoration, no HUD torch line (`lighting-rules`, `darkness`)
 - [x] #79 Light and hands stop at walls: wall faces stop lights behind them, torches / closed doors / spouts are drawn lit only when seen, no interaction through a wall or closed door (`lighting-rules`, `interact*`, windowed `leak_probe` in all biomes)
@@ -278,6 +279,7 @@ gameplay effects (#81) from shaders, particles and the free vfx workbench; re-ro
 | Date | Batch | Used before | Used after | Spend | Goal spend |
 | --- | --- | --- | --- | --- | --- |
 | 2026-10-21 | (goal start) | 4330 | 4330 | 0 | 0 |
+| 2026-10-21 | Floor icons: 1 Pixen 128x128 sheet of 16 (5 biome crests, the overrun rift, 5 floor modifiers for #71, 5 events for #72), cut by `tools/cut_icon_sheet.py` | 4330 | 4331 | 1 | 1 |
 
 ## Done (MVP)
 
