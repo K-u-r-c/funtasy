@@ -56,7 +56,7 @@ func _erupt(actors: Array, dungeon: Node) -> void:
 	var area := Rect2(position - Vector2(_tile, _tile) * 1.5, Vector2(_tile, _tile) * 3.0)
 	for a in actors:
 		if a.is_targetable() and area.has_point(a.global_position):
-			Combat.instance.deal_damage(Combat.instance.env_ctx(0.0), a, float(GameData.bal("hazards.spikes_damage")))
+			Combat.instance.deal_damage(Combat.instance.trap_ctx(), a, float(GameData.bal("hazards.spikes_damage")))
 
 
 ## Every peer: the plate sinks with a click.

@@ -199,6 +199,8 @@ static func type_color(dtype: String) -> String:
 func deal_damage(ctx: Dictionary, target: Actor, amount: float, opts: Dictionary = {}) -> float:
 	if not is_instance_valid(target) or not target.is_targetable() or amount <= 0.0:
 		return 0.0
+	if trap_spares(ctx, target):
+		return 0.0
 	var caster: Actor = ctx.caster if is_instance_valid(ctx.caster) else null
 	var dot := bool(opts.get("dot", false))
 	var env := bool(ctx.get("environment", false))
@@ -533,6 +535,8 @@ func heal(ctx: Dictionary, target: Actor, amount: float, burst: bool = true) -> 
 func apply_status(ctx: Dictionary, target: Actor, id: String, duration: float, magnitude: float) -> bool:
 	if not is_instance_valid(target) or not target.is_alive():
 		return false
+	if trap_spares(ctx, target):
+		return false
 	var landed := target.status.apply(id, duration, magnitude, ctx)
 	if not landed:
 		fx.number.rpc(target.global_position, "Immune", "info")
@@ -568,6 +572,19 @@ func test_ctx(caster: Actor, skill: Dictionary) -> Dictionary:
 	var c := make_ctx(caster, skill)
 	c.cannot_miss = true
 	return c
+
+
+## #101: the floor's own hazards (lava, spikes, plates, spouts, rifts, snares, runes): like
+## env_ctx, marked as a trap - monsters walk through them unharmed.
+func trap_ctx() -> Dictionary:
+	var c := env_ctx(0.0)
+	c.trap = true
+	return c
+
+
+## #101: a trap never hurts the monsters' side (only heroes and their allies).
+static func trap_spares(ctx: Dictionary, target: Actor) -> bool:
+	return bool(ctx.get("trap", false)) and target.team == Actor.Team.MONSTERS
 
 
 func env_ctx(power: float) -> Dictionary:

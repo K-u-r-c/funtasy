@@ -155,6 +155,6 @@ func host_damage(actors: Array, floor_time: float) -> void:
 		if floor_time < float(_hit.get(a, -99.0)) + 0.5:
 			continue
 		_hit[a] = floor_time
-		Combat.instance.deal_damage(Combat.instance.env_ctx(0.0), a, float(cfg.get("damage", 8)), {"damage_type": str(cfg.get("damage_type", "nature"))})
+		Combat.instance.deal_damage(Combat.instance.trap_ctx(), a, float(cfg.get("damage", 8)), {"damage_type": str(cfg.get("damage_type", "nature"))})
 		if a.status and cfg.has("status"):
-			Combat.instance.apply_status(Combat.instance.env_ctx(0.0), a, str(cfg.status), float(cfg.get("status_time", 4.0)), float(cfg.get("magnitude", 0.0)))
+			Combat.instance.apply_status(Combat.instance.trap_ctx(), a, str(cfg.status), float(cfg.get("status_time", 4.0)), float(cfg.get("magnitude", 0.0)))

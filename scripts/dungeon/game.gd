@@ -752,7 +752,7 @@ func _physics_process(delta: float) -> void:
 					a.status.apply("magma_surge", float(GameData.bal("hazards.lava_tick")) + 0.6, 0.0, combat.env_ctx(0.0))
 					continue
 				var lava := float(GameData.bal("hazards.lava_damage")) * (0.2 if a.stats.has_flag("lava_resist") else 1.0)
-				combat.deal_damage(combat.env_ctx(0.0), a, lava, {"dot": true, "damage_type": "fire"})
+				combat.deal_damage(combat.trap_ctx(), a, lava, {"dot": true, "damage_type": "fire"})
 	if portal:
 		_portal_left -= delta
 		if _portal_left <= 0.0:
@@ -1377,7 +1377,7 @@ func rise_mark_of(remains: Node) -> Node:
 ## Host: the floor's standing hazards that live in the combat zone system (Archives' void rifts
 ## pull and burn with shadow; silence runes are one-shot traps).
 func _spawn_floor_hazards(lay: Dictionary) -> void:
-	var env := combat.env_ctx(0.0)
+	var env := combat.trap_ctx()
 	for pos in lay.get("rifts", []):
 		var c := env.duplicate()
 		c.damage_type = "shadow"
@@ -1405,7 +1405,9 @@ func _pulse_prop(pr: Node, delta: float) -> void:
 		pr.set_meta("pulse_left", left)
 		return
 	pr.set_meta("pulse_left", float(pd.get("every", 6.0)))
-	var ctx := combat.env_ctx(float(pd.get("damage", 10)))
+	# #101: a trap of the floor: it scalds / frightens heroes, not monsters.
+	var ctx := combat.trap_ctx()
+	ctx.power = float(pd.get("damage", 10))
 	var eff := {"type": "aoe", "radius": float(pd.get("radius", 56)), "damage": {"base": 0, "coef": 1.0}, "damage_type": str(pd.get("damage_type", "fire")),
 		"color": str(pd.get("color", "#ff9a3a"))}
 	if pd.has("status"):

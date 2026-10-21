@@ -1065,7 +1065,8 @@ func _step_zones(delta: float) -> void:
 
 
 func _trap_victims(z: Dictionary) -> Array:
-	return hostile_in_radius(z.ctx, z.pos, z.radius, true).filter(func(a): return not a.status.has_flag("trap_immune"))
+	# #101: the floor's own traps (snares, runes) wait for a hero; monsters walk over them.
+	return hostile_in_radius(z.ctx, z.pos, z.radius, true).filter(func(a): return not a.status.has_flag("trap_immune") and not trap_spares(z.ctx, a))
 
 
 func _zone_tick(z: Dictionary) -> void:

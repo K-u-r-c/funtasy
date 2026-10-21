@@ -169,6 +169,7 @@ screenshot review at 1920x1080 and 3440x1440.
 - [x] #95 Malphas offers 5 contracts and 2 seeded pact potions a floor, each potion once per hero (`economy`, `economy-lan`)
 - [x] #98 Summoned walls (stakes, thorns, briar, bone spears) fall to one hero hit (swing, shot, thrust, area); cover and flames stand; new PixelLab art with variants, a rise and a splinter break (`walls`, `walls-lan`)
 - [x] #99 The freed prisoner follows its rescuer, fights the monsters around it with its class's abilities, opens doors, catches up when left behind or stuck, never blocks a hero (`events`, `events-lan`)
+- [x] #101 Monsters are spared by lava and the floor's traps (spikes, plates, spouts, cauldrons, rifts, snares, runes); heroes' barrels still hurt them (`hazards`, `hazards-lan`)
 - [x] #100 Will-o'-the-Blight: the detonation deals 40% of the drained pool, at most 30% of the hero's health (was the whole pool) (`monsters`)
 
 ## Eighth playtest issues (GitHub #70-#82)

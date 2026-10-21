@@ -45,4 +45,4 @@ func host_damage(actors: Array) -> void:
 			continue
 		if rect.has_point(a.global_position):
 			_hit.append(a)
-			Combat.instance.deal_damage(Combat.instance.env_ctx(0.0), a, float(GameData.bal("hazards.spikes_damage")))
+			Combat.instance.deal_damage(Combat.instance.trap_ctx(), a, float(GameData.bal("hazards.spikes_damage")))
