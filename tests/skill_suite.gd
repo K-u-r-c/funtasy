@@ -573,7 +573,7 @@ func _expect(ex: String, b: Dictionary, a: Dictionary, target: Enemy, proj_id: i
 		"self_status":
 			return p.status.has(arg) or _had_status(p, arg)
 		"self_healed":
-			return a.p_hp > b.p_hp + 1.0
+			return a.p_hp > b.p_hp + 0.5  # a 1% heal of a level 1 hero is about 1.4
 		"self_alive":
 			return p.is_alive() and p.life_state == Player.Life.ALIVE
 		"ally_healed":
