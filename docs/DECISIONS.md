@@ -1424,3 +1424,10 @@ Tree shapes ("A > B": B grows from A; {x / y}: branches; (x): a fork side; [n]: 
 | Rule | The floor's own hazards use `Combat.trap_ctx()` (an environment context marked as a trap): lava, spikes, pressure-plate spikes, acid / flame wall spouts, scalding cauldrons and dread totems, the Archives' void rifts, root snares and silence runes. `Combat.trap_spares` makes a trap deal no damage and apply no status to the monsters' side; heroes and their allies (the freed prisoner) are hurt as before. A floor trap (snare, rune) waits for a hero: monsters walk over it without springing it. Fire-loving monsters still gain from lava where they did. |
 | Kept | What a hero sets off on purpose is a weapon, not a trap: an explosive barrel or a gas pocket still blasts the monsters around it; a grave urn's miasma (released by breaking the urn) still hurts everyone in it. |
 | Tests | `hazards` (a Foundry floor): a monster in lava for three ticks keeps its health, a hero there burns; a trap context spares a monster (no damage, no status) and hurts a hero; a snare doesn't spring on a monster; a hero's barrel still hurts monsters. `hazards-lan`: the client sees the monster in the lava at full health. |
+
+### #102 The priest's healing costs much more mana
+
+| Topic | Decision |
+| --- | --- |
+| Rule | Every priest skill that heals costs about 1.8x its mana: Flash Heal 25 -> 45, Renew 15 -> 27, Renewal 45 -> 80, Holy Nova 30 -> 55, Lightwell 40 -> 70, Penance 12 -> 22 mana a second (its description too). A full bar of a fresh priest affords 3 Flash Heals instead of 5. The primary (Holy Strike) and Smite stay free (Smite's small heal was cut in #67), Purify (a cleanse) keeps its 10; the damage skills and the shield are unchanged. Talents and items that lower costs apply to the new numbers as before. |
+| Tests | `skills-priest`: the heal costs are ~1.8x the old ones and the other skills unchanged; a real Flash Heal spends 45 mana; a full bar affords fewer heals. |

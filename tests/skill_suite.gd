@@ -53,6 +53,40 @@ func run_class(class_id: String) -> void:
 		if not useful and not sk.get("passive", false) and not sk.has("toggle"):
 			bare.append(sid2)
 	da.check(bare.is_empty(), "every %s skill tooltip shows damage, healing or a status (missing: %s)" % [class_id, bare])
+	if class_id == "priest":
+		await priest_heal_costs()
+
+
+## #102: the priest's healing costs ~1.8x its old mana (data and a real cast's spend); a full mana
+## bar affords clearly fewer Flash Heals; the other priest skills keep their costs.
+const PRIEST_OLD_COSTS := {"priest_heal": 25, "priest_renew": 15, "priest_renewal": 45, "priest_holy_nova": 30, "priest_lightwell": 40}
+func priest_heal_costs() -> void:
+	var bad: Array = []
+	for sid in PRIEST_OLD_COSTS:
+		var now := float(GameData.skill(sid).get("cost", 0))
+		if now < float(PRIEST_OLD_COSTS[sid]) * 1.7:
+			bad.append("%s %d -> %.0f" % [sid, PRIEST_OLD_COSTS[sid], now])
+	var cps := float(GameData.skill("priest_penance").channel.cost_per_second)
+	if cps < 12.0 * 1.7:
+		bad.append("penance %.0f/s" % cps)
+	for sid2 in ["priest_smite", "priest_holy_strike", "priest_purify"]:
+		var c := float(GameData.skill(sid2).get("cost", 0))
+		if sid2 == "priest_purify" and c != 10.0 or sid2 != "priest_purify" and c != 0.0:
+			bad.append("%s changed to %.0f" % [sid2, c])
+	da.check(bad.is_empty(), "the priest's heals cost about 1.8x the old mana, the other skills the same (%s)" % [bad])
+	# A real Flash Heal spends its new cost.
+	await _reset()
+	p.skills[1] = "priest_heal"
+	p.cooldowns.clear()
+	p.resource.value = p.resource.max_value
+	var m0: float = p.resource.value
+	var err: String = Combat.instance.try_use_skill(p, "priest_heal", p.global_position)
+	await da._wait(1.0)
+	var spent: float = m0 - p.resource.value
+	var want: float = p.stats.cost_for(GameData.skill("priest_heal"))
+	da.check(err.is_empty() and absf(spent - want) <= 2.0 and want >= 40.0, "a Flash Heal spends its new cost (%.0f mana, data %.0f)" % [spent, want])
+	var bar: float = p.resource.max_value
+	da.check(floori(bar / want) < floori(bar / (want * 25.0 / float(GameData.skill("priest_heal").cost))), "a full bar affords fewer Flash Heals (%d instead of %d)" % [floori(bar / want), floori(bar / (want * 25.0 / float(GameData.skill("priest_heal").cost)))])
 
 
 ## #19: the animation of every skill comes from data (a skill's anim, the weapon's attack / cast
