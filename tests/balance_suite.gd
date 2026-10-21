@@ -92,6 +92,24 @@ func run_progression(max_depth: int = 20) -> Array:
 		if now.x > old.x * 0.85 or now.y > old.y * 0.85:
 			weaker.append(d)
 	da.check(weaker.is_empty(), "floors 1-3 monsters have clearly less HP and damage than before (not on floors %s)" % [weaker])
+	# #84: past floor 3 monsters outgrow the old curve (per-level growth only) floor by floor.
+	var grow: Array = []
+	var from := int(GameData.bal("scaling.depth_growth_from"))
+	for d in [1, 3, 4, 6, 10, 15, 20]:
+		var lv: int = g.monster_level_at(d, float(_curve_level(curve, mini(d, max_depth))))
+		var now2: Vector2 = g.spawn_mults(d, lv, false, 1)
+		var past := maxi(d - from, 0)
+		var old2 := Vector2(now2.x / (1.0 + float(GameData.bal("scaling.depth_hp_growth")) * past), now2.y / (1.0 + float(GameData.bal("scaling.depth_damage_growth")) * past))
+		print("[balance] floor %d monster L%d: hp x%.2f (old curve x%.2f, %+d%%) dmg x%.2f (old x%.2f, %+d%%)" % [d, lv, now2.x, old2.x, roundi((now2.x / old2.x - 1.0) * 100.0), now2.y, old2.y, roundi((now2.y / old2.y - 1.0) * 100.0)])
+		grow.append([d, now2.x / old2.x, now2.y / old2.y])
+	var ok_grow := true
+	for i in grow.size():
+		var d2: int = grow[i][0]
+		if d2 <= from:
+			ok_grow = ok_grow and is_equal_approx(grow[i][1], 1.0) and is_equal_approx(grow[i][2], 1.0)
+		elif i > 0:
+			ok_grow = ok_grow and grow[i][1] > grow[i - 1][1] and grow[i][2] > grow[i - 1][2]
+	da.check(ok_grow and grow[4][1] >= 1.15 and grow[4][2] >= 1.18, "monsters outgrow the old curve deeper down (floor 10: HP x%.2f, damage x%.2f; floors 1-3 unchanged)" % [grow[4][1], grow[4][2]])
 	for d in range(1, max_depth + 1):
 		print("[balance] progression solo level at the start of depth %d: %.1f (monsters L%d, items L%d)" % [d, curve[d],
 			g.monster_level_at(d, curve[d]), g.item_level_at(g.monster_level_at(d, curve[d]))])

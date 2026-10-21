@@ -1349,3 +1349,12 @@ Tree shapes ("A > B": B grows from A; {x / y}: branches; (x): a fork side; [n]: 
 | Cause | Every change of gold or gear rebuilt the list from scratch, which reset its scroll, and then gave the focus back to the selected row, which scrolled the list to it (the top, for a hero who had scrolled down with the wheel). |
 | Rule | The same gear in the same places only refreshes its rows in place (name, level, price, lock). A changed set of gear rebuilds the rows and puts the scroll position back; the focus is set only on the first build or kept on the row that had it. The wheel, the scrollbar and keyboard / gamepad focus (follow focus) scroll it. |
 | Tests | `forge`: 30 pieces; scrolled to the end with the first row selected, the list stays there while the mouse moves over rows, when the gold changes, when the backpack changes, and through forging a low row (still selected after it). On the old window the gold change sent it back up. |
+
+### #84 Monsters scale faster with depth
+
+| Topic | Decision |
+| --- | --- |
+| Finding | The balance probe (a hero of the progression curve's level in rare gear, primary attack only) killed a normal monster in about 1 s on every floor and took 15-140 s to die to one; real heroes add legendaries, boons, stat points and the forge, so they outgrew the dungeon. |
+| Rule | On top of the per-level growth, from floor 4 every floor deeper multiplies monster HP by (1 + 0.025 x (depth - 3)) and damage by (1 + 0.03 x (depth - 3)) (`scaling.depth_growth_from`, `depth_hp_growth`, `depth_damage_growth`; `Game.spawn_mults`, used by the spawns and the probes alike). Floors 1-3 keep the eased start of #1 / #8. Against the old curve a floor 10 monster has +18% HP and +21% damage, floor 20 +43% / +51%; elites, bosses and every party size scale the same way. |
+| Knock-on | One floor deeper now costs more, so the floor modifier cost band (`probe.mod_cost_band`) is [1.0, 1.6] (Swarm on floor 9 measured x1.51). The cursed chest's mimic hits for x0.85 (`mimic_damage_mult`) and the arena's last wave has 4 monsters and its elite (was 5), so neither can kill a lone hero of the floor's level outright on any biome (the events probe's rule; floor 16 measured up to 0.64 of a hero's health). |
+| Tests | `balance-*`: the growth applies from floor 4 and rises floor by floor (floors 1-3 unchanged), every monster and boss still inside the pacing bands; `mods`, `events`, `deep` probes inside their bands. |

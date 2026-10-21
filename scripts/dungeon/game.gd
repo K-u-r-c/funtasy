@@ -448,6 +448,10 @@ static func spawn_mults(at_depth: int, lvl: int, boss: bool, n: int, diff: float
 	hp_mult *= 1.0 + float(GameData.bal("scaling.boss_hp_per_extra_player" if boss else "scaling.hp_per_extra_player")) * (n - 1)
 	var dmg_mult := (1.0 + float(GameData.bal("scaling.damage_per_level")) * (lvl - 1)) * diff
 	dmg_mult *= 1.0 + float(GameData.bal("scaling.damage_per_extra_player")) * (n - 1)
+	# #84: deeper floors grow tougher on top of the levels, from depth_growth_from on.
+	var past := maxi(at_depth - int(GameData.bal("scaling.depth_growth_from", 3)), 0)
+	hp_mult *= 1.0 + float(GameData.bal("scaling.depth_hp_growth", 0.0)) * past
+	dmg_mult *= 1.0 + float(GameData.bal("scaling.depth_damage_growth", 0.0)) * past
 	# The first floors are easier (a simple start, #1): one {hp, damage, boss_hp} factor per depth.
 	var early: Array = GameData.bal("scaling.early_depths", [])
 	if at_depth >= 1 and at_depth <= early.size():

@@ -152,6 +152,7 @@ screenshot review at 1920x1080 and 3440x1440.
 
 ## Ninth playtest issues (GitHub #83-#100)
 
+- [x] #84 Monsters scale faster with depth: from floor 4 +2.5% HP and +3% damage per floor on top of the levels (floor 10 +18% / +21%, floor 20 +43% / +51%); mod cost band, the mimic and the arena's last wave adjusted (`balance-*`, `mods`, `events`)
 - [x] #83 Shots go where the cursor points: mouse aims take the ground point under the cursor for shots, beams, swings and target picks (shots drawn at chest height now pass through it), areas land on it, the preview draws shots at chest height, clients keep their aimed direction despite lag (`aim`, `aim-lan`)
 - [x] #85 Long texts scroll inside fixed-width cards (inventory, talents, merchants, forge), cards rebuilt without a one-frame double; the talent book selects on click, previews on hover, learns with a Learn button / double-click / accept (`ui-stable`, `ui-stable-pl`)
 - [x] #86 Stacks merge: drag a stack onto the same item's stack (up to the stack limit, the rest stays), or Merge stacks in the amount picker (keyboard / gamepad); host-checked (`stacks`, `stacks-lan`)
