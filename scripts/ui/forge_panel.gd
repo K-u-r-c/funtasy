@@ -135,18 +135,33 @@ func _floor_ilvl() -> int:
 	return game.item_level() if game else 1
 
 
+## #97: the list keeps its scroll position and focus. The same gear in the same places only
+## refreshes its rows in place; a changed set of gear rebuilds them and puts the scroll back. The
+## focus moves only on the first build (or when the focused row is gone), never because the gold
+## or the backpack changed.
 func _rebuild() -> void:
 	if not is_inside_tree():
 		return
 	_last_sig = _sig()
 	_gold_chip.get_meta("label").text = str(player.gold)
-	var focused := get_viewport().gui_get_focus_owner()
-	var refocus := focused == null or rows.any(func(r): return r.button == focused)
-	for c in _list.get_children():
-		_list.remove_child(c)
-		c.queue_free()
-	rows.clear()
 	var entries := _entries()
+	var layout := entries.map(func(e): return "%s:%s:%s" % [e.where, e.key, str(e.item.get("uid", ""))])
+	var first := _list.get_child_count() == 0
+	if layout == rows.map(func(r): return "%s:%s:%s" % [r.where, r.key, str(r.item.get("uid", ""))]) and not rows.is_empty():
+		for i in rows.size():
+			rows[i].item = entries[i].item
+			_fill_row(rows[i].button, entries[i].item)
+		_show(_row_of(_sel_uid))
+		return
+	var sc: ScrollContainer = _list.get_parent()
+	var keep := sc.scroll_vertical
+	var focused := get_viewport().gui_get_focus_owner()
+	var focus_uid := ""
+	for r in rows:
+		if r.button == focused:
+			focus_uid = str(r.item.get("uid", ""))
+	UITheme.clear(_list)
+	rows.clear()
 	var section := ""
 	for e in entries:
 		var sec := Loc.t("Worn") if e.where == "equip" else Loc.t("Backpack")
@@ -172,14 +187,30 @@ func _rebuild() -> void:
 			sel = r
 	_sel_uid = str(sel.item.get("uid", ""))
 	_show(sel)
-	if refocus:
+	if first:
 		sel.button.grab_focus.call_deferred()
+		return
+	if not focus_uid.is_empty():
+		var back := _row_of(focus_uid)
+		(back.button if not back.is_empty() else sel.button).grab_focus()
+	# The new rows are laid out this frame: the scroll goes back once they are.
+	sc.scroll_vertical = keep
+	(func(): if is_instance_valid(sc): sc.scroll_vertical = keep).call_deferred()
 
 
 ## One gear row: icon, name in its rarity colour, its item level, and the price of the next step
 ## as a coin chip (red when unaffordable; a lock at the forge's cap).
 func _row(item: Dictionary) -> Button:
 	var b := Button.new()
+	_fill_row(b, item)
+	return b
+
+
+## A row's text, icon, colour and price tag for `item` (built or refreshed in place, #97).
+func _fill_row(b: Button, item: Dictionary) -> void:
+	for c in b.get_children():
+		b.remove_child(c)
+		c.queue_free()
 	b.text = "%s  %s" % [Loc.item_name(item), Loc.f("Lv %d", [int(item.get("ilvl", 1))])]
 	b.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	b.clip_text = true
@@ -208,7 +239,6 @@ func _row(item: Dictionary) -> Button:
 		tag.add_child(UITheme.icon("hud_gold", 16))
 		tag.add_child(UITheme.label(str(Forge.cost(item, Forge.party(get_tree()))), UITheme.GOLD if str(why[0]).is_empty() else UITheme.DANGER, UITheme.FONT_BODY))
 	b.add_child(tag)
-	return b
 
 
 ## The selected piece (#90): its card stays unless another row is hovered.

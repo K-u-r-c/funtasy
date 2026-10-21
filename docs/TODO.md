@@ -161,6 +161,7 @@ screenshot review at 1920x1080 and 3440x1440.
 - [x] #90 The forge list only selects (hover previews); the Forge button upgrades the selected piece; accept on a row moves to the button (`forge`)
 - [x] #91 The forge window never moves during or after an upgrade; no upgrade message; a warm light sweeps the card (pixel-stepped shader) with rising motes (`forge`)
 - [x] #92 Forging costs 1.5x (base 15); a legendary kept current takes 63-93% of a hero's floor gold (`forge`)
+- [x] #97 The forge list keeps its scroll and focus: rows refresh in place, a rebuild restores the scroll (`forge`)
 
 ## Eighth playtest issues (GitHub #70-#82)
 

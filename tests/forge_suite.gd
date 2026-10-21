@@ -28,6 +28,7 @@ func run() -> void:
 	same_as_dropped()
 	await host_upgrades()
 	await window()
+	await long_list()
 	await smith_anim()
 	saved_with_floor()
 	await BalanceSuite.new(da).run_forge()
@@ -430,6 +431,58 @@ func window() -> void:
 			now = it
 	da.check(int(now.get("ilvl", 0)) == lvl0 + 3 and p.gold == gold0 - c1 - c2, "two quick clicks forge two steps, each paid once (%d -> %d, %d gold)" % [lvl0 + 1, int(now.get("ilvl", 0)), gold0 - p.gold])
 	await da._wait_until(func(): return panel.stage.phase == "", 3.0)
+	hud.close_overlay()
+	await da._wait(0.3)
+
+
+## #97: with more gear than fits, the list scrolls down and stays there - while the mouse moves
+## over rows, while a row is selected and forged, after the forging and when the gold changes.
+func long_list() -> void:
+	var fg: Dictionary = g.layout.forge
+	p.host_teleport(fg.npc + Vector2(0, 30))
+	p.inv.capacity = maxi(p.inv.capacity, 40)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 97
+	while p.inv.backpack.size() < 30:
+		p.inv.backpack.append(ItemGenerator.generate_equipment(LootTable.pick_base([p.class_id], rng), 2, rng.randi_range(1, 3), rng))
+	p._inventory_changed()
+	p.gold = 5000
+	await da._wait(0.3)
+	g.host_interact(p, g.dungeon.props["Forge_npc"])
+	await da._wait(0.6)
+	var hud: Node = da.get_tree().get_first_node_in_group("hud")
+	var panel: Node = hud._overlay
+	var sc: ScrollContainer = panel._list.get_parent()
+	# The first row is selected; the wheel then takes the list to its end.
+	panel.rows[0].button.grab_focus()
+	await da._wait(0.2)
+	sc.scroll_vertical = 100000
+	await da._wait(0.3)
+	var bottom := sc.scroll_vertical
+	da.check(bottom > 100, "a long list scrolls down (%d px)" % bottom)
+	var low: Array = panel.rows.slice(panel.rows.size() - 6)
+	for r in low:
+		r.button.mouse_entered.emit()
+		await da._wait(0.15)
+		r.button.mouse_exited.emit()
+	await da._wait(0.5)
+	da.check(sc.scroll_vertical == bottom, "hovering rows keeps the list where it was (%d -> %d)" % [bottom, sc.scroll_vertical])
+	p.host_add_gold(-1)
+	await da._wait(0.5)
+	da.check(sc.scroll_vertical == bottom, "a change of gold doesn't send the list back up (%d -> %d)" % [bottom, sc.scroll_vertical])
+	p.host_give_item(ItemGenerator.generate_consumable("potion_health", 1, rng))
+	await da._wait(0.5)
+	da.check(sc.scroll_vertical == bottom, "a change in the backpack doesn't either (%d -> %d)" % [bottom, sc.scroll_vertical])
+	# A low row is picked and forged: the list stays down through the forging and after it.
+	var pick: Dictionary = low[low.size() - 2]
+	pick.button.grab_focus()
+	pick.button.pressed.emit()
+	await da._wait(0.2)
+	var at := sc.scroll_vertical
+	panel._button.pressed.emit()
+	await da._wait_until(func(): return panel.stage.phase == "", 4.0)
+	await da._wait(0.5)
+	da.check(sc.scroll_vertical == at and panel._sel_uid == str(pick.item.uid), "after forging a low row the list stays where it was, the row still selected (%d -> %d)" % [at, sc.scroll_vertical])
 	hud.close_overlay()
 	await da._wait(0.3)
 

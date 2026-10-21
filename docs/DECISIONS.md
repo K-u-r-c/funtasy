@@ -1341,3 +1341,11 @@ Tree shapes ("A > B": B grows from A; {x / y}: branches; (x): a fork side; [n]: 
 | Rule | `merchants.json blacksmith.upgrade.base` 10 -> 15: every step of every item costs 1.5x what it did (same rarity, level, quality and party factors). |
 | Probe | Keeping a legendary current now takes 63-66% of a solo hero's floor gold on floors 2-6 (was 43-44%) and 89-93% in a party of four (was 61%); the probe band `probe.forge_legendary_share` moves from [0.1, 0.65] to [0.15, 1.0]: a real gold sink that still fits a floor's income. |
 | Tests | `forge`: every rarity at levels 1, 5, 12 and 25 costs 1.5x the old price (+-1 for rounding); the probe band. |
+
+### #97 The forge list stays where it was scrolled
+
+| Topic | Decision |
+| --- | --- |
+| Cause | Every change of gold or gear rebuilt the list from scratch, which reset its scroll, and then gave the focus back to the selected row, which scrolled the list to it (the top, for a hero who had scrolled down with the wheel). |
+| Rule | The same gear in the same places only refreshes its rows in place (name, level, price, lock). A changed set of gear rebuilds the rows and puts the scroll position back; the focus is set only on the first build or kept on the row that had it. The wheel, the scrollbar and keyboard / gamepad focus (follow focus) scroll it. |
+| Tests | `forge`: 30 pieces; scrolled to the end with the first row selected, the list stays there while the mouse moves over rows, when the gold changes, when the backpack changes, and through forging a low row (still selected after it). On the old window the gold change sent it back up. |
