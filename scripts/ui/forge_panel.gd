@@ -1,8 +1,10 @@
 extends UIModal
 ## #77 Rolf Hult's forge: the local hero's gear (worn, then the backpack) on the left, the anvil in
 ## the middle and the chosen piece's "now -> after" card on the right, with the price, the hero's
-## gold and the Forge button (disabled, with the reason, when the piece can't be raised). Accept /
-## click on a row or the button forges one step; the host validates it (Forge.request_upgrade),
+## gold and the Forge button (disabled, with the reason, when the piece can't be raised). #90: a
+## click / accept on a row only selects it (accept then moves to the button); hovering another row
+## previews its card while hovered; the Forge button forges one step of the selected piece; the
+## host validates it (Forge.request_upgrade),
 ## the anvil plays the forging and the card flashes the raised numbers. #89: forging again while
 ## the anvil works ends that animation at once, so upgrades can be clicked through.
 
@@ -28,7 +30,7 @@ func _init() -> void:
 	subtitle_text = Loc.t(str(bs.get("title", "")))
 	title_icon = "forge"
 	fill_height = true
-	prompts = [["ui_accept", Loc.t("Upgrade")], ["ui_cancel", Loc.t("Leave")]]
+	prompts = [["ui_accept", Loc.t("Select")], ["ui_cancel", Loc.t("Leave")]]
 
 
 func _build() -> void:
@@ -140,9 +142,11 @@ func _rebuild() -> void:
 			var l := UITheme.label(sec, UITheme.TEXT_DIM, UITheme.FONT_SMALL)
 			_list.add_child(l)
 		var b := _row(e.item)
-		b.pressed.connect(_pick.bind(e, true))
-		b.focus_entered.connect(_pick.bind(e, false))
-		b.mouse_entered.connect(_pick.bind(e, false))
+		var uid := str(e.item.get("uid", ""))
+		b.pressed.connect(_choose_row.bind(uid))
+		b.focus_entered.connect(_select.bind(uid))
+		b.mouse_entered.connect(func(): _show(_row_of(uid)))
+		b.mouse_exited.connect(func(): _show(_row_of(_sel_uid)))
 		_list.add_child(b)
 		rows.append({"button": b, "where": e.where, "key": e.key, "item": e.item})
 	if rows.is_empty():
@@ -153,6 +157,7 @@ func _rebuild() -> void:
 	for r in rows:
 		if str(r.item.get("uid", "")) == _sel_uid:
 			sel = r
+	_sel_uid = str(sel.item.get("uid", ""))
 	_show(sel)
 	if refocus:
 		sel.button.grab_focus.call_deferred()
@@ -193,11 +198,18 @@ func _row(item: Dictionary) -> Button:
 	return b
 
 
-func _pick(e: Dictionary, forge_it: bool) -> void:
-	_sel_uid = str(e.item.get("uid", ""))
-	_show(_row_of(_sel_uid))
-	if forge_it:
-		_forge_selected()
+## The selected piece (#90): its card stays unless another row is hovered.
+func _select(uid: String) -> void:
+	_sel_uid = uid
+	_show(_row_of(uid))
+
+
+## A row clicked / accepted: it is selected; with the keyboard or a gamepad the focus moves on to
+## the Forge button (the mouse clicks the button itself).
+func _choose_row(uid: String) -> void:
+	_select(uid)
+	if InputSettings.last_kind != "mouse" and not _button.disabled:
+		_button.grab_focus()
 
 
 func _row_of(uid: String) -> Dictionary:
@@ -216,9 +228,9 @@ func _show(r: Dictionary) -> void:
 		stage.show_item({})
 		return
 	var item: Dictionary = r.item
-	_sel_uid = str(item.get("uid", ""))
+	var shown_uid := str(item.get("uid", ""))
 	# While the anvil works the piece, the card still shows it as it was.
-	var forging := stage.busy() and str(_was.get("uid", "")) == _sel_uid
+	var forging := stage.busy() and str(_was.get("uid", "")) == shown_uid
 	if forging:
 		item = _was
 	if not stage.busy():
@@ -231,7 +243,7 @@ func _show(r: Dictionary) -> void:
 	var cap := Forge.cap_for(player.level, _floor_ilvl())
 	var lvl := int(item.get("ilvl", 1))
 	var after := ItemGenerator.at_level(item, mini(lvl + int(Forge.cfg("step", 1)), maxi(cap, lvl)))
-	var was: Dictionary = _was if str(_was.get("uid", "")) == _sel_uid and not forging else {}
+	var was: Dictionary = _was if str(_was.get("uid", "")) == shown_uid and not forging else {}
 	_compare(Loc.t("Item level"), float(lvl), float(after.ilvl), false, "ui_crown", false, float(was.get("ilvl", lvl)))
 	_compare(Loc.t("Requires level"), float(item.get("req", 1)), float(after.req), false, "sil_lock", true, float(was.get("req", item.get("req", 1))))
 	if item.has("dps"):
@@ -260,8 +272,11 @@ func _show(r: Dictionary) -> void:
 	else:
 		price.add_child(UITheme.icon("sil_lock", 16, Color(1, 1, 1, 0.6)))
 	_card.add_child(price)
-	_reason.text = Loc.f(str(why[0]), why[1]) if not str(why[0]).is_empty() else ""
-	_button.disabled = not str(why[0]).is_empty()
+	# The button and its reason are for the selected piece, whatever is previewed.
+	var sel := _row_of(_sel_uid)
+	var swhy: Array = Forge.refusal(sel.item, player.level, _floor_ilvl(), player.gold, Forge.party(get_tree())) if not sel.is_empty() else ["", []]
+	_reason.text = Loc.f(str(swhy[0]), swhy[1]) if not str(swhy[0]).is_empty() else ""
+	_button.disabled = sel.is_empty() or not str(swhy[0]).is_empty()
 
 
 ## One "now -> after" line, green where the number rises (red where it would fall); `was` is the

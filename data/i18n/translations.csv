@@ -313,7 +313,7 @@ The cursed chest is spent,Przeklęta skrzynia jest już pusta
 %s is free,%s na wolności
 Floor %d,Piętro %d
 Rolf Hult,Rolf Hult
-Upgrade,Ulepsz
+Select,Wybierz
 Leave,Wyjdź
 Your gold,Twoje złoto
 Your gear,Twój ekwipunek
@@ -452,7 +452,6 @@ Scroll,Zwój
 Lore,Wiedza
  for the rest of the run, do końca wyprawy
 FUNTASY,FUNTASY
-Select,Wybierz
 Back,Wstecz
 Play,Graj
 Options,Opcje

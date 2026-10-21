@@ -1318,3 +1318,10 @@ Tree shapes ("A > B": B grows from A; {x / y}: branches; (x): a fork side; [n]: 
 | --- | --- |
 | Rule | The Forge button stays ready while the anvil plays; forging again (button, accept or a click) ends the running animation at once (`ForgeStage.finish_now`: the piece back at rest, the card showing the result) and sends the next step. The animation itself is shorter: about 1.7 s instead of 3 (heat, three quicker strikes, quench, glow). Every click is one host-checked request for the selected piece; each step is paid once. |
 | Tests | `forge`: the forging plays in under 2 s; the button stays ready; two quick clicks end the first animation and forge two steps, each paid once. `forge-lan` unchanged. |
+
+### #90 The forge list selects; the button forges
+
+| Topic | Decision |
+| --- | --- |
+| Rule | A click, focus or accept on a gear row only selects it (its card stays); hovering another row previews that card only while hovered. Only the Forge button upgrades, always the selected piece; its state and reason follow the selected piece, not the previewed one. With a keyboard or a gamepad, accept on a row moves the focus on to the Forge button. The footer prompt for accept reads Select. |
+| Tests | `forge`: a click on a row forges nothing and selects it; a hover previews another row's card and the selection and button stay; leaving shows the selected piece again; with a gamepad accept moves to the button; the button forges the selected piece. |

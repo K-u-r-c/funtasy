@@ -337,8 +337,35 @@ func window() -> void:
 	cheap_row.button.grab_focus()
 	await da._wait(0.2)
 	da.check(not panel._button.disabled and panel._card.get_child_count() >= 4, "a workable item shows its now -> after card and the button is on")
+	# #90: a click on a row only selects it; hovering another previews it; the button forges.
+	var g_sel := p.gold
+	var lvl_sel := int(cheap_row.item.ilvl)
+	cheap_row.button.pressed.emit()
+	await da._wait(0.4)
+	var still: Dictionary = {}
+	for it in p.inv.backpack:
+		if it.uid == cheap_row.item.uid:
+			still = it
+	da.check(p.gold == g_sel and int(still.get("ilvl", 0)) == lvl_sel and panel._sel_uid == str(cheap_row.item.uid) and not panel.stage.busy(),
+			"clicking a row selects it and forges nothing")
+	top_row.button.mouse_entered.emit()
+	await da.get_tree().process_frame
+	var shown: String = panel._card.get_child(0).text if panel._card.get_child_count() > 0 else ""
+	da.check(shown == Loc.item_name(top_row.item) and panel._sel_uid == str(cheap_row.item.uid) and not panel._button.disabled,
+			"hovering another row previews its card; the selection and the button stay")
+	top_row.button.mouse_exited.emit()
+	await da.get_tree().process_frame
+	shown = panel._card.get_child(0).text if panel._card.get_child_count() > 0 else ""
+	da.check(shown == Loc.item_name(still), "leaving it shows the selected piece again")
+	var kind0 := InputSettings.last_kind
+	InputSettings.last_kind = "pad"
+	cheap_row.button.grab_focus()
+	cheap_row.button.pressed.emit()
+	await da.get_tree().process_frame
+	da.check(panel._button.has_focus(), "with a gamepad, accept on a row moves on to the Forge button")
+	InputSettings.last_kind = kind0
 	var lvl0 := int(cheap_row.item.ilvl)
-	panel._forge_selected()
+	panel._button.pressed.emit()
 	await da._wait_until(func(): return panel.stage.phase == "strike", 2.0)
 	da.check(panel.stage.phase == "strike", "forging: the hammer strikes on the anvil")
 	await da._wait_until(func(): return panel.stage.phase == "", 4.0)

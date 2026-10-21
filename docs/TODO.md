@@ -158,6 +158,7 @@ screenshot review at 1920x1080 and 3440x1440.
 - [x] #87 Map screen: the floor modifier is a small badge in the header; its card only on hover / focus, floating over the map (`mods`)
 - [x] #88 The floor modifier vote window closes when the floor changes, on every peer (`mods`, `mods-lan`)
 - [x] #89 Forging is clicked through: forging again ends the running animation at once; the animation is 1.7 s instead of 3 (`forge`)
+- [x] #90 The forge list only selects (hover previews); the Forge button upgrades the selected piece; accept on a row moves to the button (`forge`)
 
 ## Eighth playtest issues (GitHub #70-#82)
 
