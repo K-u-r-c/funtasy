@@ -15,9 +15,9 @@ func _init(dev_auto: Node) -> void:
 
 
 ## Kills a fresh `id` monster at `at` (boss when `boss`) and returns the ground items it threw.
-func kill_for_loot(id: String, at: Vector2, boss: bool = false) -> Array:
+func kill_for_loot(id: String, at: Vector2, boss: bool = false, extra: Dictionary = {}) -> Array:
 	var before: Array = g.items_root.get_children()
-	var m: Enemy = g.spawn_monster(id, at, boss)
+	var m: Enemy = g.spawn_monster(id, at, boss, extra)
 	await da._wait(0.3)
 	m.set_physics_process(false)
 	var p: Player = da._local()
@@ -75,6 +75,14 @@ func run() -> void:
 		g.host_interact(p, it0)
 		await da._wait(0.2)
 		da.check(not is_instance_valid(it0) or it0.is_queued_for_deletion(), "once it has landed it is picked up")
+	for it in g.items_root.get_children():
+		it.queue_free()
+	await da._wait(0.2)
+	# An elite throws one gold pile (not two).
+	var elite_items := await kill_for_loot("ghoul", spot, false, {"elite": ["vampiric"]})
+	var golds := elite_items.filter(func(it): return str(it.item.get("kind", "")) == "gold")
+	# Its elite pile, and at most the plain monster's chance pile besides (#75 must not add a third).
+	da.check(golds.size() >= 1 and golds.size() <= 2, "an elite throws its one elite gold pile (%d piles with the monster's chance one)" % golds.size())
 	for it in g.items_root.get_children():
 		it.queue_free()
 	# 2. No named legendary from the floor's enemies: the boss brings one, with its beam.

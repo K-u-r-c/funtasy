@@ -456,7 +456,6 @@ func on_enemy_killed(e: Enemy) -> void:
 	if e.is_elite():
 		_dyn_counter += 1
 		dungeon.spawn_prop.rpc("Altar_%d" % _dyn_counter, "elite_altar", altar_spot(e.global_position))
-		loot.drop_item(LootTable.gold_pile("elite", item_level(), loot.rng), e.global_position + Vector2(12, 6))
 		broadcast_message.rpc("%s falls - an elite altar rises", "#e8c040", [e.display_name])
 	if e.key_carrier:
 		loot.drop_item(gold_key_item(), e.global_position + Vector2(-12, 6))
@@ -483,7 +482,8 @@ func on_enemy_killed(e: Enemy) -> void:
 			p.persist()
 	else:
 		_note_enemy_legendary(loot.roll_and_drop("monster", e.global_position))
-		# Elites also roll their own legendary chance (legendary.drop_chance.elite).
+		# Elites also throw their gold pile and roll their own legendary chance
+		# (legendary.drop_chance.elite).
 		if e.is_elite():
 			_note_enemy_legendary(loot.roll_and_drop("elite", e.global_position))
 
