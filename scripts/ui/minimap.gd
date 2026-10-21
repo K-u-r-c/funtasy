@@ -17,7 +17,7 @@ var _icons: Dictionary = {}  ## marker icons, loaded in _ready (a texture first 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	clip_contents = true
-	for key in ["ui.map_archibald", "ui.map_malphas", "ui.map_boss", "ui.map_lock"]:
+	for key in ["ui.map_archibald", "ui.map_malphas", "ui.map_forge", "ui.map_boss", "ui.map_lock"]:
 		_icons[key] = GameData.texture(key)
 
 
@@ -60,7 +60,7 @@ func _draw() -> void:
 		var dc: Vector2i = door.cells[0]
 		if d.is_discovered(dc):
 			draw_rect(Rect2(origin + Vector2(dc) * px, Vector2(px, px) * 1.5), Color(0.75, 0.5, 0.25) if not door.is_open else Color(0.4, 0.3, 0.2))
-	# Discovered merchant and boss chambers (#28): the merchant's sign, a lock while sealed.
+	# Discovered merchant, forge (#77) and boss chambers (#28): their sign, a lock while sealed.
 	var icon_px := 16.0 if full_map else 12.0
 	for mk in d.map_markers():
 		var tex := _icon("ui.map_boss" if mk.kind == "boss" else "ui.map_" + str(mk.npc))

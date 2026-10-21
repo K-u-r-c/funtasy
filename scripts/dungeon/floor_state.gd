@@ -75,6 +75,7 @@ static func capture(g: Node, prev: Dictionary) -> Dictionary:
 	snap.key_chest = g.key_chest
 	snap.legendary_from_enemies = g.legendary_from_enemies
 	snap.mod = str(g.floor_def.get("mod", ""))
+	snap.forge = bool(g.has_forge)
 	var m: Merchants = g.merchants
 	var signed := {}
 	for peer in m._signed:

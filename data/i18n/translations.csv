@@ -73,6 +73,11 @@ Open door,Otwórz drzwi
 Merchant,Kupiec
 Danger,Zagrożenie
 Reward,Nagroda
+Rolf can't work that,Rolf nie obrobi tej rzeczy
+At the forge's limit for this floor (item level %d),Na tym piętrze kuźnia nie podniesie tego wyżej (poziom przedmiotu %d)
+At your level already (item level %d),To już twój poziom (poziom przedmiotu %d)
+Not enough gold (%d needed),Za mało złota (potrzeba %d)
+%s forged to item level %d for %d gold,"Przekuto: %s - poziom przedmiotu %d, zapłata: %d sztuk złota"
 %s falls - an elite altar rises,%s pada - powstaje ołtarz elity
 +%d XP,+%d PD
 A legendary falls: %s,Wypada legenda: %s
@@ -95,7 +100,6 @@ Critical Strike Chance,Szansa na trafienie krytyczne
 Movement Speed,Szybkość ruchu
 Max Mana,Maks. mana
 Sold out,Wyprzedane
-Not enough gold (%d needed),Za mało złota (potrzeba %d)
 Bought %s for %d gold,Kupiono: %s za %d szt. złota
 Archibald won't buy that,Archibald tego nie kupi
 Sold %s for %d gold,Sprzedano: %s za %d szt. złota
@@ -184,6 +188,8 @@ One-handed,Jednoręczna
 %.1f DPS,%.1f DPS
 Legendary,Legendarny
 %d Armor,Pancerz %d
+Forged %d times at Rolf's anvil,Na kowadle Rolfa: przekuto %d razy
+Forged once at Rolf's anvil,Na kowadle Rolfa: przekuto raz
 %s: +%d%% to every stat,%s: +%d%% do każdej cechy
 Requires level %d,Wymaga poziomu %d
 "  (-%d%% damage, slower cooldowns for you)","  (-%d%% obrażeń, dłuższe odnowienia dla ciebie)"
@@ -260,6 +266,20 @@ Read books to fill the codex. It is kept across every run.,"Czytaj księgi, by z
 Accept,Akceptuj
 Refuse,Odmów
 Floor %d,Piętro %d
+Rolf Hult,Rolf Hult
+Upgrade,Ulepsz
+Leave,Wyjdź
+Your gold,Twoje złoto
+Your gear,Twój ekwipunek
+Forge (+1 item level),Przekuj (+1 poziom przedmiotu)
+Worn,Założone
+Backpack,Plecak
+Nothing Rolf can work.,"Nie masz niczego, co Rolf mógłby przekuć."
+Lv %d,Poz. %d
+Item level,Poziom przedmiotu
+Requires level,Wymagany poziom
+DPS,DPS
+Price,Cena
 A boon awaits: step into the portal,Czeka na ciebie dar: wejdź do portalu
 Roam the floor - only doors still answer you,Przemierzaj piętro - odpowiadają ci już tylko drzwi
 Lv 1,Poz. 1
@@ -268,12 +288,10 @@ Talent points to spend,Punkty talentów do wydania
 Stat points,Punkty cech
 Stat points to spend,Punkty cech do wydania
 Gold Key: Archibald trades for it,Złoty Klucz: Archibald za niego handluje
-Backpack,Plecak
 Floor %d%s,Piętro %d%s
 Part of the monsters here come from another biome.,Część potworów przybyła tu z innego biomu.
 Empty slot - learn skills in the Talents tab,Puste miejsce - poznaj umiejętności w zakładce Talenty
 Quick slot %s (hold to choose),"Szybkie miejsce %s (przytrzymaj, by wybrać)"
-Lv %d,Poz. %d
 The way down is open: step into the portal,Droga w dół otwarta: wejdź do portalu
 Defeat %s,Pokonaj: %s
 Find and defeat the floor boss,Znajdź i pokonaj bossa piętra
@@ -330,7 +348,6 @@ Put on E,Przypisz do E
 Drop / split,Upuść / podziel
 Equip (needs level %d),Załóż (wymaga poziomu %d)
 Equip,Załóż
-DPS,DPS
 Crit,Kryt.
 Crit dmg,Obr. kryt.
 Lv%d,Poz.%d
@@ -339,7 +356,6 @@ Talent points +%d,Punkty talentów +%d
 Stat points +%d,Punkty cech +%d
 Lobby,Lobby
 Start run,Rozpocznij wyprawę
-Leave,Wyjdź
 Steam lobby,Lobby Steam
  (id %d), (id %d)
 LAN game on port %d,Gra LAN na porcie %d
@@ -419,6 +435,7 @@ Door,Drzwi
 Lava,Lawa
 Archibald,Archibald
 Malphas,Malphas
+Forge,Kuźnia
 Boss,Boss
 Sealed,Zapieczętowane
 Choose the next floor,Wybierz następne piętro
@@ -477,7 +494,6 @@ Archibald the Gilded,Archibald Pozłacany
 Buy / sell,Kup / sprzedaj
 For sale (shared with the party),Na sprzedaż (wspólne dla drużyny)
 Your backpack - sell,Twój plecak - sprzedaż
-Your gold,Twoje złoto
 Gold: %d,Złoto: %d
 Nothing to sell.,Nic do sprzedania.
 Skill Book,Księga umiejętności
@@ -2365,6 +2381,7 @@ Trzecie suche lato. Studnie w Hollin Ford to samo błoto. Deszcz od Handlarza pa
 Isolde nie chce wyjść z jedwabiu. Kiedy staję w drzwiach tkalni, śpiewa moje imię, a ja nie umiem rozpoznać, czy chce, żebym wszedł, czy żebym trzymał się z daleka.
 Cernunnos jej nie wziął. Wziął deszcz i jelenie, a teraz bierze samą ziemię. Co tydzień gąszcz stoi o rząd drzew bliżej i zaciska się wokół pól od skraju.
 Jutro wyjeżdżam z wielkim rogiem. Vos prosił, żebym nie jechał. Kazałem mu trzymać psiarnię zamkniętą i dopilnować, żeby moja żona była nakarmiona."""
+Ironhand of the Galt Works,Żelazna Ręka z Odlewni Galt
 Wall of Fire,Ściana Ognia
 Living Thorns,Żywe Ciernie
 Wooden Stakes,Drewniane Pale
@@ -2384,6 +2401,12 @@ Pillar,Kolumna
 Elite Altar,Elitarny Ołtarz
 Secret Sarcophagus,Tajny Sarkofag
 Bookshelf,Regał
+Hearth,Palenisko
+Anvil,Kowadło
+Quench Barrel,Beczka do hartowania
+Coal Bucket,Wiadro węgla
+Iron Ingots,Sztaby żelaza
+Tool Rack,Stojak na narzędzia
 Sarcophagus,Sarkofag
 Grave Urn,Urna Grobowa
 Rotted Banner,Zbutwiały Sztandar
@@ -2399,7 +2422,6 @@ Sewer Strongbox,Kasetka z Kanałów
 Rusty Lever,Zardzewiała Dźwignia
 Exhaust Valve,Zawór Wydechowy
 Raised Platform,Podniesiona Platforma
-Anvil,Kowadło
 Slag Heap,Hałda Żużlu
 Hanging Chains,Wiszące Łańcuchy
 Blast Furnace,Wielki Piec
@@ -4288,6 +4310,7 @@ Open chest,Otwórz skrzynię
 Pray at elite altar,Pomódl się przy elitarnym ołtarzu
 Search secret sarcophagus,Przeszukaj tajny sarkofag
 Trade with Archibald the Gilded,Handluj z Archibaldem Pozłacanym
+Forge with Rolf Hult,Zamów kucie u Rolfa Hulta
 Bargain with Malphas the Soul Broker,Targuj się z Malphasem Handlarzem Dusz
 Light consecrated shrine,Zapal poświęconą kapliczkę
 Pry open sewer strongbox,Podważ kasetkę z kanałów

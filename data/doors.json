@@ -1,5 +1,5 @@
 {
-	"_comment": "Door types of the sealed leaf chambers (#23 / #31). The generator gives the merchant room and the boss chamber one door each (door kind 'merchant' / 'boss'); the merchant door takes the floor's merchant as its type. art: asset keys in data/assets.json props, '<biome>' is replaced by the floor type id (falls back to the key without it). seal: how a sealed door is paid for at the door (gold_key: the party's Gold Key, consumed there; blood: the floor's blood price from merchants.json malphas.tithe, paid by the hero who opens it). light: a coloured warning light on the door. A merchant door is monster-proof.",
+	"_comment": "Door types of the sealed leaf chambers (#23 / #31). The generator gives the merchant room and the boss chamber one door each (door kind 'merchant' / 'boss'); the merchant door takes the floor's merchant as its type. art: asset keys in data/assets.json props, '<biome>' is replaced by the floor type id (falls back to the key without it). seal: how a sealed door is paid for at the door (gold_key: the party's Gold Key, consumed there; blood: the floor's blood price from merchants.json malphas.tithe, paid by the hero who opens it). light: a coloured warning light on the door. A merchant or forge (#77) door is monster-proof; the forge door has no seal.",
 	"boss": {
 		"art_closed": "props.door_boss_<biome>",
 		"art_open": "props.door_boss_open_<biome>",
@@ -11,6 +11,13 @@
 		"art_closed": "props.door_archibald",
 		"art_open": "props.door_archibald_open",
 		"light": {"color": "#ffc850", "energy": 1.0, "radius": 120, "flicker": 0.08, "height": 36},
+		"monster_proof": true
+	},
+	"forge": {
+		"art_closed": "props.door_forge",
+		"art_open": "props.door_forge_open",
+		"light": {"color": "#ff7a2a", "energy": 1.1, "radius": 130, "flicker": 0.22, "height": 30},
+		"embers": "#ff8a30",
 		"monster_proof": true
 	},
 	"malphas": {

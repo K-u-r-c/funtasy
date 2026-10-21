@@ -9,3 +9,5 @@ GodotSteam extension not loaded
 %s is on tier 0 but has a prerequisite
 %s has no prerequisite
 %s requires %s, not a lower node of its branch
+Forge_
+Forge_npc

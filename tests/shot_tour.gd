@@ -1535,3 +1535,66 @@ func _gfx(_arg: String) -> void:
 	await da._wait(0.6)
 	await snap("gfx_low_health_%s" % lang)
 	p.health.hp = p.health.max_hp
+
+
+## #77: the forge's door from the corridor, the chamber with Rolf at work (a strike and a rest),
+## the forge window with a legendary chosen, three frames of the forging and the raised numbers.
+func _forge(_arg: String) -> void:
+	var hud: Node = da.get_tree().get_first_node_in_group("hud")
+	GameState.set_meta("force_forge", "on")
+	g.start_floor(maxi(g.depth, 2))
+	await da._wait(2.0)
+	p = da._local()
+	var fg: Dictionary = g.layout.get("forge", {})
+	if fg.is_empty():
+		da.check(false, "floor has a forge")
+		return
+	p.iframe_left = 9999.0
+	p.host_add_gold(600)
+	p.level = 8
+	p.recompute_stats()
+	for e in g.enemies_root.get_children():
+		e.queue_free()
+	var door: Node = g.dungeon.leaf_door("forge")
+	p.host_teleport(g.nearest_floor(door.interact_pos() + Vector2(0, 90)))
+	await da._wait(4.0)
+	await snap("forge_door")
+	g.host_interact(p, door)
+	await da._wait(0.8)
+	await snap("forge_door_open")
+	p.host_teleport(fg.npc + Vector2(0, 60))
+	await da._wait(1.2)
+	var anim: Node = g.dungeon.props["Forge_npc"].get_node("NpcAnim")
+	await da._wait_until(func(): return anim._queue.size() > 0 and anim._queue[0][0] == "strike" and int(anim._queue[0][1]) == 4, 12.0)
+	await snap("forge_room_strike")
+	await da._wait(2.5)
+	await snap("forge_room")
+	p.host_give_item(ItemGenerator.make_legendary("crown_blood_chieftain", 3, RandomNumberGenerator.new()))
+	await da._wait(0.3)
+	p.host_teleport(fg.npc + Vector2(0, 30))
+	await da._wait(0.3)
+	g.host_interact(p, g.dungeon.props["Forge_npc"])
+	await da._wait(0.8)
+	var panel: Node = hud._overlay if hud.get("_overlay") else null
+	if panel and panel.get("rows"):
+		for r in panel.rows:
+			if r.item.has("legendary"):
+				r.button.grab_focus()
+	await da._wait(0.4)
+	await snap("forge_window")
+	if panel:
+		panel._forge_selected()
+		await da._wait_until(func(): return panel.stage.phase == "strike", 3.0)
+		await da._wait(0.2)
+		await snap("forge_anim_strike")
+		await da._wait_until(func(): return panel.stage.phase == "quench", 3.0)
+		await da._wait(0.15)
+		await snap("forge_anim_quench")
+		await da._wait_until(func(): return panel.stage.phase == "glow", 3.0)
+		await da._wait(0.1)
+		await snap("forge_anim_glow")
+		await da._wait_until(func(): return panel.stage.phase == "", 3.0)
+		await da._wait(0.15)
+		await snap("forge_done")
+		hud.close_overlay()
+	GameState.remove_meta("force_forge")

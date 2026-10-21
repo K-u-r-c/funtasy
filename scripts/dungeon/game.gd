@@ -42,6 +42,7 @@ var my_boon_offer: Array = []  ## #73 local: this hero's three boons to choose f
 var map_pings: Array = []  ## local: [{pos, color, until}] pulsing marks on the minimap / map
 var legendary_from_enemies := false  ## host (#75): a named legendary has dropped from a monster, elite or boss on this floor
 var merchant_id := ""  ## every peer: this floor's merchant (archibald / malphas, #6)
+var has_forge := false  ## every peer: this floor has the blacksmith's forge (#77)
 var _dyn_counter := 0
 var boss_id := ""  ## this floor's boss, picked from the floor type's list by the floor seed
 var floor_mechanics: Array = []  ## host: FloorMechanic modules of the floor type
@@ -73,6 +74,7 @@ var screen_fx: ScreenFx
 @onready var item_spawner: MultiplayerSpawner = $ItemSpawner
 @onready var ambient: CanvasModulate = $Ambient
 var merchants: Merchants
+var forge: Forge  ## #77: the blacksmith's upgrades
 
 
 func _ready() -> void:
@@ -80,6 +82,10 @@ func _ready() -> void:
 	merchants.name = "Merchants"
 	merchants.game = self
 	add_child(merchants)
+	forge = Forge.new()
+	forge.name = "Forge"
+	forge.game = self
+	add_child(forge)
 	mod_runner = ModRunner.new()
 	mod_runner.name = "ModRunner"
 	mod_runner.setup(self)
@@ -175,12 +181,13 @@ func start_floor(new_depth: int) -> void:
 	if party_keys > 0:
 		add_party_key(-party_keys)
 	legendary_from_enemies = false
-	_build_floor.rpc(new_depth, floor_seed, ft_id, FloorPlan.bosses_to(run_seed, new_depth)[-1], pick_merchant(floor_seed), mix, mod)
+	var with_forge := pick_forge(floor_seed) if resume.is_empty() else bool(resume.get("forge", pick_forge(floor_seed)))
+	_build_floor.rpc(new_depth, floor_seed, ft_id, FloorPlan.bosses_to(run_seed, new_depth)[-1], pick_merchant(floor_seed), mix, mod, with_forge)
 	# Host-only: the spawn list depends on party size, so it is generated with that multiplier.
 	var n := players_root.get_child_count() if players_root.get_child_count() > 0 else GameState.roster.size()
 	var count_mult := 1.0 + float(GameData.bal("scaling.count_per_extra_player")) * (maxi(n, 1) - 1)
 	count_mult *= FloorMods.num(floor_def, "count_mult")  # #71 Swarm
-	var host_layout := DungeonGenerator.new().generate(floor_seed, floor_def, count_mult, new_depth, merchant_id)
+	var host_layout := DungeonGenerator.new().generate(floor_seed, floor_def, count_mult, new_depth, merchant_id, has_forge)
 	_place_players(resume)
 	merchants.host_new_floor(floor_seed, item_level())
 	var carrier := {}
@@ -566,6 +573,8 @@ func host_interact(p: Player, node: Node) -> void:
 			return
 	if node is GroundItem:
 		loot.try_pickup(p, node)
+	elif node.get("def") is Dictionary and str(node.def.get("npc", "")) == "blacksmith":
+		forge.host_interact(p, node)
 	elif node.get("def") is Dictionary and (node.def.has("npc") or node.def.has("gate")):
 		merchants.host_interact(p, node)
 	elif node.has_method("is_lit") and node.has_method("set_state"):
@@ -915,7 +924,7 @@ func _on_peer_disconnected(id: int) -> void:
 
 
 @rpc("authority", "call_local", "reliable")
-func _build_floor(new_depth: int, floor_seed: int, ft_id: String, floor_boss: String, floor_merchant: String, mix: String = "", mod: String = "") -> void:
+func _build_floor(new_depth: int, floor_seed: int, ft_id: String, floor_boss: String, floor_merchant: String, mix: String = "", mod: String = "", with_forge: bool = false) -> void:
 	depth = new_depth
 	floor_time = 0.0
 	# #70: a mixed floor is built from its biome's definition with part of the invader's pool;
@@ -924,7 +933,8 @@ func _build_floor(new_depth: int, floor_seed: int, ft_id: String, floor_boss: St
 	map_pings.clear()
 	boss_id = floor_boss
 	merchant_id = floor_merchant
-	layout = DungeonGenerator.new().generate(floor_seed, floor_def, 1.0, new_depth, floor_merchant)
+	has_forge = with_forge
+	layout = DungeonGenerator.new().generate(floor_seed, floor_def, 1.0, new_depth, floor_merchant, with_forge)
 	dungeon.build(layout, floor_def, entities)
 	visibility.reset_floor()
 	# Ground fog (Kurgan) shrinks carried torches too.
@@ -981,6 +991,18 @@ static func pick_merchant(floor_seed: int) -> String:
 	if forced != "" and GameData.merchants.get("floor_pick", {}).has(forced):
 		return forced
 	return DungeonGenerator.pick_merchant(floor_seed)
+
+
+## Host: does this floor have the blacksmith's forge (#77)? A seeded roll against
+## merchants.json blacksmith.floor_chance, from its own stream ("force_forge" meta on GameState:
+## "on" / "off" pins it for tests and screenshots).
+static func pick_forge(floor_seed: int) -> bool:
+	var forced := str(GameState.get_meta("force_forge", ""))
+	if forced == "on" or forced == "off":
+		return forced == "on"
+	var r := RandomNumberGenerator.new()
+	r.seed = floor_seed + 919
+	return r.randf() < float(GameData.merchants.get("blacksmith", {}).get("floor_chance", 0.5))
 
 
 static func pick_boss(ft: Dictionary, floor_seed: int, avoid: String = "") -> String:
@@ -1409,7 +1431,7 @@ func altar_spot(pos: Vector2) -> Vector2:
 
 
 func _altar_fits(cc: Vector2i, at: Vector2, tile: float) -> bool:
-	if dungeon.cell_at(cc) != DungeonGenerator.CELL_FLOOR or dungeon.safe_rect.has_point(cc):
+	if dungeon.cell_at(cc) != DungeonGenerator.CELL_FLOOR or dungeon.in_safe_cell(cc):
 		return false
 	for dx in range(-1, 2):
 		for dy in range(-1, 2):

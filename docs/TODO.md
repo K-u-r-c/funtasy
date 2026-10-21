@@ -152,6 +152,7 @@ screenshot review at 1920x1080 and 3440x1440.
 
 ## Eighth playtest issues (GitHub #70-#82)
 
+- [x] #77 The blacksmith's forge on half of the floors (seeded): a sealed leaf chamber with Rolf Hult (PixelLab sprite + strike / wipe / look-up animations, sparks, clang), hearth light, anvil, quench barrel, tool rack, its own door and map icon; gold upgrades one item level at a time up to min(hero level, floor item level), the item recomputed exactly as dropped at that level (legendaries, boon uniques, old saves), price by rarity, level and party size checked against floor gold; the Obsidian Glass forge window with the now -> after card and the forging animation (`forge`, `forge-lan`, `biomes`)
 - [x] #81 Gameplay visual effects: dodge afterimages, avoid blur, parry / block sparks, crit streak + hit-stop, element hit flash, leech motes, absorb ripple, reflect spikes, a visual per status family, aggro pop, elite target lines and modifier signatures, interrupt shatter, knock dust, XP / gold / item flights, revive beam, footsteps, lava shimmer, decals, refused skill shake, low-health vignette + heartbeat; "Screen effects" option (`gfx`, `gfx-lan`)
 - [x] #73 Boons: 54 per class + 44 shared (260, each with its own PixelLab icon), three per hero after every boss (stat / item / synergy, tag-weighted), cards with a pick flight and flare, portrait and Character panel badges, portal waits, saved with the hero, average boon set in the balance probes (`boons-*`, `boons-lan`, `balance-*`)
 - [x] #71 Floor modifiers from floor 4 (Swarm, Elite floor, Dimmed, Restless, Hunted): seeded offer of two at the portal, party vote on large cards, host pick, HUD / banner / map badges, Restless meter and Hunted rift telegraphs, floor cost balance probe (`mods`, `mods-lan`, `balance-*`)
@@ -285,6 +286,8 @@ gameplay effects (#81) from shaders, particles and the free vfx workbench; re-ro
 | 2026-10-21 | (goal start) | 4330 | 4330 | 0 | 0 |
 | 2026-10-21 | Floor icons: 1 Pixen 128x128 sheet of 16 (5 biome crests, the overrun rift, 5 floor modifiers for #71, 5 events for #72), cut by `tools/cut_icon_sheet.py` | 4330 | 4331 | 1 | 1 |
 | 2026-10-21 | #73 boon icons: 16 Pixen 128x128 sheets of 16 and one 64x64 sheet of 4 (260 boons), sheet 14 redrawn once without tile frames, cut by `tools/cut_icon_sheet.py` | 4331 | 4349 | 18 | 19 |
+| 2026-10-21 | #81 gameplay effects: drawn in code (particles, shaders), no generations | 4349 | 4349 | 0 | 19 |
+| 2026-10-21 | #77 the forge: Rolf Hult (1 Pixen 64x64 sprite, 2 Pixen pose edits, 4 animate_image clips: strike, wipe, look, a rejected first strike), the forge door (1 Pixen 96x96 + 1 edit for the open door), props (1 Pixen 128x128 sheet: hearth and rack used; 1 64x64 sheet: anvil, barrel, coals, ingots; 1 rejected 40x40 rack), 1 rejected map icon (drawn by hand instead) | 4349 | 4362 | 13 | 32 |
 
 ## Done (MVP)
 

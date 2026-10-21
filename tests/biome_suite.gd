@@ -190,12 +190,13 @@ func leaf_rules(fid: String, seeds: int = 150) -> void:
 	var t0 := Time.get_ticks_msec()
 	for i in seeds:
 		var seed_value := 31337 + i * 7919
-		var lay: Dictionary = DungeonGenerator.new().generate(seed_value, fd, 1.0, 1 + i % 8)
+		# Every other floor with the forge (#77), a third sealed leaf.
+		var lay: Dictionary = DungeonGenerator.new().generate(seed_value, fd, 1.0, 1 + i % 8, "", i % 2 == 0)
 		var why := _leaf_problem(lay)
 		if not why.is_empty():
 			bad = "seed %d: %s" % [seed_value, why]
 			break
-	da.check(bad.is_empty(), "%s: over %d seeds the boss chamber is the graph-farthest dead end with one boss door and the merchant room has one merchant door (%d ms)%s" % [fid, seeds, Time.get_ticks_msec() - t0, "" if bad.is_empty() else ": " + bad])
+	da.check(bad.is_empty(), "%s: over %d seeds the boss chamber is the graph-farthest dead end with one boss door and the merchant room (and the forge) has one door of its own (%d ms)%s" % [fid, seeds, Time.get_ticks_msec() - t0, "" if bad.is_empty() else ": " + bad])
 
 
 func _leaf_problem(lay: Dictionary) -> String:
@@ -208,7 +209,10 @@ func _leaf_problem(lay: Dictionary) -> String:
 	for i in lay.rooms.size():
 		if i != boss and lay.rooms[i].role != "prison" and int(hops[i]) >= int(hops[boss]):
 			return "room %d (%s) is %d steps away, the boss %d" % [i, lay.rooms[i].role, hops[i], hops[boss]]
-	for pair in [[boss, "boss"], [int(lay.merchant.get("room", -1)), "merchant"]]:
+	var leaves := [[boss, "boss"], [int(lay.merchant.get("room", -1)), "merchant"]]
+	if not lay.get("forge", {}).is_empty():
+		leaves.append([int(lay.forge.room), "forge"])
+	for pair in leaves:
 		var ri: int = pair[0]
 		if ri < 0:
 			return "no %s room" % pair[1]
@@ -508,7 +512,7 @@ func find_spot(pred: Callable) -> Vector2:
 	for y in range(2, d.size.y - 2):
 		for x in range(2, d.size.x - 2):
 			var c := Vector2i(x, y)
-			if d.cell_at(c) != DungeonGenerator.CELL_FLOOR or d.safe_rect.has_point(c):
+			if d.cell_at(c) != DungeonGenerator.CELL_FLOOR or d.in_safe_cell(c):
 				continue
 			var pos: Vector2 = d.cell_center(c)
 			if pred.call(pos):

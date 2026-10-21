@@ -224,7 +224,9 @@ func run_walls() -> void:
 	for depth_try in range(1, 10):
 		for tt in g.dungeon.torches.values():
 			var up: int = g.dungeon.cell_at(tt.cell + Vector2i(0, -1))
-			if tt.is_lit() and up != DungeonGenerator.CELL_WALL and up != DungeonGenerator.CELL_CANAL:
+			# Not beside a door: its prompt would stand in front of the torch's.
+			var by_door: bool = g.dungeon.doors.any(func(dr): return dr.world_rect.grow(56.0).has_point(g.dungeon.cell_center(tt.front_cell())))
+			if tt.is_lit() and up != DungeonGenerator.CELL_WALL and up != DungeonGenerator.CELL_CANAL and not by_door:
 				t = tt
 				break
 		if t:
@@ -297,7 +299,7 @@ func run_walls() -> void:
 	p.aim_pos = t.interact_pos()
 	await da._wait(0.6)
 	da.check(t.seen_local and t.light.enabled, "in front of the torch it is drawn with its light")
-	da.check(offers(p, t), "in front of the torch it is offered")
+	da.check(offers(p, t), "in front of the torch it is offered (%s, %s)" % [g.find_interactable(p, 0).get("text", ""), t.interactable()])
 	g.host_interact(p, t)
 	await da._wait(0.3)
 	da.check(not t.is_lit() and p.torch_left > 299.0 and float(GameData.bal("lighting.carried_torch_duration")) == 300.0,

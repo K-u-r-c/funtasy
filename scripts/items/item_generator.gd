@@ -60,19 +60,22 @@ static func generate_equipment(base_id: String, item_level: int, tier: int, rng:
 		mult *= float(quality.mult)
 		item.quality = str(quality.id)
 		item.quality_mult = float(quality.mult)
+	# #77: the raw rolls are kept on the item, so the forge can recompute it at another level
+	# exactly as if it had dropped there (the same rng draws in the same order as before).
+	var rolls := {}
 	if base.has("dps"):
 		var d: Array = base.dps
-		item.dps = snappedf((rng.randf_range(float(d[0]), float(d[1])) + float(base.get("dps_per_level", 0.0)) * (lvl - 1)) * mult, 0.1)
+		rolls.dps = rng.randf_range(float(d[0]), float(d[1]))
 	if base.has("armor"):
 		var a: Array = base.armor
-		item.armor = roundi((rng.randf_range(float(a[0]), float(a[1])) + float(base.get("armor_per_level", 0.0)) * (lvl - 1)) * mult)
+		rolls.armor = rng.randf_range(float(a[0]), float(a[1]))
 	# Common items carry only armor / DPS; implicit base stats start at Uncommon.
 	if tier >= 2:
+		rolls.base = {}
 		for k in base.get("base_stats", {}):
 			var r: Array = base.base_stats[k]
-			item.stats[k] = roundi(rng.randf_range(float(r[0]), float(r[1])) * (1.0 + 0.1 * (lvl - 1)) * float(item.get("quality_mult", 1.0)))
-	var rolled: Array = []  ## [stat, strength of the roll 0..1, primary]
-	var growth := float(GameData.affixes.get("level_growth", 0.1))
+			rolls.base[k] = rng.randf_range(float(r[0]), float(r[1]))
+	rolls.affix = []
 	for group in ["primary", "secondary"]:
 		var range_: Array = rar[group]
 		var count := rng.randi_range(int(range_[0]), int(range_[1]))
@@ -81,15 +84,86 @@ static func generate_equipment(base_id: String, item_level: int, tier: int, rng:
 			if pool.is_empty():
 				break
 			var af: Dictionary = pool.pop_at(rng.randi_range(0, pool.size() - 1))
-			var v := rng.randf_range(float(af.min), float(af.max)) * (1.0 + growth * (lvl - 1)) + float(af.per_level) * (lvl - 1) * 0.5
-			v *= mult
-			var is_pct := Array(GameData.affixes.percent_stats).has(af.stat)
-			v = snappedf(v, 0.005) if is_pct else float(roundi(v))
-			item.stats[af.stat] = float(item.stats.get(af.stat, 0.0)) + v
-			var span := float(af.max) - float(af.min)
-			rolled.append([str(af.stat), (v / mult - float(af.min)) / span if span > 0.0 else 0.5, group == "primary"])
+			rolls.affix.append([str(af.stat), rng.randf_range(float(af.min), float(af.max)), group])
+	item.rolls = rolls
+	var values := apply_level(item, lvl)
+	var rolled: Array = []  ## [stat, strength of the roll 0..1, primary]
+	for i in rolls.affix.size():
+		var af := _affix_def(str(rolls.affix[i][2]), str(rolls.affix[i][0]))
+		var span := float(af.max) - float(af.min)
+		rolled.append([str(af.stat), (float(values[i]) / mult - float(af.min)) / span if span > 0.0 else 0.5, rolls.affix[i][2] == "primary"])
 	item.name = item_name(str(base.name), rolled, quality, name_rng)
 	return item
+
+
+## #77: sets a rolled item's level-dependent numbers (DPS, armor, stats, item and required level)
+## for `lvl` from its kept raw rolls, the same formulas generate_equipment uses; a boon's unique
+## item adds its own stats (`extra_stats`, growing by `extra_growth` per level). Returns the
+## affix values in roll order.
+static func apply_level(item: Dictionary, lvl: int) -> Array:
+	var base: Dictionary = GameData.item_bases.get(str(item.base), {})
+	var qm := float(item.get("quality_mult", 1.0))
+	var mult := float(GameData.rarity(int(item.rarity)).base_mult) * qm
+	var r: Dictionary = item.rolls
+	item.ilvl = lvl
+	item.req = lvl
+	if r.has("dps"):
+		item.dps = snappedf((float(r.dps) + float(base.get("dps_per_level", 0.0)) * (lvl - 1)) * mult, 0.1)
+	if r.has("armor"):
+		item.armor = roundi((float(r.armor) + float(base.get("armor_per_level", 0.0)) * (lvl - 1)) * mult)
+	var stats := {}
+	for k in r.get("base", {}):
+		stats[k] = roundi(float(r.base[k]) * (1.0 + 0.1 * (lvl - 1)) * qm)
+	var growth := float(GameData.affixes.get("level_growth", 0.1))
+	var pct: Array = GameData.affixes.percent_stats
+	var values: Array = []
+	for a in r.get("affix", []):
+		var af := _affix_def(str(a[2]), str(a[0]))
+		var v := (float(a[1]) * (1.0 + growth * (lvl - 1)) + float(af.get("per_level", 0.0)) * (lvl - 1) * 0.5) * mult
+		v = snappedf(v, 0.005) if pct.has(str(a[0])) else float(roundi(v))
+		stats[str(a[0])] = float(stats.get(str(a[0]), 0.0)) + v
+		values.append(v)
+	var eg := float(item.get("extra_growth", 0.0))
+	for k in item.get("extra_stats", {}):
+		stats[k] = float(stats.get(k, 0.0)) + float(item.extra_stats[k]) * (1.0 + eg * (lvl - 1))
+	item.stats = stats
+	return values
+
+
+static func _affix_def(group: String, stat: String) -> Dictionary:
+	for af in GameData.affixes.get(group, []):
+		if str(af.stat) == stat:
+			return af
+	return {"stat": stat, "min": 0.0, "max": 0.0, "per_level": 0.0}
+
+
+## #77: a copy of gear `item` raised to item level `lvl`, its numbers recomputed as if it had
+## dropped there: rarity, affixes, quality, name and a legendary's affix kept (legendaries by
+## D7). An item from before the rolls were kept scales its numbers by the level growth instead.
+static func at_level(item: Dictionary, lvl: int) -> Dictionary:
+	var out := item.duplicate(true)
+	lvl = maxi(lvl, 1)
+	if out.has("legendary"):
+		_legendary_numbers(out, GameData.legendaries.get(str(out.legendary), {}), lvl)
+	elif out.has("rolls"):
+		apply_level(out, lvl)
+	else:
+		var from := maxi(int(out.get("ilvl", 1)), 1)
+		var g := float(GameData.affixes.get("level_growth", 0.1))
+		var ratio := (1.0 + g * (lvl - 1)) / (1.0 + g * (from - 1))
+		var base: Dictionary = GameData.item_bases.get(str(out.get("base", "")), {})
+		var qm := float(out.get("quality_mult", 1.0)) * float(GameData.rarity(int(out.get("rarity", 1))).base_mult)
+		if out.has("dps"):
+			out.dps = snappedf(float(out.dps) + float(base.get("dps_per_level", 0.0)) * (lvl - from) * qm, 0.1)
+		if out.has("armor"):
+			out.armor = roundi(float(out.armor) + float(base.get("armor_per_level", 0.0)) * (lvl - from) * qm)
+		var pct: Array = GameData.affixes.percent_stats
+		for k in out.get("stats", {}):
+			var v := float(out.stats[k]) * ratio
+			out.stats[k] = snappedf(v, 0.005) if pct.has(k) else float(roundi(v))
+		out.ilvl = lvl
+		out.req = lvl
+	return out
 
 
 ## #64: a better-made item (data "qualities", best first), or {} for an ordinary one.
@@ -134,7 +208,6 @@ static func make_legendary(id: String, item_level: int, rng: RandomNumberGenerat
 		return {}
 	var base: Dictionary = GameData.item_bases.get(str(lg.base), {})
 	var lvl := maxi(item_level, 1)
-	var scale := Combat.legendary_scale(lvl)
 	var item := {
 		"uid": new_uid(rng), "base": str(lg.base), "legendary": id, "kind": base.get("kind", "armor"), "slot": base.get("slot", lg.slot),
 		"hands": int(base.get("hands", 1)), "rarity": 5, "ilvl": lvl, "req": lvl, "classes": [lg["class"]],
@@ -144,16 +217,25 @@ static func make_legendary(id: String, item_level: int, rng: RandomNumberGenerat
 		"affix": lg.affix,
 	}
 	ItemLooks.apply_legendary(item, lg)  # its own worn look and colours (#20)
+	_legendary_numbers(item, lg, lvl)
+	return item
+
+
+## A legendary's level-dependent numbers at `lvl` (D7): percentages stay fixed, flat numbers
+## scale with the item level.
+static func _legendary_numbers(item: Dictionary, lg: Dictionary, lvl: int) -> void:
+	var scale := Combat.legendary_scale(lvl)
 	var pct: Array = GameData.affixes.percent_stats
+	item.ilvl = lvl
+	item.req = lvl
+	item.stats = {}
 	for k in lg.get("stats", {}):
 		var v := float(lg.stats[k])
-		# Percentages stay fixed; flat numbers scale with the item level (D7).
 		item.stats[k] = v if (pct.has(k) or k.ends_with("_mult") or k.ends_with("_pct") or absf(v) < 1.0) else float(roundi(v * scale))
 	if lg.has("armor"):
 		item.armor = roundi(float(lg.armor) * scale)
 	if lg.has("dps"):
 		item.dps = snappedf(float(lg.dps) * scale, 0.1)
-	return item
 
 
 static func generate_consumable(id: String, count: int, rng: RandomNumberGenerator) -> Dictionary:
@@ -220,6 +302,8 @@ static func describe(item: Dictionary, class_id: String = "", char_level: int = 
 		lines.append([txt, Color(0.55, 0.9, 0.55), str(UITheme.STAT_ICONS.get(str(k).trim_suffix("_pct"), "sil_star"))])
 	if item.has("affix"):
 		lines.append([Loc.t(str(item.affix)), Color(1.0, 0.72, 0.3), "sil_star"])
+	if int(item.get("forged", 0)) > 0:
+		lines.append([Loc.f("Forged %d times at Rolf's anvil", [int(item.forged)]) if int(item.forged) > 1 else Loc.t("Forged once at Rolf's anvil"), Color(0.95, 0.72, 0.35), "forge"])
 	if item.has("quality"):
 		# #64: what the prefix stands for.
 		var label := ""

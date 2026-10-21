@@ -36,6 +36,7 @@ var proximity_props: Array = []  ## host: props that go off when a hero comes cl
 var lights: Array = []  ## torch / lava lights, culled by distance in Visibility
 var obstacles: Dictionary = {}  ## dynamic terrain id -> {node, cells}
 var safe_rect := Rect2i()  ## the merchant room (cells): monsters never path into it or target anyone inside
+var safe_rects: Array = []  ## every secure room: the merchant's and the forge (#77)
 var discovered := PackedByteArray()  ## local fog-of-war memory (per peer)
 
 var floor_layer: TileMapLayer
@@ -61,7 +62,7 @@ func build(new_layout: Dictionary, def: Dictionary, entity_root: Node2D) -> void
 		if not str(d.get("kind", "")).is_empty():
 			# The sealed chambers' doors (#23 / #31): the boss door, or the floor merchant's own.
 			d = d0.duplicate()
-			d.type = str(layout.get("merchant", {}).get("npc", "")) if d.kind == "merchant" else "boss"
+			d.type = {"merchant": str(layout.get("merchant", {}).get("npc", "")), "forge": "forge"}.get(str(d.kind), "boss")
 			d.biome = str(def.get("id", ""))
 		var door: Node2D = DOOR_SCRIPT.new()
 		door.name = "Door_%d" % n
@@ -82,12 +83,23 @@ func build(new_layout: Dictionary, def: Dictionary, entity_root: Node2D) -> void
 	# The floor's merchant (the same name on every peer).
 	var m: Dictionary = layout.get("merchant", {})
 	safe_rect = Rect2i()
+	safe_rects.clear()
 	if not m.is_empty():
 		safe_rect = layout.rooms[int(m.room)].rect
-		for x in range(safe_rect.position.x, safe_rect.end.x):
-			for y in range(safe_rect.position.y, safe_rect.end.y):
-				astar.set_point_solid(Vector2i(x, y), true)
+		safe_rects.append(safe_rect)
 		_add_prop("Merchant", str(m.npc), m.pos)
+	# #77: the blacksmith's forge - the smith, his anvil, hearth, quench barrel and tool rack.
+	var fg: Dictionary = layout.get("forge", {})
+	if not fg.is_empty():
+		safe_rects.append(layout.rooms[int(fg.room)].rect)
+		var pieces: Dictionary = GameData.merchants.get("blacksmith", {}).get("pieces", {})
+		for k in pieces:
+			if fg.has(k):
+				_add_prop("Forge_" + str(k), str(pieces[k]), fg[k])
+	for sr in safe_rects:
+		for x in range(sr.position.x, sr.end.x):
+			for y in range(sr.position.y, sr.end.y):
+				astar.set_point_solid(Vector2i(x, y), true)
 	n = 0
 	for cpos in layout.chests:
 		_add_prop("Chest_%d" % n, "chest", cpos)
@@ -131,6 +143,9 @@ func build(new_layout: Dictionary, def: Dictionary, entity_root: Node2D) -> void
 		# otherwise the wall tile is drawn over the torch; the sprite itself sits up on the wall.
 		torch.position = Vector2(t.cell * tile) + Vector2(tile / 2.0, tile + 2.0)
 		torch.color = Color.from_string(str(floor_def.get("torch_color", "#ff9944")), Color.ORANGE)
+		# #77: the forge burns warm whatever the biome's torches.
+		if not layout.get("forge", {}).is_empty() and Rect2i(layout.rooms[int(layout.forge.room)].rect).grow(1).has_point(t.cell):
+			torch.color = Color.from_string(str(GameData.merchants.get("blacksmith", {}).get("torch_color", "#ff9944")), Color.ORANGE)
 		entities.add_child(torch)
 		torches[torch.torch_id] = torch
 		lights.append(torch.light)
@@ -389,9 +404,16 @@ func cell_center(c: Vector2i) -> Vector2:
 	return Vector2(c * tile) + Vector2(tile, tile) / 2.0
 
 
-## Inside the merchant room (secure ground).
+## Inside the merchant room or the forge (secure ground).
 func is_safe(pos: Vector2) -> bool:
-	return safe_rect.size != Vector2i.ZERO and safe_rect.has_point(cell_of(pos))
+	return in_safe_cell(cell_of(pos))
+
+
+func in_safe_cell(c: Vector2i) -> bool:
+	for r in safe_rects:
+		if r.has_point(c):
+			return true
+	return false
 
 
 func in_anomaly(pos: Vector2) -> bool:
@@ -719,14 +741,14 @@ func leaf_door(kind: String) -> Node:
 	return null
 
 
-## Map markers this peer has discovered (#28): the merchant room (by merchant, sealed or open) and
-## the boss chamber, once its door or any of its cells has been seen.
-## [{kind: "merchant" / "boss", npc: "archibald" / "malphas" / "", cell: Vector2i, locked: bool}]
+## Map markers this peer has discovered (#28): the merchant room (by merchant, sealed or open), the
+## forge (#77) and the boss chamber, once its door or any of its cells has been seen.
+## [{kind: "merchant" / "forge" / "boss", npc: "archibald" / "malphas" / "forge" / "", cell: Vector2i, locked: bool}]
 func map_markers() -> Array:
 	var out: Array = []
 	var rooms: Array = layout.get("rooms", [])
 	var m: Dictionary = layout.get("merchant", {})
-	for e in [["merchant", int(m.get("room", -1)), str(m.get("npc", ""))], ["boss", int(layout.get("boss_room", -1)), ""]]:
+	for e in [["merchant", int(m.get("room", -1)), str(m.get("npc", ""))], ["forge", int(layout.get("forge", {}).get("room", -1)), "forge"], ["boss", int(layout.get("boss_room", -1)), ""]]:
 		var ri: int = e[1]
 		if ri < 0 or ri >= rooms.size():
 			continue

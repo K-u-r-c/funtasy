@@ -74,6 +74,10 @@ between the floor track and the boss track. Effects: short (0.2-1.5 s), dry, mon
 | `flame_breath` | `assets/audio/sfx/flame_breath.ogg` | skills/monsters.json | hellhound exhaling a short cone of roaring flame |
 | `flame_jet` | `assets/audio/sfx/flame_jet.ogg` | balance.json | wall-mounted flame jet roaring for one second |
 | `floodgate` | `assets/audio/sfx/floodgate.ogg` | engine | heavy iron floodgate grinding open with rushing water |
+| `forge_ambience` | `assets/audio/sfx/forge_ambience.ogg` | engine | distant blacksmith at work in a stone room: a single muffled hammer blow on an anvil, soft, with a faint ember crackle, 0.5 s, played quietly and often |
+| `forge_done` | `assets/audio/sfx/forge_done.ogg` | engine | a freshly forged weapon finished: a deep resonant metallic ring rising into a warm shimmer, a confident low anvil chime, 1.4 s, dark fantasy |
+| `forge_quench` | `assets/audio/sfx/forge_quench.ogg` | engine | red-hot iron plunged into a barrel of water: a sharp violent hiss turning into bubbling steam, 1.2 s |
+| `forge_strike` | `assets/audio/sfx/forge_strike.ogg` | engine | a blacksmith's hammer striking hot iron on an anvil: a bright ringing clang with a short metallic decay and a crackle of sparks, 0.6 s, close |
 | `frost` | `assets/audio/sfx/frost.ogg` | skills/mage.json, skills/monsters.json | ice spell, crackling frost and shattering crystal |
 | `gargoyle_dive` | `assets/audio/sfx/gargoyle_dive.ogg` | skills/monsters.json | stone gargoyle diving with leathery wing flap and a heavy landing |
 | `gas_pop` | `assets/audio/sfx/gas_pop.ogg` | engine | wet bloated gas pocket bursting with a sickly hiss, short |

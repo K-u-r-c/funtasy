@@ -1337,5 +1337,21 @@
 	"sfx.shell_shatter": {
 		"like": "sfx.break",
 		"prompt": "hard chitin carapace cracking apart, crunchy shatter"
+	},
+	"sfx.forge_strike": {
+		"like": "sfx.crit",
+		"prompt": "a blacksmith's hammer striking hot iron on an anvil: a bright ringing clang with a short metallic decay and a crackle of sparks, 0.6 s, close"
+	},
+	"sfx.forge_quench": {
+		"like": "sfx.frost",
+		"prompt": "red-hot iron plunged into a barrel of water: a sharp violent hiss turning into bubbling steam, 1.2 s"
+	},
+	"sfx.forge_done": {
+		"like": "sfx.level_up",
+		"prompt": "a freshly forged weapon finished: a deep resonant metallic ring rising into a warm shimmer, a confident low anvil chime, 1.4 s, dark fantasy"
+	},
+	"sfx.forge_ambience": {
+		"like": "sfx.hit",
+		"prompt": "distant blacksmith at work in a stone room: a single muffled hammer blow on an anvil, soft, with a faint ember crackle, 0.5 s, played quietly and often"
 	}
 }

@@ -504,3 +504,58 @@ static func _effort(c: Dictionary) -> float:
 	return 0.5 * float(c.time) + 0.5 * float(c.damage) * 60.0
 
 
+
+
+## #77 The forge against a floor's gold: on each probe depth, for a party of 1 and of 4, what it
+## costs a hero per floor to keep a legendary (and an Epic) at the floor's item level, as a share
+## of that hero's gold from the floor (monster piles, the elites and the boss; chests and sales come
+## on top). The legendary's share must sit inside probe.forge_legendary_share (a real sink that a
+## hero can still pay), an Epic's under it, and the first step of an early legendary must cost
+## less than one floor's gold.
+func run_forge(depths: Array = [2, 4, 6, 9, 12, 16, 20]) -> void:
+	g = da._game()
+	p = da._local()
+	for e in g.enemies_root.get_children():
+		e.queue_free()
+	await da._wait(0.3)
+	_curve = run_progression(21)
+	seed(77)
+	var probe: Dictionary = GameData.bal("probe", {})
+	var band: Array = probe.get("forge_legendary_share", [0.2, 0.6])
+	var bad: Array = []
+	var gold_cfg: Dictionary = GameData.bal("gold", {})
+	print("[balance] forge depth n | ilvl -> next | hero gold/floor | legendary/floor share | epic/floor share | first step")
+	for d in depths:
+		var lvl := _curve_level(_curve, int(d))
+		var il: int = g.item_level_at(g.monster_level_at(int(d), float(lvl)))
+		var il2: int = g.item_level_at(g.monster_level_at(int(d) + 1, float(_curve_level(_curve, int(d) + 1))))
+		var lg := ItemGenerator.make_legendary("crown_blood_chieftain", il, RandomNumberGenerator.new())
+		var ep := ItemGenerator.generate_equipment("plate_helm", il, 4, RandomNumberGenerator.new())
+		ep.erase("quality_mult")
+		for n in [1, 4]:
+			var keep_lg := 0.0
+			var keep_ep := 0.0
+			for step in range(il, il2):
+				keep_lg += Forge.cost(ItemGenerator.at_level(lg, step), n)
+				keep_ep += Forge.cost(ItemGenerator.at_level(ep, step), n)
+			var fd: Dictionary = GameData.floor_types[g.floor_type_for(int(d))]
+			var c := await floor_cost(int(d), n, fd, 3)
+			var scale: float = 1.0 + float(gold_cfg.get("per_level", 0.18)) * (il - 1)
+			var extra: float = (_avg(gold_cfg.get("boss", [60, 120])) + 2.0 * _avg(gold_cfg.get("elite", [25, 45]))) * scale
+			var per_hero: float = (float(c.gold) + extra) / n
+			var s_lg := keep_lg / maxf(per_hero, 1.0)
+			var s_ep := keep_ep / maxf(per_hero, 1.0)
+			var first := float(Forge.cost(lg, n))
+			print("[balance] forge %d %d | %d -> %d | %.0f | %.0f %.2f | %.0f %.2f | %.0f" % [d, n, il, il2, per_hero, keep_lg, s_lg, keep_ep, s_ep, first])
+			# Past the level cap nothing needs keeping current.
+			if il2 > il and (s_lg < float(band[0]) or s_lg > float(band[1])):
+				bad.append("legendary@%d x%d share %.2f" % [d, n, s_lg])
+			if s_ep > s_lg:
+				bad.append("epic@%d x%d share %.2f above the legendary's" % [d, n, s_ep])
+			if int(d) <= 4 and first > per_hero:
+				bad.append("first step@%d x%d %.0f > a floor's %.0f" % [d, n, first, per_hero])
+	da.check(bad.is_empty(), "the forge keeps a legendary current for %d-%d%% of a hero's floor gold, 1 and 4 heroes (outside: %s)" % [roundi(float(band[0]) * 100), roundi(float(band[1]) * 100), bad])
+
+
+static func _avg(r: Variant) -> float:
+	return (float(r[0]) + float(r[1])) / 2.0 if r is Array else float(r)

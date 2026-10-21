@@ -42,7 +42,8 @@ var _size_mult := 1.0
 
 ## `depth` makes deeper floors darker (fewer lit rooms), so every peer must pass the same value.
 ## `merchant` is the floor's one merchant (Game.pick_merchant); "" = the seeded pick.
-func generate(seed_value: int, floor_def: Dictionary, count_mult: float = 1.0, depth: int = 1, merchant: String = "") -> Dictionary:
+## `forge` (#77): the floor has the blacksmith's forge chamber (Game.pick_forge).
+func generate(seed_value: int, floor_def: Dictionary, count_mult: float = 1.0, depth: int = 1, merchant: String = "", forge: bool = false) -> Dictionary:
 	rng.seed = seed_value
 	_depth = depth
 	tile = int(GameData.bal("world.tile_size"))
@@ -63,8 +64,10 @@ func generate(seed_value: int, floor_def: Dictionary, count_mult: float = 1.0, d
 		if attempt > 0:
 			rng.seed = seed_value + attempt * 104729
 			cells.fill(CELL_WALL)
-		rooms = _place_rooms(floor_def)
+		rooms = _place_rooms(floor_def, forge)
 		_mark_merchant_room(rooms)
+		if forge:
+			_mark_leaf_room(rooms, "forge")
 		_connect_rooms(rooms)
 		if _attach_leaves(rooms):
 			break
@@ -111,6 +114,7 @@ func generate(seed_value: int, floor_def: Dictionary, count_mult: float = 1.0, d
 	var start_room: Dictionary = rooms[0]
 	layout.boss_room = 1
 	layout.merchant = _merchant_layout(rooms, used, merchant if not merchant.is_empty() else pick_merchant(seed_value))
+	layout.forge = _forge_layout(rooms, used)
 	layout.start = _cell_center(start_room.rect.get_center())
 	layout.boss_pos = _cell_center(boss_room.rect.get_center() - Vector2i(0, 2))
 	layout.portal_pos = _cell_center(boss_room.rect.get_center() + Vector2i(0, 2))
@@ -141,10 +145,11 @@ func _cell_center(c: Vector2i) -> Vector2:
 # --- Rooms + corridors ------------------------------------------------------------------------
 
 
-func _place_rooms(fd: Dictionary) -> Array:
+func _place_rooms(fd: Dictionary, forge: bool = false) -> Array:
 	var spec: Dictionary = fd.rooms
-	# One extra room for the merchant (#6), so the fighting rooms keep their count.
-	var target := roundi(rng.randi_range(int(spec.count[0]), int(spec.count[1])) * _size_mult) + 1
+	# One extra room for the merchant (#6) and one for the forge (#77), so the fighting rooms
+	# keep their count.
+	var target := roundi(rng.randi_range(int(spec.count[0]), int(spec.count[1])) * _size_mult) + 1 + (1 if forge else 0)
 	var rooms: Array = []
 	var rects: Array = []
 	# Boss room first (largest), then the rest; the start room is the one farthest from it.
@@ -320,6 +325,12 @@ func _carve_path(path: Array) -> void:
 ## Every floor has one merchant room (#6): the normal room closest to a medium size (seeded like
 ## everything else). It gets no monsters, hazards or loose props, and monsters never path into it.
 func _mark_merchant_room(rooms: Array) -> void:
+	_mark_leaf_room(rooms, "merchant")
+
+
+## Turns the normal room closest to a medium size into a sealed leaf chamber of `role`
+## (merchant #6, forge #77).
+func _mark_leaf_room(rooms: Array, role: String) -> void:
 	var best := INF
 	var pick := -1
 	for i in range(2, rooms.size()):
@@ -327,11 +338,13 @@ func _mark_merchant_room(rooms: Array) -> void:
 		var score := absf(r.size.x - 11) + absf(r.size.y - 9) + rng.randf() * 2.0
 		if r.size.x < 9 or r.size.y < 8:
 			score += 100.0
+		if rooms[i].role != "normal":
+			continue
 		if score < best:
 			best = score
 			pick = i
-	if pick >= 0 and rooms.size() > 3:
-		rooms[pick].role = "merchant"
+	if pick >= 0 and rooms.size() > 3 + (1 if role != "merchant" else 0):
+		rooms[pick].role = role
 
 
 ## #23 / #30 / #31: the merchant room hangs off a shallower room and the boss chamber off the
@@ -347,11 +360,9 @@ func _attach_leaves(rooms: Array) -> bool:
 		if not hops.has(i):
 			return false
 		max_h = maxi(max_h, int(hops[i]))
-	var mi := -1
-	for i in rooms.size():
-		if rooms[i].role == "merchant":
-			mi = i
-	if mi >= 0:
+	for mi in rooms.size():
+		if rooms[mi].role != "merchant" and rooms[mi].role != "forge":
+			continue
 		var mc: Vector2i = rooms[mi].rect.get_center()
 		var near: Array = core.filter(func(i): return int(hops[i]) < max_h)
 		near.sort_custom(func(a, b): return (rooms[a].rect.get_center() - mc).length_squared() < (rooms[b].rect.get_center() - mc).length_squared())
@@ -581,6 +592,30 @@ func _merchant_layout(rooms: Array, used: Dictionary, npc: String) -> Dictionary
 	return {}
 
 
+## #77: the forge chamber's pieces, placed from merchants.json blacksmith.layout (cell offsets
+## from the room's centre; "wall" ones stand against the back wall): {room, npc pos, anvil,
+## hearth, barrel, rack}. {} when the floor has no forge.
+func _forge_layout(rooms: Array, used: Dictionary) -> Dictionary:
+	for i in rooms.size():
+		if rooms[i].role != "forge":
+			continue
+		var r: Rect2i = rooms[i].rect
+		var c := r.get_center()
+		var spec: Dictionary = GameData.merchants.get("blacksmith", {}).get("layout", {})
+		var out := {"room": i}
+		for k in spec:
+			var o: Array = spec[k].cell
+			var cell := Vector2i(c.x + int(o[0]), r.position.y + int(o[1]) if spec[k].get("wall", false) else c.y + int(o[1]))
+			cell = Vector2i(clampi(cell.x, r.position.x + 1, r.end.x - 2), clampi(cell.y, r.position.y, r.end.y - 2))
+			var px: Array = spec[k].get("px", [0, 0])
+			out[k] = _cell_center(cell) + Vector2(float(px[0]), float(px[1]))
+		for x in range(r.position.x, r.end.x):
+			for y in range(r.position.y, r.end.y):
+				used[Vector2i(x, y)] = true
+		return out
+	return {}
+
+
 ## Openings in a room's wall ring 2-3 cells wide become doors.
 func _find_doors(rooms: Array) -> Array:
 	var doors: Array = []
@@ -607,9 +642,9 @@ func _find_doors(rooms: Array) -> Array:
 						var rect := Rect2i(run[0], Vector2i.ONE)
 						for rc in run:
 							rect = rect.expand(rc).expand(rc + Vector2i.ONE)
-						var kind := str(room.role) if room.role in ["boss", "merchant"] else ""
+						var kind := str(room.role) if room.role in ["boss", "merchant", "forge"] else ""
 						doors.append({"cells": run.duplicate(), "vertical": bool(side[3]), "rect": rect,
-							"monster_proof": room.role == "merchant", "kind": kind})
+							"monster_proof": room.role in ["merchant", "forge"], "kind": kind})
 					run.clear()
 	return doors
 
@@ -685,7 +720,7 @@ func _place_props(rooms: Array, fd: Dictionary, used: Dictionary) -> Array:
 					used[c] = true
 					out.append({"type": "pillar", "pos": _cell_center(c)})
 			continue
-		if room.role == "start" or room.role == "merchant":
+		if room.role in ["start", "merchant", "forge"]:
 			continue
 		var n := rng.randi_range(int(fd.props_per_room[0]), int(fd.props_per_room[1]))
 		if rng.randf() < float(gen.get("pillared_hall_chance", 0.0)) and r.size.x >= 9 and r.size.y >= 8:
@@ -1184,7 +1219,7 @@ func _place_torches(rooms: Array, fd: Dictionary, depth: int) -> Array:
 		match room.role:
 			"boss":
 				count = 4
-			"start", "merchant":
+			"start", "merchant", "forge":
 				count = maxi(count, 2)
 			_:
 				if roll > chance:

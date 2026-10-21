@@ -133,7 +133,7 @@ func _update_art_top() -> void:
 	if game == null:
 		return
 	if _room == Rect2i():
-		var ri := int(game.layout.get("boss_room", -1)) if kind == "boss" else int(game.layout.get("merchant", {}).get("room", -1))
+		var ri := int(game.layout.get("boss_room", -1)) if kind == "boss" else int(game.layout.get(kind, {}).get("room", -1))
 		if ri >= 0:
 			_room = game.layout.rooms[ri].rect
 	var seen := false

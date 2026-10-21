@@ -127,9 +127,11 @@ static func give_items(d: Dictionary, p: Player, item_level: int, rng: RandomNum
 			var it := ItemGenerator.generate_equipment(str(g.base), item_level, int(g.get("rarity", 4)), rng)
 			it.name = str(d.name)
 			it["boon_unique"] = str(d.get("id", ""))
-			for k in g.get("stats", {}):
-				# Its own stats grow with the item level like the item's rolled ones.
-				it.stats[k] = float(it.stats.get(k, 0.0)) + float(g.stats[k]) * (1.0 + float(cfg("unique_per_level")) * (item_level - 1))
+			# Its own stats grow with the item level like the item's rolled ones (kept apart so the
+			# forge recomputes them too, #77).
+			it["extra_stats"] = g.get("stats", {}).duplicate()
+			it["extra_growth"] = float(cfg("unique_per_level"))
+			ItemGenerator.apply_level(it, int(it.ilvl))
 			it["procs"] = g.get("procs", []).duplicate(true)
 			it["flags"] = g.get("flags", []).duplicate()
 			it["mods"] = g.get("mods", []).duplicate(true)

@@ -460,6 +460,7 @@
 		"boss_ttk_max": 240.0,
 		"boss_ttd_min": 3.0, "fresh_ttk_max": 8.0, "fresh_ttd_min": 16.0, "fresh_boss_ttk_max": 150.0, "fresh_boss_ttd_min": 6.0, "levels_per_floor": [2.4, 3.75], "xp_probe_floors": 5, "xp_probe_seeds": 4,
 		"_mods_comment": "#71 floor cost probe (BalanceSuite.floor_cost / run_mods): a modded floor's effort (fight time and damage) relative to the plain floor must sit inside mod_cost_band, around what one floor deeper costs the same party (measured x1.02-x1.21), and its reward (gold + gold-valued items + xp/4) must reach mod_reward_min x its cost. Assumptions the layout can't show: the share of fight time a hero stands still on Restless, the darkness's extra damage on Dimmed, the travel time that brings Hunted's hunters.",
+		"forge_legendary_share": [0.1, 0.65],
 		"mod_cost_band": [1.0, 1.5], "mod_reward_min": 0.8, "rarity_gold": [4, 12, 40, 110, 300],
 		"restless_still_melee": 0.25, "restless_still_ranged": 0.2, "dimmed_damage_factor": 1.2, "travel_s_per_floor": 150
 	}

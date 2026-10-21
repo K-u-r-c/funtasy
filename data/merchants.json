@@ -1,6 +1,41 @@
 {
 	"_comment": "Merchant room (GDD 5, #6): one merchant per floor, a seeded pick weighted by floor_pick. Archibald's stock rules; Malphas's tithe options and contract pool. Prices in balance.merchant.",
 	"floor_pick": {"archibald": 4, "malphas": 1},
+	"blacksmith": {
+		"_comment": "#77 Rolf Hult's forge: a sealed leaf chamber on floor_chance of the floors (seeded). layout: cell offsets from the room centre ('wall': from its top row) plus a pixel nudge for each piece; pieces: the prop type of each. upgrade: one step raises an item's level by 'step' up to min(hero level, floor item level + cap_above_floor); gold per step = base x rarity_mult[rarity - 1] x (1 + per_level x (ilvl - 1))^level_exponent x the item's quality x party_price[heroes - 1] (gold piles are split between the heroes; checked against a floor's gold by BalanceSuite.forge_probe). anim: the smith's idle, frame times in seconds.",
+		"name": "Rolf Hult",
+		"title": "Ironhand of the Galt Works",
+		"floor_chance": 0.5,
+		"torch_color": "#ff8c3a",
+		"pieces": {"npc": "blacksmith", "anvil": "forge_anvil", "hearth": "forge_hearth", "barrel": "forge_barrel", "rack": "forge_rack", "coals": "forge_coals", "ingots": "forge_ingots"},
+		"layout": {
+			"npc": {"cell": [0, -1], "px": [6, 0]},
+			"anvil": {"cell": [0, -1], "px": [-6, 12]},
+			"hearth": {"cell": [-3, 0], "wall": true, "px": [0, 14]},
+			"coals": {"cell": [-1, 0], "wall": true, "px": [4, 14]},
+			"rack": {"cell": [3, 0], "wall": true, "px": [0, 14]},
+			"barrel": {"cell": [2, 0], "px": [0, 6]},
+			"ingots": {"cell": [-2, 1], "px": [0, 0]}
+		},
+		"upgrade": {
+			"step": 1,
+			"cap_above_floor": 0,
+			"base": 10,
+			"rarity_mult": [0.4, 0.7, 1.1, 1.8, 2.6],
+			"per_level": 0.2,
+			"level_exponent": 1.0,
+			"party_price": [1.0, 0.72, 0.52, 0.4]
+		},
+		"anim": {
+			"strike": {"sheet": "props.blacksmith_strike", "frames": 7},
+			"wipe": {"sheet": "props.blacksmith_wipe", "frames": 9},
+			"look": {"sheet": "props.blacksmith_look", "frames": 7},
+			"lift_time": 0.09, "raised_hold": 0.16, "strike_time": 0.05, "impact_frame": 4, "impact_hold": 0.3,
+			"strikes": [2, 4], "rest": [1.4, 2.6], "wipe_chance": 0.3, "wipe_time": 0.12, "look_time": 0.12, "look_hold": 1.2,
+			"look_radius": 150, "look_every": 9.0,
+			"impact": [-9, -12], "sparks": "#ffb040", "ambience_volume": -16.0
+		}
+	},
 	"archibald": {
 		"name": "Archibald the Gilded",
 		"equipment": 3,

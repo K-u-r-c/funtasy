@@ -53,7 +53,7 @@ func _build() -> void:
 		item.add_child(UITheme.label(e[0], UITheme.TEXT_DIM, UITheme.FONT_SMALL))
 		legend.add_child(item)
 	# The chamber marks (#28) with their own icons.
-	for m in [["map_archibald", Loc.t("Archibald")], ["map_malphas", Loc.t("Malphas")], ["map_boss", Loc.t("Boss")], ["map_lock", Loc.t("Sealed")]]:
+	for m in [["map_archibald", Loc.t("Archibald")], ["map_malphas", Loc.t("Malphas")], ["map_forge", Loc.t("Forge")], ["map_boss", Loc.t("Boss")], ["map_lock", Loc.t("Sealed")]]:
 		var mi := HBoxContainer.new()
 		mi.add_theme_constant_override("separation", 4)
 		var t := TextureRect.new()

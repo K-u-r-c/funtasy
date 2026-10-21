@@ -87,7 +87,7 @@ func play_sfx(key: String, pitch_jitter: float = 0.05) -> void:
 			return
 
 
-func play_sfx_at(key: String, pos: Vector2, pitch_jitter: float = 0.08) -> void:
+func play_sfx_at(key: String, pos: Vector2, pitch_jitter: float = 0.08, volume_db: float = 0.0) -> void:
 	if _headless or _closed:
 		return
 	var stream := _stream("sfx." + key)
@@ -97,6 +97,7 @@ func play_sfx_at(key: String, pos: Vector2, pitch_jitter: float = 0.08) -> void:
 		if not p.playing:
 			p.stream = stream
 			p.global_position = pos
+			p.volume_db = volume_db
 			p.pitch_scale = 1.0 + randf_range(-pitch_jitter, pitch_jitter)
 			p.play()
 			return

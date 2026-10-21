@@ -17,6 +17,7 @@ const MapPanel := preload("res://scripts/ui/map_panel.gd")
 const SkillBookPanel := preload("res://scripts/ui/skill_book_panel.gd")
 const ShopPanel := preload("res://scripts/ui/shop_panel.gd")
 const PactPanel := preload("res://scripts/ui/pact_panel.gd")
+const ForgePanel := preload("res://scripts/ui/forge_panel.gd")
 const ConfirmDialog := preload("res://scripts/ui/confirm_dialog.gd")
 const CodexPanel := preload("res://scripts/ui/codex_panel.gd")
 const LoreReader := preload("res://scripts/ui/lore_reader.gd")
@@ -970,6 +971,11 @@ func open_book(book_id: String, note: String) -> void:
 ## Merchants -> local player: open Archibald's shop or Malphas's bargains.
 func open_merchant(kind: String) -> void:
 	open_overlay(ShopPanel.new() if kind == "archibald" else PactPanel.new())
+
+
+## #77: Rolf Hult's forge window.
+func open_forge() -> void:
+	open_overlay(ForgePanel.new())
 
 
 ## Malphas asks the local player for the blood tithe (D13).

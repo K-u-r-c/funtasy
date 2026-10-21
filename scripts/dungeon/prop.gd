@@ -14,6 +14,8 @@ var lever_handle: Sprite2D  ## #51: the swinging arm of a lever (data "lever_art
 var _lever_lamp: Node2D
 var _lever_light: PointLight2D
 var _lamp_color := Color.RED
+var _flicker_light: PointLight2D
+var _flicker_t := 0.0
 
 
 func setup(new_type: String, pos: Vector2) -> void:
@@ -46,15 +48,23 @@ func setup(new_type: String, pos: Vector2) -> void:
 		_sprite.z_index = -8
 		_sprite.light_mask = LightLayers.LIT
 	if def.has("light"):
-		# Glowing props (fungal blooms) are real light sources.
+		# Glowing props (fungal blooms, the forge's hearth) are real light sources.
 		var l := PointLight2D.new()
 		LightLayers.setup_light(l)
 		l.texture = GameData.texture("fx.light")
 		l.color = Color.from_string(str(def.light), Color.WHITE)
-		l.energy = 0.8
-		l.position = Vector2(0, -6)
+		l.energy = float(def.get("light_energy", 0.8))
+		l.position = Vector2(0, float(def.get("light_y", -6)))
 		LightLayers.register(l, float(def.get("light_radius", 56.0)))
 		add_child(l)
+		if float(def.get("flicker", 0.0)) > 0.0:
+			_flicker_light = l
+	if def.has("embers"):
+		add_child(_embers(Color.from_string(str(def.embers), Color.ORANGE), _sprite.texture.get_height() if _sprite.texture else 32))
+	if def.has("npc_anim"):
+		var anim := NpcAnim.new()
+		add_child(anim)
+		anim.setup(str(def.npc_anim), _sprite)
 	if bool(def.get("blocks_sight", true)):
 		# #46: the shadow starts where the prop stands: a one-sided outline of its footprint (west,
 		# south and east sides, open to the north) casts for lights beside or behind it, so the
@@ -62,6 +72,38 @@ func setup(new_type: String, pos: Vector2) -> void:
 		var hw := float(sz[0]) / 2.0
 		var fh := float(sz[1])
 		add_child(LightLayers.one_sided(PackedVector2Array([Vector2(-hw, -fh), Vector2(-hw, 0), Vector2(hw, 0), Vector2(hw, -fh)])))
+
+
+func _flicker(delta: float) -> void:
+	_flicker_t += delta
+	var f := float(def.get("flicker", 0.0))
+	_flicker_light.energy = float(def.get("light_energy", 0.8)) * (1.0 + f * (sin(_flicker_t * 7.3) * 0.6 + sin(_flicker_t * 17.1) * 0.4))
+
+
+## Embers rising from a hot prop (the forge's hearth).
+func _embers(c: Color, h: int) -> CPUParticles2D:
+	var p := CPUParticles2D.new()
+	p.texture = GameData.texture("fx.pixel")
+	p.amount = 10
+	p.lifetime = 1.8
+	p.position = Vector2(0, -h * 0.45)
+	p.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
+	p.emission_rect_extents = Vector2(10, 4)
+	p.direction = Vector2(0, -1)
+	p.spread = 20.0
+	p.initial_velocity_min = 10.0
+	p.initial_velocity_max = 24.0
+	p.gravity = Vector2(0, -8)
+	p.scale_amount_min = 0.8
+	p.scale_amount_max = 1.5
+	var grad := Gradient.new()
+	grad.set_color(0, Color(1.0, 0.9, 0.6))
+	grad.set_color(1, c * Color(1, 1, 1, 0))
+	p.color_ramp = grad
+	p.material = CanvasItemMaterial.new()
+	p.material.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+	p.z_index = 1
+	return p
 
 
 func destructible() -> bool:
@@ -226,11 +268,14 @@ func _build_lever(art: Dictionary) -> void:
 
 
 func _ready() -> void:
-	set_process(lever_handle != null)  # only a lever's lamp pulses
+	set_process(lever_handle != null or _flicker_light != null)  # a lever's lamp pulses, a hearth flickers
 
 
-func _process(_delta: float) -> void:
-	_lever_lamp.queue_redraw()
+func _process(delta: float) -> void:
+	if _lever_lamp:
+		_lever_lamp.queue_redraw()
+	if _flicker_light:
+		_flicker(delta)
 
 
 func _draw_lamp() -> void:

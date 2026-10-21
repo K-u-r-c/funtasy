@@ -273,7 +273,7 @@ func _trigger(what: String) -> void:
 			for y in range(2, g.dungeon.size.y - 2, 2):
 				for x in range(2, g.dungeon.size.x - 2, 2):
 					var c2 := Vector2i(x, y)
-					if g.dungeon.cell_at(c2) == DungeonGenerator.CELL_FLOOR and not g.dungeon.safe_rect.has_point(c2) and not LightLayers.is_lit(g.get_tree(), g.dungeon.cell_center(c2), true):
+					if g.dungeon.cell_at(c2) == DungeonGenerator.CELL_FLOOR and not g.dungeon.in_safe_cell(c2) and not LightLayers.is_lit(g.get_tree(), g.dungeon.cell_center(c2), true):
 						best = g.dungeon.cell_center(c2)
 			p.host_teleport(best)
 			await da._wait(1.4)
