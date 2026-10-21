@@ -46,6 +46,7 @@
 		"glyph_arm": "res://assets/audio/sfx/placeholder/gdd/glyph_arm.wav",
 		"grate": "res://assets/audio/sfx/placeholder/gdd/grate.wav",
 		"hammer_slam": "res://assets/audio/sfx/placeholder/gdd/hammer_slam.wav",
+		"heartbeat": "res://assets/audio/sfx/placeholder/gdd/heartbeat.wav",
 		"hex": "res://assets/audio/sfx/placeholder/gdd/hex.wav",
 		"hook_chain": "res://assets/audio/sfx/placeholder/gdd/hook_chain.wav",
 		"hunter_arrive": "res://assets/audio/sfx/placeholder/gdd/hunter_arrive.wav",

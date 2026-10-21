@@ -143,6 +143,7 @@ if [ "$WHAT" = all ] || [ "$WHAT" = quick ]; then
 	for c in warrior ranger mage priest; do
 		run boons-$c --auto=solo --class=$c --name=Boon --scenario=boons --quit=380
 	done
+	run gfx --auto=solo --class=warrior --name=Gfx --scenario=gfx --quit=120
 	run mods --auto=solo --class=warrior --name=Mods --scenario=mods --quit=200
 	run drops --auto=solo --class=warrior --name=Loot --scenario=drops --quit=90
 	run altars --auto=solo --class=warrior --name=Pious --scenario=altars --quit=60
@@ -190,6 +191,7 @@ if [ "$WHAT" = all ] || [ "$WHAT" = lan ]; then
 	pair smite-lan "--class=priest --name=HostSm --scenario=smite_lan --quit=60" "--class=warrior --name=ClientSm --quit=60"
 	pair stacks-lan "--class=warrior --name=HostSt --scenario=stacks_lan --quit=60" "--class=mage --name=ClientSt --quit=60"
 	pair resume-lan "--class=priest --name=HostRs --scenario=resume_lan --quit=120" "--class=ranger --name=ClientRs --quit=120"
+	pair gfx-lan "--class=priest --name=HostGf --scenario=gfx_lan --quit=60" "--class=mage --name=ClientGf --quit=60"
 	pair boons-lan "--class=warrior --name=HostBn --scenario=boons_lan --quit=90" "--class=mage --name=ClientBn --quit=90"
 	pair mods-lan "--class=warrior --name=HostMd --scenario=mods_lan --quit=120" "--class=ranger --name=ClientMd --quit=120"
 	pair drops-lan "--class=warrior --name=HostDr --scenario=drops_lan --quit=60" "--class=mage --name=ClientDr --quit=60"

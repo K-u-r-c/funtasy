@@ -268,6 +268,7 @@ Talent points to spend,Punkty talentów do wydania
 Stat points,Punkty cech
 Stat points to spend,Punkty cech do wydania
 Gold Key: Archibald trades for it,Złoty Klucz: Archibald za niego handluje
+Backpack,Plecak
 Floor %d%s,Piętro %d%s
 Part of the monsters here come from another biome.,Część potworów przybyła tu z innego biomu.
 Empty slot - learn skills in the Talents tab,Puste miejsce - poznaj umiejętności w zakładce Talenty
@@ -304,7 +305,6 @@ Active,Aktywny
 "Click: pick for ally spells. Click again or on empty ground: clear. %s: next ally, then none.","Klik: wybierz dla czarów na sojuszników. Kliknij ponownie lub w puste miejsce: wyczyść. %s: następny sojusznik, potem nikt."
 Inventory,Ekwipunek
 Equipment,Wyposażenie
-Backpack,Plecak
 Quick slots,Szybkie miejsca
 Feet,Stopy
 Hands,Dłonie
@@ -447,7 +447,7 @@ Language,Język
 Window mode,Tryb okna
 Window size,Rozmiar okna
 VSync,VSync
-Screen shake,Wstrząsy ekranu
+"Screen effects (shake, vignette, hit-stop)","Efekty ekranu (wstrząsy, winieta, zastygnięcie przy trafieniu)"
 Mark my hero,Oznaczenie mojej postaci
 Apply video settings,Zastosuj ustawienia obrazu
 Keep,Zachowaj

@@ -76,6 +76,8 @@ var _goal_icon: TextureRect
 var _last_message := ""
 var level_banner: LevelBanner  ## #48
 var floor_banner: FloorBanner  ## #70: the arrival on a floor
+var _screen_fx: ScreenFx  ## #81: the low-health vignette and the big-hit edge flash
+var _bag_icon: TextureRect
 var _floor_badges: VBoxContainer  ## #70 / #71: what makes this floor different, a badge per line
 var _mod_label: Label  ## #71: the floor modifier's name
 var _hunt_row: HBoxContainer  ## #71 Hunted: the countdown to the next hunter
@@ -107,6 +109,12 @@ func _ready() -> void:
 	floor_banner = FloorBanner.new()
 	add_child(floor_banner)
 	EventBus.local_level_up.connect(level_banner.show_level)
+	EventBus.skill_refused.connect(func(slot: int):
+		if slot >= 0 and slot < _slots.size():
+			_slots[slot].refuse())
+	EventBus.local_picked_up.connect(_fly_to_hud)
+	_screen_fx = ScreenFx.new()
+	add_child(_screen_fx)
 
 
 ## A new language (#32): the HUD is built again so every label picks up the new texts. The
@@ -420,6 +428,10 @@ func _build_bottom() -> void:
 	_gold_label = UITheme.label("0", UITheme.GOLD, UITheme.FONT_SMALL)
 	_gold_label.custom_minimum_size = Vector2(34, 0)
 	xp_row.add_child(_gold_label)
+	# #81: the backpack a picked-up item flies into.
+	_bag_icon = UITheme.icon("nav_inventory", 16)
+	_bag_icon.tooltip_text = Loc.t("Backpack")
+	xp_row.add_child(_bag_icon)
 
 
 ## A bar led by its icon (heart, mana crystal or fury flame).
@@ -535,6 +547,43 @@ func offer_boons() -> void:
 	if has_overlay() or game.my_boon_offer.is_empty():
 		return
 	open_overlay(BoonPanel.new())
+
+
+## #81: a picked-up item flies from where it lay to the backpack button, gold to the gold count.
+func _fly_to_hud(world_pos: Vector2, kind: String, icon: Texture2D) -> void:
+	if icon == null:
+		return
+	var vp := get_viewport()
+	var from := vp.get_canvas_transform() * world_pos
+	var target: Control = _gold_label if kind == "gold" else _dodge_slot
+	var bag := _bag_target()
+	if kind != "gold" and bag:
+		target = bag
+	var to := target.get_global_rect().get_center()
+	var t := TextureRect.new()
+	t.texture = icon
+	t.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	t.size = Vector2(20, 20)
+	t.position = from - Vector2(10, 10)
+	t.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_root.add_child(t)
+	GameplayFx.note("fly_" + kind)
+	var mid := (from + to) / 2.0 + Vector2(0, -60)
+	var tw := t.create_tween()
+	tw.tween_method(func(u: float):
+		t.position = from.lerp(mid, u).lerp(mid.lerp(to, u), u) - Vector2(10, 10)
+		t.scale = Vector2.ONE * (1.0 - 0.4 * u), 0.0, 1.0, 0.55).set_ease(Tween.EASE_IN)
+	tw.tween_callback(func():
+		t.queue_free()
+		var p2 := target.create_tween()
+		target.pivot_offset = target.size / 2.0
+		p2.tween_property(target, "scale", Vector2(1.15, 1.15), 0.06)
+		p2.tween_property(target, "scale", Vector2.ONE, 0.12))
+
+
+## The backpack icon in the bottom bar.
+func _bag_target() -> Control:
+	return _bag_icon
 
 
 ## Screen centre of the portrait (where a chosen boon's card flies to).
@@ -1043,6 +1092,8 @@ class SkillSlot:
 	var _text: Control
 	var _mat: ShaderMaterial
 	var _ready_flash := 0.0
+	var _refuse := 0.0  ## #81: the red flash of a refused press
+	var _shake := 0.0
 	var _empty_icon: Texture2D
 
 	func _ready() -> void:
@@ -1073,6 +1124,18 @@ class SkillSlot:
 	func _get_tooltip(_at: Vector2) -> String:
 		return tooltip
 
+	## #81: a refused press: the slot shakes and flashes red with a short sound.
+	func refuse() -> void:
+		_refuse = 1.0
+		AudioManager.play_sfx("ui_error", 0.02)
+		GameplayFx.note("slot_refused")
+		# The shake moves the drawing, not the control (the bar's container lays it out).
+		var tw := create_tween()
+		tw.tween_method(func(v: float):
+			_refuse = v
+			_shake = sin(v * 40.0) * 3.0 * v
+			queue_redraw(), 1.0, 0.0, 0.3)
+
 	func set_cooldown(frac: float, left: float) -> void:
 		if cd_frac > 0.0 and frac <= 0.0:
 			_ready_flash = 1.0
@@ -1086,6 +1149,7 @@ class SkillSlot:
 			_text.queue_redraw()
 
 	func _draw() -> void:
+		draw_set_transform(Vector2(roundf(_shake), 0))
 		var r := Rect2(Vector2.ZERO, size.round())
 		_text.queue_redraw()
 		var ready := cd_frac <= 0.0 and not unaffordable and icon != null
@@ -1100,6 +1164,9 @@ class SkillSlot:
 		elif _empty_icon:
 			# An empty quick slot shows a potion, an empty skill slot a rune stone (#29).
 			draw_texture_rect(_empty_icon, Rect2(8, 8, 24, 24), false, Color(0.75, 0.82, 1.0, 0.3))
+		if _refuse > 0.0:
+			draw_rect(r.grow(-1), Color(1.0, 0.15, 0.1, 0.4 * _refuse))
+			draw_rect(r, Color(1.0, 0.25, 0.2, _refuse), false, 1.5)
 		if _ready_flash > 0.0:
 			draw_rect(r.grow(-1), Color(1, 1, 1, 0.35 * _ready_flash))
 			var g := roundf((1.0 - _ready_flash) * 4.0)

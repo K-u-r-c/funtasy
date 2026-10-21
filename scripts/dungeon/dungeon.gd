@@ -145,6 +145,36 @@ func build(new_layout: Dictionary, def: Dictionary, entity_root: Node2D) -> void
 		l.position = Vector2(pool.position * tile) + Vector2(pool.size * tile) / 2.0
 		add_child(l)
 		lights.append(l)
+		l.add_child(_heat_shimmer(Vector2(pool.size * tile) / 2.0))
+
+
+## #81 16: heat shimmering over a lava pool: faint pale wisps rising and fading (additive,
+## unshaded), spread over the pool's `half` extents.
+func _heat_shimmer(half: Vector2) -> CPUParticles2D:
+	var p := CPUParticles2D.new()
+	p.texture = GameData.texture("fx.light")
+	p.amount = clampi(int(half.x * half.y / 900.0), 4, 24)
+	p.lifetime = 1.6
+	p.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
+	p.emission_rect_extents = half * 0.9
+	p.direction = Vector2.UP
+	p.spread = 8.0
+	p.gravity = Vector2(0, -12)
+	p.initial_velocity_min = 6.0
+	p.initial_velocity_max = 14.0
+	p.scale_amount_min = 0.05
+	p.scale_amount_max = 0.12
+	var ramp := Gradient.new()
+	ramp.set_color(0, Color(1.0, 0.75, 0.5, 0.0))
+	ramp.add_point(0.4, Color(1.0, 0.8, 0.6, 0.12))
+	ramp.set_color(ramp.get_point_count() - 1, Color(1.0, 0.9, 0.8, 0.0))
+	p.color_ramp = ramp
+	var m := CanvasItemMaterial.new()
+	m.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+	m.light_mode = CanvasItemMaterial.LIGHT_MODE_UNSHADED
+	p.material = m
+	p.z_index = 3
+	return p
 
 
 ## Removes the previous floor. Nodes are detached from the tree immediately (not just queued):

@@ -1476,3 +1476,62 @@ func _boons(_arg: String) -> void:
 	await da._wait(0.6)
 	await snap("boons_character_%s" % lang)
 	hud.close_overlay()
+
+
+## #81: the gameplay effects in a small fight: statuses on a row of dummies, a crit, a leech, an
+## avoid, a block, the aggro "!", an elite's target line and signature, XP motes, a dodge roll, a
+## knockback, floor marks, the low-health vignette.
+func _gfx(_arg: String) -> void:
+	var lang: String = Settings.language
+	for e in g.enemies_root.get_children():
+		e.queue_free()
+	p.iframe_left = 0.0
+	var start: Vector2 = g.nearest_floor(g.layout.start)
+	p.host_teleport(start)
+	await da._wait(5.0)  # the floor banner has gone
+	var ctx := Combat.instance.make_ctx(p, {"id": "test", "school": "physical"})
+	ctx.cannot_miss = true
+	var sts := [["burn", "poison", "bleed"], ["freeze", "stun", "root"], ["silence", "fear", "blind"], ["haste_potion", "enrage", "hunters_mark"], ["chill", "shackle", "sunder"]]
+	var dummies := []
+	for i in sts.size():
+		var d: Enemy = g.spawn_monster("training_dummy", g.nearest_floor(start + Vector2(-100 + i * 50, 40)), false)
+		dummies.append(d)
+	await da._wait(0.6)
+	for i in sts.size():
+		for st in sts[i]:
+			dummies[i].status.apply(str(st), 30.0, 1.0, ctx)
+	await da._wait(0.8)
+	await snap("gfx_statuses_%s" % lang)
+	for d in dummies:
+		d.status.clear_all()
+	var elite: Enemy = g.spawn_monster("ghoul", g.nearest_floor(start + Vector2(80, 40)), false, {"elite": ["molten", "shielded"]})
+	await da._wait(0.3)
+	elite.set_physics_process(false)
+	elite.aggro = true
+	elite.target = p
+	await da._wait(0.25)
+	await snap("gfx_aggro_target_%s" % lang)
+	var cctx := ctx.duplicate()
+	cctx.guaranteed_crit = true
+	p.run_mods = [{"stat": "leech", "value": 0.5, "source": "t"}]
+	p.recompute_stats()
+	p.health.hp = p.health.max_hp * 0.6
+	Combat.instance.deal_damage(cctx, dummies[2], 40.0)
+	await da._wait(0.12)
+	await snap("gfx_crit_leech_%s" % lang)
+	p.run_mods = []
+	p.recompute_stats()
+	Combat.instance.fx.ring(start + Vector2(-60, 60), 50.0, "#ff6a20", "explosion", "fire")
+	Combat.instance.fx.ring(start + Vector2(30, 70), 40.0, "#a8e4ff", "", "frost")
+	p._dodge_left = 0.25
+	await da._wait(0.12)
+	await snap("gfx_dash_marks_%s" % lang)
+	elite.contributors[p.peer_id] = Time.get_ticks_msec() / 1000.0
+	Combat.instance.knock(dummies[4], Vector2(-500, 0))
+	Combat.instance.deal_damage(ctx, elite, 999999.0, {"damage_type": "true"})
+	await da._wait(0.25)
+	await snap("gfx_xp_knock_%s" % lang)
+	p.health.hp = p.health.max_hp * 0.15
+	await da._wait(0.6)
+	await snap("gfx_low_health_%s" % lang)
+	p.health.hp = p.health.max_hp

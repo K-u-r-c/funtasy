@@ -29,6 +29,7 @@ var skills: Array = []:  ## the loadout: slot 0 = primary attack, 1..5 = skills 
 var life_state: int = Life.ALIVE
 var torch_sync := 0  ## whole seconds left on the carried torch (host-driven, 0 = none)
 var restless := 0.0  ## #71 Restless: seconds standing still (host-driven, 0 = moving / calm)
+var reviver_peer := 0  ## #81: who is reviving this downed hero (replicated, 0 = nobody)
 var held_by := NodePath():  ## a boss holding this hero (the Amalgam's engulf, #12); replicated
 	set(v):
 		held_by = v
@@ -138,7 +139,7 @@ func setup(data: Dictionary) -> void:
 	NetSync.make(self, "StateSync", [
 		"Health:hp", "Health:max_hp", "Health:absorb", "Resource:value", "Resource:max_value", "Resource:kind",
 		"Status:shown", "Stats:final", ".:life_state", ".:downed_left", ".:revive_progress", ".:level",
-		".:xp", ".:talent_points", ".:talents", ".:appearance", ".:torch_sync", ".:restless",
+		".:xp", ".:talent_points", ".:talents", ".:appearance", ".:torch_sync", ".:restless", ".:reviver_peer",
 		".:stat_points", ".:allocated", ".:run_mods", ".:boons", ".:gold", ".:skills", ".:legacy_kit", ".:held_by",
 		".:held_anim",
 	], [], 0.1)
@@ -558,6 +559,7 @@ func _process(delta: float) -> void:
 	update_visuals(delta)
 	_update_carried_torch(delta)
 	_update_ghost_fx(delta)
+	_update_dash_fx(delta)
 	for k in local_cd.keys():
 		local_cd[k][0] -= delta
 		if local_cd[k][0] <= 0.0:
@@ -655,6 +657,8 @@ func _owner_tick(delta: float) -> void:
 		if slot >= skills.size() or str(skills[slot]).is_empty():
 			continue
 		var action: String = SLOT_ACTIONS[slot]
+		if Input.is_action_just_pressed(action) and (local_cd.has(slot) or _unaffordable(slot)):
+			EventBus.skill_refused.emit(slot)  # #81: the slot shakes
 		if slot > 0 and not _is_hold_skill(str(skills[slot])):
 			if Input.is_action_just_pressed(action):
 				_skill_hold[slot] = 0.0
@@ -1307,6 +1311,8 @@ func _skill_result(slot: int, cd: float, ok: bool, msg: String) -> void:
 			EventBus.local_cooldown_started.emit(slot, cd)
 	else:
 		_pending[slot] = 0.25  # don't spam requests while a held key keeps failing
+		if not msg.is_empty() or cd > 0.0:
+			EventBus.skill_refused.emit(slot)
 		if cd > 0.0:
 			var total := float(local_cd[slot][1]) if local_cd.has(slot) else cd
 			local_cd[slot] = [cd, maxf(total, cd)]
@@ -1535,6 +1541,9 @@ func on_death() -> void:
 func _host_life_tick(delta: float) -> void:
 	if _revive_target and (not is_instance_valid(_revive_target) or _revive_target._reviver != self):
 		_revive_target = null
+	var rp: int = int(_reviver.peer_id) if life_state == Life.DOWNED and _reviver and is_instance_valid(_reviver) else 0
+	if rp != reviver_peer:
+		reviver_peer = rp
 	if life_state != Life.DOWNED:
 		return
 	if _reviver and is_instance_valid(_reviver) and _reviver.life_state == Life.ALIVE \
@@ -1569,6 +1578,31 @@ func revive(hp_fraction: float) -> void:
 
 
 # --- Visual ------------------------------------------------------------------------------------
+
+
+## #81: the skill in `slot` costs more than the hero has.
+func _unaffordable(slot: int) -> bool:
+	var sk: Dictionary = GameData.skills.get(str(skills[slot]), {})
+	return not sk.is_empty() and resource.value + 0.01 < stats.cost_for(sk)
+
+
+# --- #81 dodge roll: afterimages along the dash and a shimmer while the i-frames hold -------
+
+var _dash_fx_left := 0.0
+
+
+func _update_dash_fx(delta: float) -> void:
+	var dashing := _dodge_left > 0.0 or (dash_sync and not is_local())
+	if not dashing or sprite == null or life_state != Life.ALIVE:
+		return
+	var spec: Dictionary = GameplayFx.cfg("dash")
+	var c := Color.from_string(str(spec.get("color", "#9fd8ff")), Color.WHITE)
+	sprite.modulate = sprite.modulate * Color(1.25, 1.3, 1.6) if int(Time.get_ticks_msec() / 60) % 2 == 0 else sprite.modulate
+	_dash_fx_left -= delta
+	if _dash_fx_left <= 0.0 and Combat.instance and Combat.instance.fx.world:
+		_dash_fx_left = float(spec.get("copies_every", 0.045))
+		GameplayFx.afterimage(Combat.instance.fx.world, self, Color(c, 0.5), float(spec.get("life", 0.28)))
+		GameplayFx.note("dash")
 
 
 # --- Ghost (#82) -----------------------------------------------------------------------------

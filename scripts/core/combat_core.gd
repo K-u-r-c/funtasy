@@ -208,6 +208,7 @@ func deal_damage(ctx: Dictionary, target: Actor, amount: float, opts: Dictionary
 	var pos := target.global_position
 	if target.is_invulnerable() or target.status.has_flag("invulnerable"):
 		fx.number.rpc(pos, "Immune", "info")
+		fx.gfx.rpc("immune", {"a": target.get_path()})
 		return 0.0
 	var data := {"target": target, "attacker": caster, "amount": 0.0, "crit": false, "dot": dot,
 		"damage_type": dtype, "skill": ctx.get("skill", ""), "school": school, "ctx": ctx, "melee": melee_hit,
@@ -219,6 +220,7 @@ func deal_damage(ctx: Dictionary, target: Actor, amount: float, opts: Dictionary
 		var miss := caster.stats.get_stat("miss_chance") if caster else 0.0
 		if not ctx.get("cannot_miss", false) and miss > 0.0 and rng.randf() < miss:
 			fx.number.rpc(pos, "Miss", "info")
+			fx.gfx.rpc("miss", {"pos": pos, "dir": (pos - (caster.global_position if caster else pos + Vector2.LEFT)).normalized()})
 			return -1.0
 		var dodge := target.stats.get_stat("dodge")
 		if dtype == "physical":
@@ -226,11 +228,13 @@ func deal_damage(ctx: Dictionary, target: Actor, amount: float, opts: Dictionary
 		dodge += target.stats.get_stat("dodge_uncapped")  # Dance of Shadows: past the 40% cap
 		if not ctx.get("cannot_miss", false) and dodge > 0.0 and rng.randf() < dodge:
 			fx.number.rpc(pos, "Dodge", "info")
+			fx.gfx.rpc("avoid", {"a": target.get_path(), "dir": (pos - (caster.global_position if caster else pos + Vector2.LEFT)).normalized()})
 			_avoided(target, caster, data, "on_dodge")
 			return -1.0
 		if melee_hit and target.status.has_flag("parry"):
 			target.status.consume_flag("parry")
 			fx.number.rpc(pos, "Parry", "info")
+			fx.gfx.rpc("parry", {"a": target.get_path(), "dir": ((caster.global_position if caster else pos + Vector2.RIGHT) - pos).normalized()})
 			if caster:
 				var counter := make_ctx(target, {"id": "riposte_counter", "school": "melee"})
 				counter.guaranteed_crit = true
@@ -251,10 +255,12 @@ func deal_damage(ctx: Dictionary, target: Actor, amount: float, opts: Dictionary
 	var resisted := target.immune_to(dtype)
 	if resisted and target.team == Actor.Team.PLAYERS:
 		fx.number.rpc(pos, "Immune", "info")
+		fx.gfx.rpc("immune", {"a": target.get_path()})
 		return 0.0
 	# Granite Armor style charges swallow whole melee hits.
 	if melee_hit and target.status.consume_charge("absorb_melee"):
 		fx.number.rpc(pos, "Absorbed", "info")
+		fx.gfx.rpc("absorb_hit", {"a": target.get_path()})
 		return 0.0
 	var crit := false
 	if not dot or ctx.get("dot_can_crit", false):
@@ -303,6 +309,7 @@ func deal_damage(ctx: Dictionary, target: Actor, amount: float, opts: Dictionary
 		amount *= 1.0 - float(GameData.bal("combat.immunity_reduction", 0.8))
 		if not dot:
 			fx.number.rpc(pos + Vector2(0, -10), "Resisted", "info")
+			fx.gfx.rpc("resist", {"a": target.get_path()})
 	amount = target.modify_damage_taken(amount, data)
 	# Mitigation: armor for physical, resistances for the rest, nothing for true damage.
 	if dtype != "true":
@@ -330,6 +337,7 @@ func deal_damage(ctx: Dictionary, target: Actor, amount: float, opts: Dictionary
 		data.blocked_amount = minf(amount, bv)
 		amount = maxf(0.0, amount - bv) * float(GameData.bal("combat.block_after_value", 0.5))
 		fx.number.rpc(pos + Vector2(0, -8), "Block", "info")
+		fx.gfx.rpc("block", {"a": target.get_path(), "dir": ((caster.global_position if caster else pos + Vector2.RIGHT) - pos).normalized()})
 	amount = maxf(1.0, roundf(amount))
 	# Mana Shield: part of the hit drains mana instead.
 	var ms := target.status.find_field("mana_shield")
@@ -367,6 +375,7 @@ func deal_damage(ctx: Dictionary, target: Actor, amount: float, opts: Dictionary
 					target.resource.value = target.resource.max_value
 				_after_fatal_heal.call_deferred(target, heal_to)
 				fx.number.rpc(pos, "Saved!", "heal")
+				fx.gfx.rpc("saved", {"a": target.get_path()})
 		if not data.prevented:
 			fire(target, "on_fatal", data)
 		if data.prevented:
@@ -382,7 +391,11 @@ func deal_damage(ctx: Dictionary, target: Actor, amount: float, opts: Dictionary
 	if dtype == "nature" and dot and target.stats.has_flag("toxic_feeder"):
 		target.resource.gain(10.0)
 		return 0.0
+	var absorb_before := target.health.absorb
 	var dealt := target.health.take(amount)
+	# #81: a shield that soaks part of a hit ripples.
+	if absorb_before > 0.5 and target.health.absorb < absorb_before - 0.5:
+		fx.gfx.rpc("absorb_hit", {"a": target.get_path()})
 	# Hellfire Mitts: burn damage heals the caster for 20%.
 	if dot and dtype == "fire" and caster and caster.stats.has_flag("burn_leech") and dealt > 0.0:
 		caster.health.heal(dealt * 0.2)
@@ -408,7 +421,14 @@ func deal_damage(ctx: Dictionary, target: Actor, amount: float, opts: Dictionary
 	fx.number.rpc(pos, str(int(amount)), kind + ":" + type_color(dtype) if dtype != "physical" else kind)
 	target.status.on_damage(amount, dot)
 	if not dot and target.is_alive():
-		target.play_action.rpc("hit", Vector2.ZERO)
+		# #81: the hit flash in the damage type's colour (white for physical).
+		target.hit_react.rpc(type_color(dtype) if dtype != "physical" and dtype != "true" else "#ffffff")
+	if crit and not dot:
+		var peers := []
+		for x in [caster, target]:
+			if x is Player:
+				peers.append(x.peer_id)
+		fx.gfx.rpc("crit", {"a": target.get_path(), "dir": (pos - (caster.global_position if caster else pos + Vector2.LEFT)).normalized(), "peers": peers})
 	# Resources: Fury from dealing and taking damage; on-hit restores (primary attacks).
 	target.resource.mark_combat()
 	if target.resource.kind == "fury" and target.health.max_hp > 0.0:
@@ -431,6 +451,7 @@ func deal_damage(ctx: Dictionary, target: Actor, amount: float, opts: Dictionary
 			var healed := caster.health.heal(amount * leech * caster.stats.mult("healing_taken"))
 			if healed >= 1.0:
 				fx.number.rpc(caster.global_position, "+%d", "heal", [int(healed)])
+				fx.gfx.rpc("leech", {"pos": pos, "b": caster.get_path()})
 	# Threat and XP contribution.
 	if target.has_method("add_threat") and caster and caster.team != target.team:
 		target.add_threat(caster, amount * float(ctx.threat_mult))
@@ -448,6 +469,7 @@ func deal_damage(ctx: Dictionary, target: Actor, amount: float, opts: Dictionary
 			refl += target.stats.get_stat("reflect_melee")
 		if refl > 0.0:
 			var rctx2 := make_ctx(target, {"id": "reflect", "school": "physical"})
+			fx.gfx.rpc("reflect", {"pos": target.global_position, "to": caster.global_position})
 			deal_damage(rctx2, caster, amount * refl, {"damage_type": "true", "reflected": true, "dot": true})
 	if not opts.get("no_procs", false):
 		if blocked:

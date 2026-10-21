@@ -46,6 +46,7 @@ var _moving_hold := 0.0  ## walk keeps playing this long after the last visible 
 var _speed_avg := 0.0  ## smoothed visible speed (px/s), for the walk pace
 var _running := false  ## locomotion plays the run cycle (#25)
 var _flash := 0.0
+var _flash_color := Color.WHITE  ## #81: the last hit's damage type colour
 var _shadow: Sprite2D
 
 
@@ -78,6 +79,7 @@ func _ready() -> void:
 	sprite.name = "Sprite"
 	add_child(sprite)
 	add_child(ActorFx.new(self))
+	add_child(StatusFx.new(self))  # #81
 	var shape := CollisionShape2D.new()
 	var circle := CircleShape2D.new()
 	circle.radius = radius
@@ -226,6 +228,14 @@ func on_death() -> void:
 ## (Combat, monster behaviours, boss mechanics), run on every peer. Reliable because a dropped
 ## packet would lose the whole animation. A hit never cuts a running attack / cast short (the
 ## white flash still shows).
+## Host -> all (reliable, #81): a hit: the hurt animation and a flash in `color_html` (the
+## damage type's colour; white for physical).
+@rpc("authority", "call_local", "reliable")
+func hit_react(color_html: String) -> void:
+	_flash_color = Color.from_string(color_html, Color.WHITE)
+	play_action("hit", Vector2.ZERO)
+
+
 @rpc("authority", "call_local", "reliable")
 func play_action(anim_name: String, dir: Vector2) -> void:
 	if anim_name == "hit" and _action_left > 0.0 and _action_anim != "hit":
@@ -285,7 +295,7 @@ func update_visuals(delta: float) -> void:
 	tint *= vis.tint
 	tint.a = vis.alpha
 	if _flash > 0.0:
-		tint = Color(2.5, 2.5, 2.5)
+		tint = Color(_flash_color.r * 2.5, _flash_color.g * 2.5, _flash_color.b * 2.5)
 	sprite.modulate = tint
 	var sc := float(vis.scale) * visual_scale()
 	sprite.scale = sprite.scale.lerp(Vector2(sc, sc), minf(1.0, delta * 8.0))

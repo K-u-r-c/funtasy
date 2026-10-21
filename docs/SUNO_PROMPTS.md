@@ -81,6 +81,7 @@ between the floor track and the boss track. Effects: short (0.2-1.5 s), dry, mon
 | `grate` | `assets/audio/sfx/grate.ogg` | engine | iron grate snapping and falling into molten metal with a sizzle |
 | `hammer_slam` | `assets/audio/sfx/hammer_slam.ogg` | skills/monsters.json | huge iron hammer slamming stone, metallic boom with sparks |
 | `heal` | `assets/audio/sfx/heal.ogg` | skills/mage.json, skills/monsters.json, skills/priest.json, skills/ranger.json | gentle holy healing chime with a warm rising choir note |
+| `heartbeat` | `assets/audio/sfx/heartbeat.ogg` | engine | a single low muffled heartbeat, two soft thumps (lub-dub), close and dry, 0.6 s, for a low health warning |
 | `hex` | `assets/audio/sfx/hex.ogg` | skills/monsters.json | witch hex, whispered curse with a dissonant sting |
 | `hit` | `assets/audio/sfx/hit.ogg` | skills/mage.json, skills/monsters.json, skills/priest.json, skills/warrior.json | hero taking a hit, dull impact with a short grunt |
 | `hook_chain` | `assets/audio/sfx/hook_chain.ogg` | skills/monsters.json | iron chain hook flung through the air and snapping taut |

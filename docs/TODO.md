@@ -152,6 +152,7 @@ screenshot review at 1920x1080 and 3440x1440.
 
 ## Eighth playtest issues (GitHub #70-#82)
 
+- [x] #81 Gameplay visual effects: dodge afterimages, avoid blur, parry / block sparks, crit streak + hit-stop, element hit flash, leech motes, absorb ripple, reflect spikes, a visual per status family, aggro pop, elite target lines and modifier signatures, interrupt shatter, knock dust, XP / gold / item flights, revive beam, footsteps, lava shimmer, decals, refused skill shake, low-health vignette + heartbeat; "Screen effects" option (`gfx`, `gfx-lan`)
 - [x] #73 Boons: 54 per class + 44 shared (260, each with its own PixelLab icon), three per hero after every boss (stat / item / synergy, tag-weighted), cards with a pick flight and flare, portrait and Character panel badges, portal waits, saved with the hero, average boon set in the balance probes (`boons-*`, `boons-lan`, `balance-*`)
 - [x] #71 Floor modifiers from floor 4 (Swarm, Elite floor, Dimmed, Restless, Hunted): seeded offer of two at the portal, party vote on large cards, host pick, HUD / banner / map badges, Restless meter and Hunted rift telegraphs, floor cost balance probe (`mods`, `mods-lan`, `balance-*`)
 - [x] #75 Loot flies out of its source (arc, spin, rarity trail, bounce, puff, light and sound on landing), no pick-up mid-air, a named legendary guaranteed from each floor's enemies (boss tops it up), legendary beam and message (`drops`, `drops-lan`)

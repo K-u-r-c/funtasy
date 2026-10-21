@@ -152,7 +152,7 @@ func _build_video() -> Control:
 	grid.add_child(UITheme.label(Loc.t("VSync")))
 	_vsync = CheckButton.new()
 	grid.add_child(_vsync)
-	grid.add_child(UITheme.label(Loc.t("Screen shake")))
+	grid.add_child(UITheme.label(Loc.t("Screen effects (shake, vignette, hit-stop)")))
 	_shake = CheckButton.new()
 	_shake.toggled.connect(func(on: bool):
 		Settings.screen_shake = on

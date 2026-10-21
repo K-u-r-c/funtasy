@@ -91,6 +91,7 @@ func try_pickup(player: Player, g: GroundItem) -> void:
 		g.queue_free()
 		return
 	if g.item.get("kind", "") == "gold":
+		_picked.rpc_id(player.peer_id, g.global_position, g.item)
 		split_gold(player, int(g.item.get("amount", 0)))
 		game.combat.fx.sound.rpc("coin", g.global_position)
 		g.queue_free()
@@ -99,6 +100,7 @@ func try_pickup(player: Player, g: GroundItem) -> void:
 	if not err.is_empty():
 		player._notify.rpc_id(player.peer_id, err)
 		return
+	_picked.rpc_id(player.peer_id, g.global_position, g.item)
 	game.combat.fx.sound.rpc("pickup", g.global_position)
 	g.queue_free()
 
@@ -119,3 +121,12 @@ func split_gold(picker: Player, amount: int) -> void:
 		var got: int = share + (rest if pl == picker else 0)
 		pl.host_add_gold(got)
 		pl._notify.rpc_id(pl.peer_id, "+%d gold", [got])
+
+
+## Host -> the picker (reliable, #81): what it picked up flies from the floor to its HUD.
+@rpc("authority", "call_local", "reliable")
+func _picked(at: Vector2, item: Dictionary) -> void:
+	var kind := "gold" if str(item.get("kind", "")) == "gold" else "item"
+	var icon: Texture2D = ItemLooks.icon(item) if GameData.asset_exists(str(item.get("icon", ""))) else UITheme.icon_tex("hud_gold")
+	EventBus.local_picked_up.emit(at, kind, icon)
+

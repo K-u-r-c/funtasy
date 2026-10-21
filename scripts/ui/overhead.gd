@@ -3,6 +3,7 @@ extends Node2D
 ## downed timers and revive progress, cast bars and names of nearby ground items.
 
 var _font: Font
+var _aggro_seen: Dictionary = {}  ## #81: enemy instance id -> the time it noticed a hero ("!" pop)
 
 
 func _ready() -> void:
@@ -30,6 +31,14 @@ func _draw() -> void:
 		if e.aggro or e.health.hp < e.health.max_hp:
 			_bar(top, 28.0, e.health.fraction(), Color(0.95, 0.7, 0.2) if e.is_elite() else Color(0.85, 0.2, 0.18))
 		_cast(e, top + Vector2(0, -6), now)
+		_aggro_pop(e, top, now)
+		_target_line(game, e)
+	# Bosses get the "!" and the target line too (their bar is in the HUD).
+	for b in get_tree().get_nodes_in_group("boss"):
+		if b.visible:
+			_aggro_pop(b, b.global_position + Vector2(0, -b.sprite.visual_height() - 7.0), now)
+			_target_line(game, b)
+	_revive_beams(game, now)
 	for p in game.players_root.get_children():
 		var head: Vector2 = p.global_position + Vector2(0, -p.sprite.visual_height() - 11.0)
 		if p.life_state == Player.Life.GHOST:
@@ -134,3 +143,65 @@ func _ally_target_marker(game: Node, lp: Player) -> void:
 	for i in 4:
 		var a := TAU * i / 4.0 + Time.get_ticks_msec() / 600.0
 		draw_line(c + Vector2.from_angle(a) * 15.0, c + Vector2.from_angle(a) * 19.0, col, 1.5)
+
+
+## #81 11: a small "!" pops over a monster the moment it notices a hero.
+func _aggro_pop(e: Node, top: Vector2, now: float) -> void:
+	var k: int = e.get_instance_id()
+	if not e.aggro:
+		_aggro_seen.erase(k)
+		return
+	if not _aggro_seen.has(k):
+		_aggro_seen[k] = now
+		GameplayFx.note("aggro")
+	var age := now - float(_aggro_seen[k])
+	var life := float(GameplayFx.cfg("aggro").get("time", 0.9))
+	if age > life:
+		return
+	var u := age / life
+	var c := GameplayFx.col("aggro", "#ffd24d")
+	var p := top + Vector2(0, -14.0 - 6.0 * minf(u * 4.0, 1.0))
+	var s := 1.0 + 0.4 * maxf(0.0, 1.0 - u * 5.0)
+	_text(p, "!", Color(c, 1.0 - u * u), int(16 * s))
+
+
+## #81 11: a thin chevron line from an elite or boss to the hero it is after (helps the tank).
+func _target_line(game: Node, e: Node) -> void:
+	if int(e.target_peer) == 0 or not e.aggro:
+		return
+	var t: Player = game.player_by_peer(int(e.target_peer))
+	if t == null or t.life_state != Player.Life.ALIVE:
+		return
+	var a: Vector2 = e.global_position + Vector2(0, -10)
+	var b: Vector2 = t.global_position + Vector2(0, -10)
+	var c := GameplayFx.col("target_line", "#ff5040")
+	var alpha := float(GameplayFx.cfg("target_line").get("alpha", 0.32))
+	var d := b - a
+	var n := int(d.length() / 18.0)
+	for i in range(1, n):
+		var p := a + d * (float(i) / n)
+		var f := d.normalized() * 3.0
+		var o := f.orthogonal()
+		draw_polyline(PackedVector2Array([p - f + o, p, p - f - o]), Color(c, alpha), 1.2)
+	GameplayFx.note("target_line")
+
+
+## #81 15: a soft beam from the reviver to the downed hero while the revive channels.
+func _revive_beams(game: Node, now: float) -> void:
+	for p in game.players_root.get_children():
+		if p.life_state != Player.Life.DOWNED or int(p.reviver_peer) == 0:
+			continue
+		var r: Player = game.player_by_peer(int(p.reviver_peer))
+		if r == null:
+			continue
+		var c := GameplayFx.col("revive", "#9affb0")
+		var a: Vector2 = r.global_position + Vector2(0, -16)
+		var b: Vector2 = p.global_position + Vector2(0, -6)
+		var w := 3.0 + sin(now * 8.0)
+		draw_line(a, b, Color(c, 0.18), w + 4.0)
+		draw_line(a, b, Color(c, 0.7), w * 0.5)
+		for i in 4:
+			var u := fmod(now * 1.5 + i * 0.25, 1.0)
+			draw_circle(a.lerp(b, u), 2.0, Color(c, 0.9 * (1.0 - absf(u - 0.5) * 2.0)))
+		GameplayFx.note("revive_beam")
+

@@ -141,6 +141,7 @@ func run_effect(eff: Dictionary, ctx: Dictionary, origin: Vector2, aim: Vector2)
 			for e in enemies_of(ctx.team, origin, r):
 				if e.has_method("taunted_by") and taunter:
 					e.taunted_by(taunter, float(eff.duration))
+					fx.gfx.rpc("taunt", {"a": taunter.get_path(), "b": e.get_path()})
 					if eff.has("on_taunted"):
 						for sub in eff.on_taunted:
 							run_effect(sub, _with_target(ctx, e), e.global_position, e.global_position)
@@ -252,6 +253,7 @@ func run_effect(eff: Dictionary, ctx: Dictionary, origin: Vector2, aim: Vector2)
 					t.casting = {}
 					t.channel = {}
 					fx.number.rpc(t.global_position, "Interrupted", "info")
+					fx.gfx.rpc("interrupt", {"a": t.get_path()})
 					if eff.has("lockout"):
 						t.status.apply("school_lockout", float(eff.lockout), 0.0, ctx)
 						t.lockout_element = str(was.get("element", was.get("school", "spell")))
@@ -437,6 +439,8 @@ func knock(target: Actor, push: Vector2) -> void:
 	if target.status.has_flag("knockback_immune") or target.stats.has_flag("knockback_immune"):
 		return
 	target.host_knockback(push)
+	if push.length() > 30.0:
+		fx.gfx.rpc("knock", {"a": target.get_path(), "time": clampf(push.length() / 900.0, 0.2, 0.5)})
 
 
 # =========================================================================================

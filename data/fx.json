@@ -1,6 +1,49 @@
 {
 	"_comment": "Visual effects by role (#33 / #34). Keys are asset keys (data/assets.json fx.*). at: where on an actor (center / feet); scale: size multiplier; light: a coloured light on the actor (one-shots fade it over its time, loops hold it) so the effect reads in the dark. burst / zone: per element, the AoE impact and the lingering ground look; an effect's own \"fx\" key overrides the element.",
 
+		"_gameplay": "#81 gameplay effects (GameplayFx / StatusFx): colours, sizes and times per effect; decals: the floor marks left where an area of that element landed; status_fx: a status drawn as another family than its rules give (stunned, frozen, rooted, chained, silenced, feared, blinded, burning, poison, bleed, chill, slowed, haste, enraged, invulnerable, cracks, marked); elite_fx: each elite modifier's particle signature (in the modifier's colour).",
+	"gameplay": {
+		"avoid": {"color": "#bfe6ff", "shift": 7},
+		"parry": {"color": "#ffe9a0"},
+		"block": {"color": "#a8d0ff"},
+		"crit": {"color": "#ffffff", "streak": 18, "hit_stop": 0.05, "hit_stop_every": 0.4},
+		"leech": {"color": "#ff3040", "motes": 5},
+		"absorb_hit": {"color": "#9fd0ff"},
+		"reflect": {"color": "#d0d0e0"},
+		"interrupt": {"color": "#ffd24d"},
+		"taunt": {"color": "#ff5533"},
+		"xp": {"color": "#b48cff", "motes": 4},
+		"miss": {"color": "#d8e0ff"},
+		"immune": {"color": "#ffe9a0"},
+		"resist": {"color": "#b0b8d0"},
+		"saved": {"color": "#ffd24d"},
+		"dash": {"color": "#9fd8ff", "copies_every": 0.045, "life": 0.28},
+		"vignette": {"below": 0.3, "color": "#a00010", "pulse": 1.1},
+		"big_hit": {"share": 0.15, "color": "#ff2020", "time": 0.35},
+		"aggro": {"color": "#ffd24d", "time": 0.9},
+		"target_line": {"color": "#ff5040", "alpha": 0.32},
+		"revive": {"color": "#9affb0"},
+		"footsteps": {"every": 0.28},
+		"decals": {
+			"fire": {"color": "#1a0c06", "alpha": 0.45, "size": 0.55, "time": 6.0},
+			"explosion": {"color": "#140a06", "alpha": 0.5, "size": 0.6, "time": 7.0},
+			"frost": {"color": "#a8e4ff", "alpha": 0.18, "size": 0.55, "time": 5.0, "glow": true},
+			"lightning": {"color": "#202030", "alpha": 0.35, "size": 0.35, "time": 4.0},
+			"shadow": {"color": "#2a0838", "alpha": 0.35, "size": 0.5, "time": 5.0},
+			"nature": {"color": "#1c3008", "alpha": 0.35, "size": 0.5, "time": 5.0},
+			"physical": {"color": "#3a0606", "alpha": 0.35, "size": 0.35, "time": 6.0}
+		}
+	},
+	"status_fx": {"chill": "chill", "sundered": "cracks", "armor_break": "cracks", "weakened": "cracks", "hunters_mark": "marked", "enrage": "enraged", "frostbite": "chill", "static_charge": "marked", "holy_dot": "burning", "inverted": "feared", "inverted_controls": "feared", "paranoia": "feared", "school_lockout": "silenced"},
+	"elite_fx": {
+		"vampiric": {"shape": "ring", "radius": 22, "amount": 10, "life": 0.9, "speed": 6, "radial": -30, "gravity": 0, "size": 1.6, "y": -12},
+		"frenzied": {"shape": "sphere", "radius": 12, "amount": 10, "life": 0.35, "speed": 40, "dir": "none", "spread": 180, "gravity": 0, "size": 1.2, "y": -14},
+		"shielded": {"shape": "ring", "radius": 18, "amount": 12, "life": 1.2, "speed": 0, "orbit": 0.6, "gravity": 0, "size": 1.4, "y": -16},
+		"stoneskin": {"shape": "sphere", "radius": 10, "amount": 6, "life": 0.9, "speed": 8, "dir": "down", "gravity": 60, "size": 2.2, "y": -18},
+		"molten": {"shape": "sphere", "radius": 10, "amount": 10, "life": 0.8, "speed": 18, "dir": "up", "gravity": -40, "size": 1.6, "y": -8},
+		"venomous": {"shape": "sphere", "radius": 10, "amount": 7, "life": 1.0, "speed": 8, "dir": "up", "gravity": -14, "size": 2.0, "y": -16},
+		"thunderous": {"shape": "ring", "radius": 16, "amount": 8, "life": 0.25, "speed": 30, "dir": "none", "spread": 180, "gravity": 0, "size": 1.0, "y": -16}
+	},
 	"actor": {
 		"heal": {"key": "fx.heal_burst", "at": "center", "scale": 1.4, "light": {"color": "#4dff7a", "energy": 1.6, "radius": 56, "time": 0.6}},
 		"big_heal": {"key": "fx.heal_burst", "at": "center", "scale": 1.9, "light": {"color": "#4dff7a", "energy": 2.2, "radius": 72, "time": 0.8}},

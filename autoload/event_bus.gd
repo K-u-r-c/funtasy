@@ -37,3 +37,5 @@ signal ui_overlay_changed(open: bool)
 signal locale_changed
 signal mod_vote_changed(locked: bool)  ## #71: the portal's modifier offer or votes changed
 signal boon_wait_changed  ## #73: who is still choosing a boon changed
+signal skill_refused(slot: int)  ## #81: the local hero tried a skill on cooldown / without resource
+signal local_picked_up(world_pos: Vector2, kind: String, icon: Texture2D)  ## #81: an item / gold flies to the HUD

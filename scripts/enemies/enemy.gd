@@ -30,6 +30,7 @@ var _aggro_since := -1.0  ## host: when this monster first noticed a hero (secon
 var lifetime := -1.0  ## host: summoned minions and decoys expire
 var elite: Array = []  ## elite modifier ids (D10), from the spawn data on every peer
 var hunter := ""  ## #71 Hunted: the hunter's name ("" = an ordinary monster)
+var target_peer := 0  ## #81: whom an elite / boss is after (a hero's peer, 0 = none), replicated
 var key_carrier := false  ## host: drops the floor's Gold Key (D11)
 var copy_peer := 0  ## replicated at spawn: draw this player's look instead of the monster art (D31)
 var _state_sprite: Sprite2D = null
@@ -70,7 +71,7 @@ func setup(data: Dictionary) -> void:
 	collision_layer = 4
 	collision_mask = 1 | 2 | 8 | 16 | 32 | 64 | 128
 	NetSync.make(self, "StateSync", [
-		"Health:hp", "Health:max_hp", "Health:absorb", "Status:shown", ".:level", ".:aggro", ".:behavior_state", ".:held_anim",
+		"Health:hp", "Health:max_hp", "Health:absorb", "Status:shown", ".:level", ".:aggro", ".:behavior_state", ".:held_anim", ".:target_peer",
 	], [".:net_pos", ".:facing"], 0.05)
 
 
@@ -231,6 +232,10 @@ func _physics_process(delta: float) -> void:
 		host_tick(delta)
 		_host_ai(delta)
 		net_pos = position
+		if is_elite() or is_boss:
+			var tp: int = int(target.peer_id) if is_instance_valid(target) and target is Player else 0
+			if tp != target_peer:
+				target_peer = tp
 		if lifetime > 0.0:
 			lifetime -= delta
 			if lifetime <= 0.0:

@@ -488,6 +488,7 @@ func on_enemy_killed(e: Enemy) -> void:
 		broadcast_message.rpc("%s falls - an elite altar rises", "#e8c040", [e.display_name])
 	if e.key_carrier:
 		loot.drop_item(gold_key_item(), e.global_position + Vector2(-12, 6))
+	var earned: Array = []
 	for peer in e.contributors:
 		if now - float(e.contributors[peer]) > window:
 			continue
@@ -495,6 +496,10 @@ func on_enemy_killed(e: Enemy) -> void:
 		if p:
 			p.add_xp(xp)
 			fx.number.rpc_id(peer, p.global_position + Vector2(0, -12), "+%d XP", "xp", [xp])
+			earned.append(p.get_path())
+	# #81: experience motes fly from the monster to the heroes who earned it.
+	if xp > 0 and not earned.is_empty():
+		fx.gfx.rpc("xp", {"pos": e.global_position, "to": earned})
 	if e.is_boss:
 		boss_alive = false
 		var drops := loot.roll_and_drop("boss", e.global_position, e.def.get("loot", {}))

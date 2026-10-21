@@ -184,6 +184,10 @@
 		"like": "sfx.level_up",
 		"prompt": "a boon settling into a hero: a warm rising choir breath, a soft bell and a shimmer of sparks spiralling up, 1.5 s, dark fantasy"
 	},
+	"sfx.heartbeat": {
+		"like": "sfx.hit",
+		"prompt": "a single low muffled heartbeat, two soft thumps (lub-dub), close and dry, 0.6 s, for a low health warning"
+	},
 	"sfx.coin": {
 		"like": "sfx.pickup",
 		"prompt": "short bright clink of a few gold coins dropping into a leather purse, dry, no reverb"

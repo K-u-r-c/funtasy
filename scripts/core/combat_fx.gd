@@ -120,6 +120,8 @@ func ring(pos: Vector2, r: float, color_html: String, fx_key: String, element: S
 			a.play("default")
 			a.animation_finished.connect(a.queue_free)
 		_puff(pos, c, 18)
+	# #81: a short-lived scorch / frost / blood mark where an elemental area landed.
+	GameplayFx.decal(world, pos, "explosion" if fx_key == "explosion" else element, r)
 	# Every impact flashes light over its area (magic lights up the dark for a moment).
 	var l := _light(c, 2.2 if fx_key == "explosion" else 1.3, 1.0)
 	LightLayers.register(l, maxf(r, 40.0))
@@ -636,3 +638,13 @@ func boon_flare(pos: Vector2, col: Color) -> void:
 	tw.tween_property(l, "energy", 0.0, 1.0)
 	tw.tween_interval(0.4)
 	tw.tween_callback(n.queue_free)
+
+
+## Host -> all (unreliable, #81): a gameplay effect (GameplayFx.play): avoid, parry, block, crit,
+## leech, absorb_hit, reflect, interrupt, knock, taunt, xp. `d` names actors by path ("a", "b").
+@rpc("authority", "call_local", "unreliable")
+func gfx(kind: String, d: Dictionary) -> void:
+	if kind == "crit":
+		d["local"] = Array(d.get("peers", [])).has(multiplayer.get_unique_id())
+	GameplayFx.play(world, kind, d)
+
