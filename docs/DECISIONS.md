@@ -1398,3 +1398,12 @@ Tree shapes ("A > B": B grows from A; {x / y}: branches; (x): a fork side; [n]: 
 | Network | Owner -> host `request_boon_reroll(index)` (reliable): the host checks the offer is pending and the card unused, changes it and tells that hero (`_boon_rerolled`); a reopened offer carries which cards were rerolled. A new floor's offer has its rerolls back. |
 | Controls | Down from a card reaches its Reroll button, left / right moves between the buttons, down again to Skip; the mouse clicks it. |
 | Tests | `boons-*`: 60 seeded offers per class, every card rerolled: a different boon of the same kind, never another card or an owned one, seeded. `boons-lan`: the client's reroll through its window changes only that card, in place, once (a second request is refused on the host); the pick takes the new card; the next floor's offer has its rerolls back. |
+
+### #99 The freed prisoner follows and fights
+
+| Topic | Decision |
+| --- | --- |
+| Rule | The four `freed_prisoner_*` allies carry the `companion` behaviour (`scripts/enemies/behaviors/companion.gd`, params in their data): they follow the hero who freed them (the nearest living hero once that one is down, a ghost or gone) to within 60 px, at its side; monsters within 300 px of that hero (or close to the prisoner) become its foes, fought with its class's abilities (cut, arrow, bolt; the priest also mends hurt allies) and its class's range; a fight more than 340 px from the hero is left to come back. Doors are opened at once, like a hero. Left more than 560 px behind, or stuck for 2.5 s (a sealed door, a jam), it steps out beside the hero with a blink. Monsters can target it as before. |
+| Body | An ally has no collision layer on any peer, so it never blocks a hero in a doorway or a corridor; walls still hold it. |
+| Lifetime | Unchanged (#72): it fights until it falls or the floor ends; a restored floor brings it back following the nearest hero. |
+| Tests | `events`: freed, it follows its rescuer and can't block a hero; it walks after the hero 150+ px across the floor; it attacks a monster near the hero; a monster can make it its target; left far behind it catches up beside the hero. `events-lan`: a prisoner freed by the client follows the client's hero on the host, and the client sees it beside its hero in the hero look. `monsters`: the allies' behaviour as monsters' side is idle. |

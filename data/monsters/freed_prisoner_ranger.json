@@ -2,11 +2,12 @@
 	"id": "freed_prisoner_ranger",
 	"creature_type": "humanoid",
 	"name": "Freed Prisoner",
-	"_comment": "#72 The Prisoner: a freed adventurer (ranger) who fights beside the heroes until the floor ends. Spawned by Floor Events on the heroes' team, wearing the prisoner's look (spawn data 'look').",
+	"_comment": "#72 The Prisoner: a freed adventurer (ranger) who follows its rescuer and fights beside the heroes until the floor ends (#99: behaviour companion). Spawned by Floor Events on the heroes' team, wearing the prisoner's look (spawn data 'look').",
 	"role": "ally",
 	"sprite": "monsters.cultist",
 	"ai": {"type": "ranged", "aggro_radius": 340, "preferred_range": [140, 260], "abilities": ["prisoner_arrow"]},
 	"base_stats": {"hp": 80, "damage": 9, "armor": 6, "move_speed": 96, "crit_chance": 0.08, "dodge": 0.05},
+	"behaviors": [{"id": "companion", "follow": 60, "assist": 300, "leash": 340, "teleport": 560, "stuck_time": 2.5}],
 	"collision_radius": 8,
 	"xp": 0,
 	"no_corpse": true

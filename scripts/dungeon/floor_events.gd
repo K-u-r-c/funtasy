@@ -616,7 +616,7 @@ func _free_prisoner(p: Player, cage: Node) -> void:
 	var pd := prisoner_def()
 	log.append(["freed", str(ps.outcome)])
 	if str(ps.outcome) == "ally":
-		_spawn_ally(cage.global_position + Vector2(0, 22))
+		_spawn_ally(cage.global_position + Vector2(0, 22), p.peer_id)
 		game.broadcast_message.rpc("%s is free and fights beside you", "#6fb4ff", [str(pd.get("name", ""))])
 	else:
 		game.loot.roll_and_drop(str(def("prisoner").get("loot", "prisoner")), cage.global_position + Vector2(0, 24))
@@ -624,13 +624,15 @@ func _free_prisoner(p: Player, cage: Node) -> void:
 	_sync.rpc(state)
 
 
-## Host: the freed prisoner joins the heroes' side for the rest of the floor.
-func _spawn_ally(at: Vector2) -> Node:
+## Host: the freed prisoner joins the heroes' side for the rest of the floor, following the hero
+## who freed it (#99; `leader` 0: the nearest hero).
+func _spawn_ally(at: Vector2, leader: int = 0) -> Node:
 	var pd := prisoner_def()
 	var ally: Node = game.spawn_monster("%s_%s" % [str(def("prisoner").get("ally", "freed_prisoner")), str(pd.get("class", "warrior"))],
 		at, false, {"team": Actor.Team.PLAYERS, "look": prisoner_look(pd, true), "display": str(pd.get("name", ""))})
 	if ally:
 		ally.set_meta("event_ally", true)
+		ally.set_meta("leader_peer", leader)
 	return ally
 
 

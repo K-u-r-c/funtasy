@@ -279,6 +279,76 @@ func prisoner() -> void:
 	var allies: Array = g.enemies_root.get_children().filter(func(e): return e.get_meta("event_ally", false))
 	da.check(str(fe.st("prisoner").get("state", "")) == "freed" and allies.size() == 1 and allies[0].team == Actor.Team.PLAYERS and not allies[0].look.is_empty(),
 		"freed, %s fights beside the heroes (hero look, heroes' side)" % fe.prisoner_def().get("name", ""))
+	if allies.size() == 1:
+		await companion(allies[0], p)
+
+
+## #99 (host): the freed prisoner follows `hero` (who freed it) through the floor, fights the
+## monsters near it, is a target for them, catches up when left far behind and never blocks a hero.
+func companion(ally: Enemy, hero: Player) -> void:
+	var comp: MonsterBehavior = null
+	for b in ally.behaviors:
+		if str(b.params.get("id", "")) == "companion":
+			comp = b
+	da.check(comp != null and ally.collision_layer == 0 and int(ally.get_meta("leader_peer", 0)) == hero.peer_id,
+			"the prisoner follows its rescuer and has no body a hero could bump into")
+	if comp == null:
+		return
+	for e in g.enemies_root.get_children():
+		if e != ally:
+			e.queue_free()
+	hero.iframe_left = 9999.0
+	# The hero walks off to somewhere about 6-12 tiles away (a path, maybe through a door).
+	var start: Vector2 = ally.global_position
+	var dest := _walk_target(start, 150.0, 520.0)
+	hero.host_teleport(dest)
+	await da._wait_until(func(): return ally.global_position.distance_to(hero.global_position) < 110.0, 9.0)
+	var d := ally.global_position.distance_to(hero.global_position)
+	da.check(d < 130.0 and comp.teleports == 0 and start.distance_to(dest) >= 140.0, "it walks after the hero across the floor (%.0f px away, the hero went %.0f px)" % [d, start.distance_to(dest)])
+	# A monster near the hero: the prisoner fights it.
+	var m: Enemy = g.spawn_monster("ghoul", g.nearest_floor(hero.global_position + Vector2(70, 0)), false)
+	await da._wait(0.2)
+	m.set_physics_process(false)  # it stands still, so only the prisoner deals the damage
+	var hp0: float = m.health.hp
+	await da._wait_until(func(): return not is_instance_valid(m) or m.health.hp < hp0, 8.0)
+	da.check(not is_instance_valid(m) or m.health.hp < hp0, "the prisoner attacks a monster near its hero (%s)" % ally.def_id)
+	if is_instance_valid(m):
+		m.queue_free()
+	# A monster next to the prisoner targets it.
+	var m2: Enemy = g.spawn_monster("ghoul", g.nearest_floor(ally.global_position + Vector2(-50, 0)), false)
+	await da._wait(0.3)
+	m2.health.max_hp = 999999.0  # the prisoner fights back: the ghoul must live through the check
+	m2.health.hp = 999999.0
+	m2.add_threat(ally, 50.0)
+	await da._wait(0.6)
+	da.check(m2.target == ally, "monsters can make the prisoner their target")
+	m2.queue_free()
+	await da._wait(0.3)
+	# Left far behind: it steps out beside the hero.
+	var far := _walk_target(hero.global_position, 700.0, 1600.0)
+	hero.host_teleport(far)
+	await da._wait(1.5)
+	da.check(comp.teleports > 0 and ally.global_position.distance_to(hero.global_position) < 120.0,
+			"left far behind, it catches up beside the hero (%.0f px)" % ally.global_position.distance_to(hero.global_position))
+
+
+## A floor spot between `lo` and `hi` px from `from` that a path reaches (in plain sight when one
+## is: no door or prop to wait at on the way).
+func _walk_target(from: Vector2, lo: float, hi: float) -> Vector2:
+	var best := from
+	for k in 300:
+		var c0: Vector2 = g.nearest_floor(from + Vector2.from_angle(TAU * k / 37.0) * lerpf(lo, hi, float(k % 7) / 6.0))
+		var d0 := c0.distance_to(from)
+		if d0 >= lo and d0 <= hi and not g.dungeon.is_safe(c0) and Combat.instance.has_los(from, c0) and g.dungeon.props_in_radius((from + c0) / 2.0, d0 / 2.0).is_empty():
+			return c0
+	for r in g.layout.rooms:
+		var c: Vector2 = g.nearest_floor(Vector2(Rect2i(r.rect).get_center()) * float(g.dungeon.tile))
+		var dd := c.distance_to(from)
+		if dd >= lo and dd <= hi and not g.dungeon.is_safe(c) and g.dungeon.find_path(from, c).size() > 1:
+			return c
+		if absf(dd - (lo + hi) / 2.0) < absf(best.distance_to(from) - (lo + hi) / 2.0):
+			best = c
+	return best
 
 
 ## The vault: sealed; its lever shows on the map once seen; pulled, the vault opens and its chests
@@ -459,6 +529,18 @@ func run_lan() -> void:
 	await da._wait_until(func(): return str(fe.st("arena").get("state", "")) == "done", 8.0)
 	NetworkManager.to_clients("DevAuto", "client_cmd", ["ev_won", null])
 	await da._wait(2.0)
+	# #99: a prisoner freed by the client follows the client's hero; the client sees it beside it.
+	for e in g.enemies_root.get_children():
+		e.queue_free()
+	await da._wait(0.3)
+	var ally: Enemy = fe._spawn_ally(g.nearest_floor(c.global_position + Vector2(0, 30)), c.peer_id)
+	await da._wait(0.5)
+	var dest := _walk_target(c.global_position, 200.0, 520.0)
+	c.host_teleport(dest)
+	await da._wait_until(func(): return is_instance_valid(ally) and ally.global_position.distance_to(c.global_position) < 110.0, 9.0)
+	da.check(is_instance_valid(ally) and ally.global_position.distance_to(c.global_position) < 130.0, "host: the prisoner follows the client's hero who freed it")
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["ev_ally", null])
+	await da._wait(1.0)
 	for k in ["force_events", "test_mimic"]:
 		GameState.remove_meta(k)
 
@@ -468,6 +550,12 @@ func client_cmd(cmd: String, arg: Variant) -> void:
 	p = da._local()
 	fe = g.events
 	match cmd:
+		"ev_ally":
+			var me: Player = da._local()
+			var allies: Array = g.enemies_root.get_children().filter(func(e): return e is Enemy and e.team == Actor.Team.PLAYERS)
+			var near: bool = not allies.is_empty() and allies[0].global_position.distance_to(me.global_position) < 140.0
+			da.check(near and not allies[0].look.is_empty(), "client: the freed prisoner walks beside my hero, in its hero look")
+			return
 		"ev_layout":
 			da.check(fe.entries.keys() == arg and g.dungeon.props.has("Event_shrine"), "client: the same events on my floor (%s)" % [fe.entries.keys()])
 		"ev_shrine":

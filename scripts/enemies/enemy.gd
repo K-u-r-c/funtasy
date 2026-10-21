@@ -84,6 +84,10 @@ func setup(data: Dictionary) -> void:
 	radius = float(def.get("collision_radius", 8))
 	collision_layer = 4
 	collision_mask = 1 | 2 | 8 | 16 | 32 | 64 | 128
+	# #99: an ally (the freed prisoner) never blocks a hero's way, on any peer.
+	if str(def.get("role", "")) == "ally":
+		collision_layer = 0
+		collision_mask &= ~2
 	NetSync.make(self, "StateSync", [
 		"Health:hp", "Health:max_hp", "Health:absorb", "Status:shown", ".:level", ".:aggro", ".:behavior_state", ".:held_anim", ".:target_peer",
 	], [".:net_pos", ".:facing"], 0.05)
@@ -618,7 +622,8 @@ func _path_dir(game: Node, goal: Vector2, delta: float) -> Vector2:
 		return Vector2.ZERO  # the merchant chamber is safe ground; floodgates need a lever
 	if door:
 		_door_wait += delta
-		if _door_wait >= float(GameData.bal("world.door_enemy_open_delay")):
+		# #99: an ally (the freed prisoner) opens doors like a hero, at once.
+		if team == Team.PLAYERS or _door_wait >= float(GameData.bal("world.door_enemy_open_delay")):
 			_door_wait = 0.0
 			door.host_set_open(true)
 		return Vector2.ZERO
