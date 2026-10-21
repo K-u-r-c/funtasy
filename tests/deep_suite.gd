@@ -239,6 +239,8 @@ func client_cmd(cmd: String, arg: Variant) -> void:
 			var e: Node = g.enemies_root.get_node_or_null(NodePath(str(arg)))
 			da.check(e != null and e.corrupt == "burst" and e.get_node_or_null("DeepAura") != null, "client: the corrupted monster wears its aura and name (%s)" % (e.display_name if e else "?"))
 		"deep_warned":
+			# The burst may reach a busy client a moment after the host's word to check it.
+			await da._wait_until(func(): return Telegraph.lead_of(str(arg)) >= 0.0, 3.0)
 			da.check(Telegraph.lead_of(str(arg)) >= float(GameData.corruption.abilities.burst.warn) - 0.15, "client: the volatile corpse warned %.2f s before it burst" % Telegraph.lead_of(str(arg)))
 		"deep_boss":
 			var b: Node = g.enemies_root.get_node_or_null(NodePath(str(arg[0])))

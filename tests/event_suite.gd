@@ -307,7 +307,13 @@ func companion(ally: Enemy, hero: Player) -> void:
 	da.check(d < 130.0 and comp.teleports == 0 and start.distance_to(dest) >= 100.0, "it walks after the hero across the floor (%.0f px away, the hero went %.0f px)" % [d, start.distance_to(dest)])
 	# A monster near the hero: the prisoner fights it.
 	# Far enough that a ranged prisoner needn't back off first; time for a busy test machine.
-	var m: Enemy = g.spawn_monster("ghoul", g.nearest_floor(hero.global_position + Vector2(110, 0)), false)
+	var mat: Vector2 = g.nearest_floor(hero.global_position + Vector2(110, 0))
+	for k in 16:
+		var c: Vector2 = g.nearest_floor(hero.global_position + Vector2.from_angle(TAU * k / 16.0) * 110.0)
+		if Combat.instance.has_los(hero.global_position, c) and Combat.instance.has_los(ally.global_position, c) and not g.dungeon.is_safe(c):
+			mat = c
+			break
+	var m: Enemy = g.spawn_monster("ghoul", mat, false)
 	await da._wait(0.2)
 	m.set_physics_process(false)  # it stands still, so only the prisoner deals the damage
 	var hp0: float = m.health.hp

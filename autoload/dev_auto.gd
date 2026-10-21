@@ -1083,6 +1083,11 @@ func _full_scenario() -> void:
 	check(g.depth == 1, "walking into the portal doesn't descend")
 	host_p.host_teleport(g.portal.global_position + Vector2(0, 30))
 	await _wait(0.4)
+	# The boss's loot may have landed on the portal: picked up first, it would be offered instead.
+	for it in g.items_root.get_children():
+		if it.global_position.distance_to(g.portal.global_position) < 48.0:
+			it.queue_free()
+	await get_tree().process_frame
 	host_p.auto_aim = g.portal.global_position
 	await get_tree().physics_frame
 	await get_tree().physics_frame
