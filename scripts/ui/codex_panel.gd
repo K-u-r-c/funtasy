@@ -52,6 +52,8 @@ func _build() -> void:
 	rv.add_theme_constant_override("separation", 6)
 	right.add_child(rv)
 	_page_title = UITheme.label("", UITheme.GOLD, UITheme.FONT_BODY)
+	_page_title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_page_title.custom_minimum_size = Vector2(200, 0)
 	rv.add_child(_page_title)
 	var ps := ScrollContainer.new()
 	ps.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED

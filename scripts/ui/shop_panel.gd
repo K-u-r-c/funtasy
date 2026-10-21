@@ -8,6 +8,7 @@ var merchants: Merchants
 var _buy_list: VBoxContainer
 var _sell_list: VBoxContainer
 var _card: VBoxContainer
+var _card_scroll: ScrollContainer
 var _last_sig := ""
 var _gold_chip: PanelContainer
 
@@ -31,13 +32,11 @@ func _build() -> void:
 	_gold_chip.tooltip_text = Loc.t("Your gold")
 	_gold_chip.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	header.add_child(_gold_chip)
-	var cardp := PanelContainer.new()
-	cardp.theme_type_variation = &"GlassInset"
-	cardp.custom_minimum_size = Vector2(230, 0)
+	# The item card keeps its size; a long item scrolls inside it (#85).
+	var cardp := UITheme.scroll_card(240)
 	body.add_child(cardp)
-	_card = VBoxContainer.new()
-	_card.add_theme_constant_override("separation", 3)
-	cardp.add_child(_card)
+	_card = cardp.get_meta("content")
+	_card_scroll = cardp.get_meta("scroll")
 	merchants.changed.connect(_rebuild)
 	EventBus.local_inventory_changed.connect(_rebuild)
 	_rebuild()
@@ -61,10 +60,11 @@ func _column(parent: Control, title: String, icon_key: String) -> VBoxContainer:
 	return list
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	# The hero can be freed before the window when a session ends.
 	if not is_instance_valid(player):
 		return
+	UITheme.stick_scroll(_card_scroll, delta)
 	var sig := "%d|%d" % [player.gold, player.inv.backpack.size()]
 	if sig != _last_sig:
 		_rebuild()
@@ -145,7 +145,7 @@ func _row(text: String, item: Dictionary, dim: bool, price: int, affordable := t
 
 
 func _show(item: Dictionary) -> void:
-	for c in _card.get_children():
-		c.queue_free()
+	UITheme.clear(_card)
+	_card_scroll.scroll_vertical = 0
 	for line in ItemGenerator.describe(item, player.class_id, player.level):
-		_card.add_child(UITheme.card_line(line, 214))
+		_card.add_child(UITheme.card_line(line, 210))

@@ -355,6 +355,8 @@ func _run() -> void:
 				await PreviewSuite.new(self).run()
 			"aim":
 				await AimSuite.new(self).run()
+			"ui_stable":
+				await UiStableSuite.new(self).run()
 			"aim_lan":
 				await AimSuite.new(self).run_lan()
 			"tooltips":

@@ -165,8 +165,7 @@ func _build() -> void:
 		var b := Badge.new(str(bd.get("icon", "")).trim_prefix("icons."), Loc.t(str(bd.get("name", bid))), Boons.card_lines(str(bid)), Boons.color(str(bid)), 26)
 		b.focus_mode = Control.FOCUS_ALL
 		var show_card := func():
-			for c in bcard.get_children():
-				c.queue_free()
+			UITheme.clear(bcard)
 			bcard.add_child(Badge.card(b.icon_key, b.title, b.lines, b.rim))
 		b.focus_entered.connect(show_card)
 		b.mouse_entered.connect(show_card)

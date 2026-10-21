@@ -22,6 +22,9 @@ var _equip_root: HBoxContainer
 var _hands: HBoxContainer
 var _quick_row: HBoxContainer
 var _card: VBoxContainer
+var _card_scroll: ScrollContainer
+const CARD_W := 262.0
+const LINE_W := CARD_W - 30.0  ## the card's text width: inside its margins and scrollbar
 var _stats: GridContainer
 var _offclass: Label
 var _cap_label: Label
@@ -120,15 +123,11 @@ func _build() -> void:
 		box.add_child(qs)
 		_quick_row.add_child(box)
 
-	# Item card
-	var card_panel := PanelContainer.new()
-	card_panel.theme_type_variation = &"GlassInset"
-	card_panel.custom_minimum_size = Vector2(250, 0)
-	card_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	# Item card: fixed width, a long item scrolls inside it (#85).
+	var card_panel := UITheme.scroll_card(CARD_W)
 	body.add_child(card_panel)
-	_card = VBoxContainer.new()
-	_card.add_theme_constant_override("separation", 3)
-	card_panel.add_child(_card)
+	_card = card_panel.get_meta("content")
+	_card_scroll = card_panel.get_meta("scroll")
 
 	# Anything dragged out of the window and released over the backdrop is dropped on the ground.
 	dim.set_drag_forwarding(Callable(), _can_drop_ground, _drop_ground)
@@ -183,7 +182,8 @@ func _fits(item: Dictionary, slot: String) -> bool:
 	return str(item.get("slot", "")) == slot
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	UITheme.stick_scroll(_card_scroll, delta)
 	if player and is_instance_valid(player) and player.stats.final != _last_stats:
 		_last_stats = player.stats.final.duplicate()
 		_refresh_stats()
@@ -376,8 +376,8 @@ func _on_focus(b: ItemSlot) -> void:
 func _show_card(b: ItemSlot) -> void:
 	_shown_key = b.slot_key
 	footer.set_prompts(_prompts_for(b.item, b.slot_key))
-	for c in _card.get_children():
-		c.queue_free()
+	UITheme.clear(_card)
+	_card_scroll.scroll_vertical = 0
 	if not b.has_item():
 		var eh := HBoxContainer.new()
 		eh.add_theme_constant_override("separation", 6)
@@ -420,7 +420,7 @@ func _show_card(b: ItemSlot) -> void:
 		_card.add_child(warn)
 	_card.add_child(HSeparator.new())
 	for i in range(2, lines.size()):
-		_card.add_child(UITheme.card_line(lines[i], 234))
+		_card.add_child(UITheme.card_line(lines[i], LINE_W))
 	if item.get("kind") in ["weapon", "offhand", "armor", "jewelry"] and b.slot_key.begins_with("b:"):
 		# Compared with everything equipping it would take off (#11): a 2H weapon against both
 		# hands, an off-hand item against a 2H weapon.
@@ -435,7 +435,7 @@ func _show_card(b: ItemSlot) -> void:
 				top = maxi(top, int(r.get("rarity", 1)))
 			_card.add_child(_wrap(UITheme.label(Loc.f("vs %s", [" + ".join(vs)]), UITheme.rarity_color(top), UITheme.FONT_SMALL)))
 			for d in compare_lines(item, replaced):
-				_card.add_child(UITheme.label(d[0], d[1], UITheme.FONT_SMALL))
+				_card.add_child(_wrap(UITheme.label(d[0], d[1], UITheme.FONT_SMALL)))
 
 
 func _wrap(l: Label) -> Label:

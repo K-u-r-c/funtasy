@@ -89,6 +89,10 @@ func _ready() -> void:
 	v.add_child(foot)
 	_notice = UITheme.label("", UITheme.DANGER, UITheme.FONT_BODY)
 	_notice.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	# A long notice is cut at a word instead of widening the window (#85).
+	_notice.clip_text = true
+	_notice.text_overrun_behavior = TextServer.OVERRUN_TRIM_WORD_ELLIPSIS
+	_notice.ellipsis_char = "..."
 	_notice.modulate.a = 0.0
 	foot.add_child(_notice)
 	foot.add_child(footer)

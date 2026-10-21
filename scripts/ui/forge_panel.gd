@@ -9,6 +9,7 @@ var forge: Forge
 var stage: ForgeStage
 var _list: VBoxContainer
 var _card: VBoxContainer
+var _card_scroll: ScrollContainer
 var _button: Button
 var _reason: Label
 var _gold_chip: PanelContainer
@@ -60,20 +61,21 @@ func _build() -> void:
 	stage = ForgeStage.new()
 	stage.finished.connect(_on_forged_done)
 	mid.add_child(stage)
-	var cardp := PanelContainer.new()
-	cardp.theme_type_variation = &"GlassInset"
-	cardp.custom_minimum_size = Vector2(240, 0)
-	body.add_child(cardp)
+	# The card keeps its size; a long piece scrolls inside it (#85); the reason and the button stay
+	# under it.
 	var cv := VBoxContainer.new()
 	cv.add_theme_constant_override("separation", 6)
-	cardp.add_child(cv)
-	_card = VBoxContainer.new()
-	_card.add_theme_constant_override("separation", 3)
-	_card.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	cv.add_child(_card)
+	cv.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	body.add_child(cv)
+	var cardp := UITheme.scroll_card(256)
+	cv.add_child(cardp)
+	_card = cardp.get_meta("content")
+	_card_scroll = cardp.get_meta("scroll")
 	_reason = UITheme.label("", UITheme.DANGER, UITheme.FONT_SMALL)
 	_reason.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_reason.custom_minimum_size = Vector2(224, 0)
+	# Two lines kept for the reason, so its coming and going never moves the card (#85).
+	_reason.custom_minimum_size = Vector2(224, 30)
+	_reason.max_lines_visible = 2
 	cv.add_child(_reason)
 	_button = Button.new()
 	_button.text = Loc.t("Forge (+1 item level)")
@@ -86,10 +88,11 @@ func _build() -> void:
 	_rebuild()
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	# The hero can be freed before the window when a session ends.
 	if not is_instance_valid(player):
 		return
+	UITheme.stick_scroll(_card_scroll, delta)
 	if _sig() != _last_sig:
 		_rebuild()
 
@@ -205,8 +208,7 @@ func _row_of(uid: String) -> Dictionary:
 
 ## The card: the piece now and after one step, the price and the hero's gold.
 func _show(r: Dictionary) -> void:
-	for c in _card.get_children():
-		c.queue_free()
+	UITheme.clear(_card)
 	if r.is_empty():
 		_button.disabled = true
 		_reason.text = ""

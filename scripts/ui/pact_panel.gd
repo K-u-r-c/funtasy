@@ -6,6 +6,7 @@ extends UIModal
 var merchants: Merchants
 var _list: VBoxContainer
 var _card: VBoxContainer
+var _card_scroll: ScrollContainer
 var _last_sig := ""
 
 
@@ -33,13 +34,11 @@ func _build() -> void:
 	_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_list.add_theme_constant_override("separation", 3)
 	scroll.add_child(_list)
-	var cardp := PanelContainer.new()
-	cardp.theme_type_variation = &"GlassInset"
-	cardp.custom_minimum_size = Vector2(260, 0)
+	# The card keeps its size; a long text scrolls inside it (#85).
+	var cardp := UITheme.scroll_card(270)
 	body.add_child(cardp)
-	_card = VBoxContainer.new()
-	_card.add_theme_constant_override("separation", 3)
-	cardp.add_child(_card)
+	_card = cardp.get_meta("content")
+	_card_scroll = cardp.get_meta("scroll")
 	merchants.changed.connect(_rebuild)
 	_rebuild()
 
@@ -76,10 +75,11 @@ func _chips(first: Array, left: int, arrow_icon := "", then: Array = []) -> HBox
 	return h
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	# The hero can be freed before the window when a session ends.
 	if not is_instance_valid(player):
 		return
+	UITheme.stick_scroll(_card_scroll, delta)
 	if str(player.run_mods.size()) != _last_sig:
 		_rebuild()
 
@@ -135,14 +135,11 @@ func _row(text: String) -> Button:
 
 ## The card: what the bargain does and the exact before -> after of every stat it touches.
 func _show_mods(title: String, desc: String, mods: Array) -> void:
-	for c in _card.get_children():
-		c.queue_free()
-	_card.add_child(UITheme.label(title, UITheme.GOLD, UITheme.FONT_BODY))
+	UITheme.clear(_card)
+	_card_scroll.scroll_vertical = 0
+	_card.add_child(UITheme.card_line([title, UITheme.GOLD], 240))
 	if not desc.is_empty():
-		var d := UITheme.label(desc, UITheme.TEXT, UITheme.FONT_SMALL)
-		d.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		d.custom_minimum_size = Vector2(244, 0)
-		_card.add_child(d)
+		_card.add_child(UITheme.card_line([desc, UITheme.TEXT], 240))
 	_card.add_child(HSeparator.new())
 	var after := _preview(mods)
 	for m in mods:
@@ -150,7 +147,7 @@ func _show_mods(title: String, desc: String, mods: Array) -> void:
 		var before := player.stats.get_stat(k)
 		var aft := float(after.get(k, before))
 		var col := UITheme.GOOD if aft > before else UITheme.DANGER
-		_card.add_child(UITheme.label("%s: %s -> %s" % [Merchants.stat_name(str(m.stat)), _fmt(k, before), _fmt(k, aft)], col, UITheme.FONT_SMALL))
+		_card.add_child(UITheme.card_line(["%s: %s -> %s" % [Merchants.stat_name(str(m.stat)), _fmt(k, before), _fmt(k, aft)], col], 240))
 
 
 ## Stats as they would be with the extra run modifiers (same Stats code as the host).

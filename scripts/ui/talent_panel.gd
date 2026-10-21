@@ -7,6 +7,9 @@ extends UIModal
 ## rank flashes the node with a burst of sparks, fills its line from the prerequisite and lights
 ## the children it opened. Accept learns (the host validates: Player.talent_block_reason).
 ## Arrows / d-pad: up = prerequisite, down = first child, left / right = the next node on the row.
+## #85: a click (or focus) selects a talent and its card stays; hovering another shows that one
+## only while hovered. The card has a fixed width and scrolls (wheel, right stick). Learning is the
+## Learn button, a double-click or accept on the selected talent.
 
 const LANES := 4
 const LANE_W := 44
@@ -26,6 +29,10 @@ const BRANCH_TINTS := [Color("5a1418"), Color("16304e"), Color("4a3a12")]
 var _tree: Dictionary = {}
 var _points: Label
 var _card: VBoxContainer
+var _card_scroll: ScrollContainer
+var _learn: Button
+const CARD_W := 236.0
+const TEXT_W := CARD_W - 32.0  ## the card's text width: inside its margins and scrollbar
 var _canvas: TreeCanvas
 var _buttons: Dictionary = {}  ## id -> [TalentNode, node dict]
 var _branch_labels: Dictionary = {}  ## branch id -> Label
@@ -92,9 +99,10 @@ func _build() -> void:
 		b.position = node_center(nd) - b.custom_minimum_size / 2.0
 		b.size = b.custom_minimum_size
 		var nid := str(nd.id)
-		b.pressed.connect(func(): player.request_learn_talent.rpc_id(1, nid))
-		b.focus_entered.connect(func(): _focused = nid; _show(nd))
+		b.pressed.connect(func(): learn(nid))
+		b.focus_entered.connect(func(): select(nid))
 		b.mouse_entered.connect(func(): _show(nd))
+		b.mouse_exited.connect(_show_selected)
 		_canvas.add_child(b)
 		_buttons[nid] = [b, nd]
 
@@ -106,25 +114,24 @@ func _build() -> void:
 	_points_chip.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	UIFx.pulse(_points_chip)
 	right.add_child(_points_chip)
-	var card_panel := PanelContainer.new()
-	card_panel.theme_type_variation = &"GlassInset"
-	card_panel.custom_minimum_size = Vector2(220, 0)
-	card_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	# The card scrolls when a skill's numbers run longer than the panel (#43 / #44), never wider (#85).
+	var card_panel := UITheme.scroll_card(CARD_W)
 	right.add_child(card_panel)
-	# The card scrolls when a skill's numbers run longer than the panel (#43 / #44).
-	var card_scroll := ScrollContainer.new()
-	card_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	card_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	card_panel.add_child(card_scroll)
-	_card = VBoxContainer.new()
+	_card = card_panel.get_meta("content")
 	_card.add_theme_constant_override("separation", 4)
-	_card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	card_scroll.add_child(_card)
+	_card_scroll = card_panel.get_meta("scroll")
+	_learn = AnimButton.new()
+	_learn.text = Loc.t("Learn rank")
+	_learn.icon = UITheme.icon_tex("act_plus")
+	_learn.add_theme_constant_override("icon_max_width", 16)
+	_learn.custom_minimum_size = Vector2(CARD_W, 28)
+	_learn.pressed.connect(func(): learn(_focused))
+	right.add_child(_learn)
 	_reset = AnimButton.new()
 	_reset.text = Loc.t("Reset talents (free)")
 	_reset.icon = UITheme.icon_tex("act_reset")
 	_reset.add_theme_constant_override("icon_max_width", 16)
-	_reset.custom_minimum_size = Vector2(220, 28)
+	_reset.custom_minimum_size = Vector2(CARD_W, 28)
 	_reset.pressed.connect(func(): player.request_reset_talents.rpc_id(1))
 	right.add_child(_reset)
 
@@ -224,9 +231,28 @@ func _side(c: Vector2, tier: int, dir: int) -> Control:
 	return best
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	UITheme.stick_scroll(_card_scroll, delta)
 	if player.talents != _last_talents or player.talent_points != _last_points:
 		_refresh(true)
+
+
+## The selected talent (#85): its card is the one shown unless another is hovered.
+func select(id: String) -> void:
+	_focused = id
+	if _buttons.has(id):
+		_show(_buttons[id][1])
+
+
+func _show_selected() -> void:
+	if _buttons.has(_focused):
+		_show(_buttons[_focused][1])
+
+
+## Learn a rank of `id` (the host validates: Player.talent_block_reason).
+func learn(id: String) -> void:
+	if _buttons.has(id):
+		player.request_learn_talent.rpc_id(1, id)
 
 
 ## Node states from the hero; with `animate`, the ranks learned since the last refresh play the
@@ -265,8 +291,7 @@ func _refresh(animate: bool) -> void:
 			if not was_open[id] and b2.can_learn:
 				b2.opened_flash()
 	_canvas.queue_redraw()
-	if _buttons.has(_focused):
-		_show(_buttons[_focused][1])
+	_show_selected()
 
 
 ## A rank was learned: the node flashes and bursts, its line fills from the prerequisite.
@@ -304,17 +329,23 @@ func _learned_fx(id: String) -> void:
 
 
 func _show(node: Dictionary) -> void:
-	for c in _card.get_children():
-		c.queue_free()
+	var same := str(_card.get_meta("node_id", "")) == str(node.get("id", ""))
+	UITheme.clear(_card)
+	_card.set_meta("node_id", str(node.get("id", "")))
+	if not same:
+		_card_scroll.scroll_vertical = 0
+	if _learn:
+		var sel: Array = _buttons.get(_focused, [])
+		_learn.disabled = sel.is_empty() or not sel[0].can_learn
 	var rank := player.node_rank(node)
 	var kind := str(node.get("type", "passive"))
-	_card.add_child(UITheme.label(_node_name(node), UITheme.GOLD, UITheme.FONT_BODY))
+	_card.add_child(_wrapped(_node_name(node), UITheme.GOLD, UITheme.FONT_BODY))
 	var tag: String = {"skill": Loc.t("Skill"), "passive": Loc.t("Passive talent"), "keystone": Loc.t("Keystone")}.get(kind, kind.capitalize())
 	if player.is_free_node(node):
 		tag += Loc.t(" - known from the start")
 	else:
 		tag += Loc.f(" - rank %d / %d", [rank, int(node.get("max_rank", 1))])
-	_card.add_child(UITheme.label(tag, UITheme.CYAN, UITheme.FONT_SMALL))
+	_card.add_child(_wrapped(tag, UITheme.CYAN))
 	# What it needs: the prerequisite (and its ranks), the points in the branch, the fork.
 	if not player.is_free_node(node):
 		for req in node.get("requires", []):
@@ -356,11 +387,8 @@ func _show(node: Dictionary) -> void:
 	for r in TalentInfo.rows(player, node):
 		var row := VBoxContainer.new()
 		row.add_theme_constant_override("separation", 0)
-		row.add_child(UITheme.label(r.k, UITheme.TEXT_DIM, UITheme.FONT_SMALL))
-		var v := UITheme.label(r.v, SkillTooltip.color_for(int(r.kind)), UITheme.FONT_SMALL)
-		v.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		v.custom_minimum_size = Vector2(190, 0)
-		row.add_child(v)
+		row.add_child(_wrapped(r.k, UITheme.TEXT_DIM))
+		row.add_child(_wrapped(r.v, SkillTooltip.color_for(int(r.kind))))
 		_card.add_child(row)
 	# The flavour text stays, second and dimmer.
 	var desc := Loc.t(str(node.get("description", "")))
@@ -371,10 +399,10 @@ func _show(node: Dictionary) -> void:
 	_card.add_child(_wrapped(desc, UITheme.TEXT_DIM))
 
 
-func _wrapped(text: String, color: Color) -> Label:
-	var l := UITheme.label(text, color, UITheme.FONT_SMALL)
+func _wrapped(text: String, color: Color, size: int = UITheme.FONT_SMALL) -> Label:
+	var l := UITheme.label(text, color, size)
 	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	l.custom_minimum_size = Vector2(196, 0)
+	l.custom_minimum_size = Vector2(TEXT_W, 0)
 	return l
 
 
@@ -535,6 +563,16 @@ class TalentNode:
 
 	func _kind() -> String:
 		return str(node.get("type", "passive"))
+
+	## #85: a mouse click selects (focuses) the talent instead of learning it; a double-click
+	## learns. Accept (keyboard / gamepad) still presses the button and learns.
+	func _gui_input(ev: InputEvent) -> void:
+		if ev is InputEventMouseButton and ev.button_index == MOUSE_BUTTON_LEFT and ev.pressed:
+			accept_event()
+			grab_focus()
+			AudioManager.play_sfx("ui_press", 0.05)
+			if ev.double_click:
+				pressed.emit()
 
 	func learn_flash() -> void:
 		_flash = 1.0

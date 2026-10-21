@@ -395,6 +395,50 @@ static func card_line(line: Array, width: float) -> Control:
 	return h
 
 
+## #85: a fixed-width glass card whose text wraps and scrolls inside it (wheel, scrollbar, the
+## right stick through stick_scroll), so what it shows never resizes or moves anything around
+## it. Returns the panel (add it to the layout; it fills the height it is given), with the
+## content box in meta "content" and the scroll area in meta "scroll".
+static func scroll_card(width: float) -> PanelContainer:
+	var p := PanelContainer.new()
+	p.theme_type_variation = &"GlassInset"
+	p.custom_minimum_size = Vector2(width, 0)
+	p.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	p.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	p.clip_contents = true
+	var sc := ScrollContainer.new()
+	# Never wider than the card (a scroll mode other than DISABLED takes no minimum width from the
+	# text), never taller than the room the layout gives it.
+	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
+	sc.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	sc.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	p.add_child(sc)
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 3)
+	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	sc.add_child(v)
+	p.set_meta("content", v)
+	p.set_meta("scroll", sc)
+	return p
+
+
+## #85: empties a container at once (queue_free alone keeps the old children in the layout until
+## the frame ends, so for one frame the old and the new content stack up and the window jumps).
+static func clear(n: Node) -> void:
+	for c in n.get_children():
+		n.remove_child(c)
+		c.queue_free()
+
+
+## #85: the right stick (the aim actions) scrolls `sc` while a gamepad user reads it.
+static func stick_scroll(sc: ScrollContainer, delta: float) -> void:
+	if sc == null or not sc.is_visible_in_tree():
+		return
+	var v := InputSettings.stick_aim().y
+	if absf(v) > 0.0:
+		sc.scroll_vertical += int(v * 420.0 * delta)
+
+
 ## A small glass pill with an icon and a value (gold, points, keys...).
 static func chip(icon_key: String, text: String, color: Color = TEXT, border: Color = EDGE) -> PanelContainer:
 	var p := PanelContainer.new()
