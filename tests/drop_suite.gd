@@ -85,8 +85,13 @@ func run() -> void:
 		it.queue_free()
 	await da._wait(0.2)
 	# An elite throws one gold pile (not two).
-	var elite_items := await kill_for_loot("ghoul", spot, false, {"elite": ["vampiric"]})
-	var golds := elite_items.filter(func(it): return str(it.item.get("kind", "")) == "gold")
+	var before_elite: Array = g.items_root.get_children()
+	await kill_for_loot("ghoul", spot, false, {"elite": ["vampiric"]})
+	# A busy machine may spawn the drops a few frames later: give them a moment.
+	var new_gold := func() -> Array:
+		return g.items_root.get_children().filter(func(it): return not before_elite.has(it) and str(it.item.get("kind", "")) == "gold")
+	await da._wait_until(func(): return not new_gold.call().is_empty(), 1.0)
+	var golds: Array = new_gold.call()
 	# Its elite pile, and at most the plain monster's chance pile besides (#75 must not add a third).
 	da.check(golds.size() >= 1 and golds.size() <= 2, "an elite throws its one elite gold pile (%d piles with the monster's chance one)" % golds.size())
 	for it in g.items_root.get_children():
