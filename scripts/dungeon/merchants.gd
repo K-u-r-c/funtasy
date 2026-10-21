@@ -12,6 +12,8 @@ extends Node
 ##   price at Malphas's door) / request_contract(index) / request_pact(id): owner -> host, reliable.
 ## - _sync(stock, contracts, shop_open, pacts), _open_ui(kind), _ask_tithe(text), _notice(text):
 ##   host -> peers, reliable.
+## - _sync_mine(signed, pacted): host -> one peer, reliable (#94): what that hero already signed and
+##   bought from Malphas this floor, so its window marks them.
 
 signal changed
 
@@ -19,6 +21,8 @@ var game: Node
 var stock: Array = []  ## every peer: [{item, price, left}]
 var contracts: Array = []  ## every peer: indices into merchants.malphas.contracts
 var pacts: Array = []  ## every peer (#95): the pact potions Malphas offers this floor
+var my_signed: Array = []  ## local (#94): contract slots this hero signed this floor
+var my_pacts: Array = []  ## local (#94): pact potions this hero bought this floor
 var shop_open := false  ## Archibald's vault door took this floor's Gold Key: he trades
 var _signed: Dictionary = {}  ## host: peer -> [contract slots signed this floor]
 var _pacted: Dictionary = {}  ## host (#95): peer -> [pact ids bought this floor]
@@ -73,6 +77,7 @@ func host_new_floor(floor_seed: int, item_level: int) -> void:
 		offer.append(ids.pop_at(rng.randi_range(0, ids.size() - 1)))
 	pacts = offer
 	_sync.rpc(stock, contracts, shop_open, pacts)
+	_sync_mine.rpc([], [])
 
 
 static func item_value(item: Dictionary) -> int:
@@ -279,6 +284,7 @@ func request_contract(slot: int) -> void:
 	p.host_add_run_mod(str(c.get.stat), float(c.get.value), "Contract with Malphas")
 	signed.append(slot)
 	_signed[peer] = signed
+	_sync_mine.rpc_id(peer, signed, _pacted.get(peer, []))
 	game.combat.fx.sound.rpc("tithe", p.global_position)
 	_notice.rpc_id(peer, "Signed: %s for %s", [c.give, c.get])
 
@@ -303,6 +309,7 @@ func request_pact(pact_id: String) -> void:
 	p.host_give_item(item)
 	bought.append(pact_id)
 	_pacted[peer] = bought
+	_sync_mine.rpc_id(peer, _signed.get(peer, []), bought)
 	for c in def.cost:
 		p.host_add_run_mod(str(c.stat), float(c.value), def.name)
 	game.combat.fx.sound.rpc("tithe", p.global_position)
@@ -321,6 +328,19 @@ func _sync(new_stock: Array, new_contracts: Array, open: bool, new_pacts: Array 
 	pacts = new_pacts
 	shop_open = open
 	changed.emit()
+
+
+@rpc("authority", "call_local", "reliable")
+func _sync_mine(signed: Array, pacted: Array) -> void:
+	my_signed = signed
+	my_pacts = pacted
+	changed.emit()
+
+
+## Host: every hero's own Malphas record again (a restored floor, #55).
+func host_sync_mine() -> void:
+	for p in game.players_root.get_children():
+		_sync_mine.rpc_id(p.peer_id, _signed.get(p.peer_id, []), _pacted.get(p.peer_id, []))
 
 
 @rpc("authority", "call_local", "reliable")

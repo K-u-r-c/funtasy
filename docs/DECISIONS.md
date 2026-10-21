@@ -1380,3 +1380,12 @@ Tree shapes ("A > B": B grows from A; {x / y}: branches; (x): a fork side; [n]: 
 | --- | --- |
 | Rule | Every floor Malphas offers `contracts_per_floor` 5 contracts (was 2) and `pacts_per_floor` 2 of the 10 pact potions (was all ten), both seeded picks from the floor seed (`merchants.json malphas`). A potion not on offer is refused; each hero signs a contract once and buys each offered potion once a floor ("You already bought that potion"). The offer and who bought what are replicated with the stock and saved with the floor (#55; an older save rolls the floor's offer again). |
 | Tests | `economy`: 120 seeded floors with 5 different contracts and 2 different potions, every potion on offer somewhere, the same seed the same offer; a potion not offered is refused, a potion is bought once. `economy-lan`: the client sees the host's offer and its second request for the same potion is refused. |
+
+### #94 Merchants show what is already bought
+
+| Topic | Decision |
+| --- | --- |
+| Archibald | A sold-out line (bought by anyone: the stock is shared) is greyed, carries a red SOLD stamp instead of its price, can't be pressed (its tooltip says Sold out) and moves after everything still for sale. When a line sells while the window is open its stamp fades in with a flash; the buyer also sees the item fly from the row to the backpack column with a coin sound. |
+| Malphas | Each hero's own signed contracts and bought potions (`Merchants._sync_mine`, host -> that hero; reset each floor, restored with the floor) are greyed, stamped SIGNED / BOUGHT in gold, can't be pressed and go to the end of their section; a new stamp fades in with a flash. The window keeps the focused row across rebuilds. |
+| Stamp | `UITheme.stamp` / `stamp_in`: an upper-case word in a framed dark pill at the row's right end; no scaling (pixel art), only fades and flashes (`modulate`, so the row's grey stays). |
+| Tests | `economy`: a line bought through the window is greyed, stamped, unpressable and last, and its stamp played; a signed contract is stamped and last; a bought potion is stamped at once. `economy-lan`: the host's open window shows the client's purchase the same way; the client's own window shows the line sold; the client learns what it bought. |

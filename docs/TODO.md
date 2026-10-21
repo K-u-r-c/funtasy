@@ -164,6 +164,7 @@ screenshot review at 1920x1080 and 3440x1440.
 - [x] #92 Forging costs 1.5x (base 15); a legendary kept current takes 63-93% of a hero's floor gold (`forge`)
 - [x] #97 The forge list keeps its scroll and focus: rows refresh in place, a rebuild restores the scroll (`forge`)
 - [x] #93 Archibald sells 10 pieces a floor (Uncommon to Relic by weight, item level +0-2, mostly for the party's classes) and more potions (`economy`)
+- [x] #94 Merchants mark what is bought: greyed, stamped (Sold / Signed / Bought), unpressable, last; the purchase stamps its row and flies the item to the backpack (`economy`, `economy-lan`)
 - [x] #95 Malphas offers 5 contracts and 2 seeded pact potions a floor, each potion once per hero (`economy`, `economy-lan`)
 - [x] #100 Will-o'-the-Blight: the detonation deals 40% of the drained pool, at most 30% of the hero's health (was the whole pool) (`monsters`)
 

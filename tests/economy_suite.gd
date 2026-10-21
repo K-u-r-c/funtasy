@@ -289,14 +289,18 @@ func merchants() -> void:
 	await da._wait(0.3)
 	var hud: Node = da.get_tree().get_first_node_in_group("hud")
 	da.check(mer.shop_open and hud._overlay != null, "inside the opened vault Archibald trades")
-	hud.close_overlay()
-	# Buying: the stock is shared, gold is checked.
+	# Buying: the stock is shared, gold is checked. #94: through the window's row.
 	p.host_add_gold(5000)
 	var gold0 := p.gold
 	var cost := int(mer.stock[0].price)
-	mer.request_buy.rpc_id(1, 0)
-	await da._wait(0.3)
+	var shop: Node = hud._overlay
+	for r in shop._buy_list.get_children():
+		if r is Button and int(r.get_meta("stock_index", -1)) == 0:
+			r.pressed.emit()
+	await da._wait(0.5)
 	da.check(p.gold == gold0 - cost and int(mer.stock[0].left) == 0, "buying takes %d gold and empties that stock line" % cost)
+	sold_line_checks(shop, 0, "solo")
+	hud.close_overlay()
 	mer.request_buy.rpc_id(1, 0)
 	await da._wait(0.2)
 	da.check(p.gold == gold0 - cost, "a sold-out line can't be bought again")
@@ -358,6 +362,17 @@ func merchants() -> void:
 	mer.request_contract.rpc_id(1, 0)
 	await da._wait(0.2)
 	da.check(p.run_mods.size() == mods0 + 3, "each contract is signed once")
+	# #94: Malphas's window marks the signed contract.
+	g.host_interact(p, mal)
+	await da._wait(0.3)
+	var pp: Node = hud._overlay
+	var signed_row: Button = null
+	var rows_c: Array = pp._list.get_children().filter(func(c): return c is Button and str(c.get_meta("key", "")).begins_with("c"))
+	for r in rows_c:
+		if str(r.get_meta("key", "")) == "c0":
+			signed_row = r
+	da.check(signed_row != null and signed_row.disabled and signed_row.get_node_or_null("Stamp") != null and rows_c.back() == signed_row,
+			"the signed contract is stamped Signed, greyed and last")
 	# #95: only the floor's two potions are for sale, each once per hero (the test puts these two
 	# on offer).
 	var other := ""
@@ -368,9 +383,19 @@ func merchants() -> void:
 	mer.request_pact.rpc_id(1, other)
 	await da._wait(0.3)
 	da.check(p.inv.count_of("pact_" + other) == 0 and p.run_mods.size() == mods0 + 3, "a potion Malphas doesn't offer this floor can't be bought (%s)" % other)
+	mer._sync.rpc(mer.stock, mer.contracts, mer.shop_open, ["colossus", "hellfire"])
+	await da._wait(0.2)
+	var marked0: int = pp.marked
 	mer.request_pact.rpc_id(1, "hellfire")
 	await da._wait(0.3)
 	da.check(p.inv.count_of("pact_hellfire") == 1 and p.run_mods.size() == mods0 + 4, "a pact potion costs its stat")
+	var pact_row: Button = null
+	for r3 in pp._list.get_children():
+		if r3 is Button and str(r3.get_meta("key", "")) == "phellfire":
+			pact_row = r3
+	da.check(pact_row != null and pact_row.disabled and pact_row.get_node_or_null("Stamp") != null and pp.marked > marked0,
+			"the bought potion is stamped Bought at once, greyed")
+	hud.close_overlay()
 	mer.request_pact.rpc_id(1, "hellfire")
 	await da._wait(0.3)
 	da.check(p.inv.count_of("pact_hellfire") == 1 and p.run_mods.size() == mods0 + 4, "each potion is bought once per hero per floor")
@@ -439,6 +464,22 @@ func stock_rules() -> void:
 	var a1 := mer.stock.map(key)
 	mer.host_new_floor(4242, il)
 	da.check(a1 == mer.stock.map(key), "the same floor seed gives the same pieces (base, rarity, level)")
+
+
+## #94 (on the peer whose window `shop` is): stock line `idx` is sold out and shows it - greyed,
+## stamped Sold, not pressable, at the end of the list, and its purchase played the stamp.
+func sold_line_checks(shop: Node, idx: int, who: String) -> void:
+	var rows: Array = shop._buy_list.get_children().filter(func(c): return c is Button)
+	var row: Button = null
+	for r in rows:
+		if int(r.get_meta("stock_index", -1)) == idx:
+			row = r
+	da.check(row != null and row.disabled and row.get_node_or_null("Stamp") != null and row.self_modulate.v < 0.7,
+			"%s: the bought line is greyed, stamped and can't be pressed" % who)
+	var after_open := false
+	for r2 in rows.slice(rows.find(row) + 1) if row else []:
+		after_open = after_open or not r2.disabled
+	da.check(row != null and not after_open and shop.bought_fx >= 1, "%s: it moved after everything still for sale and its stamp arrived (%d)" % [who, shop.bought_fx])
 
 
 ## #95: over 120 seeded floors Malphas offers exactly the data's number of different contracts and
@@ -710,11 +751,17 @@ func run_lan() -> void:
 	await da._wait(0.4)
 	var price := int(g.merchants.stock[0].price)
 	var cg2 := c.gold
+	# #94: the host's window is open while the client buys: the line shows sold for the host too.
+	var hud2: Node = da.get_tree().get_first_node_in_group("hud")
+	hud2.open_overlay(hud2.ShopPanel.new())
+	await da._wait(0.4)
 	NetworkManager.to_clients("DevAuto", "client_cmd", ["eco_buy", 0])
 	await da._wait(0.8)
 	da.check(int(g.merchants.stock[0].left) == 0 and c.gold == cg2 - price, "the client bought stock line 0 for %d gold" % price)
+	sold_line_checks(hud2._overlay, 0, "host (a teammate's purchase)")
+	hud2.close_overlay()
 	NetworkManager.to_clients("DevAuto", "client_cmd", ["eco_check_stock", 0])
-	await da._wait(0.4)
+	await da._wait(0.8)
 	# On a Malphas floor the client pays the tithe.
 	await _force_merchant("malphas")
 	for pl in g.players_root.get_children():
@@ -812,6 +859,16 @@ func client_cmd(cmd: String, arg: Variant) -> void:
 			g.merchants.request_buy.rpc_id(1, int(arg))
 		"eco_check_stock":
 			da.check(int(g.merchants.stock[int(arg)].left) == 0 and g.merchants.shop_open, "the client sees the shared stock line sold out")
+			var hudc: Node = da.get_tree().get_first_node_in_group("hud")
+			hudc.open_overlay(hudc.ShopPanel.new())
+			await da._wait(0.4)
+			var rows: Array = hudc._overlay._buy_list.get_children().filter(func(x): return x is Button)
+			var row: Button = null
+			for r in rows:
+				if int(r.get_meta("stock_index", -1)) == int(arg):
+					row = r
+			da.check(row != null and row.disabled and row.get_node_or_null("Stamp") != null and rows.back() == row, "client: my window shows the line sold, stamped and last")
+			hudc.close_overlay()
 		"eco_check_merchant":
 			await da._wait(1.0)
 			var mp: Node = g.dungeon.props.get("Merchant")
@@ -822,6 +879,8 @@ func client_cmd(cmd: String, arg: Variant) -> void:
 			g.merchants.request_pact.rpc_id(1, str(arg[1][0]))
 			await da._wait(0.3)
 			g.merchants.request_pact.rpc_id(1, str(arg[1][0]))
+			await da._wait(0.3)
+			da.check(g.merchants.my_pacts == [str(arg[1][0])], "client: the host told me what I bought (%s)" % [g.merchants.my_pacts])
 		"eco_tithe":
 			var door0: Node = g.dungeon.leaf_door("merchant")
 			da.check(door0.interact_text().contains(Merchants.mod_text(Merchants.blood_price(int(g.layout.seed)))), "the client's door prompt names the same blood price (%s)" % door0.interact_text())

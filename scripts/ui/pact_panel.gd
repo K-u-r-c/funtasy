@@ -8,6 +8,9 @@ var _list: VBoxContainer
 var _card: VBoxContainer
 var _card_scroll: ScrollContainer
 var _last_sig := ""
+var _seen: Dictionary = {}  ## keys stamped at the last rebuild (#94), to animate new ones
+var marked := 0  ## stamps that arrived (tests)
+var _built := false
 
 
 func _init() -> void:
@@ -88,24 +91,41 @@ func _rebuild() -> void:
 	if not is_inside_tree():
 		return
 	_last_sig = str(player.run_mods.size())
-	for c in _list.get_children():
-		_list.remove_child(c)
-		c.queue_free()
+	var focused := get_viewport().gui_get_focus_owner()
+	var focus_key := str(focused.get_meta("key", "")) if focused and _list.is_ancestor_of(focused) else ""
+	UITheme.clear(_list)
 	_list.add_child(UITheme.section(Loc.t("Contracts"), "menu_save"))
 	var pool: Array = GameData.merchants.get("malphas", {}).get("contracts", [])
-	for i in merchants.contracts.size():
+	# #94: what this hero already signed / bought goes last, greyed and stamped.
+	var slots: Array = range(merchants.contracts.size())
+	slots.sort_custom(func(x, y):
+		var sx: bool = merchants.my_signed.has(x)
+		var sy: bool = merchants.my_signed.has(y)
+		return x < y if sx == sy else sy)
+	var just: Array = []
+	for i in slots:
 		var c: Dictionary = pool[int(merchants.contracts[i])]
 		var b := _row("")
 		# What it takes (red) and what it gives (green), each with its stat's icon (#29).
 		b.add_child(_chips([[c.give, UITheme.DANGER]], 10, "menu_back", [[c.get, UITheme.GOOD]]))
 		b.tooltip_text = Loc.f("Sacrifice %s  ->  gain %s", [Merchants.mod_text(c.give), Merchants.mod_text(c.get)])
 		var slot: int = i
+		b.set_meta("key", "c%d" % slot)
 		b.pressed.connect(func(): merchants.request_contract.rpc_id(1, slot))
 		b.focus_entered.connect(_show_mods.bind(Loc.t("Contract"), "", [c.give, c.get]))
 		b.mouse_entered.connect(_show_mods.bind(Loc.t("Contract"), "", [c.give, c.get]))
+		if merchants.my_signed.has(slot):
+			_mark(b, Loc.t("Signed"))
+			if _built and not _seen.has("c%d" % slot):
+				just.append(b)
 		_list.add_child(b)
 	_list.add_child(UITheme.section(Loc.t("Pact potions"), "ui_potion"))
-	for pid in merchants.pacts:
+	var ids: Array = merchants.pacts.duplicate()
+	ids.sort_custom(func(x, y):
+		var sx: bool = merchants.my_pacts.has(x)
+		var sy: bool = merchants.my_pacts.has(y)
+		return merchants.pacts.find(x) < merchants.pacts.find(y) if sx == sy else sy)
+	for pid in ids:
 		var d: Dictionary = GameData.pact_consumables[pid]
 		var b2 := _row(Loc.t(str(d.name)))
 		b2.add_child(_chips(d.cost.map(func(c): return [c, UITheme.DANGER]), -1))
@@ -113,14 +133,43 @@ func _rebuild() -> void:
 		b2.expand_icon = true
 		b2.add_theme_constant_override("icon_max_width", 22)
 		var id: String = pid
+		b2.set_meta("key", "p" + id)
 		b2.pressed.connect(func(): merchants.request_pact.rpc_id(1, id))
 		b2.focus_entered.connect(_show_mods.bind(Loc.t(d.name), Loc.t(d.description), d.cost))
 		b2.mouse_entered.connect(_show_mods.bind(Loc.t(d.name), Loc.t(d.description), d.cost))
+		if merchants.my_pacts.has(id):
+			_mark(b2, Loc.t("Bought"))
+			if _built and not _seen.has("p" + id):
+				just.append(b2)
 		_list.add_child(b2)
-	var first := _list.get_children().filter(func(c): return c is Button)
-	if not first.is_empty():
-		first[0].grab_focus.call_deferred()
-		first[0].focus_entered.emit()
+	_seen.clear()
+	for k in merchants.my_signed:
+		_seen["c%d" % int(k)] = true
+	for k2 in merchants.my_pacts:
+		_seen["p" + str(k2)] = true
+	var rows := _list.get_children().filter(func(c): return c is Button)
+	var target: Button = null
+	for r in rows:
+		if str(r.get_meta("key", "")) == focus_key:
+			target = r
+	if target == null and not rows.is_empty():
+		target = rows[0]
+	if target:
+		target.grab_focus.call_deferred()
+		target.focus_entered.emit()
+	_built = true
+	for r2 in just:
+		marked += 1
+		(func(): if is_instance_valid(r2): UITheme.stamp_in(r2)).call_deferred()
+
+
+## #94: a contract this hero signed / a potion it bought: greyed, stamped, not pressable again.
+func _mark(b: Button, word: String) -> void:
+	b.disabled = true
+	b.self_modulate = Color(0.5, 0.5, 0.56)
+	for c in b.get_children():
+		c.modulate.a = 0.45
+	b.add_child(UITheme.stamp(word, UITheme.GOLD))
 
 
 func _row(text: String) -> Button:

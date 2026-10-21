@@ -194,6 +194,7 @@ static func restore_host(g: Node, snap: Dictionary, boss_pos: Vector2) -> void:
 			if peer2 > 0:
 				m._pacted[peer2] = Array(ms.pacted[slot2])
 		m._sync.rpc(m.stock, m.contracts, m.shop_open, m.pacts)
+		m.host_sync_mine()
 	g.floor_time = float(snap.get("time", 0.0))
 	g.events.host_restore(snap.get("events", {}))
 

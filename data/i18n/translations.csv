@@ -494,7 +494,9 @@ Every price is paid in flesh - for the rest of the run,Każdą cenę płaci się
 Contracts,Kontrakty
 Sacrifice %s  ->  gain %s,Poświęć %s  ->  zyskaj %s
 Contract,Kontrakt
+Signed,Podpisano
 Pact potions,Mikstury paktu
+Bought,Kupiono
 Resume,Wznów
 Paused,Pauza
 The game keeps running for your party,Gra toczy się dalej dla twojej drużyny
@@ -540,6 +542,7 @@ Buy / sell,Kup / sprzedaj
 For sale (shared with the party),Na sprzedaż (wspólne dla drużyny)
 Your backpack - sell,Twój plecak - sprzedaż
 Gold: %d,Złoto: %d
+Sold,Sprzedane
 Nothing to sell.,Nic do sprzedania.
 Bargain Shrine,Kapliczka paktów
 Strike the bargain,Zawrzyj pakt

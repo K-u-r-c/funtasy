@@ -439,6 +439,40 @@ static func stick_scroll(sc: ScrollContainer, delta: float) -> void:
 		sc.scroll_vertical += int(v * 420.0 * delta)
 
 
+## #94: the stamp over a bought / signed trade row ("Sold", "Signed", "Bought"): an upper-case
+## word in a framed dark pill, pinned to the row's right end. `stamp_in` plays its arrival.
+static func stamp(text: String, color: Color) -> PanelContainer:
+	var p := PanelContainer.new()
+	p.name = "Stamp"
+	p.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	p.add_theme_stylebox_override("panel", glass(Color("140608e8"), color, 2, 3))
+	var l := label(text.to_upper(), color.lightened(0.15), FONT_SMALL)
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	p.add_child(l)
+	p.set_anchors_and_offsets_preset(Control.PRESET_CENTER_RIGHT)
+	p.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	p.offset_right = -6
+	p.offset_top = -10
+	p.offset_bottom = 10
+	return p
+
+
+## #94: a stamp arriving on a row that was just bought: it fades in with a bright flash and the
+## row flashes with it (no scaling: that shimmers on pixel art).
+static func stamp_in(row: Control) -> void:
+	var st: Control = row.get_node_or_null("Stamp")
+	if st:
+		st.modulate.a = 0.0
+		var tw := st.create_tween()
+		tw.tween_property(st, "modulate:a", 1.0, 0.12)
+		tw.tween_property(st, "self_modulate", Color(2.2, 2.0, 1.6), 0.06)
+		tw.tween_property(st, "self_modulate", Color.WHITE, 0.35)
+	# `modulate`, not `self_modulate`: that one keeps the row's grey.
+	var rt := row.create_tween()
+	rt.tween_property(row, "modulate", Color(1.8, 1.7, 1.4), 0.05)
+	rt.tween_property(row, "modulate", Color.WHITE, 0.3)
+
+
 ## A small glass pill with an icon and a value (gold, points, keys...).
 static func chip(icon_key: String, text: String, color: Color = TEXT, border: Color = EDGE) -> PanelContainer:
 	var p := PanelContainer.new()
