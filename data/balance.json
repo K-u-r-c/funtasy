@@ -472,7 +472,7 @@
 		"forge_legendary_share": [0.15, 1.0],
 		"event_value_min": 0.8, "event_value_max": 4.5,
 		"cycle_ttk_min": 0.75, "cycle_ttd_max": 1.35,
-		"mod_cost_band": [1.0, 1.6], "mod_reward_min": 0.8, "rarity_gold": [4, 12, 40, 110, 300],
+		"mod_cost_band": [0.95, 1.6], "mod_reward_min": 0.8, "rarity_gold": [4, 12, 40, 110, 300],
 		"restless_still_melee": 0.25, "restless_still_ranged": 0.2, "dimmed_damage_factor": 1.2, "travel_s_per_floor": 150
 	}
 }
