@@ -28,8 +28,10 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	_t += delta
 	var hud := get_parent()
-	var p: Player = hud.get("player") if hud else null
-	if p == null or not is_instance_valid(p) or not Settings.screen_shake or p.life_state != Player.Life.ALIVE:
+	# The hero can be freed before the HUD when a session ends: check before the typed read.
+	var ref: Variant = hud.get("player") if hud else null
+	var p: Player = ref if is_instance_valid(ref) else null
+	if p == null or not Settings.screen_shake or p.life_state != Player.Life.ALIVE:
 		low = false
 		_mat.set_shader_parameter("strength", 0.0)
 		_last_hp = -1.0
