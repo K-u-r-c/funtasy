@@ -81,8 +81,14 @@ func move_override(delta: float) -> Vector2:
 	if d <= float(p("follow", 60.0)):
 		_track_stuck(delta, false)
 		return Vector2.ZERO
+	# Close by but blocked (a wall corner, the leader against a wall): wait there, it is no jam.
+	if d <= float(p("follow", 60.0)) * 2.0 and _stuck > 0.5:
+		_track_stuck(delta, false)
+		return Vector2.ZERO
 	# Walk to a spot at the leader's side (through doors and around corners: the path finder).
 	var spot: Vector2 = leader.global_position + to_leader.normalized().orthogonal() * 28.0 * _side - to_leader.normalized() * 20.0
+	if g.dungeon.cell_at(g.dungeon.cell_of(spot)) != DungeonGenerator.CELL_FLOOR:
+		spot = leader.global_position  # the side spot is in a wall: go to the leader itself
 	_track_stuck(delta, true)
 	return enemy._path_dir(g, spot, delta)
 

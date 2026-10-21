@@ -221,10 +221,13 @@ static func _motes(world: Node, from: Vector2, to: Node2D, c: Color, n: int, lif
 		var delay := i * 0.05
 		var tw := m.create_tween()
 		tw.tween_interval(delay)
+		# A weak reference: the target (a hero leaving the session) may be freed mid-flight.
+		var to_ref: WeakRef = weakref(to)
 		tw.tween_method(func(u: float):
-			if not is_instance_valid(to):
+			var tgt: Node2D = to_ref.get_ref()
+			if tgt == null:
 				return
-			var end := to.global_position + Vector2(0, -16)
+			var end := tgt.global_position + Vector2(0, -16)
 			var mid := (start + end) / 2.0 + bend
 			m.global_position = start.lerp(mid, u).lerp(mid.lerp(end, u), u)
 			m.scale = Vector2(0.035, 0.035) * (1.0 - 0.5 * u), 0.0, 1.0, life)
