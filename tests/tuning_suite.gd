@@ -1,6 +1,7 @@
 class_name TuningSuite
 extends RefCounted
-## Tenth playtest tuning (scenario "tuning", solo mage): #103 leech heals half its rating.
+## Tenth playtest tuning (scenario "tuning", solo mage): #103 leech heals half its rating, #104
+## Fireball's 5 s cooldown.
 
 var da: Node
 var g: Node
@@ -26,6 +27,7 @@ func run() -> void:
 	var start: Vector2 = g.nearest_floor(g.layout.start)
 	p.host_teleport(start)
 	await run_leech(start)
+	await run_fireball(start)
 
 
 ## #103: a leech hit heals damage x Leech x combat.leech_efficiency (0.5, data), per hit and per
@@ -117,3 +119,19 @@ func run_leech(start: Vector2) -> void:
 		if is_instance_valid(d):
 			d.queue_free()
 	p.health.hp = p.health.max_hp
+
+
+## #104: Fireball's cooldown is 5 s in data and a real cast waits that long (less haste); Ash
+## Harvest's reset is checked by the boon tests (`boons-mage`).
+func run_fireball(start: Vector2) -> void:
+	var sk := GameData.skill("mage_fireball")
+	da.check(is_equal_approx(float(sk.get("cooldown", 0.0)), 5.0), "Fireball's cooldown is 5 s in data (%.1f)" % float(sk.get("cooldown", 0.0)))
+	p.host_teleport(start)
+	p.cooldowns.clear()
+	p.resource.value = p.resource.max_value
+	await da._wait(0.2)
+	var err := Combat.instance.try_use_skill(p, "mage_fireball", start + Vector2(120, 0))
+	await da._wait(0.1)
+	var left := p.cooldown_left("mage_fireball")
+	var want := p.stats.cooldown_for(sk)
+	da.check(err.is_empty() and want > 4.0 and absf(left - want) < 0.3, "a real Fireball goes on a ~5 s cooldown (%.2f s left, %.2f s with haste)%s" % [left, want, "" if err.is_empty() else ": " + err])

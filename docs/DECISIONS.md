@@ -107,7 +107,7 @@ proposal left a choice open, the chosen option is stated, and any change to a pr
 | # | Topic | Decision | Where |
 | --- | --- | --- | --- |
 | D1 | 30 skills vs 5 slots | Skills are **unlocked in the talent tree** (each branch holds 10 of the class's 30 skills as unlock nodes on tiers 0-5) and **slotted** in the Skill Book (primary + 1-5). The loadout is saved with the hero; swapping is allowed out of combat only. **Start:** the six skills of the MVP kit (primary + 5, renamed to their GDD names) are tier-0 nodes that come unlocked for free, so a new hero has a full bar, exactly like before. Other tier-0 nodes cost one point. | `data/talents/<class>.json` (`starter: true`), `player.gd` |
-| D2 | Primary attack | The LMB slot takes any unlocked skill tagged `primary_ok` (cooldown <= 1.2 s). Defaults: Fury Strike, Aimed Shot, **Frostbolt** for the Mage (Fireball's 2.5 s is too slow for LMB), Smite. | `data/skills/*.json` |
+| D2 | Primary attack | The LMB slot takes any unlocked skill tagged `primary_ok` (cooldown <= 1.2 s). Defaults: Fury Strike, Aimed Shot, **Frostbolt** for the Mage (Fireball's 5 s cooldown, #104, is too slow for LMB), Smite. | `data/skills/*.json` |
 | D3 | Talent vs skill points | One pool: "talent points" unlock skills, rank up passives and buy keystones. The legendary tome gives +1 talent point. | `player.gd` |
 | D4 | Passives and toggles | Passives (Feral Ferocity, Thrill of the Hunt, Crusader's Zeal) work as soon as they are unlocked and take no slot. Toggles (Mana Shield, Eagle Eye) take a slot and switch on and off (no cooldown beyond the GDD's 1-2 s). | `combat.gd` |
 | D5 | Stat points | The class `per_level` growth is **halved** (data) and every level gives **5 free points** spent in the Character panel. No respec. Saved with the hero. | `data/classes/*.json`, `player.gd` |
@@ -1448,4 +1448,11 @@ Tree shapes ("A > B": B grows from A; {x / y}: branches; (x): a fork side; [n]: 
 | Display | Sources show their Leech rating ("+2% leech"); the character sheet's and inventory's Leech row and a skill tooltip's leech line show the share that really heals (`Combat.leech_share`), and the Leech row's description says it is half of the Leech on gear, talents and boons. |
 | Kept | Monsters' leech (the Vampiric elite) is unscaled. Not the Leech stat and unchanged: Hellfire Mitts' burn leech, Unholy Leech Oil's party leech, on-crit / on-heal proc heals, Feeding Shadows. |
 | Tests | `tuning`: a hit and an area's hits heal half their old share, the coefficient comes from data, the Leech rows and the skill tooltip show the healed share, a Vampiric elite keeps its full leech, Leech Oil still heals 20%. |
+
+### #104 Fireball: a 5 s cooldown
+
+| Topic | Decision |
+| --- | --- |
+| Rule | Fireball's cooldown is 5.0 s (was 2.5 s) in `data/skills/mage.json`; damage, burn, blast and its 20 Mana cost are unchanged. Haste, Ash Harvest's reset and the other cooldown effects work on top of it as before. |
+| Tests | `tuning`: the data value and a real cast's ~5 s cooldown; `boons-mage`: Ash Harvest still resets it. |
 
