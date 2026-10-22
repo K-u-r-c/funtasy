@@ -1,7 +1,8 @@
 class_name TuningSuite
 extends RefCounted
 ## Tenth playtest tuning (scenario "tuning", solo mage): #103 leech heals half its rating, #104
-## Fireball's 5 s cooldown, #109 ground-targeted skills stop at walls and closed doors.
+## Fireball's 5 s cooldown, #109 ground-targeted skills stop at walls and closed doors, #110 ranged
+## monsters wait about a second before they shoot.
 
 var da: Node
 var g: Node
@@ -29,6 +30,7 @@ func run() -> void:
 	await run_leech(start)
 	await run_fireball(start)
 	await run_walls()
+	await run_ranged()
 
 
 ## #103: a leech hit heals damage x Leech x combat.leech_efficiency (0.5, data), per hit and per
@@ -248,3 +250,84 @@ func run_walls() -> void:
 	if is_instance_valid(dm):
 		dm.queue_free()
 
+
+## Seconds until `e` starts an attack of `sids` (its cast, or a fresh cooldown over 0.5 s), at most `limit`.
+func _until_shot(e: Node, sids: Array, limit: float) -> float:
+	var t := 0.0
+	while t < limit:
+		if not is_instance_valid(e):
+			return INF
+		if sids.has(str(e.casting.get("skill", ""))) or sids.any(func(x): return e.cooldown_left(str(x)) > 0.5):
+			return t
+		await da.get_tree().physics_frame
+		t += da.get_physics_process_delta_time()
+	return INF
+
+
+## #110: a skeleton archer that notices the hero waits ~1 s before its first shot; out of sight and
+## back it waits again; in constant sight later shots come at the cooldown; a melee monster, a
+## freed prisoner and a boss aren't slowed.
+func run_ranged() -> void:
+	for e in g.enemies_root.get_children():
+		e.queue_free()
+	await da._wait(0.3)
+	# The walls test's meteor left its lava burning: nothing of it may touch the archer.
+	for zid in Combat.instance.zones.keys():
+		Combat.instance.zones.erase(zid)
+		Combat.instance.fx.zone_end.rpc(zid)
+	Combat.instance.delayed.clear()
+	var delay := float(GameData.bal("ai.ranged_reaction_delay", 0.0))
+	da.check(is_equal_approx(delay, 1.0), "ranged monsters' reaction delay is 1 s in data (%.2f)" % delay)
+	var sides := _door_sides()
+	if sides.is_empty():
+		return
+	var door: Node = sides[0]
+	var a: Vector2 = sides[1]
+	var b: Vector2 = sides[2]
+	p.iframe_left = 9999.0
+	door.host_set_open(false)
+	p.host_teleport(b)
+	await da._wait(0.3)
+	var shots := ["skeleton_arrow", "skeleton_splinter"]
+	var arch: Enemy = g.spawn_monster("skeleton_archer", a, false)
+	await da._wait(0.1)
+	# It keeps its spot: backing off to its range it could step out of the doorway's line of sight,
+	# which (by design) restarts its wait.
+	arch._preferred = [0, 500]
+	# Out of sight behind the closed door: no shot.
+	var t0 := await _until_shot(arch, shots, 1.5)
+	da.check(t0 == INF, "an archer behind a closed door doesn't shoot")
+	# The door opens: it sees the hero and waits about a second.
+	door.host_set_open(true)
+	await da.get_tree().physics_frame
+	var t1 := await _until_shot(arch, shots, 4.0)
+	da.check(t1 >= delay - 0.05 and t1 < delay + 1.0, "an archer that sees the hero first shoots after %.2f s (wants ~%.1f s)" % [t1, delay])
+	# Constant sight: the next shot comes as soon as a cooldown allows, no new delay.
+	await da._wait_until(func(): return not is_instance_valid(arch) or arch.casting.is_empty(), 2.0)
+	for sid in shots:
+		arch.cooldowns[str(sid)] = 0.3
+	var t2 := await _until_shot(arch, shots, 4.0)
+	da.check(t2 < 0.25 + 0.6, "in constant sight the next shot follows its cooldown with no new delay (%.2f s after a 0.3 s cooldown)" % t2)
+	# Out of sight and back: it waits again.
+	door.host_set_open(false)
+	await da._wait(0.6)
+	arch.cooldowns.clear()
+	door.host_set_open(true)
+	await da.get_tree().physics_frame
+	var t3 := await _until_shot(arch, shots, 4.0)
+	da.check(t3 >= delay - 0.05, "back in sight after losing it, the archer waits again (%.2f s)" % t3)
+	arch.queue_free()
+	# A melee monster swings at once; allies and bosses have no delay.
+	var foot: Enemy = g.spawn_monster("skeletal_footman", g.nearest_floor(b + Vector2(20, 0)), false)
+	var t4 := await _until_shot(foot, ["footman_slash"], 3.0)
+	da.check(t4 < delay, "a melee monster isn't slowed (first swing after %.2f s)" % t4)
+	foot.queue_free()
+	var ally: Enemy = g.spawn_monster("freed_prisoner_ranger", g.nearest_floor(b + Vector2(-40, 0)), false, {"team": Actor.Team.PLAYERS})
+	await da._wait(0.1)
+	da.check(ally.ranged_reaction_delay() == 0.0 and ally.ranged_ready(), "a freed prisoner (an ally) shoots without the delay")
+	ally.queue_free()
+	var boss: Enemy = g.spawn_monster("vespera", g.nearest_floor(b + Vector2(-200, 0)), true)
+	await da._wait(0.1)
+	da.check(boss.ranged_reaction_delay() == 0.0, "a boss keeps its own timing")
+	boss.queue_free()
+	await da._wait(0.2)

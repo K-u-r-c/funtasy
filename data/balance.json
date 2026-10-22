@@ -316,7 +316,9 @@
 		"separation_force": 60,
 		"projectile_range_use": 0.85,
 		"heal_ally_below": 0.7,
-		"boss_knockback_taken": 0.25, "lunge_grace": 1.5
+		"boss_knockback_taken": 0.25, "lunge_grace": 1.5,
+		"_ranged_reaction_delay": "#110: a monster keeps its target in sight this long before its first ranged attack (again after losing sight); a monster's ai.ranged_reaction_delay overrides it; bosses and the heroes' allies have none.",
+		"ranged_reaction_delay": 1.0
 	},
 	"hazards": {
 		"lava_damage": 10,

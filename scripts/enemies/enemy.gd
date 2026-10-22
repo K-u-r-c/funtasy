@@ -27,6 +27,9 @@ var _arena := Rect2()  ## host: the boss room a boss spawned in (world px); empt
 var _guard_left := 0.0
 var arena_returns := 0  ## host: times the arena guard put this boss back (tests)
 var _aggro_since := -1.0  ## host: when this monster first noticed a hero (seconds)
+var _clock := 0.0  ## host: seconds this monster has run its AI
+var _sight_target: Actor = null  ## host (#110): the target it has kept in sight since _sight_from
+var _sight_from := 0.0
 var lifetime := -1.0  ## host: summoned minions and decoys expire
 var elite: Array = []  ## elite modifier ids (D10), from the spawn data on every peer
 var hunter := ""  ## #71 Hunted: the hunter's name ("" = an ordinary monster)
@@ -404,6 +407,7 @@ func _host_ai(delta: float) -> void:
 	var game := get_tree().get_first_node_in_group("game")
 	if game == null:
 		return
+	_clock += delta
 	_think_left -= delta
 	if _think_left <= 0.0:
 		_think_left = float(GameData.bal("ai.think_interval")) * randf_range(0.8, 1.2)
@@ -470,12 +474,15 @@ func _think(game: Node) -> void:
 		return
 	var dist := global_position.distance_to(target.global_position)
 	var los := Combat.instance.has_los(global_position, target.global_position)
+	_track_sight(los)
 	for sid in _abilities:
 		if cooldown_left(sid) > 0.0:
 			continue
 		var skill := GameData.skill(sid)
 		var aim := target.global_position
 		if not _ability_usable(skill, dist, los):
+			continue
+		if is_ranged_attack(skill) and not ranged_ready():
 			continue
 		if _is_heal(skill):
 			var hurt := _hurt_ally(float(skill.effects[0].get("max_range", 250)))
@@ -485,6 +492,37 @@ func _think(game: Node) -> void:
 		if Combat.instance.try_use_skill(self, sid, aim).is_empty():
 			facing = (aim - global_position).normalized() if aim != global_position else facing
 			break
+
+
+## #110: the target in sight (and since when); losing sight or switching target starts again.
+func _track_sight(los: bool) -> void:
+	if not los:
+		_sight_target = null
+	elif target != _sight_target:
+		_sight_target = target
+		_sight_from = _clock
+
+
+## #110: seconds a monster keeps its target in sight before its first ranged attack (data:
+## balance ai.ranged_reaction_delay, or the monster's own ai.ranged_reaction_delay). Bosses keep
+## their tuned patterns, the heroes' allies (freed prisoners, summons) aren't slowed.
+func ranged_reaction_delay() -> float:
+	if is_boss or team != Team.MONSTERS:
+		return 0.0
+	return float(def.get("ai", {}).get("ranged_reaction_delay", GameData.bal("ai.ranged_reaction_delay", 1.0)))
+
+
+func ranged_ready() -> bool:
+	return _sight_target != null and _sight_target == target and _clock - _sight_from >= ranged_reaction_delay() - 0.001 \
+			or ranged_reaction_delay() <= 0.0
+
+
+## #110: a shot or another attack at range (projectile, instant hit, chain, beam).
+static func is_ranged_attack(skill: Dictionary) -> bool:
+	for eff in skill.get("effects", []):
+		if str(eff.get("type", "")) in ["projectile", "hit", "chain", "beam"]:
+			return true
+	return false
 
 
 func _ability_usable(skill: Dictionary, dist: float, los: bool) -> bool:
