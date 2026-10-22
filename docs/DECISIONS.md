@@ -79,7 +79,7 @@ Each one is an assumption that can be changed; most are a single value in `data/
 | Talents | 1 point per level from level 2; 8 nodes per class in 4 rows; row N needs 2N points spent; some nodes need a previous node. Reset is free. | `data/talents/*.json` |
 | Downed / ghost | 0 HP -> downed for 10 s. A living teammate holds Interact nearby for 2 s to revive at 35% HP. Otherwise the player becomes a ghost: invisible to enemies, camera spectates living teammates until the next floor, where ghosts return at 50% HP. | `balance.player` |
 | Party wipe | When no player is left standing (everyone downed or a ghost) the game is **over**: its save is deleted with its heroes and the party returns to the lobby to start a new game. | `game.gd` `_check_wipe`, `GameState.end_game` |
-| Scaling | Per extra player: monster HP +60% (boss +70%), damage +12%, monster count +30%. Per monster level: HP +22%, damage +14%. Difficulty setting multiplies HP and damage (0.75 / 1.0 / 1.4). | `balance.scaling`, `game_settings.json` |
+| Scaling | Per extra player: monster HP +60% (boss +70%), damage +12%, monster count +30%. Per monster level: HP +22%, damage +14%. Difficulty setting (#108) multiplies HP / damage: Easy 1.0 / 1.0, Medium 1.5 / 1.25, Hard 2.5 / 1.6 (default Medium). | `balance.scaling`, `game_settings.json` |
 | Descending | When the boss dies a portal opens in the boss room. Walking into it does nothing: every living player has to **interact** with it to be ready (interacting again cancels), and the party descends once all living players are ready. Downed players and ghosts come along. |
 | Choosing an interaction | Everything in reach is a candidate; with the mouse the candidate closest to the cursor is used, with a gamepad the one the character faces (nearer first on ties). The prompt shows which one it is. | `game.gd` `find_interactable` |
 | Floor types | Floor type order cycles through `data/floor_types/` by depth (MVP: only `crypt`). The boss is defined by the floor type. | `game.gd` `start_floor` |
@@ -1431,3 +1431,11 @@ Tree shapes ("A > B": B grows from A; {x / y}: branches; (x): a fork side; [n]: 
 | --- | --- |
 | Rule | Every priest skill that heals costs about 1.8x its mana: Flash Heal 25 -> 45, Renew 15 -> 27, Renewal 45 -> 80, Holy Nova 30 -> 55, Lightwell 40 -> 70, Penance 12 -> 22 mana a second (its description too). A full bar of a fresh priest affords 3 Flash Heals instead of 5. The primary (Holy Strike) and Smite stay free (Smite's small heal was cut in #67), Purify (a cleanse) keeps its 10; the damage skills and the shield are unchanged. Talents and items that lower costs apply to the new numbers as before. |
 | Tests | `skills-priest`: the heal costs are ~1.8x the old ones and the other skills unchanged; a real Flash Heal spends 45 mana; a full bar affords fewer heals. |
+
+### #108 Difficulty: Easy is the old Normal, Medium and Hard much tougher
+
+| Topic | Decision |
+| --- | --- |
+| Rule | The lobby difficulty has three options, Easy / Medium / Hard, each with its own monster HP and damage multiplier in `data/game_settings.json` (`values`: `{"hp", "damage"}`): Easy 1.0 / 1.0 (the old Normal), Medium 1.5 / 1.25, Hard 2.5 / 1.6. `Game.spawn_mults` takes the pair (`Game.difficulty_mults`); normal monsters, elites, bosses, summons and event monsters all get it. The old 0.75 Easy is gone. |
+| Default | Medium. Lobby settings aren't saved between sessions, so every new lobby starts on Medium. |
+| Tests | Automated runs set Easy (the baseline the balance probes are tuned to) unless a test passes `--set=difficulty:<index>`. `balance-*`: the options and default, each option's pair, and a spawned normal / elite / boss scaled by exactly its pair; every LAN client checks it got the host's difficulty. |

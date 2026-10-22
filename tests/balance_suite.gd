@@ -209,6 +209,49 @@ func run_fresh(depths: Array = [1, 2]) -> void:
 	p.recompute_stats()
 
 
+## #108: the lobby difficulty scales every spawned monster (normal, elite, boss) by its data
+## (HP, damage) pair; Easy is the old Normal (1.0 / 1.0) and the lobby default is Medium.
+func run_difficulty() -> void:
+	g = da._game()
+	p = da._local()
+	var keep: Variant = GameState.setting("difficulty")
+	var def := GameData.game_setting_def("difficulty")
+	da.check(Array(def.options) == ["Easy", "Medium", "Hard"] and int(def.default) == 1,
+		"difficulty options are Easy / Medium / Hard and the lobby default is Medium (%s, %s)" % [def.options, def.default])
+	var want := [Vector2(1.0, 1.0), Vector2(1.5, 1.25), Vector2(2.5, 1.6)]
+	for i in 3:
+		da.check(g.difficulty_mults(i).is_equal_approx(want[i]), "difficulty %d multiplies monster HP / damage by %s (%s)" % [i, want[i], g.difficulty_mults(i)])
+	da.check(g.spawn_mults(3, 5, false, 1).is_equal_approx(g.spawn_mults(3, 5, false, 1, g.difficulty_mults(0))),
+		"Easy is the old Normal baseline (multiplier 1.0)")
+	var spot: Vector2 = g.nearest_floor(g.layout.start + Vector2(70, 0))
+	var kinds := [["skeleton_archer", false, {}], ["skeleton_archer", false, {"elite": ["frenzied"]}], ["morvath", true, {}]]
+	for k in kinds:
+		var base := Vector2.ZERO
+		var base_hp := 0.0
+		var bad: Array = []
+		for i in 3:
+			GameState.settings["difficulty"] = i
+			var m: Enemy = g.spawn_monster(str(k[0]), spot, bool(k[1]), k[2])
+			if not is_instance_valid(m):
+				bad.append("no spawn")
+				break
+			# Read at once and freeze it: nothing may hit the hero during the probe.
+			m.set_process(false)
+			m.set_physics_process(false)
+			var v := Vector2(m.hp_mult, m.dmg_mult)
+			var hp: float = m.health.max_hp
+			m.queue_free()
+			await da._wait(0.1)
+			if i == 0:
+				base = v
+				base_hp = hp
+			elif not (v / base).is_equal_approx(want[i]) or absf(hp / base_hp - want[i].x) > 0.02:
+				bad.append("%d: %s hp x%.2f" % [i, v / base, hp / base_hp])
+		da.check(bad.is_empty(), "difficulty scales a %s%s exactly by its HP / damage pair (%s)" % [
+			"boss " if k[1] else ("elite " if not k[2].is_empty() else ""), k[0], bad])
+	GameState.settings["difficulty"] = keep
+
+
 ## Rare (tier 3) gear of the floor's item level, the hero at `level` with all points in the main stat.
 func _gear_up(level: int, at_depth: int) -> void:
 	p.level = level

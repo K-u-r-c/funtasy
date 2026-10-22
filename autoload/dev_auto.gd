@@ -235,6 +235,10 @@ func _run() -> void:
 		if mode != "solo" and scenario == "full":
 			GameState.set_setting("friendly_fire", true)
 			GameState.set_setting("friendly_fire", false)
+		# #108: the lobby default is Medium; automated runs play on Easy (the old Normal the
+		# probes are tuned to) unless a test asks for another one (--set=difficulty:<index>).
+		if not set_args.has("difficulty"):
+			GameState.set_setting("difficulty", 0)
 		for k in set_args:
 			GameState.set_setting(k, set_args[k])
 		NetworkManager.start_run()
@@ -242,6 +246,8 @@ func _run() -> void:
 		NetworkManager.session_closed.connect(_on_client_session_closed, CONNECT_ONE_SHOT)
 	var in_game := await _wait_until(func(): return _game() != null and _game().depth >= 1 and _local() != null, 25.0)
 	check(in_game, "%s entered floor 1 with a spawned player" % mode)
+	if mode == "join":
+		check(int(GameState.setting("difficulty")) == int(set_args.get("difficulty", 0)), "the client got the host's difficulty (%s)" % GameState.setting("difficulty"))
 	if not in_game:
 		_finish("no game")
 		return
@@ -268,6 +274,7 @@ func _run() -> void:
 			"progression":
 				BalanceSuite.new(self).run_progression()
 			"balance":
+				await BalanceSuite.new(self).run_difficulty()
 				await BalanceSuite.new(self).run_fresh()
 				await BalanceSuite.new(self).run()
 				await BalanceSuite.new(self).run_mods()

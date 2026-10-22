@@ -150,6 +150,10 @@ screenshot review at 1920x1080 and 3440x1440.
 - [x] #55 A continued game resumes its floor: run seed and a floor snapshot in the save (monsters, boss / portal, items, props, chests, doors, torches, cells, Gold Key, merchant, every hero's place / HP / life state, every player's map), written on quit, window close, boss kill and every 20 s (`resume`, `resume-lan`; old saves still load)
 - [x] #60 The lobby preview of a saved hero shows its saved gear (replicated with the game info), on the host and every client (`resume`, `resume-lan`; lobby screenshot before / after)
 
+## Tenth playtest issues (GitHub #103-#110)
+
+- [x] #108 Difficulty Easy / Medium / Hard with separate monster HP / damage multipliers (1.0 / 1.0, 1.5 / 1.25, 2.5 / 1.6); Easy is the old Normal, the lobby default is Medium; automated runs play on Easy unless `--set=difficulty:<i>` (`balance-*`, every LAN client)
+
 ## Ninth playtest issues (GitHub #83-#100)
 
 - [x] #84 Monsters scale faster with depth: from floor 4 +2.5% HP and +3% damage per floor on top of the levels (floor 10 +18% / +21%, floor 20 +43% / +51%); mod cost band, the mimic and the arena's last wave adjusted (`balance-*`, `mods`, `events`)

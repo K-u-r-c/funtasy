@@ -444,11 +444,11 @@ func party_level() -> float:
 
 
 ## Spawn HP / damage multipliers (x, y) of a monster of level `lvl` on `at_depth` for `n`
-## heroes at difficulty `diff` (the balance probe runs the same function).
-static func spawn_mults(at_depth: int, lvl: int, boss: bool, n: int, diff: float = 1.0) -> Vector2:
-	var hp_mult := (1.0 + float(GameData.bal("scaling.hp_per_level")) * (lvl - 1)) * diff
+## heroes at difficulty `diff` (x = HP, y = damage multiplier; the balance probe runs the same function).
+static func spawn_mults(at_depth: int, lvl: int, boss: bool, n: int, diff: Vector2 = Vector2.ONE) -> Vector2:
+	var hp_mult := (1.0 + float(GameData.bal("scaling.hp_per_level")) * (lvl - 1)) * diff.x
 	hp_mult *= 1.0 + float(GameData.bal("scaling.boss_hp_per_extra_player" if boss else "scaling.hp_per_extra_player")) * (n - 1)
-	var dmg_mult := (1.0 + float(GameData.bal("scaling.damage_per_level")) * (lvl - 1)) * diff
+	var dmg_mult := (1.0 + float(GameData.bal("scaling.damage_per_level")) * (lvl - 1)) * diff.y
 	dmg_mult *= 1.0 + float(GameData.bal("scaling.damage_per_extra_player")) * (n - 1)
 	# #84: deeper floors grow tougher on top of the levels, from depth_growth_from on.
 	var past := maxi(at_depth - int(GameData.bal("scaling.depth_growth_from", 3)), 0)
@@ -491,11 +491,19 @@ static func kill_xp(def: Dictionary, mon_level: int, elite: bool, party_size: in
 	return roundi(xp)
 
 
-func _difficulty() -> float:
-	var d := GameData.game_setting_def("difficulty")
-	var idx := int(GameState.setting("difficulty"))
-	var values: Array = d.get("values", [1.0])
-	return float(values[clampi(idx, 0, values.size() - 1)])
+## #108: the lobby difficulty's monster (HP, damage) multipliers.
+func _difficulty() -> Vector2:
+	return difficulty_mults(int(GameState.setting("difficulty")))
+
+
+static func difficulty_mults(idx: int) -> Vector2:
+	var values: Array = GameData.game_setting_def("difficulty").get("values", [])
+	if values.is_empty():
+		return Vector2.ONE
+	var v: Variant = values[clampi(idx, 0, values.size() - 1)]
+	if v is Dictionary:
+		return Vector2(float(v.get("hp", 1.0)), float(v.get("damage", 1.0)))
+	return Vector2(float(v), float(v))
 
 
 func player_by_peer(peer: int) -> Player:

@@ -999,9 +999,9 @@ Friendly fire,Ogień sojuszniczy
 "Projectiles, AoE, explosions and traps also hurt allies.","Pociski, obszary, wybuchy i pułapki ranią też sojuszników."
 Difficulty,Poziom trudności
 Easy,Łatwy
-Normal,Normalny
+Medium,Średni
 Hard,Trudny
-Multiplies monster health and damage.,Mnoży zdrowie i obrażenia potworów.
+"Multiplies monster health and damage: Medium +50% health and +25% damage, Hard +150% health and +60% damage.","Mnoży zdrowie i obrażenia potworów: Średni +50% zdrowia i +25% obrażeń, Trudny +150% zdrowia i +60% obrażeń."
 Torches,Pochodnie
 On: take torches from the walls to light the dark. Off: every hero carries a steady light of their own.,"Włączone: zdejmujesz pochodnie ze ścian, by rozświetlić mrok. Wyłączone: każdy bohater niesie własne, stałe światło."
 Shared vision,Wspólne widzenie
