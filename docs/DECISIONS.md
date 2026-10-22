@@ -1510,3 +1510,11 @@ Tree shapes since #106 (the starting skills are the shared root above the branch
 | Rule | While the warning runs, the host checks every tick that a living hero is inside; if none is, the sealing is called off: state back to `"idle"`, doors stay open, the `"cancel"` alarm removes the "Sealing" markers on every peer and says "You left the arena - its trial waits for you to step back in". Walking in again starts the full warning from the beginning. A trial already sealed still lapses after `fail_time` as before. |
 | Tests | `events`: stepping in and out during the warning leaves the arena unsealed with no wave; back inside, the full warning runs again before the doors seal. `events-lan`: the client steps in and out; on the client the sealing is called off (markers gone, doors open). |
 
+### #114 Buy back from Archibald
+
+| Topic | Decision |
+| --- | --- |
+| Rule | Archibald keeps what each hero sold him this floor (`Merchants._buyback`, host, per peer; newest first, up to `buyback_max` = 10 in `data/merchants.json`; a stack sold one by one comes back one by one). His window shows it under the backpack as "Buy back (sold this floor)", each line for the gold it fetched; buying it back returns the identical item (same rolls and uid) if the backpack has room. |
+| Scope | Per hero: each hero sees only their own list (`_sync_mine` carries it to its owner). It lasts for the floor: saved with the floor snapshot (by save slot, like Malphas's contracts), cleared on the next floor. Malphas buys nothing, so he has no list. |
+| Tests | `economy`: a sale appears under Buy back at its price, the window lists it, a full backpack refuses, buying back returns the same item for the same gold, the floor's save keeps the list, the next floor clears it. `economy-lan`: the client sells and buys back its item; the host's own list stays empty. |
+

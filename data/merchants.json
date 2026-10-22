@@ -43,6 +43,8 @@
 		"rarity_weights": {"2": 40, "3": 38, "4": 18, "5": 4},
 		"ilvl_above": [0, 2],
 		"party_class_weight": 6.0,
+		"_buyback": "#114: how many of the items each hero sold him this floor Archibald keeps to sell back (newest first)",
+		"buyback_max": 10,
 		"consumables": {
 			"potion_health": 5,
 			"potion_mana": 5,

@@ -127,6 +127,7 @@ Sold out,Wyprzedane
 Bought %s for %d gold,Kupiono: %s za %d szt. złota
 Archibald won't buy that,Archibald tego nie kupi
 Sold %s for %d gold,Sprzedano: %s za %d szt. złota
+Bought back %s for %d gold,Odkupiono: %s za %d szt. złota
 Demonic tithe,Demoniczna danina
 %s breaks Malphas's blood seal (%s),%s łamie krwawą pieczęć Malphasa (%s)
 You already signed that contract,Ten kontrakt jest już podpisany
@@ -549,6 +550,7 @@ Your backpack - sell,Twój plecak - sprzedaż
 Gold: %d,Złoto: %d
 Sold,Sprzedane
 Nothing to sell.,Nic do sprzedania.
+Buy back (sold this floor),Odkup (sprzedane na tym piętrze)
 Bargain Shrine,Kapliczka paktów
 Strike the bargain,Zawrzyj pakt
 Walk away,Odejdź

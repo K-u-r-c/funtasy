@@ -161,6 +161,7 @@ screenshot review at 1920x1080 and 3440x1440.
 - [x] #109 Ground-targeted skills (areas, zones, traps, deployables, delayed blasts like Meteor Strike, lobs) land on the caster's side of walls and closed doors; zone ticks don't pass walls; the aim preview shows the clamped point (`tuning`)
 - [x] #110 Ranged monsters wait 1 s (`ai.ranged_reaction_delay`) after gaining or regaining sight of their target before the first shot; bosses and allies exempt (`tuning`)
 - [x] #112 Arena: leaving during the sealing warning calls it off (doors open, markers gone); coming back runs the full warning again (`events`, `events-lan`)
+- [x] #114 Buy back: Archibald lists what each hero sold him this floor (up to 10, newest first) at the price it fetched; saved with the floor, cleared on the next (`economy`, `economy-lan`)
 
 ## Ninth playtest issues (GitHub #83-#100)
 

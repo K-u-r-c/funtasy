@@ -4,7 +4,8 @@ extends UIModal
 ## the host validates every trade (Merchants.request_buy / request_sell) and the stock change
 ## reaches every player. #94: a sold-out line is greyed, stamped "Sold", can't be pressed and moves
 ## to the end of the list, for every hero (a teammate's purchase too); a purchase stamps its line
-## and its item flies to the backpack.
+## and its item flies to the backpack. #114: under the backpack, "Buy back" lists what this hero
+## sold him this floor (newest first), each for the gold it fetched.
 
 var merchants: Merchants
 var _buy_list: VBoxContainer
@@ -120,6 +121,15 @@ func _rebuild() -> void:
 		_sell_list.add_child(b2)
 	if _sell_list.get_child_count() == 0:
 		_sell_list.add_child(UITheme.label(Loc.t("Nothing to sell."), UITheme.TEXT_DIM, UITheme.FONT_SMALL))
+	if not merchants.my_buyback.is_empty():
+		_sell_list.add_child(UITheme.section(Loc.t("Buy back (sold this floor)"), "act_reset"))
+		for k in merchants.my_buyback.size():
+			var e: Dictionary = merchants.my_buyback[k]
+			var b3 := _row(Loc.item_name(e.item), e.item, player.gold < int(e.price), int(e.price), player.gold >= int(e.price))
+			b3.set_meta("buyback_index", k)
+			var bk: int = k
+			b3.pressed.connect(func(): merchants.request_buyback.rpc_id(1, bk))
+			_sell_list.add_child(b3)
 	var all: Array = _buy_list.get_children() + _sell_list.get_children()
 	all = all.filter(func(c): return c is Button)
 	if not all.is_empty():

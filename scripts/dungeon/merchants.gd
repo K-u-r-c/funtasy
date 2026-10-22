@@ -12,8 +12,10 @@ extends Node
 ##   price at Malphas's door) / request_contract(index) / request_pact(id): owner -> host, reliable.
 ## - _sync(stock, contracts, shop_open, pacts), _open_ui(kind), _ask_tithe(text), _notice(text):
 ##   host -> peers, reliable.
-## - _sync_mine(signed, pacted): host -> one peer, reliable (#94): what that hero already signed and
-##   bought from Malphas this floor, so its window marks them.
+## - request_buyback(index): owner -> host, reliable (#114): buy back an item this hero sold.
+## - _sync_mine(signed, pacted, buyback): host -> one peer, reliable (#94): what that hero already
+##   signed and bought from Malphas this floor, so its window marks them, and (#114) what it sold to
+##   Archibald this floor ([{item, price}], newest first).
 
 signal changed
 
@@ -23,9 +25,11 @@ var contracts: Array = []  ## every peer: indices into merchants.malphas.contrac
 var pacts: Array = []  ## every peer (#95): the pact potions Malphas offers this floor
 var my_signed: Array = []  ## local (#94): contract slots this hero signed this floor
 var my_pacts: Array = []  ## local (#94): pact potions this hero bought this floor
+var my_buyback: Array = []  ## local (#114): [{item, price}] this hero sold to Archibald this floor
 var shop_open := false  ## Archibald's vault door took this floor's Gold Key: he trades
 var _signed: Dictionary = {}  ## host: peer -> [contract slots signed this floor]
 var _pacted: Dictionary = {}  ## host (#95): peer -> [pact ids bought this floor]
+var _buyback: Dictionary = {}  ## host (#114): peer -> [{item, price}] sold this floor, newest first
 var rng := RandomNumberGenerator.new()
 
 
@@ -38,6 +42,7 @@ func host_new_floor(floor_seed: int, item_level: int) -> void:
 	rng.seed = floor_seed + 777
 	_signed.clear()
 	_pacted.clear()
+	_buyback.clear()
 	shop_open = false
 	var a: Dictionary = GameData.merchants.get("archibald", {})
 	var st: Array = []
@@ -77,7 +82,7 @@ func host_new_floor(floor_seed: int, item_level: int) -> void:
 		offer.append(ids.pop_at(rng.randi_range(0, ids.size() - 1)))
 	pacts = offer
 	_sync.rpc(stock, contracts, shop_open, pacts)
-	_sync_mine.rpc([], [])
+	_sync_mine.rpc([], [], [])
 
 
 static func item_value(item: Dictionary) -> int:
@@ -242,14 +247,48 @@ func request_sell(backpack_index: int) -> void:
 	if price <= 0:
 		_notice.rpc_id(peer, "Archibald won't buy that")
 		return
+	var sold: Dictionary = item.duplicate(true)
 	if item.get("kind", "") == "consumable" and int(item.get("count", 1)) > 1:
 		p.inv.consume(str(item.base))
+		sold.count = 1
 	else:
 		p.inv.take_backpack(backpack_index)
 	p.host_add_gold(price)
 	p._inventory_changed()
+	# #114: Archibald keeps what this hero sold him this floor, to buy back at the same price.
+	var list: Array = _buyback.get(peer, [])
+	list.push_front({"item": sold, "price": price})
+	_buyback[peer] = list.slice(0, int(GameData.merchants.get("archibald", {}).get("buyback_max", 10)))
+	_sync_mine.rpc_id(peer, _signed.get(peer, []), _pacted.get(peer, []), _buyback[peer])
 	game.combat.fx.sound.rpc("coin", p.global_position)
 	_notice.rpc_id(peer, "Sold %s for %d gold", [item.get("name", "item"), price])
+
+
+## #114: buy back entry `index` of what this hero sold to Archibald this floor, for its sell price.
+@rpc("any_peer", "call_local", "reliable")
+func request_buyback(index: int) -> void:
+	if not multiplayer.is_server():
+		return
+	var peer := multiplayer.get_remote_sender_id()
+	var p := _player_near(peer)
+	var list: Array = _buyback.get(peer, [])
+	if p == null or not _is("archibald") or not shop_open or index < 0 or index >= list.size():
+		return
+	var e: Dictionary = list[index]
+	if p.gold < int(e.price):
+		_notice.rpc_id(peer, "Not enough gold (%d needed)", [int(e.price)])
+		return
+	var item: Dictionary = e.item.duplicate(true)
+	var err := p.host_give_item(item)
+	if not err.is_empty():
+		_notice.rpc_id(peer, err)
+		return
+	p.host_add_gold(-int(e.price))
+	list.remove_at(index)
+	_buyback[peer] = list
+	_sync_mine.rpc_id(peer, _signed.get(peer, []), _pacted.get(peer, []), list)
+	game.combat.fx.sound.rpc("coin", p.global_position)
+	_notice.rpc_id(peer, "Bought back %s for %d gold", [item.get("name", "item"), int(e.price)])
 
 
 @rpc("any_peer", "call_local", "reliable")
@@ -331,16 +370,17 @@ func _sync(new_stock: Array, new_contracts: Array, open: bool, new_pacts: Array 
 
 
 @rpc("authority", "call_local", "reliable")
-func _sync_mine(signed: Array, pacted: Array) -> void:
+func _sync_mine(signed: Array, pacted: Array, buyback: Array = []) -> void:
 	my_signed = signed
 	my_pacts = pacted
+	my_buyback = buyback
 	changed.emit()
 
 
 ## Host: every hero's own Malphas record again (a restored floor, #55).
 func host_sync_mine() -> void:
 	for p in game.players_root.get_children():
-		_sync_mine.rpc_id(p.peer_id, _signed.get(p.peer_id, []), _pacted.get(p.peer_id, []))
+		_sync_mine.rpc_id(p.peer_id, _signed.get(p.peer_id, []), _pacted.get(p.peer_id, []), _buyback.get(p.peer_id, []))
 
 
 @rpc("authority", "call_local", "reliable")

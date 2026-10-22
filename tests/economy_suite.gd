@@ -309,6 +309,7 @@ func merchants() -> void:
 	mer.request_sell.rpc_id(1, idx)
 	await da._wait(0.3)
 	da.check(p.gold == gold0 - cost + sp and sp > 0, "selling pays %d gold" % sp)
+	await buyback_rules(mer, hud)
 	price_rules()
 	stock_rules()
 	var mods_a := p.run_mods.size()
@@ -318,6 +319,7 @@ func merchants() -> void:
 	# Malphas: the tithe once per floor, then contracts and pacts.
 	await _force_merchant("malphas")
 	m = g.layout.merchant
+	da.check(g.merchants.my_buyback.is_empty() and g.merchants._buyback.is_empty(), "the Buy back list is empty on the next floor")
 	var mal_def: Dictionary = GameData.merchants.malphas
 	da.check(str(m.npc) == "malphas" and mer.contracts.size() == int(mal_def.contracts_per_floor) and mer.pacts.size() == int(mal_def.pacts_per_floor),
 			"Malphas has the merchant room, %d contracts and %d pact potions (%d, %s)" % [int(mal_def.contracts_per_floor), int(mal_def.pacts_per_floor), mer.contracts.size(), mer.pacts])
@@ -693,6 +695,44 @@ static func outside_door(door: Node, room: Rect2i) -> Vector2:
 
 
 ## Host: rebuilds the current floor with `npc` as its merchant (test hook "force_merchant").
+## #114: what a hero sold shows under Buy back at its sell price; buying it back returns the
+## identical item for that gold; a full backpack refuses; the list is the seller's own and empties
+## on the next floor (checked in the LAN pair and after _force_merchant).
+func buyback_rules(mer: Merchants, hud: Node) -> void:
+	var it := ItemGenerator.generate_equipment(LootTable.pick_base([p.class_id], g.loot.rng), p.level, 3, g.loot.rng)
+	p.host_give_item(it)
+	await da._wait(0.2)
+	var idx: int = p.inv.backpack.size() - 1
+	var uid := str(p.inv.backpack[idx].get("uid", ""))
+	var sp := Merchants.sell_price(p.inv.backpack[idx])
+	var g0 := p.gold
+	mer.request_sell.rpc_id(1, idx)
+	await da._wait(0.3)
+	da.check(not mer.my_buyback.is_empty() and str(mer.my_buyback[0].item.get("uid", "")) == uid and int(mer.my_buyback[0].price) == sp and p.gold == g0 + sp,
+		"a sold item waits under Buy back at its sell price (%d)" % sp)
+	var snap: Dictionary = FloorState.capture(g, {})
+	var saved: Dictionary = snap.get("merchant", {}).get("buyback", {})
+	da.check(saved.values().any(func(l): return Array(l).any(func(e): return str(e.item.get("uid", "")) == uid)), "the floor's save keeps the Buy back list")
+	hud.open_overlay(hud.ShopPanel.new())
+	await da._wait(0.4)
+	var rows: Array = hud._overlay._sell_list.get_children().filter(func(r): return r is Button and r.has_meta("buyback_index"))
+	da.check(rows.size() == mer.my_buyback.size(), "the shop window lists %d line(s) to buy back" % rows.size())
+	# A full backpack refuses.
+	var keep_cap: int = p.inv.capacity
+	p.inv.capacity = p.inv.backpack.size()
+	mer.request_buyback.rpc_id(1, 0)
+	await da._wait(0.3)
+	da.check(mer.my_buyback.size() == rows.size() and p.gold == g0 + sp, "a full backpack can't take a bought-back item")
+	p.inv.capacity = keep_cap
+	var n0 := mer.my_buyback.size()
+	if not rows.is_empty():
+		rows[0].pressed.emit()
+	await da._wait(0.4)
+	var back: bool = p.inv.backpack.any(func(x): return str(x.get("uid", "")) == uid)
+	da.check(back and p.gold == g0 and mer.my_buyback.size() == n0 - 1 and not mer.my_buyback.any(func(e): return str(e.item.get("uid", "")) == uid), "buying back returns the same item for the gold it fetched (gold %d -> %d)" % [g0 + sp, p.gold])
+	hud.close_overlay()
+
+
 func _force_merchant(npc: String) -> void:
 	GameState.set_meta("force_merchant", npc)
 	g.start_floor(g.depth)
@@ -762,6 +802,15 @@ func run_lan() -> void:
 	hud2.close_overlay()
 	NetworkManager.to_clients("DevAuto", "client_cmd", ["eco_check_stock", 0])
 	await da._wait(0.8)
+	# #114: the client sells an item and buys it back; the host's own list stays empty.
+	var cit := ItemGenerator.generate_equipment(LootTable.pick_base([c.class_id], g.loot.rng), c.level, 2, g.loot.rng)
+	c.host_give_item(cit)
+	await da._wait(0.3)
+	var cuid := str(cit.get("uid", ""))
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["eco_buyback", cuid])
+	await da._wait(2.0)
+	da.check(c.inv.backpack.any(func(x): return str(x.get("uid", "")) == cuid) and g.merchants.my_buyback.is_empty() and g.merchants._buyback.get(c.peer_id, []).is_empty(),
+		"host: the client sold and bought back its item; the host's own Buy back list stays empty")
 	# On a Malphas floor the client pays the tithe.
 	await _force_merchant("malphas")
 	for pl in g.players_root.get_children():
@@ -857,6 +906,18 @@ func client_cmd(cmd: String, arg: Variant) -> void:
 			da.check(mk.any(want), "the client's map shows the %s mark it found itself (%s)" % [arg, mk])
 		"eco_buy":
 			g.merchants.request_buy.rpc_id(1, int(arg))
+		"eco_buyback":
+			var me: Player = da._local()
+			var bi := -1
+			for i in me.inv.backpack.size():
+				if str(me.inv.backpack[i].get("uid", "")) == str(arg):
+					bi = i
+			g.merchants.request_sell.rpc_id(1, bi)
+			await da._wait_until(func(): return not g.merchants.my_buyback.is_empty(), 3.0)
+			da.check(not g.merchants.my_buyback.is_empty() and str(g.merchants.my_buyback[0].item.get("uid", "")) == str(arg), "client: my sold item is under Buy back")
+			g.merchants.request_buyback.rpc_id(1, 0)
+			await da._wait_until(func(): return g.merchants.my_buyback.is_empty(), 3.0)
+			da.check(g.merchants.my_buyback.is_empty(), "client: bought it back")
 		"eco_check_stock":
 			da.check(int(g.merchants.stock[int(arg)].left) == 0 and g.merchants.shop_open, "the client sees the shared stock line sold out")
 			var hudc: Node = da.get_tree().get_first_node_in_group("hud")

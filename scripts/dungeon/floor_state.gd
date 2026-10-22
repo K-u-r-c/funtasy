@@ -91,7 +91,13 @@ static func capture(g: Node, prev: Dictionary) -> Dictionary:
 		var slot2 := _slot_of(int(peer2))
 		if slot2 >= 0:
 			pacted[str(slot2)] = m._pacted[peer2]
-	snap.merchant = {"stock": m.stock, "contracts": m.contracts, "shop_open": m.shop_open, "signed": signed, "pacts": m.pacts, "pacted": pacted}
+	var buyback := {}
+	for peer3 in m._buyback:
+		var slot3 := _slot_of(int(peer3))
+		if slot3 >= 0:
+			buyback[str(slot3)] = m._buyback[peer3]
+	snap.merchant = {"stock": m.stock, "contracts": m.contracts, "shop_open": m.shop_open, "signed": signed, "pacts": m.pacts, "pacted": pacted,
+		"buyback": buyback}
 	# Heroes and their maps, by save slot.
 	var heroes: Dictionary = prev.get("heroes", {}).duplicate(true) if same else {}
 	var maps: Dictionary = prev.get("maps", {}).duplicate(true) if same else {}
@@ -193,6 +199,12 @@ static func restore_host(g: Node, snap: Dictionary, boss_pos: Vector2) -> void:
 			var peer2 := _peer_of(int(slot2))
 			if peer2 > 0:
 				m._pacted[peer2] = Array(ms.pacted[slot2])
+		# #114: what each hero sold to Archibald this floor.
+		m._buyback.clear()
+		for slot3 in ms.get("buyback", {}):
+			var peer3 := _peer_of(int(slot3))
+			if peer3 > 0:
+				m._buyback[peer3] = Array(ms.buyback[slot3]).map(func(e): return {"item": e.item, "price": int(e.price)})
 		m._sync.rpc(m.stock, m.contracts, m.shop_open, m.pacts)
 		m.host_sync_mine()
 	g.floor_time = float(snap.get("time", 0.0))
