@@ -2019,3 +2019,15 @@ func _ninth(_arg: String) -> void:
 	await da._wait(0.5)
 	await snap("ninth_boons")
 	hud.close_overlay()
+
+
+## Tenth playtest (#103-#110): the talent tree with its shared root (#106).
+func _tenth(arg: String) -> void:
+	var hud: Node = da.get_tree().get_first_node_in_group("hud")
+	p.iframe_left = 9999.0
+	var lang := arg if not arg.is_empty() else "en"
+	hud.open_overlay(hud.menu_panel("talents"))
+	await da._wait(0.8)
+	await snap("tenth_talents_%s_%s" % [p.class_id, lang])
+	hud.close_overlay()
+	await da._wait(0.3)

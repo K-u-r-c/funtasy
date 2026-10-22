@@ -31,6 +31,7 @@ func run() -> void:
 	await points_per_level()
 	await old_save()
 	await tree_rules()
+	shared_root()
 	if p.class_id == "mage":
 		await meteor_deeper()
 	await every_node()
@@ -288,6 +289,49 @@ func tree_rules() -> void:
 	p.recompute_stats()
 
 
+## #106: the starting skills (primary + basic skill) are the shared root, in no branch; no branch
+## node hangs from them; a fresh hero finds only tier-0 nodes open, in every branch alike.
+func shared_root() -> void:
+	var tree := p.talent_tree()
+	var cdef: Dictionary = GameData.classes[p.class_id]
+	var starters: Array = [str(cdef.primary_attack)] + Array(cdef.skills)
+	var root_skills: Array = []
+	var hang: Array = []
+	for nd in tree.nodes:
+		if str(nd.get("branch", "")) == GameData.TALENT_ROOT:
+			root_skills.append(str(nd.skill))
+		for r in nd.get("requires", []):
+			if str(p.talent_node(str(r)).get("branch", "")) == GameData.TALENT_ROOT:
+				hang.append(nd.id)
+	root_skills.sort()
+	starters.sort()
+	da.check(root_skills == starters, "%s: the starting skills are the shared root (%s)" % [p.class_id, root_skills])
+	da.check(hang.is_empty(), "no branch node requires a starting skill (%s)" % [hang])
+	var keep_t := p.talents
+	var keep_pts := p.talent_points
+	p.talents = {}
+	p.talent_points = 1
+	var counts := {}
+	var deeper: Array = []
+	for br in tree.branches:
+		counts[br.id] = 0
+	for nd in tree.nodes:
+		if p.is_free_node(nd) or not counts.has(str(nd.get("branch", ""))):
+			continue
+		if p.talent_block_reason(nd).is_empty():
+			counts[nd.branch] += 1
+			if int(nd.get("tier", 0)) > 0:
+				deeper.append(nd.id)
+	p.talents = keep_t
+	p.talent_points = keep_pts
+	var lo := 99
+	var hi := 0
+	for k in counts:
+		lo = mini(lo, counts[k])
+		hi = maxi(hi, counts[k])
+	da.check(deeper.is_empty() and lo >= 3 and hi - lo <= 1, "a fresh %s finds every branch alike: only tier-0 nodes open (%s)%s" % [p.class_id, counts, "" if deeper.is_empty() else ", deeper: %s" % [deeper]])
+
+
 ## #105: Meteor Strike sits on tier 3 under Overload (Cataclysm below it); a fresh mage can't
 ## learn it, a mage on the path past the tier gate can; a hero from before the simple start keeps
 ## it free.
@@ -441,4 +485,31 @@ func panel() -> void:
 			outside.append(id)
 	da.check(buttons.size() == nodes and reached == nodes, "the talent panel shows all %d nodes and the arrow keys / d-pad reach %d of them" % [nodes, reached])
 	da.check(outside.is_empty(), "every talent node lies inside the window (%s)" % [outside])
+	# #106: the root row sits above every branch, centred across the tree, and the d-pad climbs
+	# from a branch's root up to it and back down.
+	var top_branch := INF
+	var root_y := -INF
+	var xs: Array = []
+	var a_root: Control = null
+	var a_tier0: Control = null
+	for id in buttons:
+		var nd: Dictionary = buttons[id][1]
+		var b: Control = buttons[id][0]
+		if str(nd.get("branch", "")) == GameData.TALENT_ROOT:
+			root_y = maxf(root_y, b.position.y + b.size.y)
+			xs.append(b.position.x + b.size.x / 2.0)
+			a_root = b
+		else:
+			top_branch = minf(top_branch, b.position.y)
+			if int(nd.get("tier", 0)) == 0 and a_tier0 == null:
+				a_tier0 = b
+	var mid := 0.0
+	for x in xs:
+		mid += float(x) / xs.size()
+	var canvas_mid: float = (tp.LEFT_W + tp._canvas.size.x) / 2.0
+	da.check(not xs.is_empty() and root_y < top_branch and absf(mid - canvas_mid) < 4.0, "the shared root is drawn above the branches, centred across them (%.0f / %.0f)" % [mid, canvas_mid])
+	var up: Node = a_tier0.get_node_or_null(a_tier0.focus_neighbor_top) if a_tier0 else null
+	var down: Node = a_root.get_node_or_null(a_root.focus_neighbor_bottom) if a_root else null
+	da.check(up != null and str(up.node.get("branch", "")) == GameData.TALENT_ROOT and down != null and down.get("node") != null and int(down.node.get("tier", -1)) == 0,
+		"up from a branch root reaches the shared root, down from it a branch root")
 	hud.close_overlay()

@@ -7,9 +7,10 @@
 		{"id": "dark_inquisitor", "name": "Dark Inquisitor", "description": "Smite, shadow and penance."}
 	],
 	"nodes": [
+		{"id": "p_s_holy_strike", "branch": "core", "tier": 0, "type": "skill", "skill": "priest_holy_strike", "max_rank": 1, "starter": true, "col": 0},
 		{"id": "p_s_smite", "branch": "dark_inquisitor", "tier": 0, "type": "skill", "skill": "priest_smite", "max_rank": 1, "legacy_starter": true, "col": 0},
-		{"id": "p_s_heal", "branch": "divine_shepherd", "tier": 0, "type": "skill", "skill": "priest_heal", "max_rank": 1, "starter": true, "col": 0},
-		{"id": "p_s_renew", "branch": "divine_shepherd", "tier": 1, "type": "skill", "skill": "priest_renew", "max_rank": 1, "col": 1, "requires": ["p_s_heal"]},
+		{"id": "p_s_heal", "branch": "core", "tier": 0, "type": "skill", "skill": "priest_heal", "max_rank": 1, "starter": true, "col": 1},
+		{"id": "p_s_renew", "branch": "divine_shepherd", "tier": 1, "type": "skill", "skill": "priest_renew", "max_rank": 1, "col": 1, "requires": ["p_s_holy_shield"]},
 		{"id": "p_s_holy_shield", "branch": "divine_shepherd", "tier": 0, "type": "skill", "skill": "priest_holy_shield", "max_rank": 1, "legacy_starter": true, "col": 1},
 		{"id": "p_s_consecration", "branch": "paladin_bastion", "tier": 0, "type": "skill", "skill": "priest_consecration", "max_rank": 1, "legacy_starter": true, "col": 0},
 		{"id": "p_s_rebuke", "branch": "paladin_bastion", "tier": 0, "type": "skill", "skill": "priest_rebuke", "max_rank": 1, "legacy_starter": true, "col": 1},
@@ -38,7 +39,7 @@
 		{"id": "p_s_shadow_word_death", "branch": "dark_inquisitor", "tier": 5, "type": "skill", "skill": "priest_shadow_word_death", "max_rank": 1, "col": 0, "requires": ["p_judge"], "requires_rank": 2},
 		{"id": "p_s_apotheosis", "branch": "divine_shepherd", "tier": 5, "type": "skill", "skill": "priest_apotheosis", "max_rank": 1, "col": 1, "requires": ["p_s_guardian_spirit"]},
 		{"id": "p_devotion", "name": "Devotion", "branch": "divine_shepherd", "tier": 0, "type": "passive", "max_rank": 3, "description": "+8% healing done per rank.", "mods": [{"stat": "healing_mult", "value": 0.08}], "icon": "tlo_p_devotion", "col": 3},
-		{"id": "p_swift_mend", "name": "Swift Mend", "branch": "divine_shepherd", "tier": 1, "type": "passive", "max_rank": 3, "description": "Flash Heal cooldown -10% per rank.", "mods": [{"skill": "priest_heal", "field": "cooldown_mult", "value": -0.1}], "col": 0, "requires": ["p_s_heal"]},
+		{"id": "p_swift_mend", "name": "Swift Mend", "branch": "divine_shepherd", "tier": 0, "type": "passive", "max_rank": 3, "description": "Flash Heal cooldown -10% per rank.", "mods": [{"skill": "priest_heal", "field": "cooldown_mult", "value": -0.1}], "col": 0},
 		{"id": "p_k_overflowing", "name": "Overflowing Grace", "branch": "divine_shepherd", "tier": 2, "type": "keystone", "max_rank": 1, "description": "Keystone. Overhealing becomes an absorb shield (up to 30% of the target's maximum health).", "mods": [], "procs": [{"event": "on_heal", "if": {"hot": false}, "do": [{"type": "absorb", "target": "event_target", "duration": 8.0, "status": "pw_shield", "amount": {"base": 0, "coef": 0, "event_pct": 1.0, "event_field": "overheal", "max_pct_target_max_hp": 0.3}}]}], "test": {"trigger": "overheal", "expect": ["ally_absorb"]}, "icon": "pk_overflowing", "col": 3, "requires": ["p_mercy"], "requires_rank": 3},
 		{"id": "p_wellspring", "name": "Wellspring", "branch": "divine_shepherd", "tier": 3, "type": "passive", "max_rank": 2, "description": "Prayer of Healing heals +20% per rank.", "mods": [{"skill": "priest_renewal", "field": "heal_mult", "value": 0.2}], "col": 2, "requires": ["p_s_holy_nova"]},
 		{"id": "p_benediction", "name": "Benediction", "branch": "divine_shepherd", "tier": 4, "type": "passive", "max_rank": 1, "description": "All spells cost 15% less mana.", "mods": [{"skill": "*", "field": "cost_mult", "value": -0.15}], "icon": "tlo_p_benediction", "col": 3, "requires": ["p_deep_faith"], "requires_rank": 2},

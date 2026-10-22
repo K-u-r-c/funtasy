@@ -830,6 +830,7 @@ Passive talent,Talent pasywny
 Keystone,Talent kluczowy
  - known from the start, - znana od początku
  - rank %d / %d, - ranga %d / %d
+The shared root of all three branches: it opens none of them ahead of the others.,Wspólny korzeń wszystkich trzech gałęzi: żadnej z nich nie otwiera przed pozostałymi.
 Requires %s,Wymaga: %s
 Requires %s at rank %d,Wymaga: %s na randze %d
 Requires %d points in this branch,Wymaga %d pkt. w tej gałęzi

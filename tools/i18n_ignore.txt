@@ -9,6 +9,8 @@ GodotSteam extension not loaded
 %s is on tier 0 but has a prerequisite
 %s has no prerequisite
 %s requires %s, not a lower node of its branch
+%s: starters belong to the shared root and only they
+%s requires the shared root's %s (no branch may start ahead)
 Forge_
 Forge_npc
 Event_arena_chest

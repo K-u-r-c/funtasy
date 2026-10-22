@@ -9,6 +9,9 @@ extends Node
 ## Skills and talents: data/skills/<class>.json and data/talents/<class>.json (arrays / trees).
 
 const DATA_DIR := "res://data/"
+## #106: talent nodes of this pseudo-branch (the starting skills) are the shared root drawn above
+## the three branches; they belong to no branch.
+const TALENT_ROOT := "core"
 
 var balance: Dictionary = {}
 var assets: Dictionary = {}
@@ -360,7 +363,7 @@ func _validate_refs() -> void:
 		for b2 in tree.get("branches", []):
 			branches[b2.id] = true
 		for node in tree.get("nodes", []):
-			if node.has("branch") and not branches.has(node.branch):
+			if node.has("branch") and not branches.has(node.branch) and node.branch != TALENT_ROOT:
 				errors.append("talent '%s' has unknown branch '%s'" % [node.id, node.branch])
 			if node.has("skill") and not skills.has(node.skill):
 				errors.append("talent '%s' unlocks unknown skill '%s'" % [node.id, node.skill])
@@ -393,12 +396,20 @@ func _validate_refs() -> void:
 ## requires them); a fork (`exclusive`) is two siblings of one prerequisite; no two nodes share a
 ## (branch, tier, col) cell; each branch has a fork in tiers 1-2; and whichever side of each fork
 ## is taken, every tier's gate (`tier` x `tier_points`, or a node's own `branch_points`) can be
-## paid from the nodes that stay open below it.
+## paid from the nodes that stay open below it. #106: the starting skills are the shared root
+## (`TALENT_ROOT`): free starters on tier 0 that no branch node requires, and only they are free.
 static func tree_problems(tree: Dictionary) -> Array:
 	var out: Array = []
 	var nodes := {}
 	for n in tree.get("nodes", []):
 		nodes[str(n.id)] = n
+	for id in nodes:
+		var n: Dictionary = nodes[id]
+		if (str(n.get("branch", "")) == TALENT_ROOT) != bool(n.get("starter", false)):
+			out.append("%s: starters belong to the shared root and only they" % id)
+		for r in n.get("requires", []):
+			if str(nodes.get(str(r), {}).get("branch", "")) == TALENT_ROOT:
+				out.append("%s requires the shared root's %s (no branch may start ahead)" % [id, r])
 	var tp := int(tree.get("tier_points", 2))
 	var cells := {}
 	var required := {}
