@@ -2050,3 +2050,24 @@ func _tenth(arg: String) -> void:
 	await snap("tenth_skillbook_%s_%s" % [p.class_id, lang])
 	hud.close_overlay()
 	await da._wait(0.3)
+
+
+## #113: both merchants in their chambers, mid-idle and mid-gesture.
+func _tenth_merchants(_arg: String) -> void:
+	for npc in ["archibald", "malphas"]:
+		GameState.set_meta("force_merchant", npc)
+		g.start_floor(g.depth)
+		GameState.remove_meta("force_merchant")
+		await da._wait(1.5)
+		p = da._local()
+		p.iframe_left = 9999.0
+		var m: Dictionary = g.layout.merchant
+		p.host_teleport(m.pos + Vector2(0, 40))
+		p.host_take_torch()
+		await da._wait(1.0)
+		await snap("tenth_%s_idle" % npc)
+		var anim: NpcAnim = g.dungeon.props["Merchant"].get_node_or_null("NpcAnim")
+		if anim:
+			anim._rest = 0.0
+			await da._wait(0.55)
+		await snap("tenth_%s_gesture" % npc)

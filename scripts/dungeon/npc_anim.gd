@@ -5,10 +5,14 @@ extends Node2D
 ## a quiet clang on the impact frame), rests between them, now and then wipes his brow, and looks
 ## up when the local hero comes near. An upgrade (work_piece) makes him strike the piece three
 ## times and quench it in the barrel. Purely visual: nothing here is replicated.
+## #113: a merchant (anim.mode "merchant": Archibald, Malphas) breathes through its looping `idle`
+## clip and, every `rest` seconds, plays one of its `gestures` (Archibald turns a coin, Malphas
+## reads his contract). A missing sheet leaves the static sprite.
 
 var cfg: Dictionary = {}
 var sprite: Sprite2D
 var base_tex: Texture2D
+var _base_offset := Vector2.ZERO
 var frames: Dictionary = {}  ## clip -> [AtlasTexture]
 var log: Array = []  ## clips started (tests)
 var impacts := 0  ## impact frames shown (tests)
@@ -26,8 +30,11 @@ func setup(npc_id: String, spr: Sprite2D) -> void:
 	cfg = GameData.merchants.get(npc_id, {}).get("anim", {})
 	sprite = spr
 	base_tex = spr.texture
-	for clip in ["strike", "wipe", "look"]:
-		var c: Dictionary = cfg.get(clip, {})
+	_base_offset = spr.offset
+	for clip in cfg:
+		if not cfg[clip] is Dictionary or not cfg[clip].has("sheet"):
+			continue
+		var c: Dictionary = cfg[clip]
 		var sheet: Texture2D = GameData.texture(str(c.get("sheet", "")))
 		var list: Array = []
 		if sheet:
@@ -59,6 +66,9 @@ func _impact_offset() -> Vector2:
 func _process(delta: float) -> void:
 	_flash.energy = maxf(_flash.energy - delta * 6.0, 0.0)
 	_look_cd -= delta
+	if str(cfg.get("mode", "")) == "merchant":
+		_merchant(delta)
+		return
 	if _queue.is_empty():
 		_rest -= delta
 		if _wants_look():
@@ -83,9 +93,37 @@ func _process(delta: float) -> void:
 		_rest = _rng.randf_range(float(r[0]), float(r[1]))
 
 
+## #113: the idle loop between gestures; a gesture now and then.
+func _merchant(delta: float) -> void:
+	if _queue.is_empty():
+		_rest -= delta
+		var gestures: Array = cfg.get("gestures", []).filter(func(g): return not frames.get(str(g), []).is_empty())
+		if _rest <= 0.0 and not gestures.is_empty():
+			var clip := str(gestures[_rng.randi_range(0, gestures.size() - 1)])
+			log.append(clip)
+			for i in frames[clip].size():
+				_queue.append([clip, i, float(cfg[clip].get("time", 0.12))])
+			var r: Array = cfg.get("rest", [5.0, 9.0])
+			_rest = _rng.randf_range(float(r[0]), float(r[1]))
+		elif not frames.get("idle", []).is_empty():
+			if log.is_empty() or log[-1] != "idle":
+				log.append("idle")
+			var n: int = frames.idle.size()
+			for i in n:
+				_queue.append(["idle", i, float(cfg.idle.get("time", 0.16))])
+	_t -= delta
+	while _t <= 0.0 and not _queue.is_empty():
+		var step: Array = _queue.pop_front()
+		_show(str(step[0]), int(step[1]))
+		_t += float(step[2])
+
+
 func _show(clip: String, i: int) -> void:
 	var list: Array = frames.get(clip, [])
 	sprite.texture = list[i] if i >= 0 and i < list.size() else base_tex
+	# A taller frame (a gesture reaching up, #113) keeps its feet where the static sprite's are.
+	if base_tex and sprite.texture:
+		sprite.offset = _base_offset - Vector2(0, (sprite.texture.get_height() - base_tex.get_height()) / 2.0)
 
 
 func _wants_look() -> bool:

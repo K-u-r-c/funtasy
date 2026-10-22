@@ -162,6 +162,7 @@ screenshot review at 1920x1080 and 3440x1440.
 - [x] #110 Ranged monsters wait 1 s (`ai.ranged_reaction_delay`) after gaining or regaining sight of their target before the first shot; bosses and allies exempt (`tuning`)
 - [x] #112 Arena: leaving during the sealing warning calls it off (doors open, markers gone); coming back runs the full warning again (`events`, `events-lan`)
 - [x] #114 Buy back: Archibald lists what each hero sold him this floor (up to 10, newest first) at the price it fetched; saved with the floor, cleared on the next (`economy`, `economy-lan`)
+- [x] #113 Archibald and Malphas breathe in their chambers (looping idle) and now and then turn a coin / read a contract (PixelLab clips, NpcAnim merchant mode, data in merchants.json); static sprite fallback (`economy`, tour `tenth_merchants`)
 
 ## Ninth playtest issues (GitHub #83-#100)
 
@@ -333,6 +334,13 @@ gameplay effects (#81) from shaders, particles and the free vfx workbench; re-ro
 | 2026-10-21 | #78 NPC bubbles: drawn in code, no generations | 4378 | 4378 | 0 | 48 |
 | 2026-10-21 | #76 the Ownerless Book: 1 Pixen 32x32 icon, 1 Pixen 96x96 open-book cover | 4378 | 4380 | 2 | 50 |
 | 2026-10-21 | #74 deep variants: the aura shader, halo and warnings drawn in code, no generations | 4380 | 4380 | 0 | 50 |
+
+Tenth playtest goal (#103-#114), start 2026-10-22: **used 4388, remaining 418**, resets 2026-11-14.
+Goal cap: 20 generations (only #113's merchant clips; everything else in code).
+
+| Date | Batch | Used before | Used after | Spend | Goal spend |
+| --- | --- | --- | --- | --- | --- |
+| 2026-10-22 | #113 merchants: 4 animate_image clips on the existing sprites, 64x64 x 8 frames (Archibald idle and coin gesture, Malphas idle and scroll gesture); cropped back to the sprites' boxes with their own feet rows (the pad cut 4 rows) | 4388 | 4392 | 4 | 4 |
 
 Ninth playtest goal (#83-#100), start 2026-10-21: **used 4380, remaining 426**, resets 2026-11-14.
 Goal cap: 40 generations (only #98's wall art and, if needed, #91's light; everything else in code).

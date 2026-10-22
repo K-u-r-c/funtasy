@@ -282,6 +282,7 @@ func merchants() -> void:
 	var mer: Merchants = g.merchants
 	da.check(mer.stock.size() >= 5, "Archibald has stock (%d)" % mer.stock.size())
 	var arch: Node = g.dungeon.props["Merchant"]
+	await merchant_anim(arch, "archibald", "coin")
 	await sealed_door_rules(room)
 	p.host_teleport(m.pos + Vector2(0, 16))
 	await da._wait(0.2)
@@ -350,6 +351,7 @@ func merchants() -> void:
 	p.host_teleport(m.pos + Vector2(0, 16))
 	await da._wait(0.3)
 	var mal: Node = g.dungeon.props["Merchant"]
+	await merchant_anim(mal, "malphas", "scroll")
 	g.host_interact(p, mal)
 	await da._wait(0.2)
 	da.check(hud._overlay != null, "behind the broken seal Malphas bargains")
@@ -731,6 +733,32 @@ func buyback_rules(mer: Merchants, hud: Node) -> void:
 	var back: bool = p.inv.backpack.any(func(x): return str(x.get("uid", "")) == uid)
 	da.check(back and p.gold == g0 and mer.my_buyback.size() == n0 - 1 and not mer.my_buyback.any(func(e): return str(e.item.get("uid", "")) == uid), "buying back returns the same item for the gold it fetched (gold %d -> %d)" % [g0 + sp, p.gold])
 	hud.close_overlay()
+
+
+## #113: the merchant breathes through its idle clip and plays its gesture; its frames keep the
+## static sprite's feet; without a sheet the static sprite stays.
+func merchant_anim(prop: Node, npc: String, gesture: String) -> void:
+	var anim: NpcAnim = prop.get_node_or_null("NpcAnim")
+	da.check(anim != null and anim.frames.get("idle", []).size() == 8 and anim.frames.get(gesture, []).size() == 8,
+		"%s has his idle and %s clips (%s)" % [npc, gesture, anim.frames.keys() if anim else "no NpcAnim"])
+	if anim == null:
+		return
+	await da._wait(0.6)
+	var idle_shown: bool = anim.log.has("idle") and anim.sprite.texture != anim.base_tex
+	anim._rest = 0.0
+	await da._wait_until(func(): return anim.log.has(gesture), 3.0)
+	await da._wait(0.3)
+	var bottom := anim.sprite.offset.y + anim.sprite.texture.get_height() / 2.0
+	var base_bottom := anim._base_offset.y + anim.base_tex.get_height() / 2.0
+	da.check(idle_shown and anim.log.has(gesture) and absf(bottom - base_bottom) < 0.6, "%s breathes (idle) and plays his %s gesture, feet in place (%s)" % [npc, gesture, anim.log])
+	var bare := NpcAnim.new()
+	var spr := Sprite2D.new()
+	spr.texture = anim.base_tex
+	spr.add_child(bare)
+	bare.setup("nobody", spr)
+	bare._show("idle", 0)
+	da.check(spr.texture == anim.base_tex, "a merchant without clips keeps his static sprite")
+	spr.free()
 
 
 func _force_merchant(npc: String) -> void:

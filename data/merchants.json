@@ -39,6 +39,10 @@
 	"archibald": {
 		"_comment": "#93: equipment pieces per floor, their rarity by weight (Uncommon..Relic), item level = the floor's + a roll in ilvl_above, the base drawn with party_class_weight for the party's classes (loot uses loot.party_class_weight); consumables: count of each on sale.",
 		"name": "Archibald the Gilded",
+		"anim": {"_comment": "#113: looping idle, a gesture every rest seconds (NpcAnim merchant mode); frame times in seconds.", "mode": "merchant",
+			"idle": {"sheet": "props.archibald_idle", "frames": 8, "time": 0.18},
+			"coin": {"sheet": "props.archibald_coin", "frames": 8, "time": 0.14},
+			"gestures": ["coin"], "rest": [5.0, 9.0]},
 		"equipment": 10,
 		"rarity_weights": {"2": 40, "3": 38, "4": 18, "5": 4},
 		"ilvl_above": [0, 2],
@@ -55,6 +59,10 @@
 	},
 	"malphas": {
 		"name": "Malphas the Soul Broker",
+		"anim": {"_comment": "#113: looping idle, a gesture every rest seconds (NpcAnim merchant mode).", "mode": "merchant",
+			"idle": {"sheet": "props.malphas_idle", "frames": 8, "time": 0.2},
+			"scroll": {"sheet": "props.malphas_scroll", "frames": 8, "time": 0.15},
+			"gestures": ["scroll"], "rest": [6.0, 10.0]},
 		"tithe": [
 			{
 				"stat": "strength",

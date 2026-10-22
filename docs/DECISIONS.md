@@ -1518,3 +1518,12 @@ Tree shapes since #106 (the starting skills are the shared root above the branch
 | Scope | Per hero: each hero sees only their own list (`_sync_mine` carries it to its owner). It lasts for the floor: saved with the floor snapshot (by save slot, like Malphas's contracts), cleared on the next floor. Malphas buys nothing, so he has no list. |
 | Tests | `economy`: a sale appears under Buy back at its price, the window lists it, a full backpack refuses, buying back returns the same item for the same gold, the floor's save keeps the list, the next floor clears it. `economy-lan`: the client sells and buys back its item; the host's own list stays empty. |
 
+### #113 Merchants are animated in their chambers
+
+| Topic | Decision |
+| --- | --- |
+| Rule | `NpcAnim` (the blacksmith's idle, #77) has a merchant mode (`anim.mode: "merchant"` in `data/merchants.json`, the prop's `npc_anim` in `data/props.json`): the `idle` clip loops; every `rest` seconds one of the `gestures` plays once, then the idle resumes. A clip whose sheet is missing is skipped; with no clips the static sprite stays. |
+| Art | PixelLab `animate_image` on the existing sprites padded to 64x64 (4 generations): Archibald breathes (8 frames, 0.18 s) and turns a gold coin (8, 0.14 s, every 5-9 s); Malphas breathes (8, 0.2 s) and lifts his glowing contract (8, 0.15 s, every 6-10 s). Frames are cropped back to each sprite's box (Malphas's gesture 12 px wider and 10 px taller for the raised scroll), keeping the sprite's own feet rows; a taller frame keeps the feet where the static sprite's are. Sheets in `assets/sprites/pixellab/props/merchants/`. |
+| Network | Cosmetic, local timing on every peer (nothing replicated), like the blacksmith. |
+| Tests | `economy`: both merchants load their idle and gesture clips, breathe and gesture in their chamber with their feet in place; no clips keeps the static sprite. Review: `--tour=tenth_merchants`. |
+
