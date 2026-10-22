@@ -3267,7 +3267,7 @@ func _gamepad_menu_flow() -> void:
 	await _wait(1.0)
 	var focus := get_viewport().gui_get_focus_owner()
 	check(focus is Button and focus.text == "Play", "main menu focuses Play for the gamepad")
-	# Main menu cleanup (#13): no tagline, no Steam status, "v0.2.2", no Codex button.
+	# Main menu cleanup (#13): no tagline, no Steam status, "v0.2.3", no Codex button.
 	var mm: Node = get_tree().current_scene
 	var texts: Array = []
 	var stack: Array = [mm]
@@ -3278,7 +3278,7 @@ func _gamepad_menu_flow() -> void:
 		stack.append_array(n.get_children())
 	var main_btns: Array = mm._pages["main"].get_children().map(func(b): return str(b.text))
 	check(main_btns == ["Play", "Options", "Quit"], "main menu buttons: %s" % [main_btns])
-	check(not texts.any(func(x): return x.contains("dungeon crawler") or x.contains("Steam:") or x.contains("MVP")) and str(mm._version.text) == "v0.2.2",
+	check(not texts.any(func(x): return x.contains("dungeon crawler") or x.contains("Steam:") or x.contains("MVP")) and str(mm._version.text) == "v0.2.3",
 			"main menu shows no tagline or Steam status, the version reads %s" % mm._version.text)
 	await _press(JOY_BUTTON_DPAD_DOWN)
 	await _press(JOY_BUTTON_DPAD_DOWN)

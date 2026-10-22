@@ -59,7 +59,7 @@ func _ready() -> void:
 	var foot := HBoxContainer.new()
 	foot.add_theme_constant_override("separation", 16)
 	col.add_child(foot)
-	_version = UITheme.label("v%s" % str(ProjectSettings.get_setting("application/config/version", "0.2.2")), UITheme.TEXT_DIM, UITheme.FONT_SMALL)
+	_version = UITheme.label("v%s" % str(ProjectSettings.get_setting("application/config/version", "0.2.3")), UITheme.TEXT_DIM, UITheme.FONT_SMALL)
 	_version.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	foot.add_child(_version)
 	foot.add_child(PromptBar.new([["ui_accept", Loc.t("Select")], ["ui_cancel", Loc.t("Back")]]))
