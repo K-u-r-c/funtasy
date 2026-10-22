@@ -701,6 +701,12 @@ func _process(_delta: float) -> void:
 			s.set_cooldown(clampf(float(cd[0]) / maxf(float(cd[1]), 0.01), 0.0, 1.0) if player.local_cd.has(i) else 0.0,
 					float(cd[0]) if player.local_cd.has(i) else 0.0)
 			s.set_charge(player.charge_frac(i))
+			# #111: a skill with stored charges shows how many are ready.
+			var slot_sid := str(player.skills[i])
+			var n_charges := player.charges_left(slot_sid) if not slot_sid.is_empty() and player.max_charges(slot_sid) > 1 else -1
+			if n_charges != s.count:
+				s.count = n_charges
+				s._text.queue_redraw()
 			var slot_sk: Dictionary = GameData.skills.get(str(player.skills[i]), {})
 			var cost := player.stats.cost_for(slot_sk) if not slot_sk.is_empty() else 0.0
 			s.unaffordable = cost > 0.0 and player.resource.value + 0.01 < cost

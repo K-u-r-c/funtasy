@@ -750,8 +750,32 @@ func run_lan() -> void:
 	await lan_interrupt(c, d)
 	await lan_charge(c, d)
 	await lan_slot9(c)
+	await lan_charges(c)
 	NetworkManager.to_clients("DevAuto", "client_cmd", ["done", null])
 	await da._wait(1.0)
+
+
+## #111 over LAN: the client wears Warpstrider Sandals (Blink +1 charge): its own screen knows the
+## two charges (the item's skill mod reaches the client), casts Blink twice in a row, and the third
+## press is refused until a charge returns; the HUD slot counts the charges.
+func lan_charges(c: Player) -> void:
+	await da._wait(0.5)
+	c.inv.equipment["boots"] = ItemGenerator.make_legendary("warpstrider_sandals", c.level, RandomNumberGenerator.new())
+	c.recompute_stats()
+	var lo: Array = Player.pad_loadout([c.skills[0]])
+	lo[1] = "mage_blink"
+	c.skills = lo
+	c.cooldowns.clear()
+	c.skill_charges.clear()
+	c.resource.value = c.resource.max_value
+	c.host_teleport(g.nearest_floor(g.layout.start))
+	await da._wait(0.6)
+	var key := "%s:%s" % [c.name, "mage_blink"]
+	var uses0 := int(Combat.instance.get_meta("uses", {}).get(key, 0))
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["sk_charges", null])
+	await da._wait(3.0)
+	var uses := int(Combat.instance.get_meta("uses", {}).get(key, 0)) - uses0
+	da.check(uses == 2 and int(c.skill_charges.get("mage_blink", -1)) == 0, "host: the client's Blink went twice on its two charges, the third press was refused (%d casts)" % uses)
 
 
 ## #107 over LAN: the client's Skill Book sends an 11-slot loadout with a skill on slot 9; the
@@ -772,6 +796,14 @@ func lan_slot9(c: Player) -> void:
 	var key := "%s:%s" % [c.name, "priest_rebuke"]
 	var cast: bool = await da._wait_until(func(): return int(Combat.instance.get_meta("uses", {}).get(key, 0)) > 0 or c.cooldowns.has("priest_rebuke"), 4.0)
 	da.check(cast, "the client's key 9 casts Rebuke on the host")
+	# #111: a cooldown reset on the host (a reset on kill) frees the client's slot at once.
+	await da._wait(0.5)
+	c.cooldowns["priest_rebuke"] = 0.0
+	c.cooldowns.erase("priest_rebuke")
+	c.sync_cooldown("priest_rebuke")
+	await da._wait(0.4)
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["sk_slot9_free", null])
+	await da._wait(0.6)
 
 
 ## #26 over LAN: the client holds its primary (a melee swing with a pending impact) and taps
@@ -876,6 +908,19 @@ func client_cmd(cmd: String, arg: Variant) -> void:
 			else:
 				da.check(got.has(Loc.t(str(arg[2]))) and not p.local_cd.has(3) and p.charge_slot == -1,
 						"client: the cancelled charge says '%s' and starts no cooldown (%s)" % [arg[2], got])
+		"sk_slot9_free":
+			da.check(not p.local_cd.has(9) and not p.slot_locked(9), "client: a cooldown reset on the host frees my slot 9 at once")
+		"sk_charges":
+			da.check(p.max_charges("mage_blink") == 2, "client: my screen knows Blink has 2 charges from the Sandals (%d)" % p.max_charges("mage_blink"))
+			for k in 3:
+				p.auto_aim = p.global_position + Vector2(60 if k % 2 == 0 else -60, 0)
+				Input.action_press("skill_1")
+				await da._wait(0.12)
+				Input.action_release("skill_1")
+				await da._wait(0.5)
+			var hud: Node = da.get_tree().get_first_node_in_group("hud")
+			da.check(hud._slots[1].count == 0, "client: the Blink slot shows 0 charges left (%d)" % hud._slots[1].count)
+			p.auto_aim = Vector2.INF
 		"sk_slot9":
 			var lo: Array = Player.pad_loadout([p.skills[0]])
 			lo[9] = "priest_rebuke"

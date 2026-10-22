@@ -363,6 +363,9 @@ func _alert_nearby(attacker: Actor) -> void:
 	var r := float(GameData.bal("threat.aggro_share_radius"))
 	for e in get_tree().get_nodes_in_group("enemies"):
 		if e != self and e.is_alive() and not e.aggro and e.global_position.distance_to(global_position) <= r:
+			# #111 Specter's Softsteps: monsters behind a wall or a closed door don't hear the hero come.
+			if is_instance_valid(attacker) and attacker.stats.has_flag("silent_steps") and Combat.instance.wall_between(global_position, e.global_position):
+				continue
 			e.add_threat(attacker, 1.0)
 
 

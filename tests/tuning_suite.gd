@@ -29,6 +29,7 @@ func run() -> void:
 	p.host_teleport(start)
 	await run_leech(start)
 	await run_fireball(start)
+	await run_type_mult(start)
 	await run_walls()
 	await run_ranged()
 
@@ -331,3 +332,27 @@ func run_ranged() -> void:
 	da.check(boss.ranged_reaction_delay() == 0.0, "a boss keeps its own timing")
 	boss.queue_free()
 	await da._wait(0.2)
+
+
+## #111: a damage type's multiplier counts once: +30% fire damage makes a fire hit 1.3x (it was 1.69x).
+func run_type_mult(start: Vector2) -> void:
+	for e in g.enemies_root.get_children():
+		e.queue_free()
+	await da._wait(0.2)
+	var d := dummy(g.nearest_floor(start + Vector2(40, 0)))
+	await da._wait(0.3)
+	d.set_physics_process(false)
+	var hits: Array = []
+	for pct in [0.0, 0.3]:
+		p.run_mods = [{"stat": "fire_damage_pct", "value": pct, "source": "t"}] if pct > 0.0 else []
+		p.recompute_stats()
+		var ctx := Combat.instance.make_ctx(p, {"id": "test_fire", "school": "spell", "damage_type": "fire"})
+		ctx.cannot_miss = true
+		ctx.crit_chance = 0.0
+		d.status.clear_all()
+		hits.append(Combat.instance.deal_damage(ctx, d, 100.0, {"damage_type": "fire"}))
+	p.run_mods = []
+	p.recompute_stats()
+	var ratio: float = float(hits[1]) / maxf(float(hits[0]), 0.01)
+	da.check(absf(ratio - 1.3) < 0.03, "+30%% fire damage makes a fire hit x%.2f (wants 1.30, was 1.69)" % ratio)
+	d.queue_free()

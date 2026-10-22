@@ -370,7 +370,7 @@ func _validate_refs() -> void:
 			for m2 in node.get("mods", []):
 				if m2.has("skill"):
 					for msk in (m2.skill if m2.skill is Array else [m2.skill]):
-						if msk != "*" and msk != "*traps" and not skills.has(msk):
+						if not msk in ["*", "*traps", "*spell", "*ranged", "*melee"] and not skills.has(msk):
 							errors.append("talent '%s' modifies unknown skill '%s'" % [node.id, msk])
 			_validate_procs("talent '%s'" % node.id, node.get("procs", []), types)
 		for p in tree_problems(tree):

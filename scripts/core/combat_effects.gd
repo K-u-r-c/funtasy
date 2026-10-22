@@ -109,7 +109,7 @@ func run_effect(eff: Dictionary, ctx: Dictionary, origin: Vector2, aim: Vector2)
 						continue
 				var landed := false
 				for i in times:
-					landed = apply_status(ctx, t, str(eff.status), float(eff.duration) * float(ctx.duration_mult), _magnitude(eff, ctx, t)) or landed
+					landed = apply_status(ctx, t, str(eff.status), _status_duration(eff, ctx), _magnitude(eff, ctx, t)) or landed
 				# A buff a skill puts on a teammate (or the party) flashes on each of them (#33).
 				var sdef: Dictionary = GameData.status_effects.get(str(eff.status), {})
 				if landed and caster and t.team == caster.team and not sdef.get("debuff", false) and str(sdef.get("kind", "")) != "hot" \
@@ -442,6 +442,16 @@ func knock(target: Actor, push: Vector2) -> void:
 	target.host_knockback(push)
 	if push.length() > 30.0:
 		fx.gfx.rpc("knock", {"a": target.get_path(), "time": clampf(push.length() / 900.0, 0.2, 0.5)})
+
+
+## A `status` effect's duration: its data x the skill's duration multiplier, plus (#111) the
+## seconds items add to it (Chronomancer's Hourglass, Pectoral of the Undying Sun). A status
+## without an end (-1) stays without one.
+func _status_duration(eff: Dictionary, ctx: Dictionary) -> float:
+	var d := float(eff.duration)
+	if d <= 0.0:
+		return d
+	return d * float(ctx.duration_mult) + float(ctx.get("duration_add", 0.0))
 
 
 # =========================================================================================
@@ -880,8 +890,10 @@ func _step_projectiles(delta: float) -> void:
 			var closest := Geometry2D.get_closest_point_to_segment(a.global_position, p.pos, seg_end)
 			if closest.distance_to(a.global_position) > p.radius + a.radius + 2.0:
 				continue
-			# Reflecting targets (prism walls, reflect statuses) send it back at its owner.
-			if a.status.has_flag("reflect_projectiles") and p.ctx.team != ENV_TEAM and rng.randf() < maxf(a.stats.get_stat("reflect_projectiles"), 1.0 if a.status.has_flag("reflect_projectiles") else 0.0):
+			# Reflecting targets (prism walls, reflect statuses) send it back at its owner; #111: a
+			# shield with a reflect chance (Voidglass Bulwark) returns hostile spells striking its front.
+			if p.ctx.team != ENV_TEAM and (a.status.has_flag("reflect_projectiles") or (a.stats.get_stat("reflect_projectiles") > 0.0 \
+					and str(p.ctx.get("school", "")) == "spell" and _frontal(a, p.pos) and rng.randf() < a.stats.get_stat("reflect_projectiles"))):
 				_reflect_projectile(id, a, closest)
 				end_at = Vector2.INF
 				bounced = true
@@ -1075,10 +1087,18 @@ func _zone_tick(z: Dictionary) -> void:
 	if str(z.ctx.get("skill", "")) == "priest_consecration" and is_instance_valid(z.ctx.get("caster")) and z.ctx.caster.stats.has_flag("radiant_consecration"):
 		for ra in allies_of(z.ctx.team, z.pos, z.radius):
 			heal(z.ctx, ra, ra.health.max_hp * 0.03 * float(eff.get("tick", 1.0)), false)
+	# #111 Wyvernscale Jerkin: a poison cloud feeds the wearer's mana (10 a second) and spares them.
+	var toxic := str(eff.get("damage_type", z.ctx.get("damage_type", ""))) == "nature" or str(eff.get("status_inside", "")).contains("poison")
+	var fed: Array = []
+	if toxic:
+		for a0 in hostile_in_radius(z.ctx, z.pos, z.radius, true):
+			if a0.stats.has_flag("toxic_feeder") and not wall_between(z.pos, a0.global_position):
+				a0.resource.gain(10.0 * float(eff.get("tick", 1.0)))
+				fed.append(a0)
 	# #109: a zone works on its side of walls and closed doors only.
 	if eff.has("damage"):
 		for a in hostile_in_radius(z.ctx, z.pos, z.radius, true):
-			if not wall_between(z.pos, a.global_position):
+			if not wall_between(z.pos, a.global_position) and not fed.has(a):
 				hit_target(a, eff, z.ctx, true)
 	if eff.has("heal"):
 		for a in allies_of(z.ctx.team, z.pos, z.radius):

@@ -3576,7 +3576,7 @@ Broad iron sabatons.,Szerokie żelazne trzewiki.
 Landing from Heroic Leap or ending Deadly Charge triggers a localized earthquake (120 px radius).,Lądowanie po Heroicznym Skoku lub koniec Śmiercionośnej Szarży wywołuje lokalne trzęsienie ziemi (promień 120 px).
 Boots of Unstoppable March,Buty Niepowstrzymanego Marszu
 Steel sabatons glowing with wind runes.,Stalowe trzewiki lśniące runami wiatru.
-"Immune to terrain movement penalties (mud, web, water); lava damage reduced by 80%.","Odporność na spowolnienia od terenu (błoto, sieć, woda); obrażenia od lawy mniejsze o 80%."
+Sewer sludge never slows you; lava damage reduced by 80%.,Szlam w kanałach nigdy cię nie spowalnia; obrażenia od lawy mniejsze o 80%.
 Terrain Immune,Odporność na teren
 Lava Resist,Odporność na lawę
 Spurs of Cruelty,Ostrogi Okrucieństwa
@@ -3844,7 +3844,7 @@ Gilded plate sabatons with iron spurs.,Pozłacane płytowe trzewiki z żelaznymi
 Casting Rebuke teleports you up to 100 px directly in front of the target.,Rzucenie Upomnienia teleportuje cię do 100 px wprost przed cel.
 Slippers of Grace,Pantofle Łaski
 Humble leather slippers emitting warm golden light.,Skromne skórzane pantofle emanujące ciepłym złotym światłem.
-Casting healing spells does not slow your movement or break sprint.,Rzucanie czarów leczących nie spowalnia ruchu ani nie przerywa sprintu.
+Healing spells are cast 30% faster.,Czary leczące rzucasz o 30% szybciej.
 Mobile Caster,Czary w ruchu
 Exorcist's Iron Striders,Żelazne Kroki Egzorcysty
 Heavy iron boots stamped with warding seals.,Ciężkie żelazne buty z odciśniętymi pieczęciami ochronnymi.

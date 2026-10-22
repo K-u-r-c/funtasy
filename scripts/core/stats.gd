@@ -274,6 +274,10 @@ func skill_mod(skill_id: String, field: String) -> float:
 		v += float(skill_mods[skill_id].get(field, 0.0))
 	if skill_mods.has("*"):
 		v += float(skill_mods["*"].get(field, 0.0))
+	# #111: "*spell" / "*ranged" / "*melee" reach only the skills of that school.
+	var school := "*" + str(GameData.skills.get(skill_id, {}).get("school", ""))
+	if school != "*" and skill_mods.has(school):
+		v += float(skill_mods[school].get(field, 0.0))
 	return v
 
 

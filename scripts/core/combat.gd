@@ -398,6 +398,7 @@ static func skill_numbers(st: Stats, level: int, skill: Dictionary) -> Dictionar
 		"resource_on_hit": float(skill.get("resource_on_hit", -1.0)),
 		"radius_mult": 1.0 + st.skill_mod(sid, "radius_mult"),
 		"duration_mult": 1.0 + st.skill_mod(sid, "duration_mult"),
+		"duration_add": st.skill_mod(sid, "duration_add"),  # #111: seconds added to the skill's own statuses
 		"range_mult": (1.0 + st.skill_mod(sid, "range_mult")) * (st.mult("range") if school == "ranged" or skill.get("ranged_skill", false) else 1.0),
 		"count_add": int(st.skill_mod(sid, "count_add")),
 		"pierce_add": int(st.skill_mod(sid, "pierce_add")),
@@ -428,7 +429,11 @@ static func legendary_scale(level: int) -> float:
 
 ## Cast time after haste.
 static func cast_time_for(st: Stats, skill: Dictionary) -> float:
-	return float(skill.get("cast_time", 0.0)) / (1.0 + st.get_stat("haste"))
+	var t := float(skill.get("cast_time", 0.0)) / (1.0 + st.get_stat("haste"))
+	# #111 Slippers of Grace: healing spells are cast 30% faster.
+	if t > 0.0 and st.has_flag("mobile_caster") and JSON.stringify(skill.get("effects", [])).contains("\"heal\""):
+		t *= 0.7
+	return t
 
 
 ## Host: the owner released a charge-up skill (or the harness / AI fires it, or it was held to

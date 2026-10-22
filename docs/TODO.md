@@ -163,6 +163,7 @@ screenshot review at 1920x1080 and 3440x1440.
 - [x] #112 Arena: leaving during the sealing warning calls it off (doors open, markers gone); coming back runs the full warning again (`events`, `events-lan`)
 - [x] #114 Buy back: Archibald lists what each hero sold him this floor (up to 10, newest first) at the price it fetched; saved with the floor, cleared on the next (`economy`, `economy-lan`)
 - [x] #113 Archibald and Malphas breathe in their chambers (looping idle) and now and then turn a coin / read a contract (PixelLab clips, NpcAnim merchant mode, data in merchants.json); static sprite fallback (`economy`, tour `tenth_merchants`)
+- [x] #111 Skill charges from items work from the owner's screen (Warpstrider Sandals: two Blinks); cooldown resets reach the owner; clients get the full skill mods; damage-type multipliers count once; every legendary affix audited, the missing / partial ones made real, school-scoped mods, two texts made honest; behavioural probes for all of them (`legendaries-*`, `skills-lan`, `tuning`)
 
 ## Ninth playtest issues (GitHub #83-#100)
 

@@ -314,6 +314,8 @@ func deal_damage(ctx: Dictionary, target: Actor, amount: float, opts: Dictionary
 		if forced or rng.randf() < cc:
 			crit = true
 			amount *= 1.0 + float(ctx.crit_damage) + target.stats.get_stat("crit_damage_taken") + (caster.stats.get_stat("crit_damage_bonus_next") if caster else 0.0)
+	# #111: the Cowl's ambush reads the stealth this hit came from, before the hit breaks it.
+	var from_stealth: bool = caster != null and caster.status.has_flag("stealthed")
 	if caster and caster.status.has_flag("stealthed") and not dot:
 		caster.status.remove_flag("stealthed")
 	# Type, school and boss multipliers of the attacker; damage-taken multipliers of the target.
@@ -329,8 +331,8 @@ func deal_damage(ctx: Dictionary, target: Actor, amount: float, opts: Dictionary
 			amount *= caster.stats.mult(school + "_damage")
 		if target.get("is_boss"):
 			amount *= caster.stats.mult("boss_damage")
+	# #111: the damage type's multiplier counts once (above); it was applied twice here.
 	if caster:
-		amount *= caster.stats.mult(dtype + "_damage")
 		# Mail of the Infernal Berserker: +5% per missing 10% HP.
 		if caster.stats.has_flag("berserker_wrath"):
 			amount *= 1.0 + 0.05 * floorf((1.0 - caster.health.fraction()) * 10.0)
@@ -353,7 +355,7 @@ func deal_damage(ctx: Dictionary, target: Actor, amount: float, opts: Dictionary
 		var k := float(GameData.bal("stats.armor_constant")) + float(GameData.bal("stats.armor_per_level")) * int(ctx.level)
 		var pen := clampf(float(ctx.get("armor_pen", 0.0)), 0.0, 1.0)
 		# Cowl of the Silent Stalker: from stealth or beyond 200 px, armor is ignored.
-		if caster and caster.stats.has_flag("ambush_armor_pen") and (caster.status.has_flag("stealthed") or caster.global_position.distance_to(target.global_position) > 200.0):
+		if caster and caster.stats.has_flag("ambush_armor_pen") and (from_stealth or caster.global_position.distance_to(target.global_position) > 200.0):
 			pen = 1.0
 		var armor := target.stats.get_stat("armor") * (1.0 - pen)
 		var armor_red := armor / (armor + k) if armor > 0.0 else 0.0

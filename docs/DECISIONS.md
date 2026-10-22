@@ -1527,3 +1527,17 @@ Tree shapes since #106 (the starting skills are the shared root above the branch
 | Network | Cosmetic, local timing on every peer (nothing replicated), like the blacksmith. |
 | Tests | `economy`: both merchants load their idle and gesture clips, breathe and gesture in their chamber with their feet in place; no clips keeps the static sprite. Review: `--tour=tenth_merchants`. |
 
+### #111 Skill charges from items; every legendary affix checked
+
+| Topic | Decision |
+| --- | --- |
+| Charges | A skill with stored charges (`charges` + `charges_add` from items, talents, boons) can be cast once per charge from the owner's screen: the slot only locks when its cooldown runs and no charge is left (`Player.slot_locked`); the host's `skill_charges` and the hero's skill mods are replicated (StateSync), and the HUD slot shows the charges ready. |
+| Owner sync | A cooldown changed outside a cast (a reset on kill, a reduction) reaches the owner through `_sync_slot_cd`: a reset frees the slot at once (it used to stay locked until the old timer ran out). |
+| Skill mods on clients | The hero's full skill modifiers (talents, items, boons, passives) are replicated from the host; clients no longer rebuild them from talents alone (which dropped every item mod from tooltips, costs, previews and charges). |
+| Damage types | A damage type's multiplier (`<type>_damage`) counts once; it was applied twice, so +30% fire was +69%. |
+| Fixed affixes | `duration_add` (Chronomancer's Hourglass: Time Warp +5 s; Pectoral of the Undying Sun: Apotheosis +6 s) adds seconds to the statuses the skill applies. Voidglass Bulwark reflects hostile spell projectiles striking its front with its 40% chance. Cowl of the Silent Stalker reads the stealth the hit came from. Wyvernscale Jerkin: inside a poison / nature cloud +10 Mana a second and no damage. Blessed Touch Gloves: Renew ticks 25% faster from its first tick. Pendant of the Apex Predator: Hunter's Mark is permanent on bosses. Specter's Softsteps: monsters behind a wall or closed door aren't alerted by the one that spots the hero. |
+| Scopes | Skill modifiers can target a school: `"*spell"`, `"*ranged"`, `"*melee"` (besides `"*"` and `"*traps"`). Falconer's Focus Band (range) and the Quiver of the Endless Abyss (pierce) now reach ranged skills only, the Hourglass's cooldown cut spells only, as their texts say. |
+| Texts | Slippers of Grace had nothing to switch off (casting never slows or breaks movement, no sprint exists): they now make healing spells cast 30% faster. Boots of the Unstoppable March say what they do: sewer sludge never slows you; lava damage -80%. |
+| Tests | `legendaries-*`: every legendary that was only checked for its flag / stat / skill mod has a behavioural probe (`test.probe`): it measures the effect with the item and with a stripped copy (same base and stats, no mods, flags or procs) and passes only if the effect shows with the item alone; a data-only test key now fails. `skills-lan`: a client with the Sandals casts Blink twice, the third press is refused, its slot shows 0 charges; a host-side cooldown reset frees the client's slot. `tuning`: +30% fire makes a fire hit x1.30. |
+| Known | Pack alerts on a ranged hit: `Enemy.on_damaged` only alerts the neighbours of a monster that wasn't aggro yet, and `add_threat` sets aggro first, so only spotting (not a hit) alerts a pack; left as it is (it changes every fight), noted for a later issue. |
+

@@ -87,6 +87,7 @@ func apply(id: String, duration: float, magnitude: float, source: Variant) -> bo
 	effects.append({"id": id, "def": def, "remaining": INF if permanent else duration, "tick_left": float(def.get("tick", 1.0)),
 		"magnitude": magnitude, "stacks": int(def.get("start_stacks", 1)), "source": source, "src_node": src_node,
 		"charges": int(def.get("charges", 0)), "recorded": 0.0})
+	effects[-1].tick_left = tick_of(effects[-1])  # #111: a faster Renew ticks faster from its first tick
 	_check_threshold(effects[-1])
 	_publish()
 	actor.on_stats_dirty()
@@ -109,6 +110,15 @@ func max_stacks(def: Dictionary) -> int:
 			if e.def == def and is_instance_valid(e.src_node) and e.src_node is Actor and e.src_node.stats.has_flag(str(def.stack_bonus_flag)):
 				return int(def.get("bonus_max_stacks", n))
 	return n if actor else n
+
+
+## Seconds between the ticks of `e`; #111: a Renew from a priest with Blessed Touch Gloves ticks
+## 25% faster.
+func tick_of(e: Dictionary) -> float:
+	var t := float(e.def.get("tick", 1.0))
+	if e.def == GameData.status_effects.get("renew", {}) and is_instance_valid(e.get("src_node")) and e.src_node is Actor and e.src_node.stats.has_flag("renew_mastery"):
+		t *= 0.75
+	return t
 
 
 ## Chill x5 -> freeze, King's Curse x5 -> explode.
@@ -371,7 +381,7 @@ func _process(delta: float) -> void:
 		if kind == "dot" or kind == "hot" or e.def.has("tick_effects"):
 			e.tick_left -= delta
 			if e.tick_left <= 0.0:
-				e.tick_left += float(e.def.get("tick", 1.0))
+				e.tick_left += tick_of(e)
 				if Combat.instance and is_instance_valid(actor):
 					Combat.instance.status_tick(actor, e)
 		if e.remaining <= 0.0:

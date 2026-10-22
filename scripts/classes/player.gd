@@ -59,10 +59,6 @@ var legacy_kit := false  ## a hero saved before the simple start: the old tier-0
 var talents: Dictionary = {}:
 	set(v):
 		talents = v
-		# Clients only receive the final stats; talent skill modifiers (cooldowns, costs, damage
-		# per skill) are rebuilt locally from the replicated ranks for the UI.
-		if stats and not class_def.is_empty():
-			stats.skill_mods = Stats.skill_mods_for(class_def, v)
 var appearance: Dictionary = {}:
 	set(v):
 		appearance = v
@@ -151,7 +147,7 @@ func setup(data: Dictionary) -> void:
 	collision_mask = LIVING_MASK
 	NetSync.make(self, "StateSync", [
 		"Health:hp", "Health:max_hp", "Health:absorb", "Resource:value", "Resource:max_value", "Resource:kind",
-		"Status:shown", "Stats:final", ".:life_state", ".:downed_left", ".:revive_progress", ".:level",
+		"Status:shown", "Stats:final", "Stats:skill_mods", ".:skill_charges", ".:life_state", ".:downed_left", ".:revive_progress", ".:level",
 		".:xp", ".:talent_points", ".:talents", ".:appearance", ".:torch_sync", ".:restless", ".:reviver_peer",
 		".:stat_points", ".:allocated", ".:run_mods", ".:boons", ".:gold", ".:skills", ".:legacy_kit", ".:held_by",
 		".:held_anim",
@@ -681,7 +677,7 @@ func _owner_tick(delta: float) -> void:
 		if slot >= skills.size() or str(skills[slot]).is_empty():
 			continue
 		var inp := slot_input(slot)
-		if inp[0] and (local_cd.has(slot) or _unaffordable(slot)):
+		if inp[0] and (slot_locked(slot) or _unaffordable(slot)):
 			EventBus.skill_refused.emit(slot)  # #81: the slot shakes
 		if slot > 0 and not _is_hold_skill(str(skills[slot])):
 			if inp[0]:
@@ -690,11 +686,11 @@ func _owner_tick(delta: float) -> void:
 				_skill_hold[slot] = float(_skill_hold[slot]) + delta
 			if inp[2] and _skill_hold.has(slot):
 				_skill_hold.erase(slot)
-				if not local_cd.has(slot) and not _pending.has(slot):
+				if not slot_locked(slot) and not _pending.has(slot):
 					_send_skill(slot)
 			continue
 		# A charge that fired or was cancelled needs a fresh press to start again (#54).
-		if inp[1] and not local_cd.has(slot) and not _pending.has(slot) and not _charge_held.has(slot):
+		if inp[1] and not slot_locked(slot) and not _pending.has(slot) and not _charge_held.has(slot):
 			if slot == 0 and _click_select:
 				_pending[slot] = 0.3
 				continue
@@ -866,6 +862,25 @@ func preview_slot() -> int:
 	return -1
 
 
+## #111: stored charges of `sid` (data `charges` + items / talents / boons `charges_add`); 1 for a
+## skill without charges. Clients read the host's replicated skill mods.
+func max_charges(sid: String) -> int:
+	return int(GameData.skills.get(sid, {}).get("charges", 1)) + int(stats.skill_mod(sid, "charges_add"))
+
+
+## #111: charges of `sid` ready now (the host's count, replicated; full before the first cast).
+func charges_left(sid: String) -> int:
+	return int(skill_charges.get(sid, max_charges(sid)))
+
+
+## #111, owner: the slot can't be pressed now: its cooldown runs and no stored charge is left.
+func slot_locked(slot: int) -> bool:
+	if not local_cd.has(slot):
+		return false
+	var sid := str(skills[slot]) if slot < skills.size() else ""
+	return max_charges(sid) <= 1 or charges_left(sid) <= 0
+
+
 ## #107, owner, once a frame: which of slots 1-5's presses belong to the second bar (made while
 ## "skill_page" was held; they stay there until released, whatever the page does meanwhile).
 func _update_page() -> void:
@@ -907,7 +922,7 @@ func preview_info(slot: int) -> Dictionary:
 		aim = CombatCore.reach_point(get_world_2d().direct_space_state, global_position, global_position + (aim - global_position).limit_length(float(shape.range)))
 	var why := ""
 	var cost := stats.cost_for(sk) if not sk.has("channel") and not sk.has("toggle") else 0.0
-	if local_cd.has(slot):
+	if slot_locked(slot):
 		why = "Not ready"
 	elif resource.kind != "none" and cost > 0.0 and resource.value + 0.01 < cost:
 		why = "Not enough Fury" if resource.kind == "fury" else "Not enough Mana"
@@ -1142,7 +1157,7 @@ func charge_frac(slot: int) -> float:
 func sync_cooldown(sid: String) -> void:
 	var slot := skills.find(sid)
 	if slot >= 0:
-		_skill_result.rpc_id(peer_id, slot, cooldown_left(sid), cooldown_left(sid) > 0.0, "")
+		_sync_slot_cd.rpc_id(peer_id, slot, cooldown_left(sid))
 
 
 ## Host: the dodge roll is ready again at once (Predator's Breeches).
@@ -1452,6 +1467,18 @@ func _skill_result(slot: int, cd: float, ok: bool, msg: String) -> void:
 			local_cd[slot] = [cd, maxf(total, cd)]
 	if not msg.is_empty():
 		EventBus.hud_message.emit(Loc.t(msg), Color(1, 0.6, 0.5))
+
+
+## Host -> owner (#111): a cooldown changed outside a cast (a reset on kill, a reduction): the
+## slot's sweep follows it, and a reset frees the slot at once.
+@rpc("authority", "call_local", "reliable")
+func _sync_slot_cd(slot: int, cd: float) -> void:
+	_pending.erase(slot)
+	if cd <= 0.0:
+		local_cd.erase(slot)
+	else:
+		var total := float(local_cd[slot][1]) if local_cd.has(slot) else cd
+		local_cd[slot] = [cd, maxf(total, cd)]
 
 
 @rpc("authority", "call_local", "reliable")
