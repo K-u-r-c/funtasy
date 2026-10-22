@@ -31,6 +31,8 @@ func run() -> void:
 	await points_per_level()
 	await old_save()
 	await tree_rules()
+	if p.class_id == "mage":
+		await meteor_deeper()
 	await every_node()
 	await panel()
 
@@ -282,6 +284,42 @@ func tree_rules() -> void:
 	p._host_init()
 	p.level = keep_level
 	p.talents = {}
+	p.talent_points = p._talent_points_total()
+	p.recompute_stats()
+
+
+## #105: Meteor Strike sits on tier 3 under Overload (Cataclysm below it); a fresh mage can't
+## learn it, a mage on the path past the tier gate can; a hero from before the simple start keeps
+## it free.
+func meteor_deeper() -> void:
+	var nd := p.talent_node("m_s_meteor")
+	var cat := p.talent_node("m_cataclysm")
+	da.check(int(nd.get("tier", 0)) == 3 and Array(nd.get("requires", [])) == ["m_overload"] and Array(cat.get("requires", [])) == ["m_s_meteor"],
+		"Meteor Strike is a tier-3 node under Overload, Cataclysm grows from it (tier %d, %s)" % [int(nd.get("tier", 0)), nd.get("requires", [])])
+	var keep_level := p.level
+	var got: Array = []
+	var cb := func(txt: String, _col: Color): got.append(txt)
+	EventBus.hud_message.connect(cb)
+	p.level = 2
+	p.talents = {}
+	p.talent_points = 1
+	p.request_learn_talent.rpc_id(1, "m_s_meteor")
+	await da._wait(0.3)
+	da.check(int(p.talents.get("m_s_meteor", 0)) == 0 and not p.unlocked_skills().has("mage_meteor") and got.has(Loc.t("Requires another talent first")),
+		"a level 2 mage can't learn Meteor Strike (%s)" % [got])
+	p.level = 30
+	p.talents = plan_for(nd)
+	p.talent_points = 99
+	p.request_learn_talent.rpc_id(1, "m_s_meteor")
+	await da._wait(0.3)
+	da.check(int(p.talents.get("m_s_meteor", 0)) == 1 and p.unlocked_skills().has("mage_meteor"), "on the path past the tier gate Meteor Strike is learned (%s)" % [p.talents.keys()])
+	EventBus.hud_message.disconnect(cb)
+	p.talents = {}
+	var keep_legacy := p.legacy_kit
+	p.legacy_kit = true
+	da.check(p.is_free_node(nd) and p.unlocked_skills().has("mage_meteor"), "a hero from before the simple start keeps Meteor Strike for free")
+	p.legacy_kit = keep_legacy
+	p.level = keep_level
 	p.talent_points = p._talent_points_total()
 	p.recompute_stats()
 

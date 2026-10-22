@@ -155,6 +155,7 @@ screenshot review at 1920x1080 and 3440x1440.
 - [x] #108 Difficulty Easy / Medium / Hard with separate monster HP / damage multipliers (1.0 / 1.0, 1.5 / 1.25, 2.5 / 1.6); Easy is the old Normal, the lobby default is Medium; automated runs play on Easy unless `--set=difficulty:<i>` (`balance-*`, every LAN client)
 - [x] #103 Heroes' leech heals half its rating (`combat.leech_efficiency` 0.5, per hit and per area target); stat rows and skill tooltips show the healed share; monsters' leech, Leech Oil and proc heals unchanged (`tuning`)
 - [x] #104 Fireball's cooldown is 5 s (was 2.5 s); damage, burn and cost unchanged (`tuning`, `boons-mage`)
+- [x] #105 Meteor Strike is a tier-3 Pyromancer & Stormcaller node under Overload [3], Cataclysm at tier 5 under it; legacy heroes keep it free (`talents-mage`)
 
 ## Ninth playtest issues (GitHub #83-#100)
 
