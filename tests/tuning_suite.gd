@@ -2,7 +2,7 @@ class_name TuningSuite
 extends RefCounted
 ## Tenth playtest tuning (scenario "tuning", solo mage): #103 leech heals half its rating, #104
 ## Fireball's 5 s cooldown, #109 ground-targeted skills stop at walls and closed doors, #110 ranged
-## monsters wait about a second before they shoot.
+## monsters wait about a second before they shoot, #115 a hit calls the monster's pack.
 
 var da: Node
 var g: Node
@@ -32,6 +32,7 @@ func run() -> void:
 	await run_type_mult(start)
 	await run_walls()
 	await run_ranged()
+	await run_pack_alert()
 
 
 ## #103: a leech hit heals damage x Leech x combat.leech_efficiency (0.5, data), per hit and per
@@ -356,3 +357,85 @@ func run_type_mult(start: Vector2) -> void:
 	var ratio: float = float(hits[1]) / maxf(float(hits[0]), 0.01)
 	da.check(absf(ratio - 1.3) < 0.03, "+30%% fire damage makes a fire hit x%.2f (wants 1.30, was 1.69)" % ratio)
 	d.queue_free()
+
+
+## #115: a hero's hit from out of sight range calls the pack around the monster (once); a monster
+## behind a closed door stays calm when the hero wears Specter's Softsteps, and hears it without.
+func run_pack_alert() -> void:
+	for e in g.enemies_root.get_children():
+		e.queue_free()
+	for zid in Combat.instance.zones.keys():
+		Combat.instance.zones.erase(zid)
+		Combat.instance.fx.zone_end.rpc(zid)
+	await da._wait(0.3)
+	p.iframe_left = 9999.0
+	var start: Vector2 = g.nearest_floor(g.layout.start)
+	p.host_teleport(start)
+	var far := _far_floor(start, 520.0)
+	da.check(far != Vector2.INF, "a floor spot far from the hero for a pack")
+	if far == Vector2.INF:
+		return
+	var pack: Array = []
+	for i in 3:
+		var m: Enemy = g.spawn_monster("skeletal_footman", g.nearest_floor(far + Vector2(-30 + 30 * i, 0)), false)
+		pack.append(m)
+	await da._wait(0.2)
+	for m in pack:
+		m.set_physics_process(false)  # no think tick: only the hit may wake them
+	var ctx := Combat.instance.make_ctx(p, {"id": "test_shot", "school": "ranged"})
+	ctx.cannot_miss = true
+	Combat.instance.deal_damage(ctx, pack[0], 1.0)
+	await da._wait(0.1)
+	var woke := pack.slice(1).filter(func(m): return m.aggro and m.threat.has_any())
+	da.check(pack[0].aggro and woke.size() == 2, "a hit from afar calls the struck monster's pack (%d of 2 woke)" % woke.size())
+	for m in pack:
+		m.queue_free()
+	await da._wait(0.2)
+	# Through a closed door: heard without Softsteps, not with them.
+	var sides := _door_sides()
+	if sides.is_empty():
+		return
+	var door: Node = sides[0]
+	door.host_set_open(false)
+	await da._wait(0.3)
+	var results: Array = []
+	var asleep := true
+	for soft in [false, true]:
+		var keep: Dictionary = p.inv.equipment.duplicate()
+		if soft:
+			p.inv.equipment["boots"] = ItemGenerator.make_legendary("specters_softsteps", p.level, RandomNumberGenerator.new())
+		p.recompute_stats()
+		var hit: Enemy = g.spawn_monster("skeletal_footman", sides[1], false)
+		var behind: Enemy = g.spawn_monster("skeletal_footman", sides[2], false)
+		# No think tick from the start: one of the two may stand in the hero's sight.
+		hit.set_physics_process(false)
+		behind.set_physics_process(false)
+		await da._wait(0.2)
+		asleep = asleep and not hit.aggro and not behind.aggro
+		Combat.instance.deal_damage(Combat.instance.make_ctx(p, {"id": "test_shot", "school": "ranged"}), hit, 1.0)
+		await da._wait(0.1)
+		results.append(behind.aggro)
+		hit.queue_free()
+		behind.queue_free()
+		p.inv.equipment = keep
+		p.recompute_stats()
+		await da._wait(0.2)
+	da.check(asleep and results == [true, false], "behind a closed door the pack hears the hit, unless the hero wears Specter's Softsteps (%s)" % [results])
+	door.host_set_open(true)
+
+
+## A walkable floor point at least `dist` px from `from` (Vector2.INF if none).
+func _far_floor(from: Vector2, dist: float) -> Vector2:
+	var d: Node = g.dungeon
+	for y in range(2, d.size.y - 2):
+		for x in range(2, d.size.x - 2):
+			var c := Vector2i(x, y)
+			var pos: Vector2 = d.cell_center(c)
+			if pos.distance_to(from) < dist or d.cell_at(c) != DungeonGenerator.CELL_FLOOR:
+				continue
+			var ok := true
+			for dx in [-1, 0, 1]:
+				ok = ok and d.cell_at(c + Vector2i(dx, 0)) == DungeonGenerator.CELL_FLOOR
+			if ok:
+				return pos
+	return Vector2.INF

@@ -28,6 +28,7 @@ var _guard_left := 0.0
 var arena_returns := 0  ## host: times the arena guard put this boss back (tests)
 var _aggro_since := -1.0  ## host: when this monster first noticed a hero (seconds)
 var _clock := 0.0  ## host: seconds this monster has run its AI
+var _pack_alerted := false  ## host (#115): this monster already called its pack
 var _sight_target: Actor = null  ## host (#110): the target it has kept in sight since _sight_from
 var _sight_from := 0.0
 var lifetime := -1.0  ## host: summoned minions and decoys expire
@@ -339,8 +340,11 @@ func add_contribution(peer: int) -> void:
 func on_damaged(attacker: Actor, amount: float) -> void:
 	for b in behaviors:
 		b.on_damaged(attacker, amount)
-	if attacker and not aggro:
-		_become_aggro()
+	# #115: a hit from the heroes' side calls the pack once, even though the hit's threat already
+	# made this monster aggro (add_threat runs before on_damaged).
+	if attacker and attacker.team != team and not _pack_alerted:
+		if not aggro:
+			_become_aggro()
 		_alert_nearby(attacker)
 
 
@@ -360,6 +364,7 @@ func aggro_age() -> float:
 
 
 func _alert_nearby(attacker: Actor) -> void:
+	_pack_alerted = true
 	var r := float(GameData.bal("threat.aggro_share_radius"))
 	for e in get_tree().get_nodes_in_group("enemies"):
 		if e != self and e.is_alive() and not e.aggro and e.global_position.distance_to(global_position) <= r:

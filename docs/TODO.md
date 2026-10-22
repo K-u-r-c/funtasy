@@ -150,7 +150,7 @@ screenshot review at 1920x1080 and 3440x1440.
 - [x] #55 A continued game resumes its floor: run seed and a floor snapshot in the save (monsters, boss / portal, items, props, chests, doors, torches, cells, Gold Key, merchant, every hero's place / HP / life state, every player's map), written on quit, window close, boss kill and every 20 s (`resume`, `resume-lan`; old saves still load)
 - [x] #60 The lobby preview of a saved hero shows its saved gear (replicated with the game info), on the host and every client (`resume`, `resume-lan`; lobby screenshot before / after)
 
-## Tenth playtest issues (GitHub #103-#114)
+## Tenth playtest issues (GitHub #103-#115)
 
 - [x] #108 Difficulty Easy / Medium / Hard with separate monster HP / damage multipliers (1.0 / 1.0, 1.5 / 1.25, 2.5 / 1.6); Easy is the old Normal, the lobby default is Medium; automated runs play on Easy unless `--set=difficulty:<i>` (`balance-*`, every LAN client)
 - [x] #103 Heroes' leech heals half its rating (`combat.leech_efficiency` 0.5, per hit and per area target); stat rows and skill tooltips show the healed share; monsters' leech, Leech Oil and proc heals unchanged (`tuning`)
@@ -164,6 +164,7 @@ screenshot review at 1920x1080 and 3440x1440.
 - [x] #114 Buy back: Archibald lists what each hero sold him this floor (up to 10, newest first) at the price it fetched; saved with the floor, cleared on the next (`economy`, `economy-lan`)
 - [x] #113 Archibald and Malphas breathe in their chambers (looping idle) and now and then turn a coin / read a contract (PixelLab clips, NpcAnim merchant mode, data in merchants.json); static sprite fallback (`economy`, tour `tenth_merchants`)
 - [x] #111 Skill charges from items work from the owner's screen (Warpstrider Sandals: two Blinks); cooldown resets reach the owner; clients get the full skill mods; damage-type multipliers count once; every legendary affix audited, the missing / partial ones made real, school-scoped mods, two texts made honest; behavioural probes for all of them (`legendaries-*`, `skills-lan`, `tuning`)
+- [x] #115 A hit from the heroes' side calls the monster's pack (once per monster); Specter's Softsteps still keeps monsters behind walls calm (`tuning`)
 
 ## Ninth playtest issues (GitHub #83-#100)
 

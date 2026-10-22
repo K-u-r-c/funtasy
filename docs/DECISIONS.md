@@ -1539,5 +1539,14 @@ Tree shapes since #106 (the starting skills are the shared root above the branch
 | Scopes | Skill modifiers can target a school: `"*spell"`, `"*ranged"`, `"*melee"` (besides `"*"` and `"*traps"`). Falconer's Focus Band (range) and the Quiver of the Endless Abyss (pierce) now reach ranged skills only, the Hourglass's cooldown cut spells only, as their texts say. |
 | Texts | Slippers of Grace had nothing to switch off (casting never slows or breaks movement, no sprint exists): they now make healing spells cast 30% faster. Boots of the Unstoppable March say what they do: sewer sludge never slows you; lava damage -80%. |
 | Tests | `legendaries-*`: every legendary that was only checked for its flag / stat / skill mod has a behavioural probe (`test.probe`): it measures the effect with the item and with a stripped copy (same base and stats, no mods, flags or procs) and passes only if the effect shows with the item alone; a data-only test key now fails. `skills-lan`: a client with the Sandals casts Blink twice, the third press is refused, its slot shows 0 charges; a host-side cooldown reset frees the client's slot. `tuning`: +30% fire makes a fire hit x1.30. |
-| Known | Pack alerts on a ranged hit: `Enemy.on_damaged` only alerts the neighbours of a monster that wasn't aggro yet, and `add_threat` sets aggro first, so only spotting (not a hit) alerts a pack; left as it is (it changes every fight), noted for a later issue. |
+| Known | Pack alerts on a hit were never raised (found here, fixed in #115). |
+
+### #115 A hit calls the monster's pack
+
+| Topic | Decision |
+| --- | --- |
+| Cause | `Enemy.on_damaged` only alerted the pack of a monster that wasn't aggro yet, but the hit's `add_threat` (which runs first in the damage pipeline) had already made it aggro, so a hit never called the pack: only spotting did, and a ranged hero could pick a pack off one by one. |
+| Rule | The first hit a monster takes from the heroes' side (a hero or a hero's summon) calls the monsters within `threat.aggro_share_radius` (160 px), whether or not it was already aggro; each monster calls its pack once (a spotting counts too). The alerted ones get a little threat on the attacker. Specter's Softsteps still keeps monsters behind a wall or closed door calm (#111). |
+| Balance | Pulling one monster of a pack from range now brings the pack. The balance probes measure one monster at a time and are unchanged. |
+| Tests | `tuning`: a hit from out of sight range wakes the struck monster's two pack mates (their own think tick off); behind a closed door the pack hears the hit, but not from a hero wearing Specter's Softsteps. |
 
