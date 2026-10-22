@@ -1,7 +1,7 @@
 class_name TuningSuite
 extends RefCounted
 ## Tenth playtest tuning (scenario "tuning", solo mage): #103 leech heals half its rating, #104
-## Fireball's 5 s cooldown.
+## Fireball's 5 s cooldown, #109 ground-targeted skills stop at walls and closed doors.
 
 var da: Node
 var g: Node
@@ -28,6 +28,7 @@ func run() -> void:
 	p.host_teleport(start)
 	await run_leech(start)
 	await run_fireball(start)
+	await run_walls()
 
 
 ## #103: a leech hit heals damage x Leech x combat.leech_efficiency (0.5, data), per hit and per
@@ -135,3 +136,115 @@ func run_fireball(start: Vector2) -> void:
 	var left := p.cooldown_left("mage_fireball")
 	var want := p.stats.cooldown_for(sk)
 	da.check(err.is_empty() and want > 4.0 and absf(left - want) < 0.3, "a real Fireball goes on a ~5 s cooldown (%.2f s left, %.2f s with haste)%s" % [left, want, "" if err.is_empty() else ": " + err])
+
+
+## Two floor points on either side of an ordinary door, along its normal: [door, a, b] or [].
+func _door_sides() -> Array:
+	for d in g.dungeon.doors:
+		if d.sealed or not str(d.kind).is_empty() or d.floodgate or d.locked:
+			continue
+		var c: Vector2 = Rect2(d.world_rect).get_center()
+		var n := Vector2(1, 0) if d.vertical else Vector2(0, 1)
+		for off in [56.0, 72.0, 44.0]:
+			var a: Vector2 = c - n * off
+			var b: Vector2 = c + n * off
+			if DungeonGenerator.walkable(g.dungeon.cell_at(g.dungeon.cell_of(a))) and DungeonGenerator.walkable(g.dungeon.cell_at(g.dungeon.cell_of(b))):
+				return [d, a, b]
+	return []
+
+
+func _newest_zone() -> Dictionary:
+	var best := -1
+	for id in Combat.instance.zones:
+		best = maxi(best, int(id))
+	return Combat.instance.zones.get(best, {})
+
+
+## #109: aimed through a closed door, Meteor Strike, an area, a zone and a trap land on the
+## caster's side and spare the dummy beyond it; through the open door they hit; a prop in the way
+## moves nothing; a monster's area can't reach a hero through the door; the aim preview shows the
+## clamped point.
+func run_walls() -> void:
+	for e in g.enemies_root.get_children():
+		e.queue_free()
+	await da._wait(0.3)
+	var sides := _door_sides()
+	da.check(not sides.is_empty(), "an ordinary door with floor on both sides")
+	if sides.is_empty():
+		return
+	var door: Node = sides[0]
+	var a: Vector2 = sides[1]
+	var b: Vector2 = sides[2]
+	var mid: Vector2 = Rect2(door.world_rect).get_center()
+	var n: Vector2 = (b - a).normalized()
+	p.iframe_left = 9999.0
+	p.host_teleport(a)
+	door.host_set_open(false)
+	await da._wait(0.5)
+	var dm := dummy(b)
+	await da._wait(0.4)
+	dm.set_physics_process(false)
+	dm.status.clear_all()
+	var hp0: float = dm.health.hp
+	var ctx := Combat.instance.make_ctx(p, {"id": "test_ground", "school": "spell", "damage_type": "fire"})
+	ctx.cannot_miss = true
+	var boom := {"type": "aoe", "at": "aim", "max_range": 300, "radius": 90, "damage": {"base": 30, "coef": 0.0}, "damage_type": "fire"}
+	var at := Combat.instance.clamp_reachable(a, b, 300.0)
+	da.check((at - mid).dot(n) < 0.0, "an area aimed through a closed door lands on the caster's side (%.0f px short of the door)" % -(at - mid).dot(n))
+	Combat.instance.run_effect(boom, ctx, a, b)
+	var zone := {"type": "zone", "at": "aim", "max_range": 300, "radius": 90, "duration": 1.0, "tick": 0.25, "damage": {"base": 10, "coef": 0.0}}
+	Combat.instance.run_effect(zone, ctx, a, b)
+	var zpos: Vector2 = _newest_zone().get("pos", b)
+	var trap := {"type": "trap", "at": "aim", "max_range": 300, "trigger_radius": 30, "duration": 1.0, "damage": {"base": 10, "coef": 0.0}}
+	Combat.instance.run_effect(trap, ctx, a, b)
+	var tpos: Vector2 = _newest_zone().get("pos", b)
+	p.talents["m_s_meteor"] = 1
+	p.cooldowns.erase("mage_meteor")
+	p.resource.value = p.resource.max_value
+	var err := Combat.instance.try_use_skill(p, "mage_meteor", b)
+	await da._wait(2.4)
+	da.check((zpos - mid).dot(n) < 0.0 and (tpos - mid).dot(n) < 0.0, "a zone and a trap aimed through a closed door are put down on the caster's side")
+	da.check(err.is_empty() and is_equal_approx(dm.health.hp, hp0), "Meteor Strike, an area and a zone aimed into the next room spare the monster behind the closed door (%d -> %d)%s" % [hp0, dm.health.hp, "" if err.is_empty() else " (" + err + ")"])
+	# The same through the open door: hit.
+	door.host_set_open(true)
+	await da._wait(0.4)
+	Combat.instance.run_effect(boom, ctx, a, b)
+	await da._wait(0.2)
+	da.check(dm.health.hp < hp0, "through the open door the area hits (%d -> %d)" % [hp0, dm.health.hp])
+	# A prop in the way moves nothing.
+	var start: Vector2 = g.nearest_floor(g.layout.start)
+	g.dungeon._add_prop("TestCrate109", "crate", g.nearest_floor(start + Vector2(50, 0)))
+	await da._wait(0.2)
+	var far: Vector2 = start + Vector2(110, 0)
+	da.check(Combat.instance.clamp_reachable(start, far, 300.0).distance_to(far) < 0.5, "a prop between caster and aim doesn't move the point")
+	# A monster's area can't reach a hero through the closed door.
+	door.host_set_open(false)
+	await da._wait(0.4)
+	p.host_teleport(b)
+	dm.global_position = a
+	await da._wait(0.3)
+	p.iframe_left = 0.0
+	var php: float = p.health.hp
+	var mctx := Combat.instance.make_ctx(dm, {"id": "test_monster_ground", "school": "spell"})
+	mctx.cannot_miss = true
+	Combat.instance.run_effect(boom, mctx, a, b)
+	await da._wait(0.2)
+	da.check(is_equal_approx(p.health.hp, php), "a monster's area can't hit a hero through a closed door (%d -> %d)" % [php, p.health.hp])
+	p.iframe_left = 9999.0
+	# The aim preview shows the clamped point.
+	p.host_teleport(a)
+	await da._wait(0.3)
+	var keep: Array = p.skills.duplicate()
+	var lo := keep.duplicate()
+	lo[1] = "mage_meteor"
+	p.skills = lo
+	p.auto_aim = b
+	await da._wait(0.1)
+	var info := p.preview_info(1)
+	p.auto_aim = Vector2.INF
+	p.skills = keep
+	da.check((Vector2(info.aim) - mid).dot(n) < 0.0, "the aim preview shows Meteor Strike landing on the caster's side of the door")
+	door.host_set_open(true)
+	if is_instance_valid(dm):
+		dm.queue_free()
+

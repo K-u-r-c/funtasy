@@ -66,7 +66,7 @@ func run_effect(eff: Dictionary, ctx: Dictionary, origin: Vector2, aim: Vector2)
 						a = lerpf(-spread / 2.0, spread / 2.0, float(i) / (count - 1))
 				spawn_projectile(eff, ctx, origin, dir.rotated(a), aim)
 		"aoe":
-			var center := origin if eff.get("at", "self") == "self" else clamp_range(origin, aim, float(eff.get("max_range", 300)))
+			var center := origin if eff.get("at", "self") == "self" else clamp_reachable(origin, aim, float(eff.get("max_range", 300)))
 			var delay := float(eff.get("delay", 0.0))
 			if delay > 0.0:
 				fx.telegraph.rpc(center, float(eff.radius) * float(ctx.radius_mult), str(eff.get("color", "#ff4422")), delay)
@@ -75,7 +75,7 @@ func run_effect(eff: Dictionary, ctx: Dictionary, origin: Vector2, aim: Vector2)
 				apply_aoe(eff, ctx, center)
 		"zone", "trap", "deploy":
 			var default_at := "self" if eff.type == "zone" else "aim"
-			var zpos := origin if eff.get("at", default_at) == "self" else clamp_range(origin, aim, float(eff.get("max_range", 220)))
+			var zpos := origin if eff.get("at", default_at) == "self" else clamp_reachable(origin, aim, float(eff.get("max_range", 220)))
 			if str(eff.get("at", "")) == "behind":
 				zpos = origin - dir * float(eff.get("offset", 30))
 			add_zone(eff, ctx, zpos)
@@ -168,7 +168,7 @@ func run_effect(eff: Dictionary, ctx: Dictionary, origin: Vector2, aim: Vector2)
 		"knockback", "pull":
 			_push(eff, ctx, origin, aim)
 		"delayed":
-			var at := clamp_range(origin, aim, float(eff.get("max_range", 300))) if eff.get("at", "aim") == "aim" else origin
+			var at := clamp_reachable(origin, aim, float(eff.get("max_range", 300))) if eff.get("at", "aim") == "aim" else origin
 			if eff.has("telegraph"):
 				fx.telegraph.rpc(at, float(eff.telegraph.get("radius", 40)), str(eff.telegraph.get("color", "#ff4422")), float(eff.delay))
 			delayed.append({"left": float(eff.delay), "effects": eff.effects, "ctx": ctx, "pos": at, "follow": caster if eff.get("follow", false) else null})
@@ -240,7 +240,7 @@ func run_effect(eff: Dictionary, ctx: Dictionary, origin: Vector2, aim: Vector2)
 						e.drop_threat(t, float(eff.get("fraction", 1.0)))
 		"reveal":
 			var rr := float(eff.get("radius", 250))
-			var at2 := clamp_range(origin, aim, float(eff.get("max_range", 260))) if eff.get("at", "self") == "aim" else origin
+			var at2 := clamp_reachable(origin, aim, float(eff.get("max_range", 260))) if eff.get("at", "self") == "aim" else origin
 			for e2 in all_actors():
 				if e2 is Actor and e2.team != ctx.team and e2.global_position.distance_to(at2) <= rr:
 					e2.status.remove_flag("stealthed")
@@ -695,7 +695,7 @@ func _chain(eff: Dictionary, ctx: Dictionary, origin: Vector2, aim: Vector2) -> 
 
 ## Knockback / pull: radial from a point (aim or self), or along the aim direction.
 func _push(eff: Dictionary, ctx: Dictionary, origin: Vector2, aim: Vector2) -> void:
-	var center := origin if eff.get("at", "self") == "self" else clamp_range(origin, aim, float(eff.get("max_range", 220)))
+	var center := origin if eff.get("at", "self") == "self" else clamp_reachable(origin, aim, float(eff.get("max_range", 220)))
 	var r := float(eff.get("radius", 100)) * float(ctx.radius_mult)
 	var targets: Array = select_targets(eff, ctx, center, aim) if eff.has("target") else hostile_in_radius(ctx, center, r, true)
 	var dir := (aim - origin).normalized()
@@ -828,8 +828,8 @@ func spawn_projectile(eff: Dictionary, ctx: Dictionary, origin: Vector2, dir: Ve
 		"tick_left": float(eff.get("tick", 0.0)), "start": origin,
 	}
 	if eff.get("arc", false) and aim != Vector2.INF:
-		# Mortar: flies over walls to the aim point and lands there.
-		var land := clamp_range(origin, aim, reach)
+		# Mortar: flies over props and heads to the aim point and lands there (#109: on this side of a wall).
+		var land := clamp_reachable(origin, aim, reach)
 		p.land = land
 		p.left = origin.distance_to(land)
 		p.dir = (land - origin).normalized()
@@ -1075,12 +1075,14 @@ func _zone_tick(z: Dictionary) -> void:
 	if str(z.ctx.get("skill", "")) == "priest_consecration" and is_instance_valid(z.ctx.get("caster")) and z.ctx.caster.stats.has_flag("radiant_consecration"):
 		for ra in allies_of(z.ctx.team, z.pos, z.radius):
 			heal(z.ctx, ra, ra.health.max_hp * 0.03 * float(eff.get("tick", 1.0)), false)
+	# #109: a zone works on its side of walls and closed doors only.
 	if eff.has("damage"):
 		for a in hostile_in_radius(z.ctx, z.pos, z.radius, true):
-			hit_target(a, eff, z.ctx, true)
+			if not wall_between(z.pos, a.global_position):
+				hit_target(a, eff, z.ctx, true)
 	if eff.has("heal"):
 		for a in allies_of(z.ctx.team, z.pos, z.radius):
-			if a.health.fraction() < float(eff.get("heal_below", 1.01)):
+			if a.health.fraction() < float(eff.get("heal_below", 1.01)) and not wall_between(z.pos, a.global_position):
 				heal(z.ctx, a, _heal_amount(eff, z.ctx, a, "heal"), false)
 	if eff.has("status_inside"):
 		var who := str(eff.get("affects", "enemies"))
@@ -1090,6 +1092,8 @@ func _zone_tick(z: Dictionary) -> void:
 		if who in ["allies", "all"]:
 			pool.append_array(allies_of(z.ctx.team, z.pos, z.radius))
 		for a in pool:
+			if wall_between(z.pos, a.global_position):
+				continue
 			a.status.apply(str(eff.status_inside), float(eff.get("tick", 1.0)) + 0.3, _magnitude(eff, z.ctx, a), z.ctx)
 	if eff.has("repel_enemies") and (not eff.has("repel_for") or float(eff.get("duration", 0.0)) * float(z.ctx.duration_mult) - z.left <= float(eff.repel_for)):
 		for a2 in enemies_of(z.ctx.team, z.pos, z.radius):
@@ -1182,7 +1186,7 @@ func _terrain(eff: Dictionary, ctx: Dictionary, origin: Vector2, aim: Vector2, d
 	if game == null:
 		return
 	var points: Array = []
-	var at := clamp_range(origin, aim, float(eff.get("max_range", 200))) if eff.get("at", "aim") == "aim" else origin
+	var at := clamp_reachable(origin, aim, float(eff.get("max_range", 200))) if eff.get("at", "aim") == "aim" else origin
 	var tile := float(game.dungeon.tile)
 	match str(eff.get("shape", "line")):
 		"line":

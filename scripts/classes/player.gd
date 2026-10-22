@@ -902,6 +902,9 @@ func preview_info(slot: int) -> Dictionary:
 	var sk := GameData.skill(str(skills[slot]))
 	var shape := SkillShape.of(sk, Combat.skill_numbers(stats, level, sk))
 	var aim := _cast_aim(slot)
+	# #109: an area (or a lob) lands on this side of the first wall or closed door.
+	if str(shape.kind) == "area" or shape.get("lob", false):
+		aim = CombatCore.reach_point(get_world_2d().direct_space_state, global_position, global_position + (aim - global_position).limit_length(float(shape.range)))
 	var why := ""
 	var cost := stats.cost_for(sk) if not sk.has("channel") and not sk.has("toggle") else 0.0
 	if local_cd.has(slot):

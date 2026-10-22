@@ -181,6 +181,34 @@ func clamp_range(origin: Vector2, aim: Vector2, max_range: float) -> Vector2:
 	return origin + (aim - origin).limit_length(max_range)
 
 
+## #109: walls and closed doors (not props): a ground-targeted skill can't be put down behind them.
+const WALL_MASK := 1 | 16
+
+
+## #109: the aim point of a ground-targeted effect: within `max_range` and on the caster's side of
+## the first wall or closed door between them (a meteor can't fall in the next room).
+func clamp_reachable(origin: Vector2, aim: Vector2, max_range: float) -> Vector2:
+	return reach_point(get_viewport().world_2d.direct_space_state, origin, clamp_range(origin, aim, max_range))
+
+
+## #109: a wall or a closed door stands between `a` and `b`.
+func wall_between(a: Vector2, b: Vector2) -> bool:
+	var space := get_viewport().world_2d.direct_space_state
+	return not space.intersect_ray(PhysicsRayQueryParameters2D.create(a, b, WALL_MASK)).is_empty()
+
+
+## #109: `target`, or the point just short of the first wall / closed door on the way from
+## `origin` (also used by the client's aim preview, so it shows where the spell will land).
+static func reach_point(space: PhysicsDirectSpaceState2D, origin: Vector2, target: Vector2) -> Vector2:
+	if space == null or origin.distance_to(target) < 1.0:
+		return target
+	var hit := space.intersect_ray(PhysicsRayQueryParameters2D.create(origin, target, WALL_MASK))
+	if hit.is_empty():
+		return target
+	var back: Vector2 = hit.position - (target - origin).normalized() * 6.0
+	return back if origin.distance_to(back) < origin.distance_to(hit.position) else origin
+
+
 ## Furthest point along dir (up to dist) that a body can reach without crossing walls/doors.
 func walkable_point(origin: Vector2, dir: Vector2, dist: float) -> Vector2:
 	var space := get_viewport().world_2d.direct_space_state

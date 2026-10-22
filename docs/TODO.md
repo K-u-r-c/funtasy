@@ -158,6 +158,7 @@ screenshot review at 1920x1080 and 3440x1440.
 - [x] #105 Meteor Strike is a tier-3 Pyromancer & Stormcaller node under Overload [3], Cataclysm at tier 5 under it; legacy heroes keep it free (`talents-mage`)
 - [x] #106 The starting skills are the shared root above the three branches (gold trunk into each); nodes that grew from them are branch roots, the priest's Holy Strike got a node; every branch starts alike (`talents-*`, `talents-lan`, tour `tenth`)
 - [x] #107 Ten skill slots on keys 1-9 and 0; on a pad LB held turns A/B/X/Y/RB into skills 6-10 (a tap of LB still uses Q, the Q radial opens with the stick); old loadouts and settings migrate (`gamepad`, `rebind*`, `classes-*`, `skills-lan`, `ui-layout`, tour `tenth`)
+- [x] #109 Ground-targeted skills (areas, zones, traps, deployables, delayed blasts like Meteor Strike, lobs) land on the caster's side of walls and closed doors; zone ticks don't pass walls; the aim preview shows the clamped point (`tuning`)
 
 ## Ninth playtest issues (GitHub #83-#100)
 
