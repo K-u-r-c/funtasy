@@ -150,7 +150,7 @@ screenshot review at 1920x1080 and 3440x1440.
 - [x] #55 A continued game resumes its floor: run seed and a floor snapshot in the save (monsters, boss / portal, items, props, chests, doors, torches, cells, Gold Key, merchant, every hero's place / HP / life state, every player's map), written on quit, window close, boss kill and every 20 s (`resume`, `resume-lan`; old saves still load)
 - [x] #60 The lobby preview of a saved hero shows its saved gear (replicated with the game info), on the host and every client (`resume`, `resume-lan`; lobby screenshot before / after)
 
-## Tenth playtest issues (GitHub #103-#110)
+## Tenth playtest issues (GitHub #103-#114)
 
 - [x] #108 Difficulty Easy / Medium / Hard with separate monster HP / damage multipliers (1.0 / 1.0, 1.5 / 1.25, 2.5 / 1.6); Easy is the old Normal, the lobby default is Medium; automated runs play on Easy unless `--set=difficulty:<i>` (`balance-*`, every LAN client)
 - [x] #103 Heroes' leech heals half its rating (`combat.leech_efficiency` 0.5, per hit and per area target); stat rows and skill tooltips show the healed share; monsters' leech, Leech Oil and proc heals unchanged (`tuning`)
@@ -160,6 +160,7 @@ screenshot review at 1920x1080 and 3440x1440.
 - [x] #107 Ten skill slots on keys 1-9 and 0; on a pad LB held turns A/B/X/Y/RB into skills 6-10 (a tap of LB still uses Q, the Q radial opens with the stick); old loadouts and settings migrate (`gamepad`, `rebind*`, `classes-*`, `skills-lan`, `ui-layout`, tour `tenth`)
 - [x] #109 Ground-targeted skills (areas, zones, traps, deployables, delayed blasts like Meteor Strike, lobs) land on the caster's side of walls and closed doors; zone ticks don't pass walls; the aim preview shows the clamped point (`tuning`)
 - [x] #110 Ranged monsters wait 1 s (`ai.ranged_reaction_delay`) after gaining or regaining sight of their target before the first shot; bosses and allies exempt (`tuning`)
+- [x] #112 Arena: leaving during the sealing warning calls it off (doors open, markers gone); coming back runs the full warning again (`events`, `events-lan`)
 
 ## Ninth playtest issues (GitHub #83-#100)
 

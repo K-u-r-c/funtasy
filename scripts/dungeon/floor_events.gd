@@ -32,6 +32,7 @@ var _wave_names: Array = []  ## host: the current arena wave's monsters
 var _outside := 0.0  ## host: how long no living hero has been inside the running arena
 var _tell_t := 0.0
 var _chest_shown := false  ## every peer: the arena's chest has risen
+var _seal_marks: Array = []  ## every peer (#112): the "Sealing" markers at the arena's doors
 
 
 static func def(id: String) -> Dictionary:
@@ -286,6 +287,15 @@ func _arena_tick(delta: float) -> void:
 				_arena_alarm.rpc("seal", {"lead": num("arena", "seal_warn", 3.0)})
 				_sync.rpc(state)
 		"sealing":
+			# #112: the arena only seals with a hero inside; leaving during the warning calls it off,
+			# and coming back starts the whole warning again.
+			if not _alive_heroes().any(func(p): return _arena_inside(p)):
+				a.state = "idle"
+				a.at = -1.0
+				log.append(["seal_cancelled"])
+				_arena_alarm.rpc("cancel", {})
+				_sync.rpc(state)
+				return
 			if t < float(a.at):
 				return
 			# Never shut a door on someone standing in it: wait until the doorways are clear.
@@ -712,7 +722,8 @@ func _open_shrine(offers: Array) -> void:
 
 
 ## Host -> all: the arena's dangerous moments, shown before they happen: "seal" (the doors flash
-## and a countdown), "wave" (rifts at the spawn spots with the wave number), "won", "lapsed".
+## and a countdown), "cancel" (#112: everyone left during the warning; the markers go), "wave"
+## (rifts at the spawn spots with the wave number), "won", "lapsed".
 @rpc("authority", "call_local", "reliable")
 func _arena_alarm(kind: String, data: Dictionary) -> void:
 	log.append(["alarm", kind])
@@ -723,9 +734,16 @@ func _arena_alarm(kind: String, data: Dictionary) -> void:
 				Telegraph.warned("arena_seal")
 			AudioManager.play_sfx("arena_horn", 0.0)
 			EventBus.hud_message.emit(Loc.t("The arena stirs - its doors are about to seal!"), UITheme.WARN)
+			_seal_marks.clear()
 			for door in _arena_doors():
-				Telegraph.ground(game.fx_root, door.world_rect.get_center(), maxf(door.world_rect.size.x, door.world_rect.size.y) * 0.75,
-					float(data.get("lead", 3.0)), "arena_door", Loc.t("Sealing"), UITheme.WARN, "")
+				_seal_marks.append(Telegraph.ground(game.fx_root, door.world_rect.get_center(), maxf(door.world_rect.size.x, door.world_rect.size.y) * 0.75,
+					float(data.get("lead", 3.0)), "arena_door", Loc.t("Sealing"), UITheme.WARN, ""))
+		"cancel":
+			for m in _seal_marks:
+				if is_instance_valid(m):
+					m.queue_free()
+			_seal_marks.clear()
+			EventBus.hud_message.emit(Loc.t("You left the arena - its trial waits for you to step back in"), UITheme.TEXT_DIM)
 		"wave":
 			if not multiplayer.is_server():
 				Telegraph.warned("arena_wave_%d" % int(data.get("wave", 1)))

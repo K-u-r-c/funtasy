@@ -410,8 +410,20 @@ func arena() -> void:
 		if not e.get_meta("event_ally", false):
 			e.queue_free()
 	var c: Vector2 = fe.entries.arena.center
+	# #112: stepping in and out again during the warning calls the sealing off.
+	var outside: Vector2 = _outside_arena()
+	await _near(c, 30.0)
+	await da._wait_until(func(): return str(fe.st("arena").get("state", "")) == "sealing", 3.0)
+	var n_enemies: int = g.enemies_root.get_child_count()
+	p.host_teleport(outside)
+	await da._wait(FloorEvents.num("arena", "seal_warn") + 1.5)
+	da.check(str(fe.st("arena").get("state", "")) == "idle" and fe._arena_doors().all(func(d): return not d.locked) and fe._wave_names.is_empty()
+			and g.enemies_root.get_child_count() <= n_enemies and fe.log.any(func(e): return e[0] == "seal_cancelled"),
+		"a hero who leaves during the warning leaves the arena unsealed, with no wave (%s)" % fe.st("arena").get("state"))
+	var t_in := Telegraph.now()
 	await _near(c, 30.0)
 	await da._wait_until(func(): return str(fe.st("arena").get("state", "")) == "fight", 8.0)
+	da.check(Telegraph.now() - t_in >= FloorEvents.num("arena", "seal_warn") - 0.1, "back inside, the full warning runs again before the doors seal (%.1f s)" % (Telegraph.now() - t_in))
 	var doors: Array = fe._arena_doors()
 	da.check(Telegraph.lead_of("arena_seal") >= FloorEvents.num("arena", "seal_warn") - 0.05 and doors.all(func(d): return d.locked and not d.is_open),
 		"the doors flash %.1f s (data %.1f), then the arena bars all %d doors" % [Telegraph.lead_of("arena_seal"), FloorEvents.num("arena", "seal_warn"), doors.size()])
@@ -439,6 +451,19 @@ func arena() -> void:
 	g.host_interact(p, chest)
 	await da._wait(0.6)
 	da.check(g.items_root.get_child_count() > n0 + 1, "the trial chest pays out")
+
+
+## A floor point just outside the arena room (#112), near one of its doors.
+func _outside_arena() -> Vector2:
+	var r: Rect2i = fe.room_of("arena")
+	for door in fe._arena_doors():
+		var dc: Vector2 = Rect2(door.world_rect).get_center()
+		for off in [Vector2(0, 48), Vector2(0, -48), Vector2(48, 0), Vector2(-48, 0)]:
+			var q: Vector2 = dc + off
+			var cell: Vector2i = g.dungeon.cell_of(q)
+			if DungeonGenerator.walkable(g.dungeon.cell_at(cell)) and not r.grow(1).has_point(cell):
+				return q
+	return g.nearest_floor(g.layout.start)
 
 
 func tracker_and_map() -> void:
@@ -525,6 +550,13 @@ func run_lan() -> void:
 	da.check(str(fe.st("cursed_chest").get("state", "")) == "mimic", "host: the client woke the mimic")
 	for e in g.enemies_root.get_children():
 		e.queue_free()
+	# #112: the client steps in and back out during the warning: the sealing is called off for both.
+	c.host_teleport(g.nearest_floor(fe.entries.arena.center + Vector2(0, 20)))
+	await da._wait_until(func(): return str(fe.st("arena").get("state", "")) == "sealing", 3.0)
+	c.host_teleport(_outside_arena())
+	await da._wait_until(func(): return fe.log.any(func(e): return e[0] == "seal_cancelled"), 3.0)
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["ev_arena_cancel", null])
+	await da._wait(1.0)
 	# The arena: the client steps in; both see the seal and the waves.
 	c.host_teleport(g.nearest_floor(fe.entries.arena.center + Vector2(0, 20)))
 	await da._wait_until(func(): return not fe._wave_names.is_empty(), 12.0)
@@ -577,6 +609,10 @@ func client_cmd(cmd: String, arg: Variant) -> void:
 			p.request_interact.rpc_id(1, NodePath(arg))
 			await da._wait(0.4)
 			da.check(fe.log.any(func(e): return e[0] == "wake") and Telegraph.log.has("mimic"), "client: I see the chest shudder before the mimic wakes")
+		"ev_arena_cancel":
+			da.check(fe.log.any(func(e): return e == ["alarm", "cancel"]) and str(fe.st("arena").get("state", "")) == "idle" and fe._arena_doors().all(func(d): return not d.locked)
+					and fe._seal_marks.is_empty(), "client: leaving during the warning called the sealing off (no markers, doors open)")
+			return
 		"ev_arena":
 			da.check(Telegraph.log.has("arena_seal") and fe._arena_doors().all(func(d): return d.locked) and str(fe.st("arena").get("state", "")) == "fight",
 				"client: the arena's warning came and its doors are barred")

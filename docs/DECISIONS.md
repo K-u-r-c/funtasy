@@ -1502,3 +1502,11 @@ Tree shapes since #106 (the starting skills are the shared root above the branch
 | Exempt | Bosses keep their tuned patterns (no delay); the heroes' allies (freed prisoners, player summons) aren't slowed. Behaviour modules that fire on their own trigger (a submerged ambush, the Ratman's flask when it flees, the Archives' echoes) keep their timing. |
 | Tests | `tuning`: an archer behind a closed door doesn't shoot; once the door opens it shoots after ~1 s (1.1-1.3 s measured, with the think tick); in constant sight the next shot follows a cooldown with no new delay; out of sight and back it waits again; a melee monster swings at once; a freed prisoner and a boss have no delay. `monsters`, `bosses`, `events` unchanged. |
 
+### #112 Arena: leaving during the warning calls the sealing off
+
+| Topic | Decision |
+| --- | --- |
+| Cause | In `"sealing"` the arena locked its doors once the warning ran out, without checking that a hero was still inside, so a hero who stepped back out shut an empty arena with its first wave and couldn't get back in until the trial lapsed. |
+| Rule | While the warning runs, the host checks every tick that a living hero is inside; if none is, the sealing is called off: state back to `"idle"`, doors stay open, the `"cancel"` alarm removes the "Sealing" markers on every peer and says "You left the arena - its trial waits for you to step back in". Walking in again starts the full warning from the beginning. A trial already sealed still lapses after `fail_time` as before. |
+| Tests | `events`: stepping in and out during the warning leaves the arena unsealed with no wave; back inside, the full warning runs again before the doors seal. `events-lan`: the client steps in and out; on the client the sealing is called off (markers gone, doors open). |
+
