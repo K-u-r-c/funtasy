@@ -75,6 +75,31 @@ func action_label(action: String) -> String:
 	return action
 
 
+## The data entry of `action` ({} if unknown).
+func action_def(action: String) -> Dictionary:
+	for a in action_defs():
+		if a.id == action:
+			return a
+	return {}
+
+
+## #107: two actions that may share one input (the skill page and a quick slot both on LB: the
+## player script tells a tap, a chord and a hold apart).
+func shares(a: String, b: String) -> bool:
+	return Array(action_def(a).get("shares_with", [])).has(b) or Array(action_def(b).get("shares_with", [])).has(a)
+
+
+## #107: the chord that works `action` on the current device when it has no binding of its own
+## there: [skill page code, base action code] (skills 6-10 on a pad are LB + A/B/X/Y/RB), or [].
+func chord_for(action: String, pad: bool = using_gamepad) -> Array:
+	var base := str(action_def(action).get("page_of", ""))
+	if base.is_empty() or not glyph_code(action, pad).is_empty():
+		return []
+	var m := glyph_code("skill_page", pad)
+	var c := glyph_code(base, pad)
+	return [] if m.is_empty() or c.is_empty() else [m, c]
+
+
 func default_bindings() -> Dictionary:
 	var out := {}
 	for a in action_defs():
@@ -87,7 +112,7 @@ func default_bindings() -> Dictionary:
 func bind(action: String, kind: String, index: int, code: String) -> PackedStringArray:
 	var removed: PackedStringArray = []
 	for other in bindings:
-		if other == action:
+		if other == action or shares(action, other):
 			continue
 		var list: Array = bindings[other][kind]
 		if list.has(code):
@@ -115,7 +140,7 @@ func clear_binding(action: String, kind: String, index: int) -> void:
 func conflicts_for(action: String, kind: String, code: String) -> PackedStringArray:
 	var out: PackedStringArray = []
 	for other in bindings:
-		if other != action and Array(bindings[other][kind]).has(code):
+		if other != action and not shares(action, other) and Array(bindings[other][kind]).has(code):
 			out.append(action_label(other))
 	return out
 
@@ -324,6 +349,24 @@ func _load_overrides() -> void:
 						list.append(str(code))
 				bindings[action][kind] = list
 	_migrate_enemy_lock(saved)
+	_fit_new_actions(saved)
+
+
+## #107: an action added after the settings were saved (skills 6-10, the skill page) takes its
+## defaults, minus any input the player already gave to another action.
+func _fit_new_actions(saved: Dictionary) -> void:
+	if saved.is_empty():
+		return
+	for action in bindings:
+		if saved.has(action):
+			continue
+		for kind in ["kbm", "pad"]:
+			var mine: Array = bindings[action][kind]
+			for code in mine.duplicate():
+				for other in bindings:
+					if other != action and saved.has(other) and not shares(action, other) and Array(bindings[other][kind]).has(code):
+						mine.erase(code)
+						break
 
 
 ## #53: settings saved while the enemy lock (#41) existed carry its "target_enemy" action, and

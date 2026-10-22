@@ -13,15 +13,18 @@ const LIVING_MASK := 1 | 4 | 8 | 16 | 32 | 64 | 128
 ## nothing collides with it (layer 0).
 const GHOST_MASK := 1 | 16 | 128
 
-const SLOT_ACTIONS := ["attack", "skill_1", "skill_2", "skill_3", "skill_4", "skill_5"]
+const SLOT_ACTIONS := ["attack", "skill_1", "skill_2", "skill_3", "skill_4", "skill_5",
+	"skill_6", "skill_7", "skill_8", "skill_9", "skill_10"]
+## #107: while "skill_page" is held, the inputs of slots 1-5 work slots 6-10 (the pad's second bar).
+const PAGE_SIZE := 5
 
 var peer_id := 1
 var class_id := "warrior"
 var class_def: Dictionary = {}
 var gender := "male"  ## body art (data/assets.json characters.genders); set at spawn
-var skills: Array = []:  ## the loadout: slot 0 = primary attack, 1..5 = skills (replicated)
+var skills: Array = []:  ## the loadout: slot 0 = primary attack, 1..10 = skills (replicated)
 	set(v):
-		skills = v
+		skills = pad_loadout(v)  # #107: an older six-slot loadout gets the new slots empty
 		if is_inside_tree() and is_local():
 			EventBus.local_loadout_changed.emit()
 
@@ -108,6 +111,11 @@ var _fall_left := 0.0  ## every peer: the "death" fall plays this long before th
 var _knock := Vector2.ZERO
 var _pending: Dictionary = {}
 var _quick_hold: Dictionary = {}
+var _quick_paged: Dictionary = {}  ## owner: quick slot -> its press also held the skill page (one pad button)
+var _quick_open: Dictionary = {}  ## owner: quick slot -> its radial is open
+var _quick_used: Dictionary = {}  ## owner: quick slot -> its hold cast a second-bar skill instead
+var _paged: Dictionary = {}  ## owner: slot 1-5 -> its press (still down) belongs to the second bar
+var _page_released: Dictionary = {}  ## owner: slot 1-5 -> a second-bar press ended this frame
 var _reviving_peer := 0
 var friendly_peer := 0  ## owner: the teammate ally spells go to (#39), 0 = none
 var _skill_hold: Dictionary = {}  ## owner: skill slot -> seconds its key has been held (#42)
@@ -235,7 +243,7 @@ func _host_init() -> void:
 		points_refunded.append("talent")
 	if not points_refunded.is_empty() and is_inside_tree():
 		get_tree().create_timer(2.0).timeout.connect(_notify_refund)
-	var lo: Array = ch.get("loadout", [])
+	var lo: Array = pad_loadout(ch.get("loadout", []))
 	skills = lo if loadout_error(lo).is_empty() else default_loadout()
 	resource.setup(class_def.resource, 0.0, true)
 	recompute_stats()
@@ -375,6 +383,16 @@ func default_loadout() -> Array:
 	while out.size() < SLOT_ACTIONS.size():
 		out.append("")
 	return out.slice(0, SLOT_ACTIONS.size())
+
+
+## #107: a loadout saved with fewer slots (6 before the ten skill keys) gets empty new slots.
+static func pad_loadout(lo: Array) -> Array:
+	var out := lo.duplicate()
+	if out.is_empty():
+		return out
+	while out.size() < SLOT_ACTIONS.size():
+		out.append("")
+	return out
 
 
 ## "" when `lo` is a valid loadout: a primary_ok skill first, then distinct unlocked active
@@ -655,32 +673,33 @@ func _owner_tick(delta: float) -> void:
 		_dodge_cd = float(GameData.bal("player.dodge_cooldown"))
 		request_dodge.rpc_id(1, _dodge_dir)
 	_handle_friendly_target()
-	# The primary attack repeats while held. Skills 1-5 (#42): a tap casts on release, a hold
-	# shows the aim preview and casts on release. Channelled and charge-up skills start on the
+	# The primary attack repeats while held. Skills 1-10 (#42, #107): a tap casts on release, a
+	# hold shows the aim preview and casts on release. Channelled and charge-up skills start on the
 	# press as before (the preview shows while they are held) and report the release.
+	_update_page()
 	for slot in SLOT_ACTIONS.size():
 		if slot >= skills.size() or str(skills[slot]).is_empty():
 			continue
-		var action: String = SLOT_ACTIONS[slot]
-		if Input.is_action_just_pressed(action) and (local_cd.has(slot) or _unaffordable(slot)):
+		var inp := slot_input(slot)
+		if inp[0] and (local_cd.has(slot) or _unaffordable(slot)):
 			EventBus.skill_refused.emit(slot)  # #81: the slot shakes
 		if slot > 0 and not _is_hold_skill(str(skills[slot])):
-			if Input.is_action_just_pressed(action):
+			if inp[0]:
 				_skill_hold[slot] = 0.0
-			elif Input.is_action_pressed(action) and _skill_hold.has(slot):
+			elif inp[1] and _skill_hold.has(slot):
 				_skill_hold[slot] = float(_skill_hold[slot]) + delta
-			if Input.is_action_just_released(action) and _skill_hold.has(slot):
+			if inp[2] and _skill_hold.has(slot):
 				_skill_hold.erase(slot)
 				if not local_cd.has(slot) and not _pending.has(slot):
 					_send_skill(slot)
 			continue
 		# A charge that fired or was cancelled needs a fresh press to start again (#54).
-		if Input.is_action_pressed(action) and not local_cd.has(slot) and not _pending.has(slot) and not _charge_held.has(slot):
+		if inp[1] and not local_cd.has(slot) and not _pending.has(slot) and not _charge_held.has(slot):
 			if slot == 0 and _click_select:
 				_pending[slot] = 0.3
 				continue
 			_send_skill(slot)
-		if Input.is_action_just_released(action) and _is_hold_skill(str(skills[slot])):
+		if inp[2] and _is_hold_skill(str(skills[slot])):
 			_charge_held.erase(slot)
 			request_skill_release.rpc_id(1, slot, _cast_aim(slot), global_position)
 	_handle_quick_slots(delta)
@@ -842,9 +861,39 @@ func preview_slot() -> int:
 	if best >= 0:
 		return best
 	for slot in range(1, mini(SLOT_ACTIONS.size(), skills.size())):
-		if _is_hold_skill(str(skills[slot])) and Input.is_action_pressed(SLOT_ACTIONS[slot]):
+		if _is_hold_skill(str(skills[slot])) and slot_input(slot)[1]:
 			return slot
 	return -1
+
+
+## #107, owner, once a frame: which of slots 1-5's presses belong to the second bar (made while
+## "skill_page" was held; they stay there until released, whatever the page does meanwhile).
+func _update_page() -> void:
+	var page := Input.is_action_pressed("skill_page")
+	_page_released.clear()
+	for b in range(1, PAGE_SIZE + 1):
+		var a: String = SLOT_ACTIONS[b]
+		if page and Input.is_action_just_pressed(a):
+			_paged[b] = true
+		elif _paged.has(b) and not Input.is_action_pressed(a):
+			_paged.erase(b)
+			_page_released[b] = true
+
+
+## #107, owner: the input of `slot` as [just pressed, held, just released]: its own action, and
+## for slots 6-10 also slot (n - 5)'s action pressed with the skill page held.
+func slot_input(slot: int) -> Array:
+	var a: String = SLOT_ACTIONS[slot]
+	var own := [Input.is_action_just_pressed(a), Input.is_action_pressed(a), Input.is_action_just_released(a)]
+	if slot >= 1 and slot <= PAGE_SIZE:
+		if _paged.has(slot) or _page_released.has(slot):
+			return [false, false, false]
+		return own
+	if slot > PAGE_SIZE:
+		var b := slot - PAGE_SIZE
+		var bj: bool = _paged.has(b) and Input.is_action_just_pressed(SLOT_ACTIONS[b])
+		return [own[0] or bj, own[1] or _paged.has(b), own[2] or _page_released.has(b)]
+	return own
 
 
 ## Owner (#42): what the preview of `slot` shows: {shape, origin, aim, why}; `why` is the reason
@@ -915,34 +964,55 @@ func _update_aim(move_dir: Vector2) -> void:
 			facing = d.normalized()
 
 
+## Q / E: a tap uses the slot's item, a hold opens the radial to choose it. #107: when the press
+## also holds the skill page (LB on a pad does both), a skill cast meanwhile uses no item, and the
+## radial waits for the right stick to move.
 func _handle_quick_slots(delta: float) -> void:
+	var paged_cast := false
+	for b in _paged:
+		paged_cast = paged_cast or Input.is_action_just_pressed(SLOT_ACTIONS[b])
 	for slot in ["q", "e"]:
 		var action: String = "quick_" + slot
+		var hud := get_tree().get_first_node_in_group("hud")
 		if Input.is_action_just_pressed(action):
 			_quick_hold[slot] = 0.0
+			_quick_paged[slot] = Input.is_action_pressed("skill_page")
+			_quick_open.erase(slot)
+			_quick_used.erase(slot)
 		elif Input.is_action_pressed(action) and _quick_hold.has(slot):
-			var before: float = _quick_hold[slot]
-			_quick_hold[slot] = before + delta
-			if before < InputSettings.hold_threshold and _quick_hold[slot] >= InputSettings.hold_threshold:
-				var hud := get_tree().get_first_node_in_group("hud")
-				if hud:
-					hud.open_radial(slot)
+			_quick_hold[slot] = float(_quick_hold[slot]) + delta
+			if paged_cast and _quick_paged.get(slot, false):
+				_quick_used[slot] = true
+				if _quick_open.has(slot) and hud:
+					hud.close_radial()
+				_quick_open.erase(slot)
+			var wants: bool = not _quick_paged.get(slot, false) or InputSettings.stick_aim() != Vector2.ZERO
+			if not _quick_open.has(slot) and not _quick_used.has(slot) and _quick_hold[slot] >= InputSettings.hold_threshold and wants and hud:
+				_quick_open[slot] = true
+				hud.open_radial(slot)
 		elif Input.is_action_just_released(action) and _quick_hold.has(slot):
 			var held: float = _quick_hold[slot]
 			_quick_hold.erase(slot)
-			var hud2 := get_tree().get_first_node_in_group("hud")
-			if held < InputSettings.hold_threshold:
+			if _quick_used.has(slot):
+				pass
+			elif _quick_open.has(slot):
+				if hud:
+					var picked: String = hud.close_radial()
+					if not picked.is_empty():
+						request_assign_quick.rpc_id(1, slot, picked)
+			elif held < InputSettings.hold_threshold:
 				request_use_quick.rpc_id(1, slot)
-			elif hud2:
-				var picked: String = hud2.close_radial()
-				if not picked.is_empty():
-					request_assign_quick.rpc_id(1, slot, picked)
+			_quick_open.erase(slot)
+			_quick_used.erase(slot)
 
 
 func _release_quick_holds() -> void:
+	_paged.clear()
 	if _quick_hold.is_empty():
 		return
 	_quick_hold.clear()
+	_quick_open.clear()
+	_quick_used.clear()
 	var hud := get_tree().get_first_node_in_group("hud")
 	if hud:
 		hud.close_radial()

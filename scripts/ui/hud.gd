@@ -376,7 +376,7 @@ func _build_bottom() -> void:
 	# #43: hovering a skill on the bar opens the same card as the Skill Book, with the numbers.
 	_slot_tip = SkillTooltip.new()
 	_root.add_child(_slot_tip)
-	for i in 6:
+	for i in Player.SLOT_ACTIONS.size():
 		var s := SkillSlot.new()
 		s.slot = i
 		row.add_child(s)

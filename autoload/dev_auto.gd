@@ -485,7 +485,7 @@ func _process(delta: float) -> void:
 	if scenario == "classes" and multiplayer.is_server():
 		p.resource.value = p.resource.max_value  # test only: every skill must get a turn
 	_skill_cycle += delta
-	var actions := ["attack", "skill_1", "skill_2", "skill_3", "skill_4", "skill_5"]
+	var actions := Player.SLOT_ACTIONS
 	var idx := int(_skill_cycle / 0.7) % actions.size()
 	for i in actions.size():
 		if i == idx or actions[i] == "attack":
@@ -556,7 +556,7 @@ func client_cmd(cmd: String, arg: Variant) -> void:
 			_aim_boss = arg is String and arg == "boss"
 			_fight = arg is String or bool(arg)
 			if not _fight:
-				for a in ["attack", "skill_1", "skill_2", "skill_3", "skill_4", "skill_5"]:
+				for a in Player.SLOT_ACTIONS:
 					Input.action_release(a)
 				if p:
 					p.auto_aim = Vector2.INF
@@ -1345,7 +1345,7 @@ func _boss_scenario() -> void:
 			print("[auto:host] boss %s at %d s: HP %d / %d, phase %d" % [boss.def_id, t, boss.health.hp, boss.health.max_hp, boss.phase])
 	_fight = false
 	_aim_boss = false
-	for a in ["attack", "skill_1", "skill_2", "skill_3", "skill_4", "skill_5"]:
+	for a in Player.SLOT_ACTIONS:
 		Input.action_release(a)
 	if NetworkManager.has_remote_peers():
 		NetworkManager.to_clients("DevAuto", "client_cmd", ["fight", false])
@@ -1519,7 +1519,7 @@ func _tank_scenario() -> void:
 			break
 		pass
 	_fight = false
-	for a in ["attack", "skill_1", "skill_2", "skill_3", "skill_4", "skill_5"]:
+	for a in Player.SLOT_ACTIONS:
 		Input.action_release(a)
 	NetworkManager.to_clients("DevAuto", "client_cmd", ["fight", false])
 	var share := float(on_tank) / maxf(samples, 1.0)
@@ -1963,10 +1963,10 @@ func _classes_scenario() -> void:
 	_fight = true
 	await _wait(10.0)
 	_fight = false
-	for a in ["attack", "skill_1", "skill_2", "skill_3", "skill_4", "skill_5"]:
+	for a in Player.SLOT_ACTIONS:
 		Input.action_release(a)
 	var used := Combat.instance.get_meta("uses", {}) as Dictionary
-	for i in 6:
+	for i in p.skills.size():
 		var sid: String = p.skills[i]
 		if sid.is_empty():
 			continue
@@ -2047,7 +2047,7 @@ func _primary_env_checks(g: Node, p: Player) -> void:
 func _starting_kit_checks(p: Player) -> void:
 	var cdef: Dictionary = GameData.classes[p.class_id]
 	var on_bar := p.skills.filter(func(x): return not str(x).is_empty())
-	check(p.skills.size() == 6 and str(p.skills[0]) == str(cdef.primary_attack) and on_bar.size() == 2
+	check(p.skills.size() == Player.SLOT_ACTIONS.size() and str(p.skills[0]) == str(cdef.primary_attack) and on_bar.size() == 2
 			and str(p.skills[1]) == str(cdef.skills[0]), "new %s starts with the primary + one skill: %s" % [p.class_id, p.skills])
 	check(p.unlocked_skills().size() == 2, "only the primary and the basic skill are known (%s)" % [p.unlocked_skills()])
 	check(int(p.to_character().get("kit", 0)) == GameState.KIT_VERSION, "a new hero is saved with the simple-start kit")
@@ -2071,7 +2071,9 @@ func _starting_kit_checks(p: Player) -> void:
 	var keep_ch: Dictionary = GameState.characters.get(p.peer_id, {})
 	GameState.characters[p.peer_id] = saved
 	p._host_init()
-	check(p.legacy_kit and p.skills == old_lo and p.talent_points == 0, "an old save keeps its full loadout for free (%s)" % [p.skills])
+	# #107: the old six-slot loadout comes back with the new slots empty.
+	check(p.legacy_kit and p.skills == Player.pad_loadout(old_lo) and p.skills.size() == Player.SLOT_ACTIONS.size() and p.talent_points == 0,
+			"an old save keeps its full loadout for free, padded to %d slots (%s)" % [Player.SLOT_ACTIONS.size(), p.skills])
 	check(not p.to_character().has("kit"), "an old save stays an old save")
 	if had_ch:
 		GameState.characters[p.peer_id] = keep_ch
@@ -2126,19 +2128,22 @@ func _gamepad_scenario() -> void:
 	_joy_button(JOY_BUTTON_B, false)
 	await _wait(0.2)
 	check(not hud.has_overlay(), "B closes the inventory")
-	# Radial menu: hold LB with a potion in the backpack, pick with the stick, release.
-	p.host_give_item(ItemGenerator.generate_consumable("potion_mana", 1, RandomNumberGenerator.new()))
-	p.host_give_item(ItemGenerator.generate_consumable("potion_health", 1, RandomNumberGenerator.new()))
+	# Radial menu: hold LB with a potion in the backpack, pick with the stick, release. #107: LB
+	# also holds the second skill bar, so the radial waits for the stick.
+	p.host_give_item(ItemGenerator.generate_consumable("potion_mana", 2, RandomNumberGenerator.new()))
+	p.host_give_item(ItemGenerator.generate_consumable("potion_health", 2, RandomNumberGenerator.new()))
 	await _wait(0.3)
 	_joy_button(JOY_BUTTON_LEFT_SHOULDER, true)
 	await _wait(InputSettings.hold_threshold + 0.2)
-	check(hud._radial != null, "holding LB opens the radial menu")
+	check(hud._radial == null, "holding LB alone keeps the second skill bar up, no radial yet")
 	_joy_axis(JOY_AXIS_RIGHT_Y, -1.0)
 	await _wait(0.2)
+	check(hud._radial != null, "holding LB and moving the right stick opens the radial menu")
 	_joy_button(JOY_BUTTON_LEFT_SHOULDER, false)
 	_joy_axis(JOY_AXIS_RIGHT_Y, 0.0)
 	await _wait(0.4)
 	check(hud._radial == null and not str(p.inv.quick.get("q", "")).is_empty(), "radial selection assigned Q = %s" % p.inv.quick.get("q", ""))
+	await _second_bar_checks(p, hud)
 	_joy_button(JOY_BUTTON_START, true)
 	await _wait(0.2)
 	_joy_button(JOY_BUTTON_START, false)
@@ -2148,6 +2153,50 @@ func _gamepad_scenario() -> void:
 	_joy_button(JOY_BUTTON_B, false)
 	await _wait(0.2)
 	check(not hud.has_overlay(), "B closes the pause menu")
+
+
+## #107: LB + A works skill 6 (no Q item, no radial), a tap of LB still uses the Q item, key 0
+## works skill 10, and the bar shows the chord on a pad.
+func _second_bar_checks(p: Player, hud: Node) -> void:
+	p.talents["w_s_battle_cry"] = 1
+	p.talents["w_s_charge"] = 1
+	var lo: Array = p.skills.duplicate()
+	lo[6] = "warrior_battle_cry"
+	lo[10] = "warrior_charge"
+	p.skills = lo
+	await _wait(0.2)
+	p.cooldowns.clear()
+	p.local_cd.clear()
+	p.resource.value = p.resource.max_value
+	var q_id := str(p.inv.quick.get("q", ""))
+	var q_count := p.inv.count_of(q_id)
+	_joy_button(JOY_BUTTON_LEFT_SHOULDER, true)
+	await _wait(0.1)
+	_joy_button(JOY_BUTTON_A, true)
+	await _wait(0.15)
+	_joy_button(JOY_BUTTON_A, false)
+	await _wait(0.1)
+	_joy_button(JOY_BUTTON_LEFT_SHOULDER, false)
+	await _wait(0.4)
+	check(p.cooldowns.has("warrior_battle_cry") and not p.cooldowns.has(str(p.skills[1])), "LB + A casts skill 6 (Battle Cry), not skill 1")
+	check(p.inv.count_of(q_id) == q_count and hud._radial == null, "LB + A uses no Q item and opens no radial")
+	var glyph: InputGlyph = hud._slots[6]._glyph
+	check(glyph._mod_code == "button:lb" and glyph._code == "button:a", "slot 6 shows LB + A on the pad (%s + %s)" % [glyph._mod_code, glyph._code])
+	p.health.hp = p.health.max_hp * 0.4
+	p.resource.value = p.resource.max_value * 0.4
+	_joy_button(JOY_BUTTON_LEFT_SHOULDER, true)
+	await _wait(0.08)
+	_joy_button(JOY_BUTTON_LEFT_SHOULDER, false)
+	await _wait(0.5)
+	check(p.inv.count_of(q_id) == q_count - 1, "a tap of LB still uses the Q item (%s: %d -> %d)" % [q_id, q_count, p.inv.count_of(q_id)])
+	p.health.hp = p.health.max_hp
+	p.resource.value = p.resource.max_value
+	Input.action_press("skill_10")
+	await _wait(0.15)
+	Input.action_release("skill_10")
+	await _wait(0.4)
+	check(p.cooldowns.has("warrior_charge"), "the skill 10 key (0) casts slot 10")
+	check(InputSettings.glyph_code("skill_10", false) == "key:0" and InputSettings.glyph_code("skill_6", false) == "key:6", "keys 6-0 are the keyboard defaults of slots 6-10")
 
 
 ## HUD and overlay layout across window shapes from 1:1 to 32:9. Works headless: the root
@@ -3160,7 +3209,7 @@ func _shots_flow() -> void:
 		await _wait(2.5)
 		await _snap(dir, "08_combat")
 		_fight = false
-		for a in ["attack", "skill_1", "skill_2", "skill_3", "skill_4", "skill_5"]:
+		for a in Player.SLOT_ACTIONS:
 			Input.action_release(a)
 	hud.open_overlay(hud.MapPanel.new())
 	await _wait(0.4)
@@ -3381,6 +3430,10 @@ func _rebind_test() -> void:
 	var cfg := SaveSystem.read_section(InputSettings.SECTION)
 	cfg["target_enemy"] = {"kbm": ["key:R"], "pad": ["button:dpad_left"]}
 	cfg["talents"] = {"kbm": ["key:T"], "pad": []}
+	# #107: settings saved before skills 6-10 and the skill page existed, with key 6 on the map.
+	for a in ["skill_6", "skill_7", "skill_8", "skill_9", "skill_10", "skill_page"]:
+		cfg.erase(a)
+	cfg["map"] = {"kbm": ["key:6"], "pad": ["button:dpad_up"]}
 	SaveSystem.write_section(InputSettings.SECTION, cfg)
 	_finish("rebind saved")
 
@@ -3404,6 +3457,19 @@ func _rebind_check() -> void:
 	for ev in InputMap.action_get_events("talents"):
 		dpad = dpad or (ev is InputEventJoypadButton and ev.button_index == JOY_BUTTON_DPAD_LEFT)
 	check(dpad, "Talents is back on D-Pad Left after loading settings saved with the enemy lock")
+	# #107: older settings get the new skill keys, except an input the player already used.
+	check(not _has_key("skill_6", KEY_6) and _has_key("map", KEY_6) and _has_key("skill_7", KEY_7) and _has_key("skill_10", KEY_0),
+			"settings saved before the ten skill keys get keys 7-0 (key 6 stays on the map the player put it on)")
+	var pads := InputSettings.bindings
+	check(Array(pads.skill_page.pad).has("button:lb") and Array(pads.quick_q.pad).has("button:lb"), "the skill page shares LB with quick item Q")
+	var listed2 := []
+	for a in InputSettings.action_defs():
+		listed2.append(str(a.id))
+	check(listed2.has("skill_6") and listed2.has("skill_10") and listed2.has("skill_page"), "the rebinding list shows skills 6-10 and the second skill bar")
+	check(InputSettings.conflicts_for("skill_page", "pad", "button:lb").is_empty() and InputSettings.bind("quick_q", "pad", 0, "button:lb").is_empty()
+			and Array(InputSettings.bindings.skill_page.pad).has("button:lb"), "LB on quick item Q and the skill page is no conflict")
+	check(InputSettings.chord_for("skill_8", true) == ["button:lb", "button:x"] and InputSettings.chord_for("skill_8", false).is_empty(),
+			"skill 8 shows LB + X on a pad and its own key on the keyboard")
 	InputSettings.reset_to_defaults()
 	check(_has_key("skill_1", KEY_1) and not _has_key("skill_1", KEY_J), "reset to defaults restores skill 1 = 1")
 	_finish("rebind checked")

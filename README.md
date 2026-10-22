@@ -65,8 +65,9 @@ ends the game for good (its save is deleted). Only the host can change the game 
 | Aim | Mouse cursor | Right stick |
 | Primary attack | Left mouse | RT |
 | Skills 1-5 (tap: cast; hold: aim preview, release to cast) | 1 2 3 4 5 | A B X Y RB |
+| Skills 6-10 | 6 7 8 9 0 | hold LB + A B X Y RB |
 | Dodge (i-frames) | Space or Shift | LT |
-| Quick items Q / E (tap: use, hold: radial menu) | Q / E | LB / D-pad Right |
+| Quick items Q / E (tap: use, hold: radial menu) | Q / E | LB (tap; hold + right stick: radial) / D-pad Right |
 | Interact / revive (hold): the target under the cursor, or the one you face on a pad | F | D-pad Down |
 | Target next ally (ally spells go to the pick; a click on a teammate picks, on empty ground clears) | Tab | R-Stick click |
 | Character / Inventory / Talents / Map | C / I / T / M | (menu tab) / View / D-pad Left / D-pad Up |
@@ -82,7 +83,7 @@ on the ground (that's how you give items to teammates), R / Y = put a potion on 
 
 - **Classes**: Warrior (Fury, melee tank/DPS), Ranger (Mana, ranged, traps, poison),
   Mage (Mana, elemental spells), Priest (Mana, holy tank/healer). 30 skills per class: talent
-  nodes unlock them, the Skill Book picks which 5 sit on keys 1-5. Three talent branches of 6 tiers
+  nodes unlock them, the Skill Book picks which 10 sit on keys 1-9 and 0. Three talent branches of 6 tiers
   each, grown as real trees: most nodes open after a specific earlier one, some paths fork (take
   one side or the other), and keystones end their paths at tiers 2 and 5. Every level gives 1
   talent point and 5 stat points.

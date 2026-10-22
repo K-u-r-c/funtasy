@@ -160,7 +160,7 @@ func options_switch() -> void:
 	await da._wait(0.8)
 	da.check(not hud.has_overlay(), "closing Options after a new language returns to the game")
 	await da._wait(0.3)
-	da.check(hud._floor_label.text.begins_with("Piętro") and hud._slots.size() == 6, "the HUD rebuilds in Polish (%s, %d slots)" % [hud._floor_label.text, hud._slots.size()])
+	da.check(hud._floor_label.text.begins_with("Piętro") and hud._slots.size() == Player.SLOT_ACTIONS.size(), "the HUD rebuilds in Polish (%s, %d slots)" % [hud._floor_label.text, hud._slots.size()])
 	p.add_xp(5)
 	await da._wait(0.3)
 

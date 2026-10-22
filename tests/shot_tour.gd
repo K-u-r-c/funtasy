@@ -2021,13 +2021,32 @@ func _ninth(_arg: String) -> void:
 	hud.close_overlay()
 
 
-## Tenth playtest (#103-#110): the talent tree with its shared root (#106).
+## Tenth playtest (#103-#110): the talent tree with its shared root (#106), the ten-key skill bar
+## and the Skill Book with ten slots filled (#107).
 func _tenth(arg: String) -> void:
 	var hud: Node = da.get_tree().get_first_node_in_group("hud")
 	p.iframe_left = 9999.0
+	p.host_take_torch()
 	var lang := arg if not arg.is_empty() else "en"
 	hud.open_overlay(hud.menu_panel("talents"))
 	await da._wait(0.8)
 	await snap("tenth_talents_%s_%s" % [p.class_id, lang])
+	hud.close_overlay()
+	await da._wait(0.3)
+	# Every skill node learned, ten of them on the bar.
+	var lo: Array = [p.skills[0]]
+	for nd in p.talent_tree().nodes:
+		if str(nd.get("type", "")) == "skill" and not p.is_free_node(nd):
+			p.talents[nd.id] = 1
+	for sid in p.unlocked_skills():
+		var sk := GameData.skill(str(sid))
+		if lo.size() < Player.SLOT_ACTIONS.size() and not lo.has(sid) and not sk.get("passive", false):
+			lo.append(sid)
+	p.skills = lo
+	await da._wait(0.5)
+	await snap("tenth_bar_%s_%s" % [p.class_id, lang])
+	hud.open_overlay(hud.menu_panel("skillbook"))
+	await da._wait(0.8)
+	await snap("tenth_skillbook_%s_%s" % [p.class_id, lang])
 	hud.close_overlay()
 	await da._wait(0.3)

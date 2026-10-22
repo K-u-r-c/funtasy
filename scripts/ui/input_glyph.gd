@@ -2,7 +2,8 @@ class_name InputGlyph
 extends Control
 ## On-screen button prompt for an input action, drawn as pixel art: gamepad face buttons as
 ## colored discs (A/B/X/Y), shoulders/triggers as pills, keys as key caps, mouse buttons as a
-## small mouse. Follows the last used device and the player's rebinding live.
+## small mouse. Follows the last used device and the player's rebinding live. An action worked
+## by a chord on this device (#107: skills 6-10 on a pad) shows both caps, "LB" then "A".
 
 const FACE_COLORS := {
 	"A": Color("5fcf6b"), "B": Color("f25050"), "X": Color("4aa3ff"), "Y": Color("f5be42"),
@@ -21,6 +22,8 @@ var code := "":
 
 var _code := ""
 var _text := ""
+var _mod_code := ""  ## the chord's modifier cap, "" for a plain binding
+var _mod_text := ""
 
 
 func _init(p_action: String = "") -> void:
@@ -39,12 +42,32 @@ func _refresh() -> void:
 	if not is_inside_tree():
 		return
 	_code = code if not code.is_empty() else InputSettings.glyph_code(action)
+	_mod_code = ""
+	if code.is_empty() and _code.is_empty():
+		var chord := InputSettings.chord_for(action)
+		if not chord.is_empty():
+			_mod_code = str(chord[0])
+			_code = str(chord[1])
+	_mod_text = InputSettings.glyph_text(_mod_code) if not _mod_code.is_empty() else ""
 	_text = InputSettings.glyph_text(_code) if not _code.is_empty() else "?"
 	update_minimum_size()
 	queue_redraw()
 
 
 func _get_minimum_size() -> Vector2:
+	if _mod_code.is_empty():
+		return _cap_size()
+	var keep := [_code, _text]
+	_code = _mod_code
+	_text = _mod_text
+	var m := _cap_size()
+	_code = keep[0]
+	_text = keep[1]
+	return Vector2(m.x + 1.0 + _cap_size().x, H)
+
+
+## The size of the cap of `_code` / `_text`.
+func _cap_size() -> Vector2:
 	var kind := _code.get_slice(":", 0)
 	if kind == "button" and FACE_COLORS.has(_text):
 		return Vector2(H, H)
@@ -63,8 +86,21 @@ func _font_size() -> int:
 
 
 func _draw() -> void:
+	var x := 0.0
+	if not _mod_code.is_empty():
+		var keep := [_code, _text]
+		_code = _mod_code
+		_text = _mod_text
+		x = _draw_cap(0.0) + 1.0
+		_code = keep[0]
+		_text = keep[1]
+	_draw_cap(x)
+
+
+## Draws the cap of `_code` / `_text` from `x`; returns its width.
+func _draw_cap(x: float) -> float:
 	var kind := _code.get_slice(":", 0)
-	var r := Rect2(Vector2.ZERO, get_minimum_size())
+	var r := Rect2(Vector2(x, 0), _cap_size())
 	r.position.y = roundf((size.y - r.size.y) / 2.0)
 	if kind == "button" and FACE_COLORS.has(_text):
 		_disc(r, FACE_COLORS[_text])
@@ -76,6 +112,7 @@ func _draw() -> void:
 		_pill(r)
 	else:
 		_keycap(r)
+	return r.size.x
 
 
 func _disc(r: Rect2, c: Color) -> void:

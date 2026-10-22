@@ -728,7 +728,7 @@ func run_lan() -> void:
 	lo[1] = "priest_penance"
 	lo[2] = "priest_heal"
 	if lo.count("priest_penance") > 1 or lo.count("priest_heal") > 1:
-		lo = ["priest_smite", "priest_penance", "priest_heal", "priest_holy_shield", "priest_consecration", "priest_rebuke"]
+		lo = Player.pad_loadout(["priest_smite", "priest_penance", "priest_heal", "priest_holy_shield", "priest_consecration", "priest_rebuke"])
 	c.resource._since_combat = 99.0
 	c.skills = lo
 	await da._wait(0.6)
@@ -749,8 +749,29 @@ func run_lan() -> void:
 	da.check(p.health.hp > php + 1.0, "the client's Flash Heal aimed at the host heals the host (%d -> %d)" % [php, p.health.hp])
 	await lan_interrupt(c, d)
 	await lan_charge(c, d)
+	await lan_slot9(c)
 	NetworkManager.to_clients("DevAuto", "client_cmd", ["done", null])
 	await da._wait(1.0)
+
+
+## #107 over LAN: the client's Skill Book sends an 11-slot loadout with a skill on slot 9; the
+## host accepts it, and the client's key 9 casts that skill on the host.
+func lan_slot9(c: Player) -> void:
+	await da._wait(1.0)
+	var t := c.talents.duplicate()
+	t["p_s_rebuke"] = 1
+	c.talents = t
+	c.recompute_stats()
+	c.resource._since_combat = 99.0
+	c.cooldowns.clear()
+	c.resource.value = c.resource.max_value
+	await da._wait(0.3)
+	NetworkManager.to_clients("DevAuto", "client_cmd", ["sk_slot9", null])
+	var ok: bool = await da._wait_until(func(): return c.skills.size() == Player.SLOT_ACTIONS.size() and str(c.skills[9]) == "priest_rebuke", 3.0)
+	da.check(ok, "the host accepts the client's 11-slot loadout with Rebuke on slot 9 (%s)" % [c.skills])
+	var key := "%s:%s" % [c.name, "priest_rebuke"]
+	var cast: bool = await da._wait_until(func(): return int(Combat.instance.get_meta("uses", {}).get(key, 0)) > 0 or c.cooldowns.has("priest_rebuke"), 4.0)
+	da.check(cast, "the client's key 9 casts Rebuke on the host")
 
 
 ## #26 over LAN: the client holds its primary (a melee swing with a pending impact) and taps
@@ -855,6 +876,15 @@ func client_cmd(cmd: String, arg: Variant) -> void:
 			else:
 				da.check(got.has(Loc.t(str(arg[2]))) and not p.local_cd.has(3) and p.charge_slot == -1,
 						"client: the cancelled charge says '%s' and starts no cooldown (%s)" % [arg[2], got])
+		"sk_slot9":
+			var lo: Array = Player.pad_loadout([p.skills[0]])
+			lo[9] = "priest_rebuke"
+			p.request_loadout.rpc_id(1, lo)
+			await da._wait_until(func(): return str(p.skills[9]) == "priest_rebuke", 3.0)
+			p.local_cd.clear()
+			Input.action_press("skill_9")
+			await da._wait(0.15)
+			Input.action_release("skill_9")
 		"sk_hold_attack":
 			p.auto_aim = arg
 			Input.action_press("attack")
