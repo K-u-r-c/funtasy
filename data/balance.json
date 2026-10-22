@@ -456,6 +456,8 @@
 		"friendly_click_radius": 16,
 		"enemy_click_radius": 14,
 		"max_traps": 3,
+		"_leech": "#103: heroes' leech heals this share of its rating (Leech 10% heals 5% of the damage); monsters' leech is unscaled.",
+		"leech_efficiency": 0.5,
 		"_immunity": "A monster 'immune' to a damage type (data immune, statuses immune_<type>) takes this much less of it instead of none (#22).",
 		"immunity_reduction": 0.8
 	},

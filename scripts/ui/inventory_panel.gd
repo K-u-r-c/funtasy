@@ -543,7 +543,7 @@ func _refresh_stats() -> void:
 		["Armor", "%d" % s.get("armor", 0)], ["DPS", "%.1f" % s.get("weapon_dps", 0)],
 		["Crit", "%d%%" % roundi(float(s.get("crit_chance", 0)) * 100)], ["Crit dmg", "+%d%%" % roundi(float(s.get("crit_damage", 0)) * 100)],
 		["Haste", "%d%%" % roundi(float(s.get("haste", 0)) * 100)], ["Dodge", "%d%%" % roundi(float(s.get("dodge", 0)) * 100)],
-		["Leech", "%d%%" % roundi(float(s.get("leech", 0)) * 100)], ["Level", "%d" % player.level],
+		["Leech", "%d%%" % roundi(Combat.leech_share(float(s.get("leech", 0)), float(s.get("leech_efficiency_mult", 1.0)), true) * 100)], ["Level", "%d" % player.level],
 	]
 	# Icon + value, the stat's name on hover (#29).
 	var icons := {"Health": "hud_health", "Mana": "stat_mana", "Fury": "stat_fury", "Strength": "stat_strength",

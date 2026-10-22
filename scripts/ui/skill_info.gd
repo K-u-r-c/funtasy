@@ -73,8 +73,9 @@ static func rows(p: Player, skill: Dictionary) -> Array:
 		out.append(_row(Loc.t("Scaling"), "%s %d" % [Loc.t(POWER_NAMES.get(str(nums.school), "Power")), roundi(float(nums.power))]))
 	if deals:
 		out.append(_row(Loc.t("Critical"), Loc.f("%d%% chance, +%d%% damage", [roundi(float(nums.crit_chance) * 100.0), roundi(float(nums.crit_damage) * 100.0)])))
-		if float(nums.leech) > 0.0:
-			out.append(_row(Loc.t("Leech"), Loc.f("%d%% of damage", [roundi(float(nums.leech) * 100.0)]), Kind.HEAL))
+		var leech := Combat.leech_share(float(nums.leech), st.mult("leech_efficiency"), true)
+		if leech > 0.0:
+			out.append(_row(Loc.t("Leech"), Loc.f("%d%% of damage", [roundi(leech * 100.0)]), Kind.HEAL))
 	for t in talent_rows(p, str(skill.get("id", ""))):
 		out.append(t)
 	return out

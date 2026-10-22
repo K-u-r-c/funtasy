@@ -171,6 +171,12 @@ func aim_enemy(ctx: Dictionary, origin: Vector2, aim: Vector2, reach: float, sna
 	return best
 
 
+## #103: the share of damage a leech hit heals: the Leech stat x leech healing, and for the
+## heroes' side x combat.leech_efficiency (leech heals half its rating; monsters' elites keep theirs).
+static func leech_share(leech: float, efficiency_mult: float, hero_side: bool) -> float:
+	return leech * efficiency_mult * (float(GameData.bal("combat.leech_efficiency", 1.0)) if hero_side else 1.0)
+
+
 func clamp_range(origin: Vector2, aim: Vector2, max_range: float) -> Vector2:
 	return origin + (aim - origin).limit_length(max_range)
 
@@ -448,7 +454,7 @@ func deal_damage(ctx: Dictionary, target: Actor, amount: float, opts: Dictionary
 			for pl in game.players_root.get_children():
 				if pl.is_alive() and pl.status.has_flag("party_leech"):
 					pl.health.heal(amount * float(GameData.bal("combat.party_leech", 0.2)))
-		var leech := float(ctx.leech) * caster.stats.mult("leech_efficiency")
+		var leech := leech_share(float(ctx.leech), caster.stats.mult("leech_efficiency"), caster.team == Actor.Team.PLAYERS)
 		if leech > 0.0 and caster.is_alive():
 			var healed := caster.health.heal(amount * leech * caster.stats.mult("healing_taken"))
 			if healed >= 1.0:

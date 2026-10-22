@@ -117,6 +117,7 @@ if [ "$WHAT" = all ] || [ "$WHAT" = quick ]; then
 	for c in warrior ranger mage priest; do
 		run balance-$c --auto=solo --class=$c --name=Bal --scenario=balance --quit=360
 	done
+	run tuning --auto=solo --class=mage --name=Tune --scenario=tuning --quit=120
 	run ui-layout --auto=solo --class=priest --name=Layout --scenario=ui_layout --quit=90
 	run ui-layout-pl --auto=solo --class=priest --name=Layout --scenario=ui_layout --lang=pl --quit=90
 	run spouts-sewers --auto=solo --class=ranger --name=Pipes --scenario=spouts --biome=sewers --quit=60

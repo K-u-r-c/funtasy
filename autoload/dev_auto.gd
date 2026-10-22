@@ -278,6 +278,8 @@ func _run() -> void:
 				await BalanceSuite.new(self).run_fresh()
 				await BalanceSuite.new(self).run()
 				await BalanceSuite.new(self).run_mods()
+			"tuning":
+				await TuningSuite.new(self).run()
 			"balance_mods":
 				await BalanceSuite.new(self).run_mods()
 			"biomes":

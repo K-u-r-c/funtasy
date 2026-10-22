@@ -1439,3 +1439,13 @@ Tree shapes ("A > B": B grows from A; {x / y}: branches; (x): a fork side; [n]: 
 | Rule | The lobby difficulty has three options, Easy / Medium / Hard, each with its own monster HP and damage multiplier in `data/game_settings.json` (`values`: `{"hp", "damage"}`): Easy 1.0 / 1.0 (the old Normal), Medium 1.5 / 1.25, Hard 2.5 / 1.6. `Game.spawn_mults` takes the pair (`Game.difficulty_mults`); normal monsters, elites, bosses, summons and event monsters all get it. The old 0.75 Easy is gone. |
 | Default | Medium. Lobby settings aren't saved between sessions, so every new lobby starts on Medium. |
 | Tests | Automated runs set Easy (the baseline the balance probes are tuned to) unless a test passes `--set=difficulty:<index>`. `balance-*`: the options and default, each option's pair, and a spawned normal / elite / boss scaled by exactly its pair; every LAN client checks it got the host's difficulty. |
+
+### #103 Leech heals 50% less
+
+| Topic | Decision |
+| --- | --- |
+| Rule | A leech hit by a hero (or a hero's summon) heals damage x Leech x leech healing (`leech_efficiency_mult`) x `combat.leech_efficiency` (0.5 in `data/balance.json`): Leech 10% heals 5% of each hit, still per target of an area. One coefficient, no source edited: item affixes, legendaries, talents, boons and pact statuses keep their Leech ratings. |
+| Display | Sources show their Leech rating ("+2% leech"); the character sheet's and inventory's Leech row and a skill tooltip's leech line show the share that really heals (`Combat.leech_share`), and the Leech row's description says it is half of the Leech on gear, talents and boons. |
+| Kept | Monsters' leech (the Vampiric elite) is unscaled. Not the Leech stat and unchanged: Hellfire Mitts' burn leech, Unholy Leech Oil's party leech, on-crit / on-heal proc heals, Feeding Shadows. |
+| Tests | `tuning`: a hit and an area's hits heal half their old share, the coefficient comes from data, the Leech rows and the skill tooltip show the healed share, a Vampiric elite keeps its full leech, Leech Oil still heals 20%. |
+
