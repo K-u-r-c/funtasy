@@ -10,17 +10,14 @@ extends UIModal
 ## #85: a click (or focus) selects a talent and its card stays; hovering another shows that one
 ## only while hovered. The card has a fixed width and scrolls (wheel, right stick). Learning is the
 ## Learn button, a double-click or accept on the selected talent.
-## #106: the starting skills (`GameData.TALENT_ROOT` nodes) sit in a row above the three branches,
-## centred across them, with a gold trunk line into every branch: the shared root of the tree.
 
 const LANES := 4
 const LANE_W := 44
-const ROW_H := 44
+const ROW_H := 52
 const HEAD_H := 42
 const BRANCH_PAD := 6
 const BRANCH_GAP := 8
 const TIERS := 6
-const ROOT_H := 50  ## the shared root row above the branches (#106)
 const LEFT_W := 22  ## the tier labels
 const LOCKED := Color("3a4560")
 const AVAILABLE := Color("6ee3f0")
@@ -69,18 +66,18 @@ func _build() -> void:
 	scroll.add_child(_canvas)
 	var branches: Array = _tree.get("branches", [])
 	var bw := LANES * LANE_W + BRANCH_PAD * 2
-	_canvas.custom_minimum_size = Vector2(LEFT_W + branches.size() * bw + (branches.size() - 1) * BRANCH_GAP, ROOT_H + HEAD_H + TIERS * ROW_H + 4)
+	_canvas.custom_minimum_size = Vector2(LEFT_W + branches.size() * bw + (branches.size() - 1) * BRANCH_GAP, HEAD_H + TIERS * ROW_H + 4)
 	scroll.custom_minimum_size = _canvas.custom_minimum_size.min(available_size() - Vector2(240, 80))
 	for bi in branches.size():
 		var br: Dictionary = branches[bi]
 		var x0 := LEFT_W + bi * (bw + BRANCH_GAP)
-		_canvas.branch_rects[br.id] = Rect2(x0, ROOT_H, bw, _canvas.custom_minimum_size.y - ROOT_H)
+		_canvas.branch_rects[br.id] = Rect2(x0, 0, bw, _canvas.custom_minimum_size.y)
 		_canvas.branch_tints[br.id] = BRANCH_TINTS[bi % BRANCH_TINTS.size()]
 		# The branch's emblem, its name and the points spent in it (#29).
 		var hrow := HBoxContainer.new()
 		hrow.alignment = BoxContainer.ALIGNMENT_CENTER
 		hrow.add_theme_constant_override("separation", 4)
-		hrow.position = Vector2(x0, ROOT_H + 2)
+		hrow.position = Vector2(x0, 2)
 		hrow.size = Vector2(bw, HEAD_H - 12)
 		hrow.tooltip_text = Loc.t(str(br.get("description", "")))
 		hrow.mouse_filter = Control.MOUSE_FILTER_PASS
@@ -95,10 +92,15 @@ func _build() -> void:
 		hrow.add_child(bl)
 		_branch_labels[br.id] = bl
 	for nd in _tree.get("nodes", []):
+		# #116: the starting skills (#106's shared root, known from the start) aren't drawn; the
+		# Skill Book shows them. Every branch begins under its heading with its own roots.
+		if str(nd.get("branch", "")) == GameData.TALENT_ROOT:
+			continue
 		var b := TalentNode.new()
 		b.node = nd.merged({"name": _node_name(nd)}, true)
 		b.icon_tex = _icon_for(nd)
-		b.custom_minimum_size = Vector2(40, 40) if str(nd.get("type", "")) == "keystone" else Vector2(34, 34)
+		b.custom_minimum_size = Vector2(44, 44) if str(nd.get("type", "")) == "keystone" else Vector2(38, 38)
+		b.position = node_center(nd) - b.custom_minimum_size / 2.0
 		b.size = b.custom_minimum_size
 		var nid := str(nd.id)
 		b.pressed.connect(func(): learn(nid))
@@ -107,10 +109,6 @@ func _build() -> void:
 		b.mouse_exited.connect(_show_selected)
 		_canvas.add_child(b)
 		_buttons[nid] = [b, nd]
-	# Placed once all exist: a root node's place depends on how many roots there are.
-	for nid2 in _buttons:
-		var b2: TalentNode = _buttons[nid2][0]
-		b2.position = node_center(_buttons[nid2][1]) - b2.custom_minimum_size / 2.0
 
 	var right := VBoxContainer.new()
 	right.add_theme_constant_override("separation", 8)
@@ -154,28 +152,11 @@ func _build() -> void:
 		_buttons[first][0].grab_focus.call_deferred()
 
 
-## Centre of a node in the canvas: its branch column, lane and tier row; a root node sits in the
-## root row, its lanes centred over the whole tree.
+## Centre of a node in the canvas: its branch column, lane and tier row.
 func node_center(nd: Dictionary) -> Vector2:
-	if is_root(nd):
-		var n := 0
-		for k in _buttons:
-			n += 1 if is_root(_buttons[k][1]) else 0
-		n = maxi(n, int(nd.get("col", 0)) + 1)
-		var mid := (LEFT_W + _canvas.custom_minimum_size.x) / 2.0
-		return Vector2(mid + (int(nd.get("col", 0)) - (n - 1) / 2.0) * LANE_W * 1.3, 23.0)
 	var r: Rect2 = _canvas.branch_rects.get(str(nd.get("branch", "")), Rect2())
 	return Vector2(r.position.x + BRANCH_PAD + (int(nd.get("col", 0)) + 0.5) * LANE_W,
-			ROOT_H + HEAD_H + (int(nd.get("tier", 0)) + 0.5) * ROW_H)
-
-
-static func is_root(nd: Dictionary) -> bool:
-	return str(nd.get("branch", "")) == GameData.TALENT_ROOT
-
-
-## The focus row: -1 for the shared root, else the tier.
-static func row_of(nd: Dictionary) -> int:
-	return -1 if is_root(nd) else int(nd.get("tier", 0))
+			HEAD_H + (int(nd.get("tier", 0)) + 0.5) * ROW_H)
 
 
 func _node_name(nd: Dictionary) -> String:
@@ -213,7 +194,7 @@ func _wire_focus() -> void:
 		var b: TalentNode = _buttons[id][0]
 		var nd: Dictionary = _buttons[id][1]
 		var c := node_center(nd)
-		var t := row_of(nd)
+		var t := int(nd.get("tier", 0))
 		var reqs: Array = nd.get("requires", [])
 		var up: Control = _buttons[str(reqs[0])][0] if not reqs.is_empty() and _buttons.has(str(reqs[0])) else _nearest(c, t - 1)
 		var kids := children_of(id)
@@ -234,7 +215,7 @@ func _nearest(c: Vector2, tier: int) -> Control:
 	var bd := INF
 	for id in _buttons:
 		var nd: Dictionary = _buttons[id][1]
-		if row_of(nd) == tier:
+		if int(nd.get("tier", 0)) == tier:
 			var d := absf(node_center(nd).x - c.x)
 			if d < bd:
 				bd = d
@@ -248,7 +229,7 @@ func _side(c: Vector2, tier: int, dir: int) -> Control:
 	for id in _buttons:
 		var nd: Dictionary = _buttons[id][1]
 		var x := node_center(nd).x
-		if row_of(nd) == tier and (x - c.x) * dir > 0.5 and absf(x - c.x) < bd:
+		if int(nd.get("tier", 0)) == tier and (x - c.x) * dir > 0.5 and absf(x - c.x) < bd:
 			bd = absf(x - c.x)
 			best = _buttons[id][0]
 	return best
@@ -369,8 +350,6 @@ func _show(node: Dictionary) -> void:
 	else:
 		tag += Loc.f(" - rank %d / %d", [rank, int(node.get("max_rank", 1))])
 	_card.add_child(_wrapped(tag, UITheme.CYAN))
-	if is_root(node):
-		_card.add_child(_wrapped(Loc.t("The shared root of all three branches: it opens none of them ahead of the others."), UITheme.TEXT_DIM))
 	# What it needs: the prerequisite (and its ranks), the points in the branch, the fork.
 	if not player.is_free_node(node):
 		for req in node.get("requires", []):
@@ -479,7 +458,7 @@ class TreeCanvas:
 				var dw := minf(float(_divider.get_width()), r.size.x - 12.0)
 				draw_texture_rect(_divider, Rect2(r.position + Vector2((r.size.x - dw) / 2.0, HEAD_H - 10), Vector2(dw, 14)), false, Color(1, 1, 1, 0.85))
 		for tier in TIERS:
-			var y := ROOT_H + HEAD_H + (tier + 0.5) * ROW_H
+			var y := HEAD_H + (tier + 0.5) * ROW_H
 			var key := tier == 2 or tier == 5
 			var txt := "T%d" % tier
 			draw_string(f, Vector2(2, y + 4), txt, HORIZONTAL_ALIGNMENT_LEFT, -1, UITheme.FONT_SMALL, UITheme.GOLD_DIM if key else UITheme.TEXT_DIM)
@@ -488,7 +467,6 @@ class TreeCanvas:
 				draw_colored_polygon(PackedVector2Array([d + Vector2(0, -3), d + Vector2(3, 0), d + Vector2(0, 3), d + Vector2(-3, 0)]), UITheme.GOLD_DIM)
 		if panel == null:
 			return
-		_draw_root(t)
 		# Lines: from the bottom of the prerequisite down to the child, elbowed at mid-row.
 		var forks := {}
 		for id in panel._buttons:
@@ -523,43 +501,6 @@ class TreeCanvas:
 			draw_colored_polygon(dia, Color("0b0f19"))
 			draw_polyline(dia + PackedVector2Array([dia[0]]), UITheme.GOLD_DIM, 1.0)
 			draw_string(f, m + Vector2(-w / 2.0, 3), or_txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, UITheme.GOLD)
-
-	## #106: a glass plate behind the shared root, a gold trunk from it into every branch's heading,
-	## and from each heading a line to the branch's roots (lit as those roots are).
-	func _draw_root(t: float) -> void:
-		var lo := INF
-		var hi := -INF
-		for id in panel._buttons:
-			if panel.is_root(panel._buttons[id][1]):
-				var rc: Vector2 = panel.node_center(panel._buttons[id][1])
-				lo = minf(lo, rc.x)
-				hi = maxf(hi, rc.x)
-		if lo > hi:
-			return
-		var plate := Rect2(lo - 30, 2, hi - lo + 60, 42)
-		draw_style_box(UITheme.cached_glass(Color("0b0f19e6"), UITheme.GOLD_DIM, 1, 0), plate)
-		var hub := Vector2((lo + hi) / 2.0, plate.end.y)
-		var fork_y := (plate.end.y + ROOT_H) / 2.0
-		for bid in branch_rects:
-			var r: Rect2 = branch_rects[bid]
-			var top := Vector2(r.get_center().x, r.position.y)
-			var trunk := PackedVector2Array([hub, Vector2(hub.x, fork_y), Vector2(top.x, fork_y), top])
-			draw_polyline(trunk, Color(LEARNED, 0.22), 6.0)
-			draw_polyline(trunk, LEARNED, 2.0)
-			var head := Vector2(top.x, r.position.y + HEAD_H - 24)
-			for id in panel._buttons:
-				var nd: Dictionary = panel._buttons[id][1]
-				if str(nd.get("branch", "")) != str(bid) or not nd.get("requires", []).is_empty():
-					continue
-				var b: Control = panel._buttons[id][0]
-				var state := "locked"
-				if b.closed:
-					state = "closed"
-				elif b.rank > 0 or b.free:
-					state = "learned"
-				elif b.can_learn or b.unlocked:
-					state = "available"
-				_line(head, panel.node_center(nd), state, t, 1.0)
 
 	func _line(a: Vector2, c: Vector2, state: String, t: float, fill: float) -> void:
 		# Straight from the bottom of the prerequisite to the top of the node.

@@ -457,7 +457,8 @@ func panel() -> void:
 	hud.open_overlay(hud.menu_panel("talents"))
 	await da._wait(0.6)
 	var tp: Node = hud._overlay
-	var nodes: int = p.talent_tree().nodes.size()
+	# #116: the starting skills (the shared root) aren't drawn.
+	var nodes: int = p.talent_tree().nodes.filter(func(nd): return str(nd.get("branch", "")) != GameData.TALENT_ROOT).size()
 	var buttons: Dictionary = tp._buttons
 	var seen := {}
 	var start: Control = buttons.values()[0][0]
@@ -485,31 +486,10 @@ func panel() -> void:
 			outside.append(id)
 	da.check(buttons.size() == nodes and reached == nodes, "the talent panel shows all %d nodes and the arrow keys / d-pad reach %d of them" % [nodes, reached])
 	da.check(outside.is_empty(), "every talent node lies inside the window (%s)" % [outside])
-	# #106: the root row sits above every branch, centred across the tree, and the d-pad climbs
-	# from a branch's root up to it and back down.
-	var top_branch := INF
-	var root_y := -INF
-	var xs: Array = []
-	var a_root: Control = null
-	var a_tier0: Control = null
+	# #116: no button for a starting skill; every branch's first row sits right under its heading.
+	var roots := buttons.values().filter(func(e): return str(e[1].get("branch", "")) == GameData.TALENT_ROOT)
+	var top := INF
 	for id in buttons:
-		var nd: Dictionary = buttons[id][1]
-		var b: Control = buttons[id][0]
-		if str(nd.get("branch", "")) == GameData.TALENT_ROOT:
-			root_y = maxf(root_y, b.position.y + b.size.y)
-			xs.append(b.position.x + b.size.x / 2.0)
-			a_root = b
-		else:
-			top_branch = minf(top_branch, b.position.y)
-			if int(nd.get("tier", 0)) == 0 and a_tier0 == null:
-				a_tier0 = b
-	var mid := 0.0
-	for x in xs:
-		mid += float(x) / xs.size()
-	var canvas_mid: float = (tp.LEFT_W + tp._canvas.size.x) / 2.0
-	da.check(not xs.is_empty() and root_y < top_branch and absf(mid - canvas_mid) < 4.0, "the shared root is drawn above the branches, centred across them (%.0f / %.0f)" % [mid, canvas_mid])
-	var up: Node = a_tier0.get_node_or_null(a_tier0.focus_neighbor_top) if a_tier0 else null
-	var down: Node = a_root.get_node_or_null(a_root.focus_neighbor_bottom) if a_root else null
-	da.check(up != null and str(up.node.get("branch", "")) == GameData.TALENT_ROOT and down != null and down.get("node") != null and int(down.node.get("tier", -1)) == 0,
-		"up from a branch root reaches the shared root, down from it a branch root")
+		top = minf(top, buttons[id][0].position.y)
+	da.check(roots.is_empty() and top < tp.HEAD_H + tp.ROW_H, "the starting skills aren't drawn; the branches start under their headings (top row at %.0f)" % top)
 	hud.close_overlay()

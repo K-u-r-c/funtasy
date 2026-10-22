@@ -1471,7 +1471,7 @@ Tree shapes since #106 (the starting skills are the shared root above the branch
 | Rule | The free starting skills (the primary attack and the class's basic skill: Fury Strike + Cleave, Aimed Shot + Power Shot, Frostbolt + Fireball, Holy Strike + Flash Heal) are talent nodes of the pseudo-branch `core` (`GameData.TALENT_ROOT`), in no branch. The priest's Holy Strike got its node (it had none). No branch node requires them, so every branch starts alike: a fresh hero finds only tier-0 nodes open, in each branch. |
 | Re-rooted | What grew from a starter becomes a tier-0 root of its branch: Brutal Cleave, Riposte, Piercing Bolt, Kindling, Flame Wave, Ice Barrier, Swift Mend (one point, no gate). Hunter's Mark / Steady Aim (the Sniper's tier-1 fork) grow from Multishot, Renew from Power Word: Shield. A hero whose learned talents no longer fit (e.g. Hunter's Mark without Multishot) is refunded on load (#47). |
 | Rules kept | `GameData.tree_problems` also checks that exactly the starters are in the root and that nothing requires them. Starters stay free, count toward no branch and can't be refunded; `legacy_starter` heroes keep their free nodes. |
-| Panel | A glass plate above the three branches holds the root nodes, centred across the tree; a gold trunk forks from it into the top of every branch, and from each branch heading a line runs to that branch's roots (lit like the roots). The card of a root node says it is the shared root. Arrows / d-pad: up from a branch root reaches the shared root, down from it a branch root. Rows are 44 px (was 52), nodes 34 px (38) and keystones 40 px (44), so the tree with its root row keeps the size every menu window shares. |
+| Panel | Superseded by #116: the starting skills are no longer drawn in the talent panel. (#106 drew them on a glass plate above the branches with a gold trunk and lines to each branch's roots, at smaller rows and nodes.) |
 | Tests | `talents-*`: the starting skills are the root, nothing requires them, a fresh hero's open nodes are tier 0 and alike in each branch (3-4), the root is drawn above the branches and centred, the d-pad climbs to it and back. Review: `--tour=tenth` (each class's tree). |
 
 ### #107 Ten skill slots on keys 1-9 and 0
@@ -1549,4 +1549,11 @@ Tree shapes since #106 (the starting skills are the shared root above the branch
 | Rule | The first hit a monster takes from the heroes' side (a hero or a hero's summon) calls the monsters within `threat.aggro_share_radius` (160 px), whether or not it was already aggro; each monster calls its pack once (a spotting counts too). The alerted ones get a little threat on the attacker. Specter's Softsteps still keeps monsters behind a wall or closed door calm (#111). |
 | Balance | Pulling one monster of a pack from range now brings the pack. The balance probes measure one monster at a time and are unchanged. |
 | Tests | `tuning`: a hit from out of sight range wakes the struck monster's two pack mates (their own think tick off); behind a closed door the pack hears the hit, but not from a hero wearing Specter's Softsteps. |
+
+### #116 Talent trees don't draw the starting skills
+
+| Topic | Decision |
+| --- | --- |
+| Rule | The talent panel skips the nodes of the shared root (`GameData.TALENT_ROOT`): the primary attack and the class's basic skill aren't drawn, so no root plate, trunk or lines cross the branch headings. The panel is the pre-#106 one (rows 52 px, nodes 38 px, keystones 44 px). The data rules of #106 stay: the starting skills belong to no branch, nothing requires them, every branch starts alike, they stay free and known from the start, and the Skill Book shows them. |
+| Tests | `talents-*`: the panel has no button for a starting skill, shows every branch node inside the window, the d-pad reaches all of them, and the top row sits right under the headings; `ui-layout`. Review: `--tour=tenth` (each class's tree). |
 
